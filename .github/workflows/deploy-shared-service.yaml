@@ -1,5 +1,12 @@
 name: deploy-shared-service-resources
 on:
+  push:
+    branches:
+      - main
+      - "*"
+    paths:
+      - "Terraform/deployments/dc-prod/deploy-app-base/primary/**/*"
+      - ".github/workflows/deploy-dc-preprod.yaml"
   workflow_dispatch:
     inputs:
       terragrunt_action:
@@ -13,11 +20,6 @@ on:
         description: "Apply even if no change is reported in the plan"
         required: false
         type: boolean
-
-  push:
-    paths:
-      - "Terraform/deployments/md-prod/deploy-app-base/primary/**/*"
-      - ".github/workflows/deploy-shared-service.yaml"
 
 env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
