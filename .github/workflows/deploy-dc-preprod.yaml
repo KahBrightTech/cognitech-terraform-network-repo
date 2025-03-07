@@ -81,7 +81,7 @@ jobs:
   approve:
     needs: plan
     runs-on: ubuntu-latest
-    if: github.event.inputs.terragrunt_action == 'apply' || github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event.inputs.terragrunt_action == 'apply' || github.event_name == 'push')
     environment:
       name: production
     steps:
