@@ -8,6 +8,7 @@ on:
     paths:
       - "Terraform/deployments/dc-prod/deploy-app-base/primary/**/*"
   pull_request:
+    types: [closed]
     branches:
       - main # Run on pull request merge into main
     paths:
