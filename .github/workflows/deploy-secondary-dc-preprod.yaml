@@ -1,4 +1,4 @@
-name: Deploy-Simple-Network
+name: Deploy-secondary-simple-Network
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
-      - "Terraform/deployments/dc-prod/deploy-app-base/primary/**/*"
+      - "Terraform/deployments/dc-prod/deploy-app-base/secondary/**/*"
   # pull_request:
   #   types: [closed]
   #   branches:
@@ -30,7 +30,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/dc-prod/deploy-app-base/primary
+  DEPLOYMENT_PATH: Terraform/deployments/dc-prod/deploy-app-base/secondary
 
 permissions:
   packages: write
