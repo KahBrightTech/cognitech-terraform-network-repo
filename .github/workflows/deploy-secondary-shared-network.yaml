@@ -1,4 +1,4 @@
-name: Deploy-primary-simple-Network
+name: Deploy-primary-shared-Network
 
 on:
   push:
@@ -6,13 +6,7 @@ on:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
-      - "Terraform/deployments/dc-prod/deploy-app-base/primary/**/*"
-  # pull_request:
-  #   types: [closed]
-  #   branches:
-  #     - main # Run on pull request merge into main
-  #   paths:
-  #     - "Terraform/deployments/dc-prod/deploy-app-base/primary/**/*"
+      - "Terraform/deployments/Shared-account/deploy/primary/**/*"
   workflow_dispatch:
     inputs:
       terragrunt_action:
@@ -30,7 +24,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/dc-prod/deploy-app-base/primary
+  DEPLOYMENT_PATH: Terraform/deployments/Shared-account/deploy/primary
 
 permissions:
   packages: write
@@ -59,28 +53,28 @@ jobs:
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ env.REGION }}
 
-      - name: Setup Terraform v1.11.1
+      - name: Setup Terraform
         uses: hashicorp/setup-Terraform@v1
         with:
           terraform_version: 1.11.1
           terraform_wrapper: false
 
-      - name: Setup Terraform version
+      - name: Verify Terraform version
         run: terraform --version
 
       - name: Setup Terraform wrapper path
         run: which terraform
 
-      - name: Setup Terragrunt v0.75.0
+      - name: Setup Terragrunt
         run: |
           sudo wget -q -O /bin/terragrunt "https://github.com/gruntwork-io/terragrunt/releases/download/v0.75.0/terragrunt_linux_amd64"
           sudo chmod +x /bin/terragrunt
 
-      - name: Terragrunt Init
+      - name: Initialiize Terragrunt
         id: init
         run: terragrunt init
 
-      - name: Terragrunt Plan
+      - name: Plan Terragrunt
         id: plan
         run: terragrunt run-all plan --terragrunt-non-interactive
 
@@ -112,23 +106,23 @@ jobs:
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ env.REGION }}
 
-      - name: Setup Terraform v1.11.1
+      - name: Setup Terraform
         uses: hashicorp/setup-Terraform@v1
         with:
           terraform_version: 1.11.1
           terraform_wrapper: false
 
-      - name: Setup Terraform version
+      - name: Verify Terraform version
         run: terraform --version
 
       - name: Setup Terraform wrapper path
         run: which terraform
 
-      - name: Setup Terragrunt v0.75.0
+      - name: Setup Terragrunt
         run: |
           sudo wget -q -O /bin/terragrunt "https://github.com/gruntwork-io/terragrunt/releases/download/v0.75.0/terragrunt_linux_amd64"
           sudo chmod +x /bin/terragrunt
 
-      - name: Terragrunt Apply
+      - name: Apply Terragrunt
         working-directory: ${{ env.DEPLOYMENT_PATH }}
         run: terragrunt run-all apply --terragrunt-non-interactive
