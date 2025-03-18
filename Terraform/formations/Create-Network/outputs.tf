@@ -32,22 +32,18 @@ output "pvt" {
       subnet_id         = module.private_subnets.secondary_subnet_id
       subnet_cidr       = module.private_subnets.secondary_subnet_cidr
     }
-    "tertiary_subnet" = (
-      module.private_subnets.tertiary.cidr_block != null ? {
-        availability_zone = module.private_subnets.tertiary_az
-        subnet_arn        = module.private_subnets.tertiary_subnet_arn
-        subnet_id         = module.private_subnets.tertiary_subnet_id
-        subnet_cidr       = module.private_subnets.tertiary_subnet_cidr
-      } : null
-    )
-    "quaternary_subnet" = (
-      module.private_subnets.quaternary.cidr_block != null ? {
-        availability_zone = module.private_subnets.quaternary_az
-        subnet_arn        = module.private_subnets.quaternary_subnet_arn
-        subnet_id         = module.private_subnets.quaternary_subnet_id
-        subnet_cidr       = module.private_subnets.quaternary_subnet_cidr
-      } : null
-    )
+    "tertiary_subnet" = {
+      availability_zone = module.private_subnets.tertiary_az
+      subnet_arn        = module.private_subnets.tertiary_subnet_arn
+      subnet_id         = module.private_subnets.tertiary_subnet_id
+      subnet_cidr       = module.private_subnets.tertiary_subnet_cidr
+    }
+    "quaternary_subnet" = {
+      availability_zone = module.private_subnets.quaternary_az
+      subnet_arn        = module.private_subnets.quaternary_subnet_arn
+      subnet_id         = module.private_subnets.quaternary_subnet_id
+      subnet_cidr       = module.private_subnets.quaternary_subnet_cidr
+    }
   }
 }
 
