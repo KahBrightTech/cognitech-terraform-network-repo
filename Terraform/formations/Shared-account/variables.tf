@@ -78,14 +78,14 @@ variable "vpcs" {
 
 variable "transit_gateway" {
   description = "values for transit gateway"
-  type = optional(object({
+  type = object({
     name                            = string
     default_route_table_association = bool
     default_route_table_propagation = bool
     auto_accept_shared_attachments  = bool
     dns_support                     = bool
     amazon_side_asn                 = number
-  }))
+  })
 }
 
 
