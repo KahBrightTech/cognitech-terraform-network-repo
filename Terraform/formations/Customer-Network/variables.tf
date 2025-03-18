@@ -9,9 +9,9 @@ variable "common" {
   })
   default = null
 }
-variable "vpcs" {
+variable "vpc" {
   description = "All VPC resources to be created"
-  type = list(object({
+  type = object({
     name       = string
     cidr_block = string
     private_subnets = object({
@@ -75,7 +75,7 @@ variable "vpcs" {
     transit_gateway = optional(object({
       name = string
     }))
-  }))
+  })
   default = null
 }
 

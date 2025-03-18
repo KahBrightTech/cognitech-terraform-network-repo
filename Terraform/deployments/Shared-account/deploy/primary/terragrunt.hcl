@@ -84,6 +84,9 @@ inputs = {
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
       }
+      transit_gateway = {
+        name = "tgw"
+      }
     }
   ]
 }

@@ -1,4 +1,4 @@
-output "customer_products" {
+output "Account_products" {
   description = "List of resources to be created"
-  value       = module.product_vpc
+  value       = module.shared_vpc
 }
