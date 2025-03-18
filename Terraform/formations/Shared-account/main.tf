@@ -11,6 +11,6 @@ module "shared_vpc" {
 #--------------------------------------------------------------------
 module "transit_gateway" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.42"
-  name   = var.vpc.transit_gateway.name
+  name   = var.vpcs.transit_gateway.name
   common = var.common
 }
