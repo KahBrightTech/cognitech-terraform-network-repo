@@ -73,12 +73,7 @@ variable "vpcs" {
       has_quaternary_subnet  = optional(bool, false)
     })
     transit_gateway = optional(object({
-      name                            = string
-      default_route_table_association = enable
-      default_route_table_propagation = enable
-      auto_accept_shared_attachments  = disable
-      dns_support                     = enable
-      amazon_side_asn                 = 64512
+      name = string
     }))
   }))
   default = null
