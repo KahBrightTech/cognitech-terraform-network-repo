@@ -87,10 +87,10 @@ inputs = {
   ]
   transit_gateway = {
     name                            = "tgw"
-    default_route_table_association = true
-    default_route_table_propagation = true
-    auto_accept_shared_attachments  = false
-    dns_support                     = true
+    default_route_table_association = enable
+    default_route_table_propagation = enable
+    auto_accept_shared_attachments  = disable
+    dns_support                     = enable
     amazon_side_asn                 = 64512
   }
 }
