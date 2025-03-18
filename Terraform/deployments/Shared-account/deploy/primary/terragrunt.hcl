@@ -84,7 +84,12 @@ inputs = {
         destination_cidr_block = "0.0.0.0/0"
       }
       transit_gateway = {
-        name = "tgw"
+        name                            = "tgw"
+        default_route_table_association = true
+        default_route_table_propagation = true
+        auto_accept_shared_attachments  = false
+        dns_support                     = true
+        amazon_side_asn                 = 64512
       }
     }
   ]

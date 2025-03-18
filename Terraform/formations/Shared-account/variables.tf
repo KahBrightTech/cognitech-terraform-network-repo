@@ -74,11 +74,11 @@ variable "vpcs" {
     })
     transit_gateway = optional(object({
       name                            = string
-      default_route_table_association = true
-      default_route_table_propagation = true
-      auto_accept_shared_attachments  = false
-      dns_support                     = true
-      amazon_side_asn                 = 64512
+      default_route_table_association = bool
+      default_route_table_propagation = bool
+      auto_accept_shared_attachments  = bool
+      dns_support                     = bool
+      amazon_side_asn                 = number
     }))
   }))
   default = null
