@@ -36,7 +36,6 @@ locals {
     }
   )
 }
-
 #-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
@@ -84,11 +83,16 @@ inputs = {
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
       }
-      transit_gateway = {
-        name = "tgw"
-      }
     }
   ]
+  transit_gateway = {
+    name                            = "tgw"
+    default_route_table_association = "enable"
+    default_route_table_propagation = "enable"
+    auto_accept_shared_attachments  = "disable"
+    dns_support                     = "enable"
+    amazon_side_asn                 = "64512"
+  }
 }
 
 #-------------------------------------------------------

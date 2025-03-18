@@ -55,8 +55,8 @@ variable "vpcs" {
     private_routes = object({
       nat_gateway_id         = optional(string)
       destination_cidr_block = optional(string)
-      primary_subnet_id      = string
-      secondary_subnet_id    = string
+      primary_subnet_id      = optional(string)
+      secondary_subnet_id    = optional(string)
       tertiary_subnet_id     = optional(string)
       quaternary_subnet_id   = optional(string)
       has_tertiary_subnet    = optional(bool, false)
@@ -72,13 +72,21 @@ variable "vpcs" {
       has_tertiary_subnet    = optional(bool, false)
       has_quaternary_subnet  = optional(bool, false)
     })
-    transit_gateway = optional(object({
-      name = string
-    }))
   }))
   default = null
 }
 
+variable "transit_gateway" {
+  description = "values for transit gateway"
+  type = object({
+    name                            = string
+    default_route_table_association = string
+    default_route_table_propagation = string
+    auto_accept_shared_attachments  = string
+    dns_support                     = string
+    amazon_side_asn                 = number
+  })
+}
 
 
 
