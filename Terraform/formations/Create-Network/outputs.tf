@@ -90,7 +90,7 @@ output "pub" {
       subnet_cidr       = module.public_subnets.secondary_subnet_cidr
     }
     "tertiary_subnet" = (
-      module.public_subnets.tertiary.cidr_block != null ? {
+      module.public_subnets.tertiary_cidr_block != null ? {
         availability_zone = module.public_subnets.tertiary_az
         subnet_arn        = module.public_subnets.tertiary_subnet_arn
         subnet_id         = module.public_subnets.tertiary_subnet_id
@@ -98,7 +98,7 @@ output "pub" {
       } : null
     )
     "quaternary_subnet" = (
-      module.public_subnets.quaternary.cidr_block != null ? {
+      module.public_subnets.quaternary_cidr_block != null ? {
         availability_zone = module.public_subnets.quaternary_az
         subnet_arn        = module.public_subnets.quaternary_subnet_arn
         subnet_id         = module.public_subnets.quaternary_subnet_id
