@@ -56,34 +56,34 @@ inputs = {
   }
 
   vpcs = [
-    {
-      name       = include.env.locals.environment
-      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.sit.vpc
-      private_subnets = {
-        name                       = "pvt"
-        primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.sit.private_subnets.primary
-        secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.sit.private_subnets.secondary
-      }
-      public_subnets = {
-        name                       = "pub"
-        primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.sit.public_subnets.primary
-        secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.sit.public_subnets.secondary
-      }
-      nat_gateway = {
-        name = "nat1"
-        type = local.external
-      }
-      private_routes = {
-        destination_cidr_block = "0.0.0.0/0"
-      }
-      public_routes = {
-        destination_cidr_block = "0.0.0.0/0"
-      }
-    }
+    # {
+    #   name       = include.env.locals.environment
+    #   cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.sit.vpc
+    #   private_subnets = {
+    #     name                       = "pvt"
+    #     primary_availabilty_zone   = local.region_blk.availability_zones.primary
+    #     primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.sit.private_subnets.primary
+    #     secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+    #     secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.sit.private_subnets.secondary
+    #   }
+    #   public_subnets = {
+    #     name                       = "pub"
+    #     primary_availabilty_zone   = local.region_blk.availability_zones.primary
+    #     primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.sit.public_subnets.primary
+    #     secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+    #     secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.sit.public_subnets.secondary
+    #   }
+    #   nat_gateway = {
+    #     name = "nat1"
+    #     type = local.external
+    #   }
+    #   private_routes = {
+    #     destination_cidr_block = "0.0.0.0/0"
+    #   }
+    #   public_routes = {
+    #     destination_cidr_block = "0.0.0.0/0"
+    #   }
+    # }
   ]
   transit_gateway = {
     name                            = "tgw"
