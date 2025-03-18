@@ -17,26 +17,56 @@ output "private_subnets" {
   description = "Output of all private subnets"
   value       = values(module.private_subnets)
 }
-# output "private_subnet" {
-#   description = "The private subnet resources"
-#   value = var.vpc != null ? {
-#     for key, item in var.vpc.private_subnets :
-#     item.name => module.private_subnets[item.name]
-#   } : null
-# }
+output "pvt" {
+  description = "The subnet details based on private_subnets module"
+  value = {
+    "primary_subnet" = {
+      availability_zone    = module.private_subnets.primary.availability_zone
+      availability_zone_id = module.private_subnets.primary.availability_zone_id
+      subnet_arn           = module.private_subnets.primary.arn
+      subnet_id            = module.private_subnets.primary.id
+      subnet_cidr          = module.private_subnets.primary.cidr_block
+    }
+    "secondary_subnet" = {
+      availability_zone    = module.private_subnets.secondary.availability_zone
+      availability_zone_id = module.private_subnets.secondary.availability_zone_id
+      subnet_arn           = module.private_subnets.secondary.arn
+      subnet_id            = module.private_subnets.secondary.id
+      subnet_cidr          = module.private_subnets.secondary.cidr_block
+    }
+    "tertiary_subnet" = (
+      module.private_subnets.tertiary.cidr_block != null ? {
+        availability_zone    = module.private_subnets.tertiary.availability_zone
+        availability_zone_id = module.private_subnets.tertiary.availability_zone_id
+        subnet_arn           = module.private_subnets.tertiary.arn
+        subnet_id            = module.private_subnets.tertiary.id
+        subnet_cidr          = module.private_subnets.tertiary.cidr_block
+      } : null
+    )
+    "quaternary_subnet" = (
+      module.private_subnets.quaternary.cidr_block != null ? {
+        availability_zone    = module.private_subnets.quaternary.availability_zone
+        availability_zone_id = module.private_subnets.quaternary.availability_zone_id
+        subnet_arn           = module.private_subnets.quaternary.arn
+        subnet_id            = module.private_subnets.quaternary.id
+        subnet_cidr          = module.private_subnets.quaternary.cidr_block
+      } : null
+    )
+  }
+}
 
-output "primary_private_subnet_ids" {
-  description = "The public subnet ids"
+output "primary_private_subnet_id" {
+  description = "The primary private subnet id"
   value       = module.private_subnets.primary_subnet_id
 }
-output "secondary_private_subnet_ids" {
-  description = "The public subnet ids"
+output "secondary_private_subnet_id" {
+  description = "The secondary private subnet id"
   value       = module.private_subnets.secondary_subnet_id
 
 }
 
 output "tertiary_private_subnet_ids" {
-  description = "The public subnet ids"
+  description = "The tertiary private subnet id"
   value       = module.private_subnets.tertiary_subnet_id
 
 }
@@ -48,27 +78,58 @@ output "public_subnets" {
   description = "Output of all public subnets"
   value       = values(module.public_subnets)
 }
-# output "public_subnet" {
-#   description = "The public subnet resources"
-#   value = var.vpc != null ? {
-#     for key, item in var.vpc.public_subnets :
-#     item.name => module.public_subnets[item.name]
-#   } : null
-# }
+output "pub" {
+  description = "The subnet details based on public_subnets module"
+  value = {
+    "primary_subnet" = {
+      availability_zone    = module.public_subnets.primary.availability_zone
+      availability_zone_id = module.public_subnets.primary.availability_zone_id
+      subnet_arn           = module.public_subnets.primary.arn
+      subnet_id            = module.public_subnets.primary.id
+      subnet_cidr          = module.public_subnets.primary.cidr_block
+    }
+    "secondary_subnet" = {
+      availability_zone    = module.public_subnets.secondary.availability_zone
+      availability_zone_id = module.public_subnets.secondary.availability_zone_id
+      subnet_arn           = module.public_subnets.secondary.arn
+      subnet_id            = module.public_subnets.secondary.id
+      subnet_cidr          = module.public_subnets.secondary.cidr_block
+    }
+    "tertiary_subnet" = (
+      module.public_subnets.tertiary.cidr_block != null ? {
+        availability_zone    = module.public_subnets.tertiary.availability_zone
+        availability_zone_id = module.public_subnets.tertiary.availability_zone_id
+        subnet_arn           = module.public_subnets.tertiary.arn
+        subnet_id            = module.public_subnets.tertiary.id
+        subnet_cidr          = module.public_subnets.tertiary.cidr_block
+      } : null
+    )
+    "quaternary_subnet" = (
+      module.public_subnets.quaternary.cidr_block != null ? {
+        availability_zone    = module.public_subnets.quaternary.availability_zone
+        availability_zone_id = module.public_subnets.quaternary.availability_zone_id
+        subnet_arn           = module.public_subnets.quaternary.arn
+        subnet_id            = module.public_subnets.quaternary.id
+        subnet_cidr          = module.public_subnets.quaternary.cidr_block
+      } : null
+    )
+  }
+}
 
-output "primary_public_subnet_ids" {
-  description = "The public subnet ids"
+
+output "primary_public_subnet_id" {
+  description = "The primary public subnet id"
   value       = module.public_subnets.primary_subnet_id
 
 }
 output "secondary_public_subnet_ids" {
-  description = "The public subnet ids"
+  description = "The secondary public subnet id"
   value       = module.public_subnets.secondary_subnet_id
 
 }
 
 output "tertiary_public_subnet_ids" {
-  description = "The public subnet ids"
+  description = "The tertiary public subnet id"
   value       = module.public_subnets.tertiary_subnet_id
 
 }
