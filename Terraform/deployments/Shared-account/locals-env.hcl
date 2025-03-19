@@ -5,10 +5,10 @@ locals {
   name_abr = "mdp"
 
   # Environment tags 
-  build       = "terraform"
-  compliance  = "hippaa"
-  environment = "Shared-services"
-  owner       = "kbrigthain@gmail.com"
+  build      = "terraform"
+  compliance = "hippaa"
+  account    = "Prod"
+  owner      = "kbrigthain@gmail.com"
 
   remote_state_bucket = {
     primary   = "terragruntuse1"
@@ -33,7 +33,7 @@ locals {
   # account_number = local.cloud.locals.account_name.kah.number
   # billing_code   = local.cloud.locals.billing_code_number.kah
   tags = {
-    Environment  = local.environment
+    Account      = local.account
     Owner        = local.owner
     Build-method = local.build
     Compliance   = local.compliance
