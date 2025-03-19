@@ -59,7 +59,7 @@ inputs = {
 
   vpcs = [
     {
-      name       = include.env.locals.environment
+      name       = local.vpc_name
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
       private_subnets = {
         name                       = "${local.vpc_name}-pvt"
