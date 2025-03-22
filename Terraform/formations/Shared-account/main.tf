@@ -22,6 +22,7 @@ module "transit_gateway_attachment" {
     primary_subnet_id   = module.shared_vpc.public_primary_subnet_id
     secondary_subnet_id = module.shared_vpc.public_secondary_subnet_id
     vpc_id              = module.shared_vpc.vpc_id
+    attachment_name     = var.tgw_attachments.attachment_name
   }
 }
 
@@ -32,6 +33,7 @@ module "transit_gateway_route" {
     {
       transit_gateway_id = module.shared_transit_gateway.transit_gateway_id
       route_table_id     = module.shared_vpc.public_route_table_id
+      vpc_cidr_block     = var.tgw_routes.vpc_cidr_block
     }
   ]
 }

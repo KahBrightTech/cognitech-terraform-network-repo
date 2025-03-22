@@ -100,7 +100,7 @@ inputs = {
   }
   tgw_routes = [
     {
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
+      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.mdpp.vpc
     }
   ]
 }
