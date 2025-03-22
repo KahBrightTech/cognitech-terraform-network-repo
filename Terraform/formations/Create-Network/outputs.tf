@@ -65,7 +65,7 @@ output "tertiary_private_subnet_ids" {
 
 output "private_route_table_id" {
   description = "The public route table id"
-  value       = module.private_route.public_route_table_id
+  value       = module.private_route.private_route_table_id
 
 }
 
