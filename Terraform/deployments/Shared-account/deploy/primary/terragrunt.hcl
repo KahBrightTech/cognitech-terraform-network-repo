@@ -88,13 +88,17 @@ inputs = {
     }
   ]
   transit_gateway = {
-    name                            = "tgw"
+    name                            = "shared-tgw"
     default_route_table_association = "enable"
     default_route_table_propagation = "enable"
     auto_accept_shared_attachments  = "disable"
     dns_support                     = "enable"
     amazon_side_asn                 = "64512"
   }
+  tgw_attachments = {}
+  tgw_routes = [
+    vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
+  ]
 }
 
 #-------------------------------------------------------

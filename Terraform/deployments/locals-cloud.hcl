@@ -10,7 +10,7 @@ locals {
 
   account_name = {
     Kah = {
-      name   = "prod"
+      name   = "mdpp"
       number = "485147667400"
     }
     int = {

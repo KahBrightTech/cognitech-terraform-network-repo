@@ -76,29 +76,9 @@ variable "vpcs" {
   default = null
 }
 
-variable "transit_gateway" {
-  description = "values for transit gateway"
-  type = object({
-    name                            = string
-    default_route_table_association = string
-    default_route_table_propagation = string
-    auto_accept_shared_attachments  = string
-    dns_support                     = string
-    amazon_side_asn                 = number
-    transit_gateway_id              = string
-    shared_subnet_ids               = optional(list(string))
-    app_subnet_ids                  = optional(list(string))
-    transit_gateway_name            = optional(string)
-    shared_vpc_name                 = optional(string)
-    shared_vpc_id                   = optional(string)
-    app_vpc_id                      = optional(string)
-  })
-}
-
-
 variable "tgw_attachments" {
   description = "The transit gateway attachment variables"
-  type = list(object({
+  type = object({
     transit_gateway_id                = string
     shared_public_primary_subnet_id   = optional(string)
     shared_public_secondary_subnet_id = optional(string)
@@ -107,19 +87,21 @@ variable "tgw_attachments" {
     app_subnet_ids                    = optional(list(string))
     transit_gateway_name              = optional(string)
     shared_vpc_name                   = optional(string)
-    shared_vpc_id                     = string
-    app_vpc_id                        = string
-  }))
+    shared_vpc_id                     = optional(string)
+    app_vpc_id                        = optional(string)
+  })
 }
+# variable "shared_vpc_id" {
+#   description = "The shared vpc id"
+#   type        = string
+# }
 
-variable "tgw_routes" {
-  description = "The transit gateway route variables"
-  type = list(object({
-    transit_gateway_id = string
-    route_table_id     = string
-    vpc_cidr_block     = string
+# variable "app_vpc_id" {
+#   description = "The app vpc id"
+#   type        = string
+# }
 
-  }))
-}
+
+
 
 
