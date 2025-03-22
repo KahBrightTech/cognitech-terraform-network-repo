@@ -63,6 +63,12 @@ output "tertiary_private_subnet_ids" {
 
 }
 
+output "private_route_table_id" {
+  description = "The public route table id"
+  value       = module.private_route.public_route_table_id
+
+}
+
 #-------------------------------------------------------
 # Public subnet outputs
 #-------------------------------------------------------
@@ -118,5 +124,10 @@ output "tertiary_public_subnet_ids" {
 
 }
 
+output "public_route_table_id" {
+  description = "The public route table id"
+  value       = module.public_route.public_route_table_id
+
+}
 
 
