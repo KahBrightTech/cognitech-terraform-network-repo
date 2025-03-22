@@ -19,12 +19,14 @@ module "shared_transit_gateway" {
 }
 
 module "transit_gateway_attachment" {
-  source                            = "../../modules/Transit-gateway-attachment"
-  common                            = var.common
-  transit_gateway_id                = module.shared_transit_gateway.transit_gateway_id
-  shared_public_primary_subnet_id   = module.shared_vpc.public_primary_subnet_id
-  shared_public_secondary_subnet_id = module.shared_vpc.public_secondary_subnet_id
-  shared_vpc_id                     = module.shared_vpc.vpc_id
+  source = "../../modules/Transit-gateway-attachments"
+  common = var.common
+  tgw_attachments = {
+    transit_gateway_id  = module.shared_transit_gateway.transit_gateway_id
+    primary_subnet_id   = module.shared_vpc.public_primary_subnet_id
+    secondary_subnet_id = module.shared_vpc.public_secondary_subnet_id
+    vpc_id              = module.shared_vpc.vpc_id
+  }
 }
 
 module "transit_gateway_route" {

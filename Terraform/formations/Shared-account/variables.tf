@@ -99,16 +99,14 @@ variable "transit_gateway" {
 variable "tgw_attachments" {
   description = "The transit gateway attachment variables"
   type = list(object({
-    transit_gateway_id                = string
-    shared_public_primary_subnet_id   = optional(string)
-    shared_public_secondary_subnet_id = optional(string)
-    app_private_primary_subnet_id     = optional(string)
-    app_private_secondary_subnet_id   = optional(string)
-    app_subnet_ids                    = optional(list(string))
-    transit_gateway_name              = optional(string)
-    shared_vpc_name                   = optional(string)
-    shared_vpc_id                     = string
-    app_vpc_id                        = string
+    transit_gateway_id   = string
+    transit_gateway_id   = string
+    primary_subnet_id    = optional(string)
+    secondary_subnet_id  = optional(string)
+    transit_gateway_name = optional(string)
+    shared_vpc_name      = optional(string)
+    vpc_id               = optional(string)
+    attachment_name      = optional(string)
   }))
 }
 
