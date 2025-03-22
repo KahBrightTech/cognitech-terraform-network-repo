@@ -1,5 +1,5 @@
 module "public_route" {
-  source = "../Create-Network"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.35"
 }
 
 module "shared_vpc" {
