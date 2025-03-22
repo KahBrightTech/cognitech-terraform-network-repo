@@ -3,7 +3,7 @@ module "public_route" {
 }
 
 module "shared_vpc" {
-  source   = ""
+  source   = "../Create-Network"
   for_each = { for vpc in var.vpcs : vpc.name => vpc }
   vpc      = each.value
   common   = var.common
