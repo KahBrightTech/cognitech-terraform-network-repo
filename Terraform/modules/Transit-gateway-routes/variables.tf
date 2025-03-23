@@ -18,6 +18,7 @@ variable "tgw_routes" {
     vpc_cidr_block     = string
     transit_gateway_id = string
   }))
+  default = null
 }
 
 # variable "route_table_id" {
