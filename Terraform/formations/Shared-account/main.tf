@@ -10,7 +10,7 @@ module "shared_vpc" {
 #--------------------------------------------------------------------
 module "transit_gateway" {
   source          = "../../modules/Transit-gateway"
-  transit_gateway = var.vpcs.transit_gateway
+  transit_gateway = var.transit_gateway
   common          = var.common
 }
 
