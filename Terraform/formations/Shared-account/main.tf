@@ -47,6 +47,7 @@ module "transit_gateway_route" {
   tgw_routes = [
     {
       transit_gateway_id = module.transit_gateway.transit_gateway_id
+      vpc_cidr_block     = var.tgw_routes.vpc_cidr_block
     }
   ]
 }
