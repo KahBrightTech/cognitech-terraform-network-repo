@@ -44,12 +44,11 @@ module "transit_gateway_route" {
   common     = var.common
   depends_on = [module.shared_vpc]
   for_each   = { for idx, route in var.tgw_routes : idx => route }
-  tgw_routes = [
-    {
-      name               = each.value.name
-      transit_gateway_id = module.transit_gateway.transit_gateway_id
-      route_table_id     = module.shared_vpc[var.tgw_attachments.name].public_route_table_id
-      vpc_cidr_block     = each.value.vpc_cidr_block
-    }
-  ]
+  tgw_routes = {
+    name               = each.value.name
+    transit_gateway_id = module.transit_gateway.transit_gateway_id
+    route_table_id     = module.shared_vpc[var.tgw_attachments.name].public_route_table_id
+    vpc_cidr_block     = each.value.vpc_cidr_block
+  }
+
 }
