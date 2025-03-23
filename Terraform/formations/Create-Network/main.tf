@@ -79,6 +79,18 @@ module "private_route" {
 }
 
 
+#--------------------------------------------------------------------
+# Transit Gateway - Creates Transit Gateway
+#--------------------------------------------------------------------
+module "transit_gateway" {
+  source          = "../../modules/Transit-gateway"
+  transit_gateway = var.vpcs.transit_gateway
+  common          = var.common
+}
+
+
+
+
 
 
 

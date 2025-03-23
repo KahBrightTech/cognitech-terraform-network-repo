@@ -72,57 +72,46 @@ variable "vpcs" {
       has_tertiary_subnet    = optional(bool, false)
       has_quaternary_subnet  = optional(bool, false)
     })
+    transit_gateway = optional(object({
+      name                            = string
+      default_route_table_association = string
+      default_route_table_propagation = string
+      auto_accept_shared_attachments  = string
+      dns_support                     = string
+      amazon_side_asn                 = number
+    }))
   }))
   default = null
 }
 
-variable "transit_gateway" {
-  description = "values for transit gateway"
-  type = object({
-    name                            = string
-    default_route_table_association = string
-    default_route_table_propagation = string
-    auto_accept_shared_attachments  = string
-    dns_support                     = string
-    amazon_side_asn                 = number
-    transit_gateway_id              = string
-    shared_subnet_ids               = optional(list(string))
-    app_subnet_ids                  = optional(list(string))
-    transit_gateway_name            = optional(string)
-    shared_vpc_name                 = optional(string)
-    shared_vpc_id                   = optional(string)
-    app_vpc_id                      = optional(string)
-  })
-}
 
+# variable "tgw_attachments" {
+#   description = "The transit gateway attachment variables"
+#   type = object({
+#     transit_gateway_id   = string
+#     primary_subnet_id    = string
+#     secondary_subnet_id  = optional(string)
+#     transit_gateway_name = optional(string)
+#     shared_vpc_name      = optional(string)
+#     attachment_name      = optional(string)
+#   })
+# }
 
-variable "tgw_attachments" {
-  description = "The transit gateway attachment variables"
-  type = object({
-    transit_gateway_id   = string
-    primary_subnet_id    = string
-    secondary_subnet_id  = optional(string)
-    transit_gateway_name = optional(string)
-    shared_vpc_name      = optional(string)
-    attachment_name      = optional(string)
-  })
-}
-
-variable "vpc_id" {
-  description = "The vpc id"
-  type        = string
-  default     = null
-}
-variable "tgw_routes" {
-  description = "The transit gateway route variables"
-  type = list(object({
-    transit_gateway_id = string
-  }))
-}
-variable "route_table_id" {
-  description = "The id of the route table"
-  type        = string
-  default     = null
-}
+# variable "vpc_id" {
+#   description = "The vpc id"
+#   type        = string
+#   default     = null
+# }
+# variable "tgw_routes" {
+#   description = "The transit gateway route variables"
+#   type = list(object({
+#     transit_gateway_id = string
+#   }))
+# }
+# variable "route_table_id" {
+#   description = "The id of the route table"
+#   type        = string
+#   default     = null
+# }
 
 
