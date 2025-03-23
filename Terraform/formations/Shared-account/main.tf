@@ -18,18 +18,22 @@ module "transit_gateway" {
 module "transit_gateway_attachment" {
   source = "../../modules/Transit-gateway-attachments"
   common = var.common
-  vpc_id = [module.shared_vpc.vpc_id]
+  vpc_id = module.shared_vpc[var.vpcs.name].vpc_id
   depends_on = [
     module.shared_vpc,
     module.transit_gateway
   ]
   tgw_attachments = {
-    transit_gateway_id  = module.transit_gateway.transit_gateway_id
-    primary_subnet_id   = [module.shared_vpc.primary_public_subnet_id]
-    secondary_subnet_id = [module.shared_vpc.secondary_public_subnet_id]
-    attachment_name     = var.tgw_attachments.attachment_name
+    transit_gateway_id = module.transit_gateway.transit_gateway_id
+    subnet_ids = [
+      module.shared_vpc[var.vpcs.name].primary_public_subnet_id,
+      module.shared_vpc[var.vpcs.name].secondary_public_subnet_id,
+    ]
+    attachment_name = var.tgw_attachments.attachment_name
   }
 }
+
+# The output for the shared vpc comes from the create vpc formation hence has an object with all the variables
 
 # module "transit_gateway_route" {
 #   source         = "../../modules/Transit-gateway-routes"
