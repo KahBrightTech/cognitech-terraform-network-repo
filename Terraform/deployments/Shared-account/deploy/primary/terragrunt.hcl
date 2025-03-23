@@ -99,6 +99,7 @@ inputs = {
     attachment_name = local.vpc_name
   }
 
+
   # tgw_routes = [
   #   {
   #     vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
