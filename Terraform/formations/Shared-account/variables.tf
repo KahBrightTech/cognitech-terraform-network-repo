@@ -100,11 +100,11 @@ variable "transit_gateway" {
 #   })
 # }
 
-# variable "vpc_id" {
-#   description = "The vpc id"
-#   type        = string
-#   default     = null
-# }
+variable "vpc_id" {
+  description = "The vpc id"
+  type        = string
+  default     = null
+}
 # variable "tgw_routes" {
 #   description = "The transit gateway route variables"
 #   type = list(object({
