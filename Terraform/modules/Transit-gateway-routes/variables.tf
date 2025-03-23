@@ -15,8 +15,6 @@ variable "tgw_routes" {
   type = list(object({
     transit_gateway_id = string
     route_table_id     = string
-    vpc_cidr_block     = string
-
   }))
 }
 

@@ -32,6 +32,5 @@ module "transit_gateway_route" {
   tgw_routes = {
     transit_gateway_id = module.shared_transit_gateway.transit_gateway_id
     route_table_id     = module.shared_vpc.public_route_table_id
-    vpc_cidr_block     = var.tgw_routes[0].vpc_cidr_block
   }
 }
