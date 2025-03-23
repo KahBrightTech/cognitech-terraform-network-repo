@@ -12,9 +12,9 @@ variable "common" {
 
 variable "tgw_routes" {
   description = "The transit gateway route variables"
-  type = list(object({
+  type = object({
     transit_gateway_id = string
-  }))
+  })
 }
 
 variable "route_table_id" {
