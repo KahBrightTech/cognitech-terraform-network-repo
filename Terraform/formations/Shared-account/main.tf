@@ -5,6 +5,16 @@ module "shared_vpc" {
   common   = var.common
 }
 
+#--------------------------------------------------------------------
+# Transit Gateway - Creates Transit Gateway
+#--------------------------------------------------------------------
+module "transit_gateway" {
+  source          = "../../modules/Transit-gateway"
+  transit_gateway = var.vpcs.transit_gateway
+  common          = var.common
+}
+
+
 # module "transit_gateway_attachment" {
 #   source     = "../../modules/Transit-gateway-attachments"
 #   common     = var.common
