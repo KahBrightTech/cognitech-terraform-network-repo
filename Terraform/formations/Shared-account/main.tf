@@ -20,8 +20,8 @@ module "transit_gateway_attachment" {
   common = var.common
   vpc_id = module.shared_vpc.vpc_id
   depends_on = [
-    -module.shared_vpc
-    -module.transit_gateway
+    module.shared_vpc,
+    module.transit_gateway
   ]
   tgw_attachments = {
     transit_gateway_id  = module.transit_gateway.transit_gateway_id
