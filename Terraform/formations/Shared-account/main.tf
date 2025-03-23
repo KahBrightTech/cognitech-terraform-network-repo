@@ -44,8 +44,9 @@ module "transit_gateway_route" {
   common         = var.common
   route_table_id = module.shared_vpc[var.tgw_attachments.name].public_route_table_id
   depends_on     = [module.shared_vpc]
-  tgw_routes = {
-    transit_gateway_id = module.transit_gateway.transit_gateway_id
-  }
-
+  tgw_routes = [
+    {
+      transit_gateway_id = module.transit_gateway.transit_gateway_id
+    }
+  ]
 }
