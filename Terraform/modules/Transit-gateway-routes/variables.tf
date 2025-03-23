@@ -14,7 +14,6 @@ variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({
     transit_gateway_id = string
-    vpc_cidr_block     = string
   }))
 }
 
@@ -24,6 +23,10 @@ variable "route_table_id" {
 }
 
 
+variable "vpc_cidr_block" {
+  description = "The cidr block for the destination vpc"
+  type        = string
+}
 
 
 

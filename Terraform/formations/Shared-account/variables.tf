@@ -119,4 +119,8 @@ variable "vpc_id" {
   default     = null
 }
 
+variable "vpc_cidr_block" {
+  description = "The cidr block for the destination vpc"
+  type        = string
+}
 
