@@ -84,7 +84,7 @@ module "private_route" {
 #--------------------------------------------------------------------
 module "transit_gateway" {
   source          = "../../modules/Transit-gateway"
-  transit_gateway = var.vpcs.transit_gateway
+  transit_gateway = var.vpc.transit_gateway
   common          = var.common
 }
 
