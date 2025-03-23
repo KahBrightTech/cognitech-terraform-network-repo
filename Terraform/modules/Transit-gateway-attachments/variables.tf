@@ -17,9 +17,13 @@ variable "tgw_attachments" {
     secondary_subnet_id  = string
     transit_gateway_name = optional(string)
     shared_vpc_name      = optional(string)
-    vpc_id               = string
     attachment_name      = optional(string)
   })
+}
+
+variable "vpc_id" {
+  description = "The vpc id"
+  type        = string
 }
 
 
