@@ -12,8 +12,8 @@ module "vpc" {
 # Subnets - Creates private subnets
 #--------------------------------------------------------------------
 module "private_subnets" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/subnets/private_subnets?ref=v1.38"
-  # for_each        = { for private_subnet in var.vpc.private_subnets : private_subnet.name => private_subnet }
+  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/subnets/private_subnets?ref=v1.38"
+  for_each        = { for private_subnet in var.vpc.private_subnets : private_subnet.name => private_subnet }
   vpc_id          = module.vpc.vpc_id
   private_subnets = var.vpc.private_subnets
   common          = var.common
