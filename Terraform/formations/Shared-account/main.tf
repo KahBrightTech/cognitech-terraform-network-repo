@@ -25,8 +25,8 @@ module "transit_gateway_attachment" {
   ]
   tgw_attachments = {
     transit_gateway_id  = module.transit_gateway.transit_gateway_id
-    primary_subnet_id   = module.shared_vpc.pub.primary_public.subnet_id
-    secondary_subnet_id = module.shared_vpc.pub.secondary_public.subnet_id
+    primary_subnet_id   = module.shared_vpc.pub.primary_subnet.subnet_id
+    secondary_subnet_id = module.shared_vpc.pub.secondary_subnet.subnet_id
     attachment_name     = var.tgw_attachments.attachment_name
   }
 }
