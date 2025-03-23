@@ -40,14 +40,15 @@ module "transit_gateway_attachment" {
 #--------------------------------------------------------------------
 
 module "transit_gateway_route" {
-  source         = "../../modules/Transit-gateway-routes"
-  common         = var.common
-  route_table_id = module.shared_vpc[var.tgw_attachments.name].public_route_table_id
-  vpc_cidr_block = var.vpc_cidr_block
-  depends_on     = [module.shared_vpc]
+  source     = "../../modules/Transit-gateway-routes"
+  common     = var.common
+  depends_on = [module.shared_vpc]
   tgw_routes = [
     {
+      name               = var.tgw_routes.name
       transit_gateway_id = module.transit_gateway.transit_gateway_id
+      route_table_id     = module.shared_vpc[var.tgw_attachments.name].public_route_table_id
+      vpc_cidr_block     = var.tgw_routes.vpc_cidr_block
     }
   ]
 }

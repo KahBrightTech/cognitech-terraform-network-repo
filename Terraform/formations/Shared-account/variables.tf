@@ -102,25 +102,16 @@ variable "tgw_attachments" {
 variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({
-    transit_gateway_id = optional(string)
+    name               = string
+    route_table_id     = string
+    vpc_cidr_block     = string
+    transit_gateway_id = string
   }))
   default = null
 }
 
-variable "route_table_id" {
-  description = "The id of the route table"
-  type        = string
-  default     = null
-}
-
 variable "vpc_id" {
   description = "The vpc id"
-  type        = string
-  default     = null
-}
-
-variable "vpc_cidr_block" {
-  description = "The cidr block for the destination vpc"
   type        = string
   default     = null
 }
