@@ -96,7 +96,6 @@ variable "tgw_attachments" {
     transit_gateway_name = optional(string)
     name                 = optional(string)
   })
-  default = null
 }
 
 variable "vpc_id" {
