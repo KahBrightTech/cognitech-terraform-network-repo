@@ -96,7 +96,7 @@ inputs = {
     amazon_side_asn                 = "64512"
   }
   tgw_attachments = {
-    attachment_name = local.vpc_name
+    name = local.vpc_name
   }
   # tgw_routes = [
   #   {

@@ -18,7 +18,7 @@ module "transit_gateway" {
 module "transit_gateway_attachment" {
   source = "../../modules/Transit-gateway-attachments"
   common = var.common
-  vpc_id = module.shared_vpc[var.vpc.name].vpc_id
+  vpc_id = module.shared_vpc[var.tgw_attachments.name].vpc_id
   depends_on = [
     module.shared_vpc,
     module.transit_gateway
@@ -26,10 +26,10 @@ module "transit_gateway_attachment" {
   tgw_attachments = {
     transit_gateway_id = module.transit_gateway.transit_gateway_id
     subnet_ids = [
-      module.shared_vpc[var.vpc.name].primary_public_subnet_id,
-      module.shared_vpc[var.vpc.name].secondary_public_subnet_id,
+      module.shared_vpc[var.tgw_attachments.name].primary_public_subnet_id,
+      module.shared_vpc[var.tgw_attachments.name].secondary_public_subnet_id,
     ]
-    attachment_name = var.tgw_attachments.attachment_name
+    name = var.tgw_attachments.name
   }
 }
 
