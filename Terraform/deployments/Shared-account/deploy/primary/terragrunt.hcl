@@ -134,4 +134,3 @@ generate "aws-providers" {
   }
   EOF
 }
-
