@@ -19,6 +19,7 @@ variable "tgw_attachments" {
     shared_vpc_name      = optional(string)
     attachment_name      = optional(string)
   })
+  default = null
 }
 
 variable "vpc_id" {
