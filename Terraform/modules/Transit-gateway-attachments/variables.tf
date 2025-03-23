@@ -25,6 +25,7 @@ variable "tgw_attachments" {
 variable "vpc_id" {
   description = "The vpc id"
   type        = string
+  default     = "null"
 }
 
 
