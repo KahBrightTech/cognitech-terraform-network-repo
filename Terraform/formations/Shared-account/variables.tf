@@ -103,8 +103,8 @@ variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({
     transit_gateway_id = optional(string)
-    vpc_cidr_block     = string
   }))
+  default = null
 }
 
 variable "route_table_id" {
