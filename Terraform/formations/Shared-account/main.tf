@@ -14,7 +14,9 @@ module "transit_gateway" {
   common          = var.common
 }
 
-
+#--------------------------------------------------------------------
+# Transit Gateway attacments - Creates Transit Gateway attachments
+#--------------------------------------------------------------------
 module "transit_gateway_attachment" {
   source = "../../modules/Transit-gateway-attachments"
   common = var.common
@@ -26,23 +28,24 @@ module "transit_gateway_attachment" {
   tgw_attachments = {
     transit_gateway_id = module.transit_gateway.transit_gateway_id
     subnet_ids = [
-      module.shared_vpc[var.tgw_attachments.name].primary_public_subnet_id,
+      module.shared_vpc[var.tgw_attachments.name].primary_public_subnet_id, # The output for the shared vpc comes from the create vpc formation hence has an object with all the variables
       module.shared_vpc[var.tgw_attachments.name].secondary_public_subnet_id,
     ]
     name = var.tgw_attachments.name
   }
 }
 
-# The output for the shared vpc comes from the create vpc formation hence has an object with all the variables
+#--------------------------------------------------------------------
+# Transit Gateway routes - Creates Transit Gateway routes
+#--------------------------------------------------------------------
 
-# module "transit_gateway_route" {
-#   source         = "../../modules/Transit-gateway-routes"
-#   common         = var.common
-#   route_table_id = module.shared_vpc.public_route_table_id
-#   depends_on     = [module.shared_vpc]
-#   tgw_routes = [
-#     {
-#       transit_gateway_id = module.shared_transit_gateway.transit_gateway_id
-#     }
-#   ]
-# }
+module "transit_gateway_route" {
+  source         = "../../modules/Transit-gateway-routes"
+  common         = var.common
+  route_table_id = module.shared_vpc[var.tgw_attachments.name].public_route_table_id
+  depends_on     = [module.shared_vpc]
+  tgw_routes = {
+    transit_gateway_id = module.transit_gateway.transit_gateway_id
+  }
+
+}
