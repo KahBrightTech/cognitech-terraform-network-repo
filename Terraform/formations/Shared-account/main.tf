@@ -29,8 +29,9 @@ module "transit_gateway_attachment" {
 module "transit_gateway_route" {
   source = "../../modules/Transit-gateway-routes"
   common = var.common
-  tgw_routes = {
+  tgw_routes = [{
     transit_gateway_id = module.shared_transit_gateway.transit_gateway_id
     route_table_id     = module.shared_vpc.public_route_table_id
-  }
+    }
+  ]
 }
