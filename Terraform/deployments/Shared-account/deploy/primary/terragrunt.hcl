@@ -100,7 +100,7 @@ inputs = {
   }
   tgw_routes = [
     {
-      name           = local.vpc_name
+      name           = "dev"
       vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
     }
   ]
