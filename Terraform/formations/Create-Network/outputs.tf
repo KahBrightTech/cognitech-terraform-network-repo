@@ -113,7 +113,7 @@ output "primary_public_subnet_id" {
   value       = module.public_subnets.primary_subnet_id
 
 }
-output "secondary_public_subnet_ids" {
+output "secondary_public_subnet_id" {
   description = "The secondary public subnet id"
   value       = module.public_subnets.secondary_subnet_id
 
