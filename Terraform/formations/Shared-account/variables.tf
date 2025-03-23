@@ -91,8 +91,8 @@ variable "transit_gateway" {
 variable "tgw_attachments" {
   description = "The transit gateway attachment variables"
   type = object({
-    transit_gateway_id   = optional(string)
-    subnet_ids           = optional(list(string))
+    transit_gateway_id   = string
+    subnet_ids           = list(string)
     transit_gateway_name = optional(string)
     name                 = optional(string)
   })

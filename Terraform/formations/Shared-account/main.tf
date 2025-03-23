@@ -16,6 +16,7 @@ module "transit_gateway" {
 
 
 module "transit_gateway_attachment" {
+  count  = var.transit_gateway != null ? 0 : 1
   source = "../../modules/Transit-gateway-attachments"
   common = var.common
   vpc_id = module.shared_vpc[var.tgw_attachments.name].vpc_id
