@@ -21,16 +21,6 @@ variable "tgw_routes" {
   default = null
 }
 
-# variable "route_table_id" {
-#   description = "The id of the route table"
-#   type        = string
-# }
-
-
-# variable "vpc_cidr_block" {
-#   description = "The cidr block for the destination vpc"
-#   type        = string
-# }
 
 
 
