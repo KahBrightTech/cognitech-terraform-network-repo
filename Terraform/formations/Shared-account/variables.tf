@@ -109,6 +109,7 @@ variable "tgw_routes" {
 variable "route_table_id" {
   description = "The id of the route table"
   type        = string
+  default     = null
 }
 
 variable "vpc_id" {
