@@ -107,7 +107,7 @@ variable "tgw_routes" {
     vpc_cidr_block     = string
     transit_gateway_id = optional(string)
   }))
-  default = null
+  default = []
 }
 
 variable "vpc_id" {
