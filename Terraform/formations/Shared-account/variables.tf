@@ -111,6 +111,7 @@ variable "tgw_attachments" {
 variable "vpc_id" {
   description = "The vpc id"
   type        = string
+  default     = null
 }
 variable "tgw_routes" {
   description = "The transit gateway route variables"
@@ -121,6 +122,7 @@ variable "tgw_routes" {
 variable "route_table_id" {
   description = "The id of the route table"
   type        = string
+  default     = null
 }
 
 
