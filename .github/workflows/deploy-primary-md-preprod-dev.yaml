@@ -24,7 +24,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: erraform/deployments/md-preproduction/Tenant-account/Dev/deploy/primary
+  DEPLOYMENT_PATH: Terraform/deployments/md-preproduction/Tenant-account/Dev/deploy/primary
 
 permissions:
   packages: write

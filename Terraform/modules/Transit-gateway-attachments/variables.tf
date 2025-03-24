@@ -16,6 +16,8 @@ variable "tgw_attachments" {
     subnet_ids           = list(string)
     transit_gateway_name = optional(string)
     name                 = optional(string)
+    shared_vpc_name      = optional(string)
+    customer_vpc_name    = optional(string)
   })
   default = null
 }

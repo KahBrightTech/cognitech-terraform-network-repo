@@ -15,7 +15,7 @@ data "aws_vpc" "shared_vpc" {
   }
 }
 
-data "aws_subnet" "primary" {
+data "aws_subnet" "primary-public" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.shared_vpc.id]
@@ -23,7 +23,19 @@ data "aws_subnet" "primary" {
 
   filter {
     name   = "tag:Name"
-    values = "${var.common.account_name}-${var.common.region_prefix}-${var.public_subnets.name}-primary"
+    values = "${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-pub-primary"
+  }
+}
+
+data "aws_subnet" "secondary-public" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.shared_vpc.id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = "${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-pub-secondary"
   }
 }
 
@@ -37,11 +49,21 @@ module "customer_vpc" {
   common   = var.common
 }
 
+#--------------------------------------------------------------------
+# Transit Gateway attacments - Creates Transit Gateway attachments
+#--------------------------------------------------------------------
 module "transit_gateway_attachment" {
-  source                          = "../../modules/Transit-gateway-attachment"
-  common                          = var.common
-  transit_gateway_id              = data.aws_ec2_transit_gateway.tgw.id
-  app_private_primary_subnet_id   = module.customer_vpc.private_primary_subnet_id
-  app_private_secondary_subnet_id = module.customer_vpc.private_secondary_subnet_id
-  app_vpc_id                      = module.customer_vpc.vpc_id
+  source = "../../modules/Transit-gateway-attachment"
+  common = var.common
+  vpc_id = module.customer_vpc[var.mis.customer_vpc_name].vpc_id
+  tgw_attachments = {
+    transit_gateway_id = data.aws_ec2_transit_gateway.tgw.id
+    subnet_ids = [
+      data.aws_subnet.primary-public.id,
+      data.aws_subnet.secondary-public.id
+    ]
+    transit_gateway_name = var.tgw_attachments.transit_gateway_name
+    shared_vpc_name      = var.misc.shared_vpc_name
+    customer_vpc_name    = var.misc.customer_vpc_name
+  }
 }
