@@ -64,6 +64,6 @@ module "transit_gateway_attachment" {
     ]
     transit_gateway_name = var.tgw_attachments.transit_gateway_name
     shared_vpc_name      = var.tgw_attachments.shared_vpc_name
-    customer_vpc_name    = var.tgw_attachments.customer_vpc_name
+    name                 = var.tgw_attachments.name
   }
 }

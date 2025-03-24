@@ -90,7 +90,7 @@ inputs = {
   tgw_attachments = {
     transit_gateway_name = "shared-tgw"
     shared_vpc_name      = "shared-services"
-    customer_vpc_name    = "dev"
+    name                 = local.vpc_name
   }
   tgw_routes = [
     {
