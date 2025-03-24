@@ -56,6 +56,7 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
+
   vpcs = [
     {
       name       = local.vpc_name
