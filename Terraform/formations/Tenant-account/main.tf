@@ -67,3 +67,42 @@ module "transit_gateway_attachment" {
     name                 = var.tgw_attachments.name
   }
 }
+
+
+#--------------------------------------------------------------------
+# Transit Gateway attacments - Creates Transit Gateway attachments
+#--------------------------------------------------------------------
+module "transit_gateway_attachment" {
+  source = "../../modules/Transit-gateway-attachments"
+  common = var.common
+  vpc_id = module.customer_vpc[var.tgw_attachments.name].vpc_id
+  depends_on = [
+    module.customer_vpc
+  ]
+  tgw_attachments = {
+    transit_gateway_id = module.transit_gateway.transit_gateway_id
+    subnet_ids = [
+      module.customer_vpc[var.tgw_attachments.name].primary_private_subnet_id, # The output for the shared vpc comes from the create vpc formation hence has an object with all the variables
+      module.customer_vpc[var.tgw_attachments.name].secondary_private_subnet_id,
+    ]
+    name = var.tgw_attachments.name
+  }
+}
+
+#--------------------------------------------------------------------
+# Transit Gateway routes - Creates Transit Gateway routes
+#--------------------------------------------------------------------
+
+module "transit_gateway_route" {
+  source     = "../../modules/Transit-gateway-routes"
+  common     = var.common
+  depends_on = [module.customer_vpc]
+  for_each   = { for idx, route in var.tgw_routes : idx => route }
+  tgw_routes = {
+    name               = each.value.name
+    transit_gateway_id = data.aws_ec2_transit_gateway.tgw.id
+    route_table_id     = module.customer_vpc[var.tgw_attachments.name].private_route_table_id
+    vpc_cidr_block     = each.value.vpc_cidr_block
+  }
+
+}

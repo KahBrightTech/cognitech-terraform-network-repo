@@ -11,7 +11,7 @@ locals {
   account_name = {
     MD = {
       Preprod = {
-        name   = "MDPreproduction"
+        name   = "mdreproduction"
         number = "485147667400"
       }
       Prod = {
