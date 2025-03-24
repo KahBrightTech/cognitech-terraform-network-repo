@@ -14,7 +14,7 @@ variable "vpcs" {
   type = list(object({
     name       = string
     cidr_block = string
-    private_subnets = list(object({
+    private_subnets = object({
       name                           = string
       primary_availabilty_zone       = optional(string)
       primary_availabilty_zone_id    = optional(string)
@@ -28,7 +28,7 @@ variable "vpcs" {
       quaternary_availabilty_zone    = optional(string)
       quaternary_availabilty_zone_id = optional(string)
       quaternary_cidr_block          = optional(string)
-    }))
+    })
     public_subnets = object({
       name                           = string
       primary_availabilty_zone       = optional(string)
