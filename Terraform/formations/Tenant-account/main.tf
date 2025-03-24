@@ -55,7 +55,7 @@ module "customer_vpc" {
 module "transit_gateway_attachment" {
   source = "../../modules/Transit-gateway-attachments"
   common = var.common
-  vpc_id = module.customer_vpc[var.tgw_attachments.customer_vpc_name].vpc_id
+  vpc_id = module.customer_vpc[var.tgw_attachments.name].vpc_id
   tgw_attachments = {
     transit_gateway_id = data.aws_ec2_transit_gateway.tgw.id
     subnet_ids = [
