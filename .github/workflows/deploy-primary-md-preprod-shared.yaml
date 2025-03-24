@@ -1,4 +1,4 @@
-name: Deploy-primary-shared-Network
+name: Deploy-primary-md-preprod-shared-Network
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
-      - "Terraform/deployments/Shared-account/deploy/primary/**/*"
+      - "Terraform/deployments/md-preproduction/Shared-account/deploy/primary/**/*"
   workflow_dispatch:
     inputs:
       terragrunt_action:
@@ -24,7 +24,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/Shared-account/deploy/primary
+  DEPLOYMENT_PATH: erraform/deployments/md-preproduction/Shared-account/deploy/primary
 
 permissions:
   packages: write
