@@ -55,7 +55,7 @@ module "customer_vpc" {
 module "transit_gateway_attachment" {
   source = "../../modules/Transit-gateway-attachments"
   common = var.common
-  vpc_id = module.customer_vpc[var.mis.customer_vpc_name].vpc_id
+  vpc_id = module.customer_vpc[var.tgw_attachments.customer_vpc_name].vpc_id
   tgw_attachments = {
     transit_gateway_id = data.aws_ec2_transit_gateway.tgw.id
     subnet_ids = [
@@ -63,7 +63,7 @@ module "transit_gateway_attachment" {
       data.aws_subnet.secondary-public.id
     ]
     transit_gateway_name = var.tgw_attachments.transit_gateway_name
-    shared_vpc_name      = var.misc.shared_vpc_name
-    customer_vpc_name    = var.misc.customer_vpc_name
+    shared_vpc_name      = var.tgw_attachments.shared_vpc_name
+    customer_vpc_name    = var.tgw_attachments.customer_vpc_name
   }
 }
