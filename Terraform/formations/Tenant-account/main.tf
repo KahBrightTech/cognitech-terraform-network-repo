@@ -53,7 +53,7 @@ module "customer_vpc" {
 # Transit Gateway attacments - Creates Transit Gateway attachments
 #--------------------------------------------------------------------
 module "transit_gateway_attachment" {
-  source = "../../modules/Transit-gateway-attachment"
+  source = "../../modules/Transit-gateway-attachments"
   common = var.common
   vpc_id = module.customer_vpc[var.mis.customer_vpc_name].vpc_id
   tgw_attachments = {
