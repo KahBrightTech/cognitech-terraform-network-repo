@@ -6,7 +6,7 @@ on:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
-      - "Terraform/deployments/md-preproduction/Tenant-account/Dve/deploy/primary/**/*"
+      - "Terraform/deployments/md-preproduction/Tenant-account/Dev/deploy/primary/**/*"
   workflow_dispatch:
     inputs:
       terragrunt_action:
