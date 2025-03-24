@@ -5,13 +5,13 @@
 data "aws_ec2_transit_gateway" "tgw" {
   filter {
     name   = "tag:Name"
-    values = "${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.transit_gateway_name}"
+    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.transit_gateway_name}"]
   }
 }
 data "aws_vpc" "shared_vpc" {
   filter {
     name   = "tag:Name"
-    values = "${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}"
+    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}"]
   }
 }
 
@@ -23,7 +23,7 @@ data "aws_subnet" "primary-public" {
 
   filter {
     name   = "tag:Name"
-    values = "${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-pub-primary"
+    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-pub-primary"]
   }
 }
 
@@ -35,7 +35,7 @@ data "aws_subnet" "secondary-public" {
 
   filter {
     name   = "tag:Name"
-    values = "${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-pub-secondary"
+    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-pub-secondary"]
   }
 }
 
