@@ -9,21 +9,17 @@ locals {
   cidr_block_usw2 = local.cidr_block_imp_usw2.locals.cidr_blocks
 
   account_name = {
-    Kah = {
-      name   = "mdpp"
+    MD = {
+      Preprod = {
+        name   = "MDPreproduction"
+        number = "485147667400"
+      }
+      Prod = {
+        name   = "MDProduction"
+        number = "730335294148"
+      }
+      name   = "MDPreproduction"
       number = "485147667400"
-    }
-    int = {
-      name   = "integration"
-      number = "730335294148"
-    }
-    dev = {
-      name   = "development"
-      number = "730335294148"
-    }
-    qa = {
-      name   = "quality-assurance"
-      number = "271457809232"
     }
   }
   billing_code_number = {
