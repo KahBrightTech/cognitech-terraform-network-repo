@@ -88,7 +88,7 @@ inputs = {
     }
   ]
   transit_gateway = {
-    name                            = "shared-tgw"
+    name                            = local.vpc_name
     default_route_table_association = "enable"
     default_route_table_propagation = "enable"
     auto_accept_shared_attachments  = "disable"
