@@ -49,25 +49,6 @@ module "customer_vpc" {
   common   = var.common
 }
 
-#--------------------------------------------------------------------
-# Transit Gateway attacments - Creates Transit Gateway attachments
-#--------------------------------------------------------------------
-module "transit_gateway_attachment" {
-  source = "../../modules/Transit-gateway-attachments"
-  common = var.common
-  vpc_id = module.customer_vpc[var.tgw_attachments.name].vpc_id
-  tgw_attachments = {
-    transit_gateway_id = data.aws_ec2_transit_gateway.tgw.id
-    subnet_ids = [
-      data.aws_subnet.primary-public.id,
-      data.aws_subnet.secondary-public.id
-    ]
-    transit_gateway_name = var.tgw_attachments.transit_gateway_name
-    shared_vpc_name      = var.tgw_attachments.shared_vpc_name
-    name                 = var.tgw_attachments.name
-  }
-}
-
 
 #--------------------------------------------------------------------
 # Transit Gateway attacments - Creates Transit Gateway attachments
@@ -104,5 +85,4 @@ module "transit_gateway_route" {
     route_table_id     = module.customer_vpc[var.tgw_attachments.name].private_route_table_id
     vpc_cidr_block     = each.value.vpc_cidr_block
   }
-
 }

@@ -15,7 +15,7 @@ locals {
         number = "485147667400"
       }
       Prod = {
-        name   = "MDProduction"
+        name   = "mdproduction"
         number = "730335294148"
       }
       name   = "MDPreproduction"
