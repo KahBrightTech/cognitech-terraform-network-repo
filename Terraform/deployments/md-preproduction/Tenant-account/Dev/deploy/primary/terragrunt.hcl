@@ -63,16 +63,16 @@ inputs = {
       private_subnets = {
         name                       = "${local.vpc_name}-pvt"
         primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.private_subnets.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.primary
         secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.private_subnets.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.secondary
       }
       public_subnets = {
         name                       = "${local.vpc_name}-pub"
         primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.public_subnets.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.primary
         secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.public_subnets.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.secondary
       }
       nat_gateway = {
         name = "nat1"
@@ -93,7 +93,7 @@ inputs = {
   }
   tgw_routes = [
     {
-      name           = "shared-services"
+      name           = "shared-services-[local.vpc_name]"
       vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
     }
   ]
