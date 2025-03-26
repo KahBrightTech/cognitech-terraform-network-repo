@@ -88,13 +88,12 @@ inputs = {
   ]
 
   tgw_attachments = {
-    transit_gateway_name = "shared-tgw"
-    shared_vpc_name      = "shared-services"
-    name                 = local.vpc_name
+    shared_vpc_name = "Shared-services"
+    name            = local.vpc_name
   }
   tgw_routes = [
     {
-      name           = "shared-services"
+      name           = "${local.vpc_name}-to-shared-services-"
       vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
     }
   ]

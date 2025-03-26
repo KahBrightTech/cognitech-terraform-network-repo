@@ -5,7 +5,7 @@
 data "aws_ec2_transit_gateway" "tgw" {
   filter {
     name   = "tag:Name"
-    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.transit_gateway_name}"]
+    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}"]
   }
 }
 data "aws_vpc" "shared_vpc" {
@@ -62,7 +62,7 @@ module "transit_gateway_attachment" {
       data.aws_subnet.primary-public.id,
       data.aws_subnet.secondary-public.id
     ]
-    transit_gateway_name = var.tgw_attachments.transit_gateway_name
+    transit_gateway_name = var.tgw_attachments.shared_vpc_name
     shared_vpc_name      = var.tgw_attachments.shared_vpc_name
     name                 = var.tgw_attachments.name
   }
