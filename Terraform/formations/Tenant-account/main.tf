@@ -5,7 +5,7 @@
 data "aws_ec2_transit_gateway" "tgw" {
   filter {
     name   = "tag:Name"
-    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.transit_gateway_name}"]
+    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}"]
   }
 }
 data "aws_vpc" "shared_vpc" {
@@ -49,7 +49,6 @@ module "customer_vpc" {
   common   = var.common
 }
 
-
 #--------------------------------------------------------------------
 # Transit Gateway attacments - Creates Transit Gateway attachments
 #--------------------------------------------------------------------
@@ -61,7 +60,7 @@ module "transit_gateway_attachment" {
     module.customer_vpc
   ]
   tgw_attachments = {
-    transit_gateway_id = module.transit_gateway.transit_gateway_id
+    transit_gateway_id = data.aws_ec2_transit_gateway.tgw.id
     subnet_ids = [
       module.customer_vpc[var.tgw_attachments.name].primary_private_subnet_id, # The output for the shared vpc comes from the create vpc formation hence has an object with all the variables
       module.customer_vpc[var.tgw_attachments.name].secondary_private_subnet_id,
@@ -85,4 +84,5 @@ module "transit_gateway_route" {
     route_table_id     = module.customer_vpc[var.tgw_attachments.name].private_route_table_id
     vpc_cidr_block     = each.value.vpc_cidr_block
   }
+
 }
