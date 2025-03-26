@@ -139,6 +139,3 @@ generate "aws-providers" {
 
 
 
-
-
-

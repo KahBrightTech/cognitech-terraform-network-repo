@@ -5,7 +5,7 @@
 data "aws_ec2_transit_gateway" "tgw" {
   filter {
     name   = "tag:Name"
-    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}"]
+    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-tgw"]
   }
 }
 data "aws_vpc" "shared_vpc" {
