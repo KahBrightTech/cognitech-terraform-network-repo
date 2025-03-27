@@ -59,7 +59,7 @@ inputs = {
   vpcs = [
     {
       name       = local.vpc_name
-      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
+      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       private_subnets = {
         name                       = "${local.vpc_name}-pvt"
         primary_availabilty_zone   = local.region_blk.availability_zones.primary
@@ -94,7 +94,7 @@ inputs = {
   tgw_routes = [
     {
       name           = "shared-services-[local.vpc_name]"
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
+      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
     }
   ]
 }
