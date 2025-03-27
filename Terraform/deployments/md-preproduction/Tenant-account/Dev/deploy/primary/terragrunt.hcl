@@ -94,7 +94,7 @@ inputs = {
   tgw_routes = [
     {
       name           = "shared-services-[local.vpc_name]"
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
+      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
     }
   ]
 }
