@@ -2,7 +2,7 @@ locals {
   cidr_blocks = {
     mdpp = {
       segments = {
-        shared_services = {
+        shared-services = {
           vpc = "10.1.2.0/24"
           public_subnets = {
             primary   = "10.1.2.128/26"
