@@ -78,7 +78,31 @@ module "private_route" {
   common = var.common
 }
 
+module "security_groups" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group?ref=v1.69"
+  common   = var.common
+  for_each = var.vpc != null ? var.vpc.security_groups != null ? { for item in var.vpc.security_groups : item.key => item } : {} : {}
+  security_group = {
+    name                   = each.value.name
+    vpc_id                 = module.vpc.vpc_id
+    name_prefix            = each.value.name_prefix
+    description            = each.value.description
+    security_group_egress  = each.value.egress
+    security_group_ingress = each.value.ingress
+  }
 
+}
+
+module "security_group_rules" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group-rules?ref=v1.69"
+  common   = var.common
+  for_each = var.vpc != null ? var.vpc.security_group_rules != null ? { for item in var.vpc.security_groups_rules : item.sg_key => item } : {} : {}
+  security_group = {
+    security_group_id = module.security_groups[each.value.sg_key].security_group_id
+    egress_rules      = each.value.egress
+    ingress_rules     = each.value.ingress
+  }
+}
 
 
 
