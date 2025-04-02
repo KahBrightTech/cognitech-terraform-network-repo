@@ -127,3 +127,39 @@ jobs:
       - name: Apply Terragrunt
         working-directory: ${{ env.DEPLOYMENT_PATH }}
         run: terragrunt run-all apply --terragrunt-non-interactive
+
+  Destroy:
+    needs: Plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.terragrunt_action == 'destroy' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: ${{ env.IAM_ROLE }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-Terraform@v1
+        with:
+          terraform_version: 1.11.1
+          terraform_wrapper: false
+
+      - name: Verify Terraform version
+        run: terraform --version
+
+      - name: Setup Terraform wrapper path
+        run: which terraform
+
+      - name: Setup Terragrunt
+        run: |
+          sudo wget -q -O /bin/terragrunt "https://github.com/gruntwork-io/terragrunt/releases/download/v0.75.0/terragrunt_linux_amd64"
+          sudo chmod +x /bin/terragrunt
+
+      - name: Destroy Terragrunt
+        working-directory: ${{ env.DEPLOYMENT_PATH }}
+        run: terragrunt run-all destroy --terragrunt-non-interactive
