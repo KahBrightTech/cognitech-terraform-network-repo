@@ -16,6 +16,7 @@ on:
         options:
           - "plan"
           - "apply"
+          - "destroy"
       skip_nochange:
         description: "Apply even if no change is reported in the plan"
         required: false
