@@ -117,46 +117,46 @@ inputs = {
         {
           sg_key = "bastion"
           ingress = concat(
-            include.cloud.locals.security_group_rules.locals.windows_bastion_base,
-            include.cloud.locals.security_group_rules.locals.linux_bastion_base,
+            include.cloud.locals.security_group_rules.locals.ingress.windows_bastion_base,
+            include.cloud.locals.security_group_rules.locals.ingress.linux_bastion_base,
             []
           )
           egress = concat(
-            include.cloud.locals.security_group_rules.locals.windows_bastion_base,
-            include.cloud.locals.security_group_rules.locals.linux_bastion_base,
+            include.cloud.locals.security_group_rules.locals.egress.windows_bastion_base,
+            include.cloud.locals.security_group_rules.locals.egress.linux_bastion_base,
             []
           )
         },
         {
           sg_key = "alb"
           ingress = concat(
-            include.cloud.locals.security_group_rules.locals.alb_base,
+            include.cloud.locals.security_group_rules.locals.ingress.alb_base,
             []
           )
           egress = concat(
-            include.cloud.locals.security_group_rules.locals.alb_base,
+            include.cloud.locals.security_group_rules.locals.egress.alb_base,
             []
           )
         },
         {
           sg_key = "nlb"
           ingress = concat(
-            include.cloud.locals.security_group_rules.locals.nlb_base,
+            include.cloud.locals.security_group_rules.locals.ingress.nlb_base,
             []
           )
           egress = concat(
-            include.cloud.locals.security_group_rules.locals.nlb_base,
+            include.cloud.locals.security_group_rules.locals.egress.nlb_base,
             []
           )
         },
         {
           sg_key = "app"
           ingress = concat(
-            include.cloud.locals.security_group_rules.locals.app_base,
+            include.cloud.locals.security_group_rules.locals.ingress.app_base,
             []
           )
           egress = concat(
-            include.cloud.locals.security_group_rules.locals.app_base,
+            include.cloud.locals.security_group_rules.locals.egress.app_base,
             []
           )
         }
