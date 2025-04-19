@@ -99,8 +99,32 @@ module "security_group_rules" {
   common   = var.common
   security_group = {
     security_group_id = module.security_groups[each.value.sg_key].security_group_id
-    egress_rules      = each.value.egress
-    ingress_rules     = each.value.ingress
+    egress_rules = each.value.egress != null ? [
+      for item in each.value.egress : (
+        item.target_sg_key != null ? merge(
+          item,
+          {
+            target_sg_id = module.security_groups[item.target_sg_key].security_group_id,
+            cidr_ipv4    = null,
+            cidr_ipv6    = null
+          }
+        ) : item
+      )
+    ] : []
+    ingress_rules = each.value.ingress != null ? [
+      for item in each.value.ingress : (
+        item.source_sg_key != null ? merge(
+          item,
+          {
+            source_sg_id   = module.security_groups[item.source_sg_key].security_group_id,
+            cidr_ipv4      = null,
+            cidr_ipv6      = null,
+            prefix_list_id = null
+          }
+        ) : item
+      )
+    ] : []
+
   }
 }
 
