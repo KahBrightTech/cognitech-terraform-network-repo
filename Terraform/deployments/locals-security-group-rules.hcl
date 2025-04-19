@@ -17,7 +17,7 @@ locals {
         ip_protocol   = "tcp"
       },
       {
-        key "egress-80-alb-sg"
+        key           = "egress-80-alb-sg"
         target_sg_key = "alb"
         description   = "BASE - Outbound HTTP traffic to ALB SG(self) on tcp port 80 (HTTP)"
         from_port     = 80
@@ -275,8 +275,8 @@ locals {
         description = "BASE - Inbound SSH traffic from Internet to Bastion SG on tcp port 22 (SSH)"
         from_port   = 22
         to_port     = 22
-        ip_protocol = "tcp
+        ip_protocol = "tcp"
       }
     ]
-   }
+  }
 }
