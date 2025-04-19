@@ -86,6 +86,81 @@ inputs = {
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
       }
+      security_groups = [
+        {
+          key         = "bastion"
+          name        = "shared-bastion"
+          description = "standrad sharewd bastion security group"
+        },
+        {
+          key         = "alb"
+          name        = "shared-alb"
+          description = "standard shared alb security group"
+        },
+        {
+          key         = "app"
+          name        = "shared-app"
+          description = "standard shared app security group"
+        },
+        {
+          key         = "db"
+          name        = "shared-db"
+          description = "standard shared db security group"
+        },
+        {
+          key         = "nlb"
+          name        = "shared-nlb"
+          description = "standard shared nlb security group"
+        }
+      ]
+      security_group_rules = [
+        {
+          sg_key = "bastion"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.windows_bastion_base,
+            include.cloud.locals.security_group_rules.locals.linux_bastion_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.windows_bastion_base,
+            include.cloud.locals.security_group_rules.locals.linux_bastion_base,
+            []
+          )
+        },
+        {
+          sg_key = "alb"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.alb_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.alb_base,
+            []
+          )
+        },
+        {
+          sg_key = "nlb"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.nlb_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.nlb_base,
+            []
+          )
+        },
+        {
+          sg_key = "app"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.app_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.app_base,
+            []
+          )
+        }
+      ]
     }
   ]
   transit_gateway = {
@@ -109,6 +184,7 @@ inputs = {
       vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
     }
   ]
+
 }
 #-------------------------------------------------------
 # State Configuration

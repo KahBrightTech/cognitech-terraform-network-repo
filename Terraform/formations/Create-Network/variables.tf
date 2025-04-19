@@ -84,6 +84,7 @@ variable "vpc" {
       name        = string
       name_prefix = string
       egress = optional(list(object({
+        name            = string
         description     = string
         protocol        = string
         from_port       = number
@@ -93,6 +94,7 @@ variable "vpc" {
         self            = optional(bool, false)
       })))
       ingress = optional(list(object({
+        name            = string
         description     = string
         protocol        = string
         from_port       = number

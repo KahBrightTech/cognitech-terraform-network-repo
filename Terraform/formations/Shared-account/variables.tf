@@ -72,6 +72,57 @@ variable "vpcs" {
       has_tertiary_subnet    = optional(bool, false)
       has_quaternary_subnet  = optional(bool, false)
     })
+    security_groups = optional(list(object({
+      key         = string
+      description = string
+      name        = string
+      name_prefix = optional(string)
+      egress = optional(list(object({
+        name            = string
+        description     = string
+        protocol        = string
+        from_port       = number
+        to_port         = number
+        security_groups = optional(list(string))
+        cidr_blocks     = optional(list(string))
+        self            = optional(bool, false)
+      })))
+      ingress = optional(list(object({
+        name            = string
+        description     = string
+        protocol        = string
+        from_port       = number
+        to_port         = number
+        security_groups = optional(list(string))
+        cidr_blocks     = optional(list(string))
+        self            = optional(bool, false)
+      })))
+    })))
+    security_group_rules = optional(list(object({
+      sg_key = string
+      egress = optional(list(object({
+        key           = string
+        cidr_ipv4     = optional(string)
+        cidr_ipv6     = optional(string)
+        description   = optional(string)
+        from_port     = optional(string)
+        to_port       = optional(string)
+        ip_protocol   = optional(string)
+        target_sg_id  = optional(string)
+        target_sg_key = optional(string)
+      })))
+      ingress = optional(list(object({
+        key           = string
+        cidr_ipv4     = optional(string)
+        cidr_ipv6     = optional(string)
+        description   = optional(string)
+        from_port     = optional(string)
+        to_port       = optional(string)
+        ip_protocol   = optional(string)
+        source_sg_id  = optional(string)
+        source_sg_key = optional(string)
+      })))
+    })))
   }))
   default = null
 }
