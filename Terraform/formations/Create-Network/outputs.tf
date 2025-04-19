@@ -131,3 +131,16 @@ output "public_route_table_id" {
 
 }
 
+#-------------------------------------------------------
+# Security group outputs
+#-------------------------------------------------------
+output "security_group" {
+  description = "Security group details"
+  value = var.vpc != null ? var.vpc.security_groups != null ? {
+    for key, item in module.security_groups :
+    key => {
+      arn = item.security_group_arn
+      id  = item.security_group_id
+    }
+  } : null : null
+}

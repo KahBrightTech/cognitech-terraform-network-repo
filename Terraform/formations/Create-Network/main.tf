@@ -79,7 +79,7 @@ module "private_route" {
 }
 
 module "security_groups" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group?ref=v1.71"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group?ref=v1.72"
   for_each = var.vpc != null ? var.vpc.security_groups != null ? { for item in var.vpc.security_groups : item.key => item } : {} : {}
   common   = var.common
   security_group = {
@@ -94,7 +94,7 @@ module "security_groups" {
 }
 
 module "security_group_rules" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group-rules?ref=v1.71"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group-rules?ref=v1.72"
   for_each = var.vpc != null ? var.vpc.security_group_rules != null ? { for item in var.vpc.security_group_rules : item.sg_key => item } : {} : {}
   common   = var.common
   security_group = {
