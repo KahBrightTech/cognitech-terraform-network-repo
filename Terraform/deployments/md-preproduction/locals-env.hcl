@@ -26,12 +26,7 @@ locals {
       secondary = "pub"
     }
   }
-
   remote_dynamodb_table = "Terraform"
-
-  # account_name   = local.cloud.locals.account_name.kah.name
-  # account_number = local.cloud.locals.account_name.kah.number
-  # billing_code   = local.cloud.locals.billing_code_number.kah
   tags = {
     Environment  = local.environment
     Owner        = local.owner
