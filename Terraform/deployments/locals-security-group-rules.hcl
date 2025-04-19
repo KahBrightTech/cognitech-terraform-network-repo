@@ -144,7 +144,7 @@ locals {
   ingress = {
     alb_base = [
       {
-        key         = "ingress-80-alb-sg"
+        key         = "ingress-80-internet"
         cidr_ipv4   = local.internet
         description = "BASE - Inbound HTTP traffic from Internet to ALB SG on tcp port 80 (HTTP)"
         from_port   = 80
@@ -152,7 +152,7 @@ locals {
         ip_protocol = "tcp"
       },
       {
-        key         = "ingress-443-alb-sg"
+        key         = "ingress-443-internet"
         cidr_ipv4   = local.internet
         description = "BASE - Inbound HTTPS traffic from Internet to ALB SG on tcp port 443 (HTTPS)"
         from_port   = 443
@@ -166,11 +166,19 @@ locals {
         from_port     = 443
         to_port       = 443
         ip_protocol   = "tcp"
+      },
+      {
+        key           = "ingress-443-alb-sg"
+        source_sg_key = "alb"
+        description   = "BASE - Inbound HTTPS traffic from ALB SG to ALB SG on tcp port 443 (HTTPS)"
+        from_port     = 443
+        to_port       = 443
+        ip_protocol   = "tcp"
       }
     ]
     nlb_base = [
       {
-        key         = "ingress-80-nlb-sg"
+        key         = "ingress-80-internet"
         cidr_ipv4   = local.internet
         description = "BASE - Inbound HTTP traffic from Internet to NLB SG on tcp port 80 (HTTP)"
         from_port   = 80
@@ -178,7 +186,7 @@ locals {
         ip_protocol = "tcp"
       },
       {
-        key         = "ingress-443-nlb-sg"
+        key         = "ingress-443-internet"
         cidr_ipv4   = local.internet
         description = "BASE - Inbound HTTPS traffic from Internet to NLB SG on tcp port 443 (HTTPS)"
         from_port   = 443
