@@ -75,9 +75,14 @@ module "s3_app_bucket" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.79"
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
   common   = var.common
-  s3       = each.value
-  iam_role_arn_pattern = {
-    "[[account_admin_role_arn]]"   = tolist(data.aws_iam_roles.admin_role.arns)[0]
-    "[[account_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]
+  s3 = {
+    name              = each.value.name
+    description       = each.value.description
+    enable_versioning = each.value.enable_versioning
+    policy            = each.value.policy
+    iam_role_arn_pattern = {
+      "[[account_admin_role_arn]]"   = tolist(data.aws_iam_roles.admin_role.arns)[0]
+      "[[account_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]
+    }
   }
 }
