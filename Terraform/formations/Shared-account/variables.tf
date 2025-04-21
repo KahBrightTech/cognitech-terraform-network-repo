@@ -123,6 +123,56 @@ variable "vpcs" {
         source_sg_key = optional(string)
       })))
     })))
+    s3 = optional(object({
+      name                 = string
+      description          = string
+      name_override        = optional(string)
+      policy               = string
+      enable_versioning    = optional(bool, true)
+      data_transfer_policy = optional(string)
+      lifecycle = optional(object({
+        standard_expiration_days          = number
+        infrequent_access_expiration_days = number
+        glacier_expiration_days           = number
+        delete_expiration_days            = number
+      }))
+      lifecycle_noncurrent = optional(object({
+        standard_expiration_days          = number
+        infrequent_access_expiration_days = number
+        glacier_expiration_days           = number
+        delete_expiration_days            = number
+      }))
+      objects = optional(list(object({
+        key = string
+      })))
+    }))
+  }))
+  default = null
+}
+
+variable "s3_private_buckets" {
+  description = "S3 bucket variables"
+  type = list(object({
+    name              = string
+    description       = string
+    name_override     = optional(string)
+    policy            = string
+    enable_versioning = optional(bool, true)
+    lifecycle = optional(object({
+      standard_expiration_days          = number
+      infrequent_access_expiration_days = number
+      glacier_expiration_days           = number
+      delete_expiration_days            = number
+    }))
+    lifecycle_noncurrent = optional(object({
+      standard_expiration_days          = number
+      infrequent_access_expiration_days = number
+      glacier_expiration_days           = number
+      delete_expiration_days            = number
+    }))
+    objects = optional(list(object({
+      key = string
+    })))
   }))
   default = null
 }

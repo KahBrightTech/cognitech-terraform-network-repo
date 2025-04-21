@@ -1,3 +1,17 @@
+#--------------------------------------------------------------------
+# Data
+#--------------------------------------------------------------------
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+data "aws_iam_roles" "admin_role" {
+  name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
+
+data "aws_iam_roles" "network_role" {
+  name_regex  = "AWSReservedSSO_NetworkAdministrator_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
 module "shared_vpc" {
   source   = "../Create-Network"
   for_each = { for vpc in var.vpcs : vpc.name => vpc }
@@ -51,4 +65,19 @@ module "transit_gateway_route" {
     vpc_cidr_block     = each.value.vpc_cidr_block
   }
 
+}
+
+#--------------------------------------------------------------------
+# S3 Private app bucket
+#--------------------------------------------------------------------
+
+module "s3_app_bucket" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.79"
+  for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
+  common   = var.common
+  s3       = each.value
+  iam_role_arn_pattern = {
+    "[[account_admin_role_arn]]"   = tolist(data.aws_iam_roles.admin_role.arns)[0]
+    "[[account_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]
+  }
 }

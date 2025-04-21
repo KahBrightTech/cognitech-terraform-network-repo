@@ -128,6 +128,17 @@ module "security_group_rules" {
   }
 }
 
+module "s3_data_bucket" {
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.77"
+  count  = var.vpc.s3.data_transfer_policy != null ? 1 : 0
+  common = var.common
+  s3 = {
+    name        = "${var.vpc.s3.name}-data-bucket"
+    description = "Bucket used for transfers within the VPC"
+    policy      = var.vpc.s3.data_transfer_policy
+  }
+
+}
 
 
 

@@ -161,6 +161,15 @@ inputs = {
           )
         }
       ]
+      s3 = []
+      s3_private_buckets = [
+        {
+          name              = "app-bucket"
+          description       = "The application bucket for different apps"
+          enable_versioning = true
+          policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
+        }
+      ]
     }
   ]
   transit_gateway = {

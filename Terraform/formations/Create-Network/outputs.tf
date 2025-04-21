@@ -144,3 +144,17 @@ output "security_group" {
     }
   } : null : null
 }
+
+#-------------------------------------------------------
+# S3 bucket outputs
+#-------------------------------------------------------
+output "s3_data_bucket_arn" {
+  description = "The ARN of the S3 bucket"
+  value       = length(module.s3_data_bucket) > 0 ? module.s3_data_bucket[0].arn : null
+}
+
+output "s3_data_bucket_id" {
+  description = "The ID of the S3 bucket"
+  value       = length(module.s3_data_bucket) > 0 ? module.s3_data_bucket[0].id : null
+
+}

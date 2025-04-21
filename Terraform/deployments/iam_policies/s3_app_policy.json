@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Allow s3 access to admin role only",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::[[resource_name]]",
+        "arn:aws:s3:::[[resource_name]]/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": ["us-east-1", "us-west-2"],
+          "aws:PrncipalArn": [
+            "[[account_admin_role_arn]]",
+            "[[account_network_role_arn]]"
+          ]
+        }
+      }
+    }
+  ]
+}
