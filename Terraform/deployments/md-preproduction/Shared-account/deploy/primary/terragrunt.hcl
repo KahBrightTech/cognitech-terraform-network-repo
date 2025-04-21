@@ -192,10 +192,10 @@ inputs = {
 
   s3_private_buckets = [
     {
-      name              = "app-bucket"
-      description       = "The application bucket for different apps"
-      enable_versioning = true
-      policy            = file("${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json")
+      name                     = "app-bucket"
+      description              = "The application bucket for different apps"
+      enable_versioning        = true
+      override_policy_document = file("${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json")
     }
   ]
 }
