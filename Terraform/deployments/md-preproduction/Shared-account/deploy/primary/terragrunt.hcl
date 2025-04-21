@@ -198,7 +198,6 @@ inputs = {
       policy            = file("${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json")
     }
   ]
-
 }
 #-------------------------------------------------------
 # State Configuration

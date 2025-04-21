@@ -124,12 +124,13 @@ variable "vpcs" {
       })))
     })))
     s3 = optional(object({
-      name                 = string
-      description          = string
-      name_override        = optional(string)
-      policy               = optional(string)
-      enable_versioning    = optional(bool, true)
-      data_transfer_policy = optional(string)
+      name                     = string
+      description              = string
+      name_override            = optional(string)
+      policy                   = optional(string)
+      enable_versioning        = optional(bool, true)
+      data_transfer_policy     = optional(string)
+      override_policy_document = optional(string)
       lifecycle = optional(object({
         standard_expiration_days          = number
         infrequent_access_expiration_days = number
@@ -153,11 +154,12 @@ variable "vpcs" {
 variable "s3_private_buckets" {
   description = "S3 bucket variables"
   type = list(object({
-    name              = string
-    description       = string
-    name_override     = optional(string)
-    policy            = optional(string)
-    enable_versioning = optional(bool, true)
+    name                     = string
+    description              = string
+    name_override            = optional(string)
+    policy                   = optional(string)
+    enable_versioning        = optional(bool, true)
+    override_policy_document = optional(string)
     lifecycle = optional(object({
       standard_expiration_days          = number
       infrequent_access_expiration_days = number
