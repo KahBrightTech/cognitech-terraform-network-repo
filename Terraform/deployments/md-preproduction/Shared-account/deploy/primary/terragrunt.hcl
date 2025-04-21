@@ -161,13 +161,11 @@ inputs = {
           )
         }
       ]
-      s3 = [
-        {
-          name        = "${local.vpc_name}-data-transfer"
-          description = "The bucket used for data transfers"
+      s3 = {
+        name        = "${local.vpc_name}-data-transfer"
+        description = "The bucket used for data transfers"
 
-        }
-      ]
+      }
       s3_private_buckets = [
         {
           name              = "app-bucket"
