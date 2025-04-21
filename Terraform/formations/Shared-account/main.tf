@@ -79,7 +79,7 @@ module "s3_app_bucket" {
     name              = each.value.name
     description       = each.value.description
     enable_versioning = each.value.enable_versioning
-    policy            = each.value.policy
+    # policy            = each.value.policy
     iam_role_arn_pattern = {
       "[[account_admin_role_arn]]"   = tolist(data.aws_iam_roles.admin_role.arns)[0]
       "[[account_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]

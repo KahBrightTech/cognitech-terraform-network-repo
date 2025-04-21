@@ -166,6 +166,7 @@ inputs = {
         description = "The bucket used for data transfers"
 
       }
+
       s3_private_buckets = [
         {
           name              = "app-bucket"
