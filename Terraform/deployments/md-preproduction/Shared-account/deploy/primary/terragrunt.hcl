@@ -161,7 +161,6 @@ inputs = {
           )
         }
       ]
-      s3 = []
       s3_private_buckets = [
         {
           name              = "app-bucket"
