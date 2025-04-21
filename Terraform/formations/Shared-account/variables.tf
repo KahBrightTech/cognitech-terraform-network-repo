@@ -127,7 +127,7 @@ variable "vpcs" {
       name                 = string
       description          = string
       name_override        = optional(string)
-      policy               = string
+      policy               = optional(string)
       enable_versioning    = optional(bool, true)
       data_transfer_policy = optional(string)
       lifecycle = optional(object({
@@ -156,7 +156,7 @@ variable "s3_private_buckets" {
     name              = string
     description       = string
     name_override     = optional(string)
-    policy            = string
+    policy            = optional(string)
     enable_versioning = optional(bool, true)
     lifecycle = optional(object({
       standard_expiration_days          = number

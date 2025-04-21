@@ -134,7 +134,6 @@ module "s3_data_bucket" {
   s3 = {
     name        = "${var.vpc.s3.name}-data-bucket"
     description = "Bucket used for transfers within the VPC"
-    policy      = var.vpc.s3.policy
   }
 
 }

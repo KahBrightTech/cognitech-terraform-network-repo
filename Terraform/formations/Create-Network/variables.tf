@@ -133,7 +133,7 @@ variable "vpc" {
       name                 = string
       description          = string
       name_override        = optional(string)
-      policy               = string
+      policy               = optional(string)
       enable_versioning    = optional(bool, true)
       data_transfer_policy = optional(string)
       lifecycle = optional(object({
