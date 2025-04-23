@@ -15,10 +15,7 @@
       "Condition": {
         "StringEquals": {
           "aws:RequestedRegion": ["us-east-1", "us-west-2"],
-          "aws:PrncipalArn": [
-            "[[account_admin_role_arn]]",
-            "[[account_network_role_arn]]"
-          ]
+          "aws:PrncipalArn": ["[[sso_network_role_arn]]"]
         }
       }
     }
