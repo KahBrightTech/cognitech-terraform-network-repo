@@ -1,3 +1,20 @@
+
+#--------------------------------------------------------------------
+# Data
+#--------------------------------------------------------------------
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_roles" "admin_role" {
+  name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
+
+data "aws_iam_roles" "network_role" {
+  name_regex  = "AWSReservedSSO_NetworkAdministrator_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
+
 #--------------------------------------------------------------------
 # VPC - Creates a VPC  to the target account
 #--------------------------------------------------------------------
@@ -129,11 +146,16 @@ module "security_group_rules" {
 }
 
 module "s3_data_bucket" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.83"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.84"
   common = var.common
   s3 = {
     name        = "${var.vpc.s3.name}"
     description = var.vpc.s3.description
+    policy      = var.vpc.s3.policy
+    iam_role_arn_pattern = {
+      "[[sso_admin_role_arn]]"   = tolist(data.aws_iam_roles.admin_role.arns)[0]
+      "[[sso_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]
+    }
   }
 
 }

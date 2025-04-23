@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "Allow s3 access to admin role only",
+      "Sid": "Allow s3 access to instance role only",
       "Principal": {
         "AWS": "*"
       },

@@ -137,6 +137,7 @@ variable "vpc" {
       enable_versioning        = optional(bool, true)
       data_transfer_policy     = optional(string)
       override_policy_document = optional(string)
+      iam_role_arn_pattern     = optional(map(string), null)
       lifecycle = optional(object({
         standard_expiration_days          = number
         infrequent_access_expiration_days = number
