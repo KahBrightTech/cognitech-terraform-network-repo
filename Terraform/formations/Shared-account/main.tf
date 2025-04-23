@@ -77,10 +77,10 @@ module "s3_app_bucket" {
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
   common   = var.common
   s3 = {
-    name                     = each.value.name
-    description              = each.value.description
-    enable_versioning        = each.value.enable_versioning
-    override_policy_document = each.value.override_policy_document
+    name              = each.value.name
+    description       = each.value.description
+    enable_versioning = each.value.enable_versioning
+    policy            = each.value.policy
     iam_role_arn_pattern = {
       "[[sso_admin_role_arn]]"   = tolist(data.aws_iam_roles.admin_role.arns)[0]
       "[[sso_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]
