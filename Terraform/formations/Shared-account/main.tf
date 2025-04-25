@@ -4,10 +4,10 @@
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
-data "aws_iam_roles" "admin_role" {
-  name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
-  path_prefix = "/aws-reserved/sso.amazonaws.com/"
-}
+# data "aws_iam_roles" "admin_role" {
+#   name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
+#   path_prefix = "/aws-reserved/sso.amazonaws.com/"
+# }
 
 data "aws_iam_roles" "network_role" {
   name_regex  = "AWSReservedSSO_NetworkAdministrator_.*"
@@ -82,7 +82,6 @@ module "s3_app_bucket" {
     enable_versioning = each.value.enable_versioning
     policy            = each.value.policy
     iam_role_arn_pattern = {
-      "[[sso_admin_role_arn]]"   = tolist(data.aws_iam_roles.admin_role.arns)[0]
       "[[sso_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]
     }
   }
