@@ -5,10 +5,10 @@
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
-# data "aws_iam_roles" "admin_role" {
-#   name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
-#   path_prefix = "/aws-reserved/sso.amazonaws.com/"
-# }
+data "aws_iam_roles" "admin_role" {
+  name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
 
 data "aws_iam_roles" "network_role" {
   name_regex  = "AWSReservedSSO_NetworkAdministrator_.*"
@@ -146,7 +146,7 @@ module "security_group_rules" {
 }
 
 module "s3_data_bucket" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.91"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.92"
   common = var.common
   s3 = {
     name        = "${var.vpc.s3.name}"
