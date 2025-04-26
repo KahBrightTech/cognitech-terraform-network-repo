@@ -15,9 +15,7 @@
       "Condition": {
         "StringEquals": {
           "aws:RequestedRegion": ["us-east-1", "us-west-2"],
-          "aws:PrncipalArn": [
-            "arn:aws:iam::[[account_number]]:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_ReadOnlyAccess_9a4a560bae2c526d"
-          ]
+          "aws:PrncipalArn": ["[[sso_network_role_arn]]"]
         }
       }
     }

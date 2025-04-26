@@ -55,10 +55,13 @@ module "transit_gateway_attachment" {
 #--------------------------------------------------------------------
 
 module "transit_gateway_route" {
-  source     = "../../modules/Transit-gateway-routes"
-  common     = var.common
-  depends_on = [module.shared_vpc]
-  for_each   = { for idx, route in var.tgw_routes : idx => route }
+  source = "../../modules/Transit-gateway-routes"
+  common = var.common
+  depends_on = [
+    module.shared_vpc,
+    module.transit_gateway
+  ]
+  for_each = { for idx, route in var.tgw_routes : idx => route }
   tgw_routes = {
     name               = each.value.name
     transit_gateway_id = module.transit_gateway.transit_gateway_id
@@ -73,7 +76,7 @@ module "transit_gateway_route" {
 #--------------------------------------------------------------------
 
 module "s3_app_bucket" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.92"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.93"
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
   common   = var.common
   s3 = {
@@ -81,8 +84,8 @@ module "s3_app_bucket" {
     description       = each.value.description
     enable_versioning = each.value.enable_versioning
     policy            = each.value.policy
-    # iam_role_arn_pattern = {
-    #   "[[sso_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]
-    # }
+    iam_role_arn_pattern = {
+      "[[sso_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]
+    }
   }
 }
