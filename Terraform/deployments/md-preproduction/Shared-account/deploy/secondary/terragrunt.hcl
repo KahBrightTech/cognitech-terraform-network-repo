@@ -57,7 +57,6 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
-
   vpcs = [
     {
       name       = local.vpc_name
@@ -117,50 +116,56 @@ inputs = {
         {
           sg_key = "bastion"
           ingress = concat(
-            include.cloud.locals.security_group_rules.locals.windows_bastion_base,
-            include.cloud.locals.security_group_rules.locals.linux_bastion_base,
+            include.cloud.locals.security_group_rules.locals.ingress.windows_bastion_base,
+            include.cloud.locals.security_group_rules.locals.ingress.linux_bastion_base,
             []
           )
           egress = concat(
-            include.cloud.locals.security_group_rules.locals.windows_bastion_base,
-            include.cloud.locals.security_group_rules.locals.linux_bastion_base,
+            include.cloud.locals.security_group_rules.locals.egress.windows_bastion_base,
+            include.cloud.locals.security_group_rules.locals.egress.linux_bastion_base,
             []
           )
         },
         {
           sg_key = "alb"
           ingress = concat(
-            include.cloud.locals.security_group_rules.locals.alb_base,
+            include.cloud.locals.security_group_rules.locals.ingress.alb_base,
             []
           )
           egress = concat(
-            include.cloud.locals.security_group_rules.locals.alb_base,
+            include.cloud.locals.security_group_rules.locals.egress.alb_base,
             []
           )
         },
         {
           sg_key = "nlb"
           ingress = concat(
-            include.cloud.locals.security_group_rules.locals.nlb_base,
+            include.cloud.locals.security_group_rules.locals.ingress.nlb_base,
             []
           )
           egress = concat(
-            include.cloud.locals.security_group_rules.locals.nlb_base,
+            include.cloud.locals.security_group_rules.locals.egress.nlb_base,
             []
           )
         },
         {
           sg_key = "app"
           ingress = concat(
-            include.cloud.locals.security_group_rules.locals.app_base,
+            include.cloud.locals.security_group_rules.locals.ingress.app_base,
             []
           )
           egress = concat(
-            include.cloud.locals.security_group_rules.locals.app_base,
+            include.cloud.locals.security_group_rules.locals.egress.app_base,
             []
           )
         }
       ]
+      s3 = {
+        name        = "${local.vpc_name}-data-xfer"
+        description = "The bucket used for data transfers"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
+
+      }
     }
   ]
   transit_gateway = {
@@ -185,6 +190,14 @@ inputs = {
     }
   ]
 
+  s3_private_buckets = [
+    {
+      name              = "${local.vpc_name}-app-bucket"
+      description       = "The application bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
+    }
+  ]
 }
 #-------------------------------------------------------
 # State Configuration

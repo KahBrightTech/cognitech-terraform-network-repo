@@ -4,10 +4,10 @@
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
-# data "aws_iam_roles" "admin_role" {
-#   name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
-#   path_prefix = "/aws-reserved/sso.amazonaws.com/"
-# }
+data "aws_iam_roles" "admin_role" {
+  name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
 
 data "aws_iam_roles" "network_role" {
   name_regex  = "AWSReservedSSO_NetworkAdministrator_.*"
@@ -59,7 +59,8 @@ module "transit_gateway_route" {
   common = var.common
   depends_on = [
     module.shared_vpc,
-    module.transit_gateway
+    module.transit_gateway,
+    module.transit_gateway_attachment
   ]
   for_each = { for idx, route in var.tgw_routes : idx => route }
   tgw_routes = {
@@ -76,7 +77,7 @@ module "transit_gateway_route" {
 #--------------------------------------------------------------------
 
 module "s3_app_bucket" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.93"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.94"
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
   common   = var.common
   s3 = {
@@ -86,6 +87,7 @@ module "s3_app_bucket" {
     policy            = each.value.policy
     iam_role_arn_pattern = {
       "[[sso_network_role_arn]]" = tolist(data.aws_iam_roles.network_role.arns)[0]
+      "[[sso_admin_role_arn]]"   = tolist(data.aws_iam_roles.admin_role.arns)[0]
     }
   }
 }

@@ -50,7 +50,7 @@ locals {
             secondary = "10.1.2.64/26"
           }
         }
-        mdpp = {
+        dev = {
           vpc = "10.1.1.0/24"
           public_subnets = {
             primary   = "10.1.1.128/26"

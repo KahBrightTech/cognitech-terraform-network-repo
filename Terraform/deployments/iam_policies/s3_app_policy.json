@@ -7,7 +7,16 @@
         "AWS": "*"
       },
       "Effect": "Allow",
-      "Action": "s3:*",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:PutObjectAcl",
+        "s3:GetObjectAcl",
+        "s3:PutObjectVersionAcl",
+        "s3:GetObjectVersionAcl"
+      ],
       "Resource": [
         "arn:aws:s3:::[[resource_name]]",
         "arn:aws:s3:::[[resource_name]]/*"
@@ -15,7 +24,10 @@
       "Condition": {
         "StringEquals": {
           "aws:RequestedRegion": ["us-east-1", "us-west-2"],
-          "aws:PrncipalArn": ["[[sso_network_role_arn]]"]
+          "aws:PrncipalArn": [
+            "[[sso_network_role_arn]]",
+            "[[sso_admin_role_arn]]"
+          ]
         }
       }
     }
