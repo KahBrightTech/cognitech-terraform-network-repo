@@ -32,9 +32,9 @@ locals {
       runtime              = "python3.9"
       handler              = "index.lambda_handler"
       private_bucklet_name = "cognitech-lambdas-bucket"
-      lamda_s3_key         = "/start-ec2/index.zip"
+      lamda_s3_key         = "start-ec2/index.zip"
       timeout              = "120"
-      layer_s3_key         = "/layers/layers.zip"
+      layer_s3_key         = "layers/layers.zip"
     }
   }
   remote_dynamodb_table = "Terraform"
