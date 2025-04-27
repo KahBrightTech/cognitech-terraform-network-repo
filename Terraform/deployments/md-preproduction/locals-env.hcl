@@ -26,6 +26,17 @@ locals {
       secondary = "pub"
     }
   }
+
+  lambda = {
+    start_instance = {
+      runtime              = "python3.9"
+      handler              = "index.lambda_handler"
+      private_bucklet_name = "cognitech-lambdas-bucket"
+      s3_key               = "/start-ec2/"
+      timeout              = "120"
+      layer_filename       = "cognitech-lambdas-bucket/layers/layers.zip"
+    }
+  }
   remote_dynamodb_table = "Terraform"
   tags = {
     Environment  = local.environment
