@@ -63,9 +63,9 @@ inputs = {
       handler              = include.env.locals.lambda.start_instance.handler
       timeout              = include.env.locals.lambda.start_instance.timeout
       private_bucklet_name = include.env.locals.lambda.start_instance.private_bucklet_name
-      s3_key               = include.env.locals.lambda.start_instance.s3_key
+      lamda_s3_key         = include.env.locals.lambda.start_instance.lamda_s3_key
       layer_description    = "Lambda Layer for shared libraries"
-      layer_filename       = include.env.locals.lambda.start_instance.layer_filename
+      layer_s3_key         = include.env.locals.lambda.start_instance.layer_s3_key
     }
   ]
 }

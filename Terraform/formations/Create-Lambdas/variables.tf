@@ -18,9 +18,9 @@ variable "Lambdas" {
     handler              = string
     timeout              = number
     private_bucklet_name = optional(string)
-    s3_key               = optional(string)
+    lamda_s3_key         = optional(string)
     layer_description    = optional(string)
-    layer_filename       = optional(string)
+    layer_s3_key         = optional(string)
   }))
   default = null
 }
