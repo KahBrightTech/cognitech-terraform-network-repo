@@ -66,9 +66,21 @@ inputs = {
       lamda_s3_key         = include.env.locals.lambda.start_instance.lamda_s3_key
       layer_description    = "Lambda Layer for shared libraries"
       layer_s3_key         = include.env.locals.lambda.start_instance.layer_s3_key
+    },
+    {
+      function_name        = "${local.vpc_name}-stop-instance"
+      description          = "Lambda function to stop an EC2 instance"
+      runtime              = include.env.locals.lambda.stop_instance.runtime
+      handler              = include.env.locals.lambda.stop_instance.handler
+      timeout              = include.env.locals.lambda.stop_instance.timeout
+      private_bucklet_name = include.env.locals.lambda.stop_instance.private_bucklet_name
+      lamda_s3_key         = include.env.locals.lambda.stop_instance.lamda_s3_key
+      layer_description    = "Lambda Layer for shared libraries"
+      layer_s3_key         = include.env.locals.lambda.stop_instance.layer_s3_key
     }
   ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
