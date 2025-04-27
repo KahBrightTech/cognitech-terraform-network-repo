@@ -15,6 +15,7 @@ variable "Lambdas" {
     function_name        = string
     description          = string
     runtime              = string
+    handler              = string
     timeout              = number
     private_bucklet_name = optional(string)
     s3_key               = optional(string)
