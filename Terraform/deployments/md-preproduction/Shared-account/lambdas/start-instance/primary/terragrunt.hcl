@@ -60,6 +60,7 @@ inputs = {
       function_name        = "${local.vpc_name}-start-instance"
       description          = "Lambda function to start an EC2 instance"
       runtime              = include.env.locals.lambda.start_instance.runtime
+      handler              = include.env.locals.lambda.start_instance.handler
       timeout              = include.env.locals.lambda.start_instance.timeout
       private_bucklet_name = include.env.locals.lambda.start_instance.private_bucklet_name
       s3_key               = include.env.locals.lambda.start_instance.s3_key
