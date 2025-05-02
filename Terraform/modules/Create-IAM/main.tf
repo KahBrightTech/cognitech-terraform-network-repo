@@ -1,12 +1,6 @@
 
 #--------------------------------------------------------------------
-# Data block to fetch values from the console 
-#--------------------------------------------------------------------
-data "aws_region" "current" {}
-data "aws_caller_identity" "current" {}
-
-#--------------------------------------------------------------------
-# Creates lambda function to be used in the service catalog to start instances
+# Creates lIAM users
 #--------------------------------------------------------------------
 module "iam_user" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-User?ref=v1.114"

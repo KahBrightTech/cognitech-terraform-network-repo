@@ -31,6 +31,20 @@ locals {
     }
   }
 
+  secrets = {
+    primary = {
+      mdpp = {
+        name              = "fsx"
+        record_folder_uid = "FYbRcJXGc7G83z9xyzToOA"
+      }
+    }
+    secondary = {
+      mdpp = {
+        name              = "fsx"
+        record_folder_uid = "FYbRcJXGc7G83z9xyzToOA"
+      }
+    }
+  }
 
   keeper_flder_ui = {
     primary = {
