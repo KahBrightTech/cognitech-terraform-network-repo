@@ -68,7 +68,7 @@ inputs = {
       policy = {
         name        = include.env.locals.iam_users.primary[include.env.locals.name_abr].policy_name
         description = "For keeper user to access secrets"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_user_policy.json"
+        policy      = file("${include.cloud.locals.repo.root}/iam_policies/iam_user_policy.json")
       }
     }
   ]
