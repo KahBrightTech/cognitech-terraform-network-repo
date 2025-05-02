@@ -14,7 +14,32 @@ locals {
     primary   = "terragruntuse1"
     secondary = "terragruntusw2"
   }
+  iam_users = {
+    primary = {
+      mdpp = {
+        name        = "keeper"
+        groups      = ["keeper_group"]
+        poliyc_name = "keeper_policy"
+      }
+    }
+    secondary = {
+      mdpp = {
+        name        =
+        groups      =
+        policy_name = "keeper_policy"
+      }
+    }
+  }
 
+
+  keeper_flder_ui = {
+    primary = {
+      mdpp = "mHanfChbSsciRD98ISfMtw"
+    }
+    secondary = {
+      mdpp = "mHanfChbSsciRD98ISfMtw"
+    }
+  }
 
   subnet = {
     private = {

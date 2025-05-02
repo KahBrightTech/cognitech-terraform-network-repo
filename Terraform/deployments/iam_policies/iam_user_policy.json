@@ -1,0 +1,27 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*",
+        "s3:List*",
+        "s3:Get*",
+        "iam:List*",
+        "iam:Get*",
+        "rds:Describe*",
+        "dynamodb:Describe*",
+        "cloudwatch:Describe*",
+        "cloudwatch:Get*"
+      ],
+      "Resource": "*",
+      "Sid": "ReadOnlyPolicy"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["ec2:StartInstances", "ec2:StopInstances"],
+      "Resource": "*",
+      "Sid": "EC2StartStopPolicy"
+    }
+  ]
+}

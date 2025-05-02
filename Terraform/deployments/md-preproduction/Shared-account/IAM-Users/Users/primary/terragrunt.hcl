@@ -58,13 +58,18 @@ inputs = {
 
   iam_users = [
     {
-      name                 = "example-user-1"
-      description          = "Example IAM user for demonstration purposes"
-      path                 = "/users/"
+      name                 = include.env.locals.iam_users.primary[include.env.locals.name_abr].name
+      description          = "Readonly keeper user "
+      path                 = "/"
       permissions_boundary = null
       force_destroy        = true
-      groups               = ["Keeper"]
-      keeper_folder_uid    = "mHanfChbSsciRD98ISfMtw"
+      groups               = include.env.locals.iam_users.primary[include.env.locals.name_abr].groups
+      keeper_folder_uid    = include.env.locals.keeper_flder_ui.primary[include.env.locals.name_abr]
+      policy = {
+        name        = include.env.locals.iam_users.primary[include.env.locals.name_abr].policy_name
+        description = "For keeper user to access secrets"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_user_policy.json"
+      }
     }
   ]
 }
