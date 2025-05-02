@@ -63,8 +63,9 @@ inputs = {
       record_folder_uid = include.env.locals.secrets.primary[include.env.locals.name_abr].record_folder_uid
     },
     {
-      name        = test
+      name        = "test"
       description = "Testing keeper secrets"
+      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = jsonencode({
         username = "testuser",
         password = "testpassword"
