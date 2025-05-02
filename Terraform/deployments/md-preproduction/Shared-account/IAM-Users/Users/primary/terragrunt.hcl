@@ -54,14 +54,18 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
+
+
   iam_users = [
-    name                 = "example-user-1"
-    description          = "Example IAM user for demonstration purposes"
-    path                 = "/users/"
-    permissions_boundary = null
-    force_destroy        = true
-    groups               = Test
-    keeper_folder_uid    = "mHanfChbSsciRD98ISfMtw"
+    {
+      name                 = "example-user-1"
+      description          = "Example IAM user for demonstration purposes"
+      path                 = "/users/"
+      permissions_boundary = null
+      force_destroy        = true
+      groups               = Test
+      keeper_folder_uid    = "mHanfChbSsciRD98ISfMtw"
+    }
   ]
 }
 #-------------------------------------------------------
