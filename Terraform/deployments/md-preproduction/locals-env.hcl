@@ -24,8 +24,8 @@ locals {
     }
     secondary = {
       mdpp = {
-        name        =
-        groups      =
+        name        = "keeper"
+        groups      = ["keeper_group"]
         policy_name = "keeper_policy"
       }
     }
