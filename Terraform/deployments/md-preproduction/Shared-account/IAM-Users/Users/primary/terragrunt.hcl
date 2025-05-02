@@ -63,7 +63,7 @@ inputs = {
       path                 = "/users/"
       permissions_boundary = null
       force_destroy        = true
-      groups               = Test
+      groups               = "Test"
       keeper_folder_uid    = "mHanfChbSsciRD98ISfMtw"
     }
   ]
@@ -96,7 +96,6 @@ generate "aws-providers" {
   provider "aws" {
     region = "${local.region}"
   }
-
   provider "secretsmanager" {
     credential = "${get_env("TF_VAR_KSM_CONFIG")}"
   }
