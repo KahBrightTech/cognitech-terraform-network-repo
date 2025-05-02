@@ -63,7 +63,7 @@ inputs = {
       path                 = "/users/"
       permissions_boundary = null
       force_destroy        = true
-      groups               = "Test"
+      groups               = ["Test"]
       keeper_folder_uid    = "mHanfChbSsciRD98ISfMtw"
     }
   ]
