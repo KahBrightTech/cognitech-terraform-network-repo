@@ -61,6 +61,14 @@ inputs = {
       name              = include.env.locals.secrets.primary[include.env.locals.name_abr].name
       description       = "Secrets for fsx share"
       record_folder_uid = include.env.locals.secrets.primary[include.env.locals.name_abr].record_folder_uid
+    },
+    {
+      name        = test
+      description = "Testing keeper secrets"
+      value = jsonencode({
+        username = "testuser",
+        password = "testpassword"
+      })
     }
   ]
 }
