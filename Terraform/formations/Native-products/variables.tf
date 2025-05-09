@@ -9,9 +9,9 @@ variable "common" {
   })
   default = null
 }
-variable "vpc" {
+variable "vpcs" {
   description = "All VPC resources to be created"
-  type = object({
+  type = list(object({
     name       = string
     cidr_block = string
     private_subnets = object({
@@ -55,8 +55,8 @@ variable "vpc" {
     private_routes = object({
       nat_gateway_id         = optional(string)
       destination_cidr_block = optional(string)
-      primary_subnet_id      = string
-      secondary_subnet_id    = string
+      primary_subnet_id      = optional(string)
+      secondary_subnet_id    = optional(string)
       tertiary_subnet_id     = optional(string)
       quaternary_subnet_id   = optional(string)
       has_tertiary_subnet    = optional(bool, false)
@@ -72,14 +72,39 @@ variable "vpc" {
       has_tertiary_subnet    = optional(bool, false)
       has_quaternary_subnet  = optional(bool, false)
     })
-    transit_gateway = optional(object({
-      name = string
-    }))
+  }))
+  default = null
+}
+
+variable "tgw_attachments" {
+  description = "The transit gateway attachment variables"
+  type = object({
+    transit_gateway_id   = optional(string)
+    subnet_ids           = optional(list(string))
+    transit_gateway_name = optional(string)
+    name                 = optional(string)
+    shared_vpc_name      = optional(string)
+    customer_vpc_name    = optional(string)
   })
   default = null
 }
 
+variable "tgw_routes" {
+  description = "The transit gateway route variables"
+  type = list(object({
+    name               = string
+    route_table_id     = optional(string)
+    vpc_cidr_block     = string
+    transit_gateway_id = optional(string)
+  }))
+  default = []
+}
 
+variable "vpc_id" {
+  description = "The vpc id"
+  type        = string
+  default     = null
+}
 
 
 
