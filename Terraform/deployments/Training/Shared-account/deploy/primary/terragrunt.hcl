@@ -26,13 +26,13 @@ locals {
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
-  vpc_name         = "shared-services"
+  vpc_name         = "Dev"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "Shared-services"
+      Environment = "Development"
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
@@ -42,7 +42,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Shared-account"
+  source = "../../../../..//formations/Training"
 }
 
 
@@ -57,147 +57,31 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
-  vpcs = [
+  Lambdas = [
     {
-      name       = local.vpc_name
-      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
-      private_subnets = {
-        name                       = "${local.vpc_name}-pvt"
-        primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.primary
-        secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.secondary
-      }
-      public_subnets = {
-        name                       = "${local.vpc_name}-pub"
-        primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.primary
-        secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.secondary
-      }
-      nat_gateway = {
-        name = "nat1"
-        type = local.external
-      }
-      private_routes = {
-        destination_cidr_block = "0.0.0.0/0"
-      }
-      public_routes = {
-        destination_cidr_block = "0.0.0.0/0"
-      }
-      security_groups = [
-        {
-          key         = "bastion"
-          name        = "shared-bastion"
-          description = "standrad sharewd bastion security group"
-        },
-        {
-          key         = "alb"
-          name        = "shared-alb"
-          description = "standard shared alb security group"
-        },
-        {
-          key         = "app"
-          name        = "shared-app"
-          description = "standard shared app security group"
-        },
-        {
-          key         = "db"
-          name        = "shared-db"
-          description = "standard shared db security group"
-        },
-        {
-          key         = "nlb"
-          name        = "shared-nlb"
-          description = "standard shared nlb security group"
-        }
-      ]
-      security_group_rules = [
-        {
-          sg_key = "bastion"
-          ingress = concat(
-            include.cloud.locals.security_group_rules.locals.ingress.windows_bastion_base,
-            include.cloud.locals.security_group_rules.locals.ingress.linux_bastion_base,
-            []
-          )
-          egress = concat(
-            include.cloud.locals.security_group_rules.locals.egress.windows_bastion_base,
-            include.cloud.locals.security_group_rules.locals.egress.linux_bastion_base,
-            []
-          )
-        },
-        {
-          sg_key = "alb"
-          ingress = concat(
-            include.cloud.locals.security_group_rules.locals.ingress.alb_base,
-            []
-          )
-          egress = concat(
-            include.cloud.locals.security_group_rules.locals.egress.alb_base,
-            []
-          )
-        },
-        {
-          sg_key = "nlb"
-          ingress = concat(
-            include.cloud.locals.security_group_rules.locals.ingress.nlb_base,
-            []
-          )
-          egress = concat(
-            include.cloud.locals.security_group_rules.locals.egress.nlb_base,
-            []
-          )
-        },
-        {
-          sg_key = "app"
-          ingress = concat(
-            include.cloud.locals.security_group_rules.locals.ingress.app_base,
-            []
-          )
-          egress = concat(
-            include.cloud.locals.security_group_rules.locals.egress.app_base,
-            []
-          )
-        }
-      ]
-      s3 = {
-        name        = "${local.vpc_name}-data-xfer"
-        description = "The bucket used for data transfers"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
-
-      }
-    }
-  ]
-  transit_gateway = {
-    name                            = local.vpc_name
-    default_route_table_association = "enable"
-    default_route_table_propagation = "enable"
-    auto_accept_shared_attachments  = "disable"
-    dns_support                     = "enable"
-    amazon_side_asn                 = "64512"
-  }
-  tgw_attachments = {
-    name = local.vpc_name
-  }
-  tgw_routes = [
-    {
-      name           = "dev"
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      function_name        = "${local.vpc_name}-start-instance"
+      description          = "Lambda function to start an EC2 instance"
+      runtime              = include.env.locals.lambda.start_instance.runtime
+      handler              = include.env.locals.lambda.start_instance.handler
+      timeout              = include.env.locals.lambda.start_instance.timeout
+      private_bucklet_name = include.env.locals.lambda.start_instance.private_bucklet_name
+      lamda_s3_key         = include.env.locals.lambda.start_instance.lamda_s3_key
+      layer_description    = "Lambda Layer for shared libraries"
+      layer_s3_key         = include.env.locals.lambda.start_instance.layer_s3_key
     },
     {
-      name           = "trn"
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
+      function_name        = "${local.vpc_name}-stop-instance"
+      description          = "Lambda function to stop an EC2 instance"
+      runtime              = include.env.locals.lambda.stop_instance.runtime
+      handler              = include.env.locals.lambda.stop_instance.handler
+      timeout              = include.env.locals.lambda.stop_instance.timeout
+      private_bucklet_name = include.env.locals.lambda.stop_instance.private_bucklet_name
+      lamda_s3_key         = include.env.locals.lambda.stop_instance.lamda_s3_key
+      layer_description    = "Lambda Layer for shared libraries"
+      layer_s3_key         = include.env.locals.lambda.stop_instance.layer_s3_key
     }
   ]
-
-  s3_private_buckets = [
-    {
-      name              = "${local.vpc_name}-app-bucket"
-      description       = "The application bucket for different apps"
-      enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
-    }
-  ]
+  service_catalog = []
 }
 #-------------------------------------------------------
 # State Configuration
