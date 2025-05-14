@@ -81,7 +81,7 @@ inputs = {
       layer_s3_key         = include.env.locals.lambda.stop_instance.layer_s3_key
     }
   ]
-  service_catalog = []
+  service_catalogs = []
 }
 #-------------------------------------------------------
 # State Configuration
