@@ -138,8 +138,9 @@ locals {
             template_url = "https://cognitech-lambdas-bucket.s3.us-east-1.amazonaws.com/Service-Catalog-cfn-templates/LambdaInstanceStop.yaml"
           }
         ]
-        associate_admin_role = true
-        associate_iam_group  = true
+        associate_admin_role   = true
+        associate_iam_group    = true
+        associate_network_role = true
       }
     }
   }
