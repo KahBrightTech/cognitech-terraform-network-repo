@@ -96,7 +96,41 @@ inputs = {
       }
     }
   ]
-  service_catalogs = []
+  service_catalogs = [
+    {
+      name          = include.cloud.locals.service_catalogs.Training.name
+      description   = include.cloud.locals.service_catalogs.Training.description
+      provider_name = include.cloud.locals.service_catalogs.Training.provider_name
+      products = [
+        {
+          name        = include.cloud.locals.service_catalogs.Training.products[0].name
+          description = include.cloud.locals.service_catalogs.Training.products[0].description
+          type        = "CLOUD_FORMATION_TEMPLATE"
+          owner       = "Sysops"
+        },
+        {
+          name        = include.cloud.locals.service_catalogs.Training.products[1].name
+          description = include.cloud.locals.service_catalogs.Training.products[1].description
+          type        = "CLOUD_FORMATION_TEMPLATE"
+          owner       = "Sysops"
+        }
+      ]
+      provisioning_artifact_parameters = [
+        {
+          name         = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[0].name
+          description  = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[0].description
+          type         = "CLOUD_FORMATION_TEMPLATE"
+          template_url = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[0].template_url
+        },
+        {
+          name         = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[1].name
+          description  = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[1].description
+          type         = "CLOUD_FORMATION_TEMPLATE"
+          template_url = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[1].template_url
+        }
+      ]
+    }
+  ]
 }
 
 #-------------------------------------------------------

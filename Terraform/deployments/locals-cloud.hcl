@@ -103,4 +103,44 @@ locals {
       layer_s3_key         = "IAM-Credentials/layers/python.zip"
     }
   }
+
+  Service_catalog = {
+    Training = {
+      portfolio = {
+        name          = "InstanceStatus"
+        description   = "Service Catalog portfolio for all Instance status"
+        provider_name = "Brigthain"
+        products = [
+          {
+            name        = "Start-Instance"
+            description = "Start an EC2 instance"
+            type        = "CLOUD_FORMATION_TEMPLATE"
+            owner       = "Brigthain"
+          }
+          {
+            name        = "Stop-Instance"
+            description = "Stop an EC2 instance"
+            type        = "CLOUD_FORMATION_TEMPLATE"
+            owner       = "Brigthain"
+          }
+        ]
+        provisioning_artifact_parameters = [
+          {
+            name         = "StartInstanceTemplate"
+            description  = "Template to start EC2 instances"
+            type         = "CLOUD_FORMATION_TEMPLATE"
+            template_url = "https://cognitech-lambdas-bucket.s3.us-east-1.amazonaws.com/Service-Catalog-cfn-templates/LambdaInstanceStart.yaml"
+          }
+          {
+            name         = "StopInstanceTemplate"
+            description  = "Template to stop EC2 instances"
+            type         = "CLOUD_FORMATION_TEMPLATE"
+            template_url = "https://cognitech-lambdas-bucket.s3.us-east-1.amazonaws.com/Service-Catalog-cfn-templates/LambdaInstanceStop.yaml"
+          }
+        ]
+        associate_admin_role = true
+        associate_iam_group  = true
+      }
+    }
+  }
 }
