@@ -106,7 +106,7 @@ locals {
 
   Service_catalog = {
     Training = {
-      portfolio = {
+      InstanceStatus = {
         name          = "InstanceStatus"
         description   = "Service Catalog portfolio for all Instance status"
         provider_name = "Brigthain"
