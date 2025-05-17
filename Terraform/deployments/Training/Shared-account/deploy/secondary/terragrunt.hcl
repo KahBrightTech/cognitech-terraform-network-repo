@@ -90,11 +90,14 @@ inputs = {
       lamda_s3_key         = include.cloud.locals.lambda.user_credentials.lamda_s3_key
       layer_description    = "Lambda Layer for shared libraries"
       layer_s3_key         = include.cloud.locals.lambda.user_credentials.layer_s3_key
+      env_variables = {
+        SNS_TOPIC_ARN = include.env.locals.sns_topic_arn
+        REGION        = local.region
+      }
     }
   ]
   service_catalogs = []
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
@@ -113,6 +116,7 @@ remote_state {
     region               = local.region
   }
 }
+
 #-------------------------------------------------------
 # Providers 
 #-------------------------------------------------------

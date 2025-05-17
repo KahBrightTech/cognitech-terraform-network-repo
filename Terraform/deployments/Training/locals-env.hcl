@@ -66,6 +66,7 @@ locals {
     }
   }
   remote_dynamodb_table = "Terraform"
+  sns_topic_arn         = "arn:aws:sns:us-east-1:485147667400:SSMautomationtopic"
   tags = {
     Environment  = local.environment
     Owner        = local.owner
