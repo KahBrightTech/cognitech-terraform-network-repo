@@ -61,28 +61,40 @@ inputs = {
     {
       function_name        = "${local.vpc_name}-start-instance"
       description          = "Lambda function to start an EC2 instance"
-      runtime              = include.env.locals.lambda.start_instance.runtime
-      handler              = include.env.locals.lambda.start_instance.handler
-      timeout              = include.env.locals.lambda.start_instance.timeout
-      private_bucklet_name = include.env.locals.lambda.start_instance.private_bucklet_name
-      lamda_s3_key         = include.env.locals.lambda.start_instance.lamda_s3_key
+      runtime              = include.cloud.locals.lambda.start_instance.runtime
+      handler              = include.cloud.locals.lambda.start_instance.handler
+      timeout              = include.cloud.locals.lambda.start_instance.timeout
+      private_bucklet_name = include.cloud.locals.lambda.start_instance.private_bucklet_name
+      lamda_s3_key         = include.cloud.locals.lambda.start_instance.lamda_s3_key
       layer_description    = "Lambda Layer for shared libraries"
-      layer_s3_key         = include.env.locals.lambda.start_instance.layer_s3_key
+      layer_s3_key         = include.cloud.locals.lambda.start_instance.layer_s3_key
     },
     {
       function_name        = "${local.vpc_name}-stop-instance"
       description          = "Lambda function to stop an EC2 instance"
-      runtime              = include.env.locals.lambda.stop_instance.runtime
-      handler              = include.env.locals.lambda.stop_instance.handler
-      timeout              = include.env.locals.lambda.stop_instance.timeout
-      private_bucklet_name = include.env.locals.lambda.stop_instance.private_bucklet_name
-      lamda_s3_key         = include.env.locals.lambda.stop_instance.lamda_s3_key
+      runtime              = include.cloud.locals.lambda.stop_instance.runtime
+      handler              = include.cloud.locals.lambda.stop_instance.handler
+      timeout              = include.cloud.locals.lambda.stop_instance.timeout
+      private_bucklet_name = include.cloud.locals.lambda.stop_instance.private_bucklet_name
+      lamda_s3_key         = include.cloud.locals.lambda.stop_instance.lamda_s3_key
       layer_description    = "Lambda Layer for shared libraries"
-      layer_s3_key         = include.env.locals.lambda.stop_instance.layer_s3_key
+      layer_s3_key         = include.cloud.locals.lambda.stop_instance.layer_s3_key
+    },
+    {
+      function_name        = "${local.vpc_name}-User-Credentials"
+      description          = "Lambda function to Verify User Credentials"
+      runtime              = include.cloud.locals.lambda.user_credentials.runtime
+      handler              = include.cloud.locals.lambda.user_credentials.handler
+      timeout              = include.cloud.locals.lambda.user_credentials.timeout
+      private_bucklet_name = include.cloud.locals.lambda.user_credentials.private_bucklet_name
+      lamda_s3_key         = include.cloud.locals.lambda.user_credentials.lamda_s3_key
+      layer_description    = "Lambda Layer for shared libraries"
+      layer_s3_key         = include.cloud.locals.lambda.user_credentials.layer_s3_key
     }
   ]
-  service_catalog = []
+  service_catalogs = []
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
