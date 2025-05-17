@@ -44,6 +44,9 @@ variable "service_catalogs" {
       type         = string
       template_url = string
     }))
+    associate_admin_role   = optional(bool, false)
+    associate_network_role = optional(bool, false)
+    associate_iam_group    = optional(bool, true)
   }))
   default = null
 }
