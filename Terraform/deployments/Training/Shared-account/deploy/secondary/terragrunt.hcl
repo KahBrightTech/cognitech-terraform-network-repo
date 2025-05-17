@@ -98,41 +98,40 @@ inputs = {
   ]
   service_catalogs = [
     {
-      name          = include.cloud.locals.service_catalogs.Training.name
-      description   = include.cloud.locals.service_catalogs.Training.description
-      provider_name = include.cloud.locals.service_catalogs.Training.provider_name
+      name          = include.cloud.locals.Service_catalog.Training.name
+      description   = include.cloud.locals.Service_catalog.Training.description
+      provider_name = include.cloud.locals.Service_catalog.Training.provider_name
       products = [
         {
-          name        = include.cloud.locals.service_catalogs.Training.products[0].name
-          description = include.cloud.locals.service_catalogs.Training.products[0].description
+          name        = include.cloud.locals.Service_catalog.Training.products[0].name
+          description = include.cloud.locals.Service_catalog.Training.products[0].description
           type        = "CLOUD_FORMATION_TEMPLATE"
           owner       = "Sysops"
         },
         {
-          name        = include.cloud.locals.service_catalogs.Training.products[1].name
-          description = include.cloud.locals.service_catalogs.Training.products[1].description
+          name        = include.cloud.locals.Service_catalog.Training.products[1].name
+          description = include.cloud.locals.Service_catalog.Training.products[1].description
           type        = "CLOUD_FORMATION_TEMPLATE"
           owner       = "Sysops"
         }
       ]
       provisioning_artifact_parameters = [
         {
-          name         = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[0].name
-          description  = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[0].description
+          name         = include.cloud.locals.Service_catalog.Training.provisioning_artifact_parameters[0].name
+          description  = include.cloud.locals.Service_catalog.Training.provisioning_artifact_parameters[0].description
           type         = "CLOUD_FORMATION_TEMPLATE"
-          template_url = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[0].template_url
+          template_url = include.cloud.locals.Service_catalog.Training.provisioning_artifact_parameters[0].template_url
         },
         {
-          name         = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[1].name
-          description  = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[1].description
+          name         = include.cloud.locals.Service_catalog.Training.provisioning_artifact_parameters[1].name
+          description  = include.cloud.locals.Service_catalog.Training.provisioning_artifact_parameters[1].description
           type         = "CLOUD_FORMATION_TEMPLATE"
-          template_url = include.cloud.locals.service_catalogs.Training.provisioning_artifact_parameters[1].template_url
+          template_url = include.cloud.locals.Service_catalog.Training.provisioning_artifact_parameters[1].template_url
         }
       ]
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
