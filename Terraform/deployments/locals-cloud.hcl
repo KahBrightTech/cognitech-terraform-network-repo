@@ -93,11 +93,4 @@ locals {
       layer_s3_key         = "IAM-Credentials/layers/python.zip"
     }
   }
-  remote_dynamodb_table = "Terraform"
-  tags = {
-    Environment  = local.environment
-    Owner        = local.owner
-    Build-method = local.build
-    Compliance   = local.compliance
-  }
 }

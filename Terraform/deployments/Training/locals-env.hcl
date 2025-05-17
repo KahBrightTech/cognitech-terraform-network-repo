@@ -66,3 +66,10 @@ locals {
     }
   }
 }
+remote_dynamodb_table = "Terraform"
+tags = {
+  Environment  = local.environment
+  Owner        = local.owner
+  Build-method = local.build
+  Compliance   = local.compliance
+}
