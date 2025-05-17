@@ -112,13 +112,13 @@ locals {
         provider_name = "Brigthain"
         products = [
           {
-            name        = "Start-Instance"
+            name        = "start_instances" # Has to be the same as the provisioning_artifact_parameters keys 
             description = "Start an EC2 instance"
             type        = "CLOUD_FORMATION_TEMPLATE"
             owner       = "Brigthain"
           },
           {
-            name        = "Stop-Instance"
+            name        = "stop_instances" # Has to be the same as the provisioning_artifact_parameters keys
             description = "Stop an EC2 instance"
             type        = "CLOUD_FORMATION_TEMPLATE"
             owner       = "Brigthain"
