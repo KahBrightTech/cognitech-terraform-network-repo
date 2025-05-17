@@ -52,7 +52,7 @@ terraform {
 inputs = {
   common = {
     global        = local.deploy_globally
-    account_name  = include.cloud.locals.account_name.MD.Preprod.name
+    account_name  = include.cloud.locals.account_name.TRN.Preprod.name
     region_prefix = local.region_prefix
     tags          = local.tags
     region        = local.region

@@ -21,6 +21,16 @@ locals {
       name   = "MDPreproduction"
       number = "485147667400"
     }
+    TRN = {
+      Preprod = {
+        name   = "trnpreproduction"
+        number = "485147667400"
+      }
+      Prod = {
+        name   = "trnproduction"
+        number = "730335294148"
+      }
+    }
   }
   billing_code_number = {
     kah = "90471"
