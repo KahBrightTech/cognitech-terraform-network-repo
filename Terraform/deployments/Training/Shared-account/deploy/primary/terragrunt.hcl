@@ -119,11 +119,13 @@ inputs = {
         start_instances = {
           name         = include.cloud.locals.Service_catalog.Training.InstanceStatus.provisioning_artifact_parameters[0].name
           description  = include.cloud.locals.Service_catalog.Training.InstanceStatus.provisioning_artifact_parameters[0].description
+          type         = "CLOUD_FORMATION_TEMPLATE"
           template_url = include.cloud.locals.Service_catalog.Training.InstanceStatus.provisioning_artifact_parameters[0].template_url
         },
         stop_instances = {
           name         = include.cloud.locals.Service_catalog.Training.InstanceStatus.provisioning_artifact_parameters[1].name
           description  = include.cloud.locals.Service_catalog.Training.InstanceStatus.provisioning_artifact_parameters[1].description
+          type         = "CLOUD_FORMATION_TEMPLATE"
           template_url = include.cloud.locals.Service_catalog.Training.InstanceStatus.provisioning_artifact_parameters[1].template_url
         }
       }
