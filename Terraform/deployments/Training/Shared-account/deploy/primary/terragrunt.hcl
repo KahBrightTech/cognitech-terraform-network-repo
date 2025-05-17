@@ -115,7 +115,7 @@ inputs = {
           owner       = "Sysops"
         }
       ]
-      provisioning_artifact_parameters = [
+      provisioning_artifact_parameters = {
         start_instances = {
           name         = include.cloud.locals.Service_catalog.Training.InstanceStatus.provisioning_artifact_parameters[0].name
           description  = include.cloud.locals.Service_catalog.Training.InstanceStatus.provisioning_artifact_parameters[0].description
@@ -128,7 +128,7 @@ inputs = {
           type         = "CLOUD_FORMATION_TEMPLATE"
           template_url = include.cloud.locals.Service_catalog.Training.InstanceStatus.provisioning_artifact_parameters[1].template_url
         }
-      ]
+      }
     }
   ]
 }
