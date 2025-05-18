@@ -11,10 +11,10 @@ variable "common" {
 }
 variable "vpc" {
   description = "All VPC resources to be created"
-  type = object({
+  type = list(object({
     name       = string
     cidr_block = string
-    public_subnets = object({
+    public_subnets = list(object({
       name                          = string
       primary_availabilty_zone      = optional(string)
       primary_availabilty_zone_id   = optional(string)
@@ -25,16 +25,8 @@ variable "vpc" {
       tertiary_availabilty_zone     = optional(string)
       tertiary_availabilty_zone_id  = optional(string)
       tertiary_cidr_block           = optional(string)
-    })
-    public_routes = object({
-      public_gateway_id      = optional(string)
-      destination_cidr_block = optional(string)
-      primary_subnet_id      = optional(string)
-      secondary_subnet_id    = optional(string)
-      tertiary_subnet_id     = optional(string)
-      has_tertiary_subnet    = optional(bool, false)
-    })
-  })
+    }))
+  }))
   default = null
 }
 
