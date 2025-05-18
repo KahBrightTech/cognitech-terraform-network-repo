@@ -11,7 +11,7 @@ variable "common" {
 }
 variable "vpc" {
   description = "All VPC resources to be created"
-  type = list(object({
+  type = object({
     name       = string
     cidr_block = string
     public_subnets = list(object({
@@ -26,7 +26,7 @@ variable "vpc" {
       tertiary_availabilty_zone_id  = optional(string)
       tertiary_cidr_block           = optional(string)
     }))
-  }))
+  })
   default = null
 }
 
