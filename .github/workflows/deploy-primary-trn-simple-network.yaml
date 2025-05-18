@@ -7,7 +7,7 @@ on:
       - "*" # Run on push to any feature branch
     paths:
       - ".github/workflows/deploy-primary-trn-simple-network.yaml"
-      - "Terraform/deployments/Training/Sinmple-network/deploy/primary/**/*"
+      - "Terraform/deployments/Training/Simple-network/deploy/primary/**/*"
 
   workflow_dispatch:
     inputs:

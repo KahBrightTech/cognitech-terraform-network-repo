@@ -26,13 +26,13 @@ locals {
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
-  vpc_name         = "Dev"
+  vpc_name         = "sit"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "Test"
+      Environment = "sit"
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
@@ -63,7 +63,7 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       public_subnets = [
         {
-          name                       = "${local.vpc_name}-pvt"
+          name                       = "${local.vpc_name}-pvt1"
           primary_availabilty_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.primary
           secondary_availabilty_zone = local.region_blk.availability_zones.secondary
