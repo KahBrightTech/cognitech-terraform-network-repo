@@ -74,7 +74,7 @@ inputs = {
         secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt2.secondary
       }
     ]
-    public_routes = {}
+    # public_routes = {}
   }
 }
 
