@@ -57,21 +57,27 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
-  vpcs = [
-    {
-      name       = local.vpc_name
-      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
-      public_subnets = [
-        {
-          name                       = "${local.vpc_name}-pvt1"
-          primary_availabilty_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.secondary
-        }
-      ]
-    }
-  ]
+
+  vpc = {
+    name       = local.vpc_name
+    cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
+    public_subnets = [
+      {
+        name                       = "${local.vpc_name}-pvt1"
+        primary_availabilty_zone   = local.region_blk.availability_zones.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets..pvt1.primary
+        secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt1.secondary
+      },
+      {
+        name                       = "${local.vpc_name}-pvt2"
+        primary_availabilty_zone   = local.region_blk.availability_zones.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt2.primary
+        secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt2.secondary
+      }
+    ]
+  }
 }
 #-------------------------------------------------------
 # State Configuration
