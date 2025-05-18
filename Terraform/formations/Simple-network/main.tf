@@ -2,9 +2,10 @@
 # VPC - Creates a VPC  to the target account
 #--------------------------------------------------------------------
 module "vpc" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/vpc?ref=v1.1.1"
-  vpc    = var.vpc
-  common = var.common
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/vpc?ref=v1.1.1"
+  for_each = { for vpc in var.vpc : vpc.name => vpc }
+  vpc      = each.value
+  common   = var.common
 }
 
 #--------------------------------------------------------------------
