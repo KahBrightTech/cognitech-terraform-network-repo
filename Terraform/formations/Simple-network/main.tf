@@ -21,29 +21,29 @@ module "public_subnets" {
 
 
 
-# module "public_route" {
-#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.2"
-#   vpc_id = module.vpc.vpc_id
-#   common = var.common
-#   public_routes = {
-#     public_gateway_id      = module.vpc.igw_id
-#     destination_cidr_block = var.vpc.public_routes.destination_cidr_block
-#     subnet_ids             = module.public_subnets.public_subnets.subnet_ids
-#   }
-# }
-
 module "public_route" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.1"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.2"
   vpc_id = module.vpc.vpc_id
+  common = var.common
   public_routes = {
     public_gateway_id      = module.vpc.igw_id
     destination_cidr_block = var.vpc.public_routes.destination_cidr_block
-    primary_subnet_id      = module.public_subnets.primary_subnet_id
-    secondary_subnet_id    = module.public_subnets.secondary_subnet_id
-    tertiary_subnet_id     = module.public_subnets.tertiary_subnet_id
+    subnet_ids             = module.public_subnets.subnet_ids
   }
-  common = var.common
 }
+
+# module "public_route" {
+#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.1"
+#   vpc_id = module.vpc.vpc_id
+#   public_routes = {
+#     public_gateway_id      = module.vpc.igw_id
+#     destination_cidr_block = var.vpc.public_routes.destination_cidr_block
+#     primary_subnet_id      = module.public_subnets.primary_subnet_id
+#     secondary_subnet_id    = module.public_subnets.secondary_subnet_id
+#     tertiary_subnet_id     = module.public_subnets.tertiary_subnet_id
+#   }
+#   common = var.common
+# }
 
 
 
