@@ -12,11 +12,11 @@ module "vpc" {
 #--------------------------------------------------------------------
 
 module "public_subnets" {
-  source         = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/subnet/public_subnets?ref=v1.1.4"
+  source         = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/subnets/public_subnets?ref=v1.1.3"
   for_each       = var.vpc != null && var.vpc.public_subnets != null ? { for public_subnet in var.vpc.public_subnets : public_subnet.name => public_subnet } : {}
   vpc_id         = module.vpc.vpc_id
   public_subnets = each.value
-  common         = var.common
+  common         = each.value
 }
 
 
