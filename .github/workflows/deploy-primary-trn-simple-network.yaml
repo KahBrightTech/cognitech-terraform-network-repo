@@ -27,7 +27,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/Training/Sinmple-network/deploy/primary
+  DEPLOYMENT_PATH: Terraform/deployments/Training/Simple-network/deploy/primary
 
 permissions:
   packages: write
