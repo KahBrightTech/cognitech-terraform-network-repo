@@ -21,16 +21,16 @@ module "public_subnets" {
 
 
 
-# module "public_route" {
-#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.2"
-#   vpc_id = module.vpc.vpc_id
-#   common = var.common
-#   public_routes = {
-#     public_gateway_id      = module.vpc.igw_id
-#     destination_cidr_block = var.vpc.public_routes.destination_cidr_block
-#     subnet_ids             = flatten([for s in values(module.public_subnets) : s.subnet_ids])
-#   }
-# }
+module "public_route" {
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.5"
+  vpc_id = module.vpc.vpc_id
+  common = var.common
+  public_routes = {
+    public_gateway_id      = module.vpc.igw_id
+    destination_cidr_block = var.vpc.public_routes.destination_cidr_block
+    subnet_ids             = module.public_subnets[each.value.name].subnet_ids
+  }
+}
 
 # module "public_route" {
 #   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.3"
