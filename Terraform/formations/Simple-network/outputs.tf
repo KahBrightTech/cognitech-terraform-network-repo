@@ -18,10 +18,16 @@ output "public_subnets" {
   value       = values(module.public_subnets)
 }
 
-output "public_subnet" { # This is the output for all public subnets by name index
+output "public_subnet" {
   description = "Values for all public subnets by name index"
-  value       = var.vpc != null ? { for public_subnet in var.vpc.public_subnets : public_subnet.name => public_subnet } : null
+  value       = var.vpc != null ? { for key, item in var.vpc.public_subnets : item.name => module.public_subnets[item.name] } : null
+
 }
+
+# output "public_subnet" {
+#   description = "Values for all public subnets by name index"
+#   value       = var.vpc != null ? { for public_subnet in var.vpc.public_subnets : public_subnet.name => public_subnet } : null
+# }
 
 
 
