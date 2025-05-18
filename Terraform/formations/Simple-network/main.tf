@@ -28,7 +28,7 @@ module "public_route" {
   public_routes = {
     public_gateway_id      = module.vpc.igw_id
     destination_cidr_block = var.vpc.public_routes.destination_cidr_block
-    subnet_ids             = [for subnet in module.public_subnets : subnet.subnet_id]
+    subnet_ids             = [for subnet in values(module.public_subnets) : subnet.subnet_id]
   }
 
 
