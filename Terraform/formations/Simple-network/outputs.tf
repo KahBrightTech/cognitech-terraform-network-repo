@@ -18,21 +18,15 @@ output "public_subnets" {
   value       = values(module.public_subnets)
 }
 
-output "primary_public_subnet_ids" {
-  description = "The public subnet ids"
-  value       = module.public_subnets.primary_subnet_id
+# output "public_subnet" {
+#   description = "Values for all public subnets by name index"
+#   value = var.vpc != null ? { for key, item in var.vpc.public_subnets : item.name => module.public_subnets[item.name] } : null
 
-}
-output "secondary_public_subnet_ids" {
-  description = "The public subnet ids"
-  value       = module.public_subnets.secondary_subnet_id
+# }
 
-}
-
-output "tertiary_public_subnet_ids" {
-  description = "The public subnet ids"
-  value       = module.public_subnets.tertiary_subnet_id
-
+output "public_subnet" {
+  description = "Values for all public subnets by name index"
+  value       = var.vpc != null ? { for public_subnet in var.vpc.public_subnets : public_subnet.name => public_subnet } : null
 }
 
 
