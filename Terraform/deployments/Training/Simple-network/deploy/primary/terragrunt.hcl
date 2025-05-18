@@ -75,40 +75,40 @@ inputs = {
         secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt2.secondary
       }
     ]
-    #   public_routes = {
-    #     destination_cidr_block = "0.0.0.0/0"
-    #   }
+    # public_routes = {
+    #   destination_cidr_block = "0.0.0.0/0"
     # }
   }
-  #-------------------------------------------------------
-  # State Configuration
-  #-------------------------------------------------------
-  remote_state {
-    backend = "s3"
-    generate = {
-      path      = "backend.tf"
-      if_exists = "overwrite"
-    }
-    config = {
-      bucket               = local.state_bucket
-      bucket_sse_algorithm = "AES256"
-      dynamodb_table       = local.state_lock_table
-      encrypt              = true
-      key                  = "${local.deployment_name}/terraform.tfstate"
-      region               = local.region
-    }
-  }
-
-  #-------------------------------------------------------
-  # Providers 
-  #-------------------------------------------------------
-  generate "aws-providers" {
-    path      = "aws-provider.tf"
+}
+#-------------------------------------------------------
+# State Configuration
+#-------------------------------------------------------
+remote_state {
+  backend = "s3"
+  generate = {
+    path      = "backend.tf"
     if_exists = "overwrite"
-    contents  = <<-EOF
+  }
+  config = {
+    bucket               = local.state_bucket
+    bucket_sse_algorithm = "AES256"
+    dynamodb_table       = local.state_lock_table
+    encrypt              = true
+    key                  = "${local.deployment_name}/terraform.tfstate"
+    region               = local.region
+  }
+}
+
+#-------------------------------------------------------
+# Providers 
+#-------------------------------------------------------
+generate "aws-providers" {
+  path      = "aws-provider.tf"
+  if_exists = "overwrite"
+  contents  = <<-EOF
   provider "aws" {
     region = "${local.region}"
   }
   EOF
-  }
+}
 
