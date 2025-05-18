@@ -25,10 +25,12 @@ variable "vpc" {
       tertiary_availabilty_zone     = optional(string)
       tertiary_availabilty_zone_id  = optional(string)
       tertiary_cidr_block           = optional(string)
+      subnet_ids                    = optional(list(string))
     }))
   })
   default = null
 }
+
 
 
 

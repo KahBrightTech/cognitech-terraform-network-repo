@@ -24,11 +24,6 @@ output "public_subnet" {
 
 }
 
-# output "public_subnet" {
-#   description = "Values for all public subnets by name index"
-#   value       = var.vpc != null ? { for public_subnet in var.vpc.public_subnets : public_subnet.name => public_subnet } : null
-# }
-
 
 
 
