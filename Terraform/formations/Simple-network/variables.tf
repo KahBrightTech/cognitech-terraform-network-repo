@@ -29,8 +29,8 @@ variable "vpc" {
     }))
     public_routes = optional(object({
       public_gateway_id      = optional(string)
-      destination_cidr_block = string
-      subnet_ids             = list(string)
+      destination_cidr_block = optional(string)
+      subnet_ids             = optional(list(string))
     }))
   })
   default = null
