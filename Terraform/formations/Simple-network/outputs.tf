@@ -18,22 +18,22 @@ output "public_subnets" {
   value       = values(module.public_subnets)
 }
 
-output "primary_public_subnet_ids" {
-  description = "The public subnet ids"
-  value       = module.public_subnets.primary_subnet_id
+# output "primary_public_subnet_ids" {
+#   description = "The public subnet ids"
+#   value       = module.public_subnets.primary_subnet_id
 
-}
-output "secondary_public_subnet_ids" {
-  description = "The public subnet ids"
-  value       = module.public_subnets.secondary_subnet_id
+# }
+# output "secondary_public_subnet_ids" {
+#   description = "The public subnet ids"
+#   value       = module.public_subnets.secondary_subnet_id
 
-}
+# }
 
-output "tertiary_public_subnet_ids" {
-  description = "The public subnet ids"
-  value       = module.public_subnets.tertiary_subnet_id
+# output "tertiary_public_subnet_ids" {
+#   description = "The public subnet ids"
+#   value       = module.public_subnets.tertiary_subnet_id
 
-}
+# }
 
 
 
