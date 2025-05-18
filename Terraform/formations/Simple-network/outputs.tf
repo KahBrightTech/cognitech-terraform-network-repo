@@ -24,6 +24,15 @@ output "public_subnet" {
 
 }
 
+#-------------------------------------------------------
+# Public subnet oRoutes
+# #-------------------------------------------------------
+output "public_routes" {
+  description = "Output of all public routes"
+  value       = module.public_route
+}
+
+
 
 
 

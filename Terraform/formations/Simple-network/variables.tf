@@ -27,6 +27,15 @@ variable "vpc" {
       tertiary_cidr_block           = optional(string)
       subnet_ids                    = optional(list(string))
     }))
+    public_routes = optional(object({
+      public_gateway_id      = optional(string)
+      destination_cidr_block = string
+      primary_subnet_id      = optional(string)
+      secondary_subnet_id    = optional(string)
+      tertiary_subnet_id     = optional(string)
+      quaternary_subnet_id   = optional(string)
+      has_quaternary_subnet  = optional(bool, false)
+    }))
   })
   default = null
 }
