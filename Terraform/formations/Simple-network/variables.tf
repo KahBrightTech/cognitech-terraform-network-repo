@@ -30,12 +30,7 @@ variable "vpc" {
     public_routes = optional(object({
       public_gateway_id      = optional(string)
       destination_cidr_block = string
-      primary_subnet_id      = optional(string)
-      secondary_subnet_id    = optional(string)
-      tertiary_subnet_id     = optional(string)
-      has_tertiary_subnet    = optional(bool, false)
-      quaternary_subnet_id   = optional(string)
-      has_quaternary_subnet  = optional(bool, false)
+      subnet_ids             = list(string)
     }))
   })
   default = null

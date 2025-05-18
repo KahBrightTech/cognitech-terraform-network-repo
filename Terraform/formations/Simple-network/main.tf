@@ -33,7 +33,7 @@ module "public_route" {
 }
 
 # module "public_route" {
-#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.1"
+#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.3"
 #   vpc_id = module.vpc.vpc_id
 #   public_routes = {
 #     public_gateway_id      = module.vpc.igw_id

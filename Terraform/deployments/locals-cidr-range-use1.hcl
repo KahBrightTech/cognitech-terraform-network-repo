@@ -88,19 +88,52 @@ locals {
           }
         }
         dev = {
-          vpc = "10.1.1.0/24"
+          vpc = "10.1.3.0/24"
           public_subnets = {
             pvt1 = {
-              primary   = "10.1.1.128/26"
-              secondary = "10.1.1.192/26"
+              primary   = "10.1.3.0/27"
+              secondary = "10.1.3.32/27"
+            }
+            pvt2 = {
+              primary   = "10.1.3.64/27"
+              secondary = "10.1.3.96/27"
             }
           }
           private_subnets = {
-            primary   = "10.1.1.0/26"
-            secondary = "10.1.1.64/26"
+            pvt1 = {
+              primary   = "10.1.3.128/27"
+              secondary = "10.1.3.160/27"
+            }
+            pvt2 = {
+              primary   = "10.1.3.192/27"
+              secondary = "10.1.3.224/27"
+            }
           }
         }
         sit = {
+          vpc = "10.1.3.0/24"
+          public_subnets = {
+            pvt1 = {
+              primary   = "10.1.3.0/27"
+              secondary = "10.1.3.32/27"
+            }
+            pvt2 = {
+              primary   = "10.1.3.64/27"
+              secondary = "10.1.3.96/27"
+            }
+          }
+          private_subnets = {
+            pvt1 = {
+              primary   = "10.1.3.128/27"
+              secondary = "10.1.3.160/27"
+            }
+            pvt2 = {
+              primary   = "10.1.3.192/27"
+              secondary = "10.1.3.224/27"
+            }
+          }
+        }
+        uat = {
           vpc = "10.1.3.0/24"
           public_subnets = {
             pvt1 = {

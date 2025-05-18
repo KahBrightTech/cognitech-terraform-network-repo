@@ -55,7 +55,6 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
-
   vpc = {
     name       = local.vpc_name
     cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
