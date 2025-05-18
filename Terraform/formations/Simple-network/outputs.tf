@@ -35,5 +35,34 @@ output "public_subnets" {
 
 # }
 
+output "public" {
+  description = "The subnet details based on public_subnets module"
+  value = {
+    "primary_subnet" = {
+      availability_zone = module.public_subnets.primary_az
+      subnet_arn        = module.public_subnets.primary_subnet_arn
+      subnet_id         = module.public_subnets.primary_subnet_id
+      subnet_cidr       = module.public_subnets.primary_subnet_cidr
+    }
+    "secondary_subnet" = {
+      availability_zone = module.public_subnets.secondary_az
+      subnet_arn        = module.public_subnets.secondary_subnet_arn
+      subnet_id         = module.public_subnets.secondary_subnet_id
+      subnet_cidr       = module.public_subnets.secondary_subnet_cidr
+    }
+    "tertiary_subnet" = {
+      availability_zone = module.public_subnets.tertiary_az
+      subnet_arn        = module.public_subnets.tertiary_subnet_arn
+      subnet_id         = module.public_subnets.tertiary_subnet_id
+      subnet_cidr       = module.public_subnets.tertiary_subnet_cidr
+    }
+    "quaternary_subnet" = {
+      availability_zone = module.public_subnets.quaternary_az
+      subnet_arn        = module.public_subnets.quaternary_subnet_arn
+      subnet_id         = module.public_subnets.quaternary_subnet_id
+      subnet_cidr       = module.public_subnets.quaternary_subnet_cidr
+    }
+  }
+}
 
 
