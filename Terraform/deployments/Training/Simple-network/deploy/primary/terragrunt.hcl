@@ -66,7 +66,7 @@ inputs = {
         primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt1.primary
         secondary_availabilty_zone = local.region_blk.availability_zones.secondary
         secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt1.secondary
-      }
+      },
       {
         name                       = "${local.vpc_name}-pvt2"
         primary_availabilty_zone   = local.region_blk.availability_zones.primary
