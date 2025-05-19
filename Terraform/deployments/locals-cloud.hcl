@@ -23,11 +23,11 @@ locals {
     }
     TRN = {
       Preprod = {
-        name   = "trnpreproduction"
+        name   = "trn-preproduction"
         number = "485147667400"
       }
       Prod = {
-        name   = "trnproduction"
+        name   = "trn-production"
         number = "730335294148"
       }
     }

@@ -26,13 +26,13 @@ locals {
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
-  vpc_name         = "sit"
+  vpc_name         = "uat"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "sit"
+      Environment = "uat"
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
@@ -44,8 +44,6 @@ locals {
 terraform {
   source = "../../../../..//formations/Simple-network"
 }
-
-
 #-------------------------------------------------------
 # Inputs 
 #-------------------------------------------------------
@@ -57,28 +55,47 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
-
   vpc = {
     name       = local.vpc_name
     cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
     public_subnets = [
       {
-        name                       = "${local.vpc_name}-pvt1"
+        name                       = "pvt1"
         primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets..pvt1.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.pvt1.primary
+        secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.pvt1.secondary
+      },
+      {
+        name                       = "pvt2"
+        primary_availabilty_zone   = local.region_blk.availability_zones.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.pvt2.primary
+        secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.pvt2.secondary
+      }
+    ]
+    private_subnets = [
+      {
+        name                       = "pvt1"
+        primary_availabilty_zone   = local.region_blk.availability_zones.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt1.primary
         secondary_availabilty_zone = local.region_blk.availability_zones.secondary
         secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt1.secondary
       },
       {
-        name                       = "${local.vpc_name}-pvt2"
+        name                       = "pvt2"
         primary_availabilty_zone   = local.region_blk.availability_zones.primary
         primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt2.primary
         secondary_availabilty_zone = local.region_blk.availability_zones.secondary
         secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.pvt2.secondary
       }
     ]
+    public_routes = {
+      destination_cidr_block = "0.0.0.0/0"
+    }
   }
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------

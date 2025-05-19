@@ -27,6 +27,21 @@ variable "vpc" {
       tertiary_cidr_block           = optional(string)
       subnet_ids                    = optional(list(string))
     }))
+    private_subnets = list(object({
+      name                            = string
+      primary_availability_zone       = optional(string)
+      primary_availability_zone_id    = optional(string)
+      primary_cidr_block              = string
+      secondary_availability_zone     = optional(string)
+      secondary_availability_zone_id  = optional(string)
+      secondary_cidr_block            = optional(string)
+      tertiary_availability_zone      = optional(string)
+      tertiary_availability_zone_id   = optional(string)
+      tertiary_cidr_block             = optional(string)
+      quaternary_availability_zone    = optional(string)
+      quaternary_availability_zone_id = optional(string)
+      quaternary_cidr_block           = optional(string)
+    }))
     public_routes = optional(object({
       public_gateway_id      = optional(string)
       destination_cidr_block = optional(string)
