@@ -45,7 +45,6 @@ variable "vpc" {
       quaternary_availability_zone_id = optional(string)
       quaternary_cidr_block           = optional(string)
     })
-
     nat_gateway = optional(object({
       name              = string
       type              = string
@@ -54,7 +53,6 @@ variable "vpc" {
       tertiary_subnet   = optional(string)
       quaternary_subnet = optional(string)
     }))
-
     private_routes = object({
       nat_gateway_id         = optional(string)
       destination_cidr_block = optional(string)
