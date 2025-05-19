@@ -75,7 +75,7 @@ module "private_route" {
   vpc_id   = module.vpc.vpc_id
   common   = var.common
   private_routes = {
-    nat_gateway_id         = module.ngw.ngw_gateway_primary_id
+    nat_gateway_id         = module.ngw[each.key].ngw_gateway_primary_id
     primary_subnet_id      = each.value.primary_subnet_id
     secondary_subnet_id    = each.value.secondary_subnet_id
     tertiary_subnet_id     = each.value.tertiary_subnet_id
