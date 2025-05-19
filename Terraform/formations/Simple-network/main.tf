@@ -66,6 +66,23 @@ module "private_subnets" {
   common          = var.common
 }
 
+#--------------------------------------------------------------------
+# Subnet Route - Creates Private routes
+#--------------------------------------------------------------------
+module "private_route" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/private_routes?ref=v1.1.1"
+  for_each = module.private_subnets
+  vpc_id   = module.vpc.vpc_id
+  common   = var.common
+  private_routes = {
+    nat_gateway_id         = module.ngw.ngw_gateway_primary_id
+    primary_subnet_id      = each.value.primary_subnet_id
+    secondary_subnet_id    = each.value.secondary_subnet_id
+    tertiary_subnet_id     = each.value.tertiary_subnet_id
+    destination_cidr_block = var.vpc.private_routes.destination_cidr_block
+  }
+
+}
 
 
 
