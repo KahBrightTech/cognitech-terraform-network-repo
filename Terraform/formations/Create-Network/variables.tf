@@ -63,7 +63,6 @@ variable "vpc" {
       has_tertiary_subnet    = optional(bool, false)
       has_quaternary_subnet  = optional(bool, false)
     })
-
     public_routes = object({
       public_gateway_id      = optional(string)
       destination_cidr_block = optional(string)
