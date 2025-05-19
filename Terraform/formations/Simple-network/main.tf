@@ -37,52 +37,51 @@ module "public_route" {
   }
 }
 
-#--------------------------------------------------------------------
-# Natgateway - Creates natgateways
-#--------------------------------------------------------------------
-module "ngw" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/natgateway?ref=v1.1.1"
-  for_each = module.public_subnets
-  bypass   = (var.vpc.nat_gateway == null)
-  common   = var.common
-  nat_gateway = {
-    name                 = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.name : "unknown"
-    subnet_id_primary    = each.value.primary_subnet_id
-    subnet_id_secondary  = each.value.secondary_subnet_id
-    subnet_id_tertiary   = each.value.tertiary_subnet_id
-    subnet_id_quaternary = each.value.quaternary_subnet_id
-    type                 = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.type : "unknown"
-  }
-}
+# #--------------------------------------------------------------------
+# # Natgateway - Creates natgateways
+# #--------------------------------------------------------------------
+# module "ngw" {
+#   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/natgateway?ref=v1.1.1"
+#   for_each = module.public_subnets
+#   bypass   = (var.vpc.nat_gateway == null)
+#   common   = var.common
+#   nat_gateway = {
+#     name                 = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.name : "unknown"
+#     subnet_id_primary    = each.value.primary_subnet_id
+#     subnet_id_secondary  = each.value.secondary_subnet_id
+#     subnet_id_tertiary   = each.value.tertiary_subnet_id
+#     subnet_id_quaternary = each.value.quaternary_subnet_id
+#     type                 = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.type : "unknown"
+#   }
+# }
 
-#--------------------------------------------------------------------
-# Subnets - Creates private subnets
-#--------------------------------------------------------------------
-module "private_subnets" {
-  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/subnets/private_subnets?ref=v1.1.8"
-  for_each        = var.vpc != null && var.vpc.private_subnets != null ? { for private_subnet in var.vpc.private_subnets : private_subnet.name => private_subnet } : {}
-  vpc_id          = module.vpc.vpc_id
-  private_subnets = each.value
-  common          = var.common
-}
+# #--------------------------------------------------------------------
+# # Subnets - Creates private subnets
+# #--------------------------------------------------------------------
+# module "private_subnets" {
+#   source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/subnets/private_subnets?ref=v1.1.8"
+#   for_each        = var.vpc != null && var.vpc.private_subnets != null ? { for private_subnet in var.vpc.private_subnets : private_subnet.name => private_subnet } : {}
+#   vpc_id          = module.vpc.vpc_id
+#   private_subnets = each.value
+#   common          = var.common
+# }
 
-#--------------------------------------------------------------------
-# Subnet Route - Creates Private routes
-#--------------------------------------------------------------------
-module "private_route" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/private_routes?ref=v1.1.1"
-  for_each = module.private_subnets
-  vpc_id   = module.vpc.vpc_id
-  common   = var.common
-  private_routes = {
-    nat_gateway_id         = module.ngw[each.key].ngw_gateway_primary_id
-    primary_subnet_id      = each.value.primary_subnet_id
-    secondary_subnet_id    = each.value.secondary_subnet_id
-    tertiary_subnet_id     = each.value.tertiary_subnet_id
-    destination_cidr_block = var.vpc.private_routes.destination_cidr_block
-  }
-
-}
+# #--------------------------------------------------------------------
+# # Subnet Route - Creates Private routes
+# #--------------------------------------------------------------------
+# module "private_route" {
+#   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/private_routes?ref=v1.1.1"
+#   for_each = module.private_subnets
+#   vpc_id   = module.vpc.vpc_id
+#   common   = var.common
+#   private_routes = {
+#     nat_gateway_id         = module.ngw[each.key].ngw_gateway_primary_id
+#     primary_subnet_id      = each.value.primary_subnet_id
+#     secondary_subnet_id    = each.value.secondary_subnet_id
+#     tertiary_subnet_id     = each.value.tertiary_subnet_id
+#     destination_cidr_block = var.vpc.private_routes.destination_cidr_block
+#   }
+# }
 
 
 

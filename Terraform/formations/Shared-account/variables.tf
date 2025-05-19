@@ -14,36 +14,41 @@ variable "vpcs" {
   type = list(object({
     name       = string
     cidr_block = string
-    private_subnets = object({
-      name                           = string
-      primary_availabilty_zone       = optional(string)
-      primary_availabilty_zone_id    = optional(string)
-      primary_cidr_block             = string
-      secondary_availabilty_zone     = optional(string)
-      secondary_availabilty_zone_id  = optional(string)
-      secondary_cidr_block           = optional(string)
-      tertiary_availabilty_zone      = optional(string)
-      tertiary_availabilty_zone_id   = optional(string)
-      tertiary_cidr_block            = optional(string)
-      quaternary_availabilty_zone    = optional(string)
-      quaternary_availabilty_zone_id = optional(string)
-      quaternary_cidr_block          = optional(string)
-    })
-    public_subnets = object({
-      name                           = string
-      primary_availabilty_zone       = optional(string)
-      primary_availabilty_zone_id    = optional(string)
-      primary_cidr_block             = optional(string)
-      secondary_availabilty_zone     = optional(string)
-      secondary_availabilty_zone_id  = optional(string)
-      secondary_cidr_block           = optional(string)
-      tertiary_availabilty_zone      = optional(string)
-      tertiary_availabilty_zone_id   = optional(string)
-      tertiary_cidr_block            = optional(string)
-      quaternary_availabilty_zone    = optional(string)
-      quaternary_availabilty_zone_id = optional(string)
-      quaternary_cidr_block          = optional(string)
-    })
+    public_subnets = list(object({
+      name                          = string
+      primary_availabilty_zone      = optional(string)
+      primary_availabilty_zone_id   = optional(string)
+      primary_cidr_block            = optional(string)
+      secondary_availabilty_zone    = optional(string)
+      secondary_availabilty_zone_id = optional(string)
+      secondary_cidr_block          = optional(string)
+      tertiary_availabilty_zone     = optional(string)
+      tertiary_availabilty_zone_id  = optional(string)
+      tertiary_cidr_block           = optional(string)
+      subnet_ids                    = optional(list(string))
+      subnet_type                   = optional(string)
+    }))
+    private_subnets = list(object({
+      name                            = string
+      primary_availability_zone       = optional(string)
+      primary_availability_zone_id    = optional(string)
+      primary_cidr_block              = string
+      secondary_availability_zone     = optional(string)
+      secondary_availability_zone_id  = optional(string)
+      secondary_cidr_block            = optional(string)
+      tertiary_availability_zone      = optional(string)
+      tertiary_availability_zone_id   = optional(string)
+      tertiary_cidr_block             = optional(string)
+      quaternary_availability_zone    = optional(string)
+      quaternary_availability_zone_id = optional(string)
+      quaternary_cidr_block           = optional(string)
+      subnet_type                     = optional(string)
+    }))
+    public_routes = optional(object({
+      public_gateway_id      = optional(string)
+      destination_cidr_block = optional(string)
+      subnet_ids             = optional(list(string))
+    }))
     nat_gateway = optional(object({
       name              = string
       type              = string
@@ -54,16 +59,6 @@ variable "vpcs" {
     }))
     private_routes = object({
       nat_gateway_id         = optional(string)
-      destination_cidr_block = optional(string)
-      primary_subnet_id      = optional(string)
-      secondary_subnet_id    = optional(string)
-      tertiary_subnet_id     = optional(string)
-      quaternary_subnet_id   = optional(string)
-      has_tertiary_subnet    = optional(bool, false)
-      has_quaternary_subnet  = optional(bool, false)
-    })
-    public_routes = object({
-      public_gateway_id      = optional(string)
       destination_cidr_block = optional(string)
       primary_subnet_id      = optional(string)
       secondary_subnet_id    = optional(string)
