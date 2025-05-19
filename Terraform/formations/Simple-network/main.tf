@@ -40,18 +40,21 @@ module "public_route" {
 #--------------------------------------------------------------------
 # Natgateway - Creates natgateways
 #--------------------------------------------------------------------
-# module "ngw" {
-#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/natgateway?ref=v1.1.1"
-#   bypass = (var.vpc.nat_gateway == null)
-#   common = var.common
-#   nat_gateway = {
-#     name                = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.name : "unknown"
-#     subnet_id_primary   = module.public_subnets.primary_subnet_id
-#     subnet_id_secondary = module.public_subnets.secondary_subnet_id
-#     subnet_id_tertiary  = module.public_subnets.tertiary_subnet_id
-#     type                = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.type : "unknown"
-#   }
-# }
+module "ngw" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/natgateway?ref=v1.1.1"
+  for_each = module.public_subnets
+  bypass   = (var.vpc.nat_gateway == null)
+  common   = var.common
+  nat_gateway = {
+    name                 = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.name : "unknown"
+    subnet_id_primary    = each.value.primary_subnet_id
+    subnet_id_secondary  = each.value.secondary_subnet_id
+    subnet_id_tertiary   = each.value.tertiary_subnet_id
+    subnet_id_quaternary = each.value.quaternary_subnet_id
+    type                 = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.type : "unknown"
+  }
+}
+
 #--------------------------------------------------------------------
 # Subnets - Creates private subnets
 #--------------------------------------------------------------------

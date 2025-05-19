@@ -97,8 +97,13 @@ inputs = {
     public_routes = {
       destination_cidr_block = "0.0.0.0/0"
     }
+    nat_gateway = {
+      name = "nat"
+      type = local.external
+    }
   }
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
