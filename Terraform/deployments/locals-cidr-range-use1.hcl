@@ -146,7 +146,7 @@ locals {
         }
       }
     }
-    trn = {
+    tpp = {
       segments = {
         shared_services = {
           vpc = "10.1.2.0/24"
