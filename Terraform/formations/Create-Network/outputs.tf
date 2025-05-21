@@ -158,3 +158,39 @@ output "s3_data_bucket_id" {
   value       = module.s3_data_bucket != null ? module.s3_data_bucket.id : null
 
 }
+
+#-------------------------------------------------------
+# Public subnet outputs
+#-------------------------------------------------------
+output "public_subnets" {
+  description = "Output of all public subnets"
+  value       = values(module.public_subnets)
+}
+
+output "public_subnet" {
+  description = "Values for all public subnets by name index"
+  value       = var.vpc != null ? { for key, item in var.vpc.public_subnets : item.name => module.public_subnets[item.name] } : null
+
+}
+
+#-------------------------------------------------------
+# Private subnet outputs
+#-------------------------------------------------------
+output "private_subnets" {
+  description = "Output of all private subnets"
+  value       = values(module.private_subnets)
+}
+
+output "private_subnet" {
+  description = "Values for all private subnets by name index"
+  value       = var.vpc != null ? { for key, item in var.vpc.private_subnets : item.name => module.private_subnets[item.name] } : null
+
+}
+
+#-------------------------------------------------------
+#Public subnet oRoutes
+#-------------------------------------------------------
+output "public_routes" {
+  description = "Output of all public routes"
+  value       = module.public_route
+}
