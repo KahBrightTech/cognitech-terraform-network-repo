@@ -25,20 +25,6 @@ output "public_subnet" {
 }
 
 #-------------------------------------------------------
-# Private subnet outputs
-#-------------------------------------------------------
-output "private_subnets" {
-  description = "Output of all private subnets"
-  value       = values(module.private_subnets)
-}
-
-output "private_subnet" {
-  description = "Values for all private subnets by name index"
-  value       = var.vpc != null ? { for key, item in var.vpc.private_subnets : item.name => module.private_subnets[item.name] } : null
-
-}
-
-#-------------------------------------------------------
 #Public subnet oRoutes
 #-------------------------------------------------------
 output "public_routes" {
