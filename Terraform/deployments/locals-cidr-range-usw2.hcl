@@ -48,7 +48,7 @@ locals {
             }
           }
         }
-        tpp = {
+        trn = {
           vpc = "10.1.4.0/24"
           public_subnets = {
             sbnt1 = {
@@ -146,7 +146,7 @@ locals {
         }
       }
     }
-    trn = {
+    tpp = {
       segments = {
         shared_services = {
           vpc = "10.1.2.0/24"

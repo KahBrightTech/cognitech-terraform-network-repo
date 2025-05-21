@@ -48,7 +48,7 @@ locals {
             }
           }
         }
-        tpp = {
+        trn = {
           vpc = "10.1.4.0/24"
           public_subnets = {
             sbnt1 = {
