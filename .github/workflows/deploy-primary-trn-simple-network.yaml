@@ -7,7 +7,7 @@ on:
       - "*" # Run on push to any feature branch
     paths:
       - ".github/workflows/deploy-primary-trn-simple-network.yaml"
-      - "Terraform/deployments/Training/Simple-network/deploy/primary/**/*"
+      - "Terraform/deployments/Training/Simple-network/deploy/uat/primary/**/*"
 
   workflow_dispatch:
     inputs:
@@ -27,7 +27,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/Training/Simple-network/deploy/primary
+  DEPLOYMENT_PATH: Terraform/deployments/Training/Simple-network/deploy/uat/primary
 
 permissions:
   packages: write

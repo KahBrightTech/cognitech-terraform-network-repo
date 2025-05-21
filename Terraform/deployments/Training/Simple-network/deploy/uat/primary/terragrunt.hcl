@@ -42,7 +42,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Simple-network"
+  source = "../../../../../..//formations/Simple-network"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -96,13 +96,6 @@ inputs = {
     ]
     public_routes = {
       destination_cidr_block = "0.0.0.0/0"
-    }
-    private_routes = {
-      destination_cidr_block = "0.0.0.0/0"
-    }
-    nat_gateway = {
-      name = "nat"
-      type = local.external
     }
   }
 }

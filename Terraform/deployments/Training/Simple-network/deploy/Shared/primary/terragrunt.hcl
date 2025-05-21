@@ -15,7 +15,7 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context   = "secondary"
+  region_context   = "primary"
   deploy_globally  = "true"
   internal         = "private"
   external         = "public"
@@ -42,7 +42,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Simple-network"
+  source = "../../../../../..//formations/Simple-network"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -96,10 +96,6 @@ inputs = {
     ]
     public_routes = {
       destination_cidr_block = "0.0.0.0/0"
-    }
-    nat_gateway = {
-      name = "nat"
-      type = local.external
     }
   }
 }
