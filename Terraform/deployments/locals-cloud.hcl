@@ -18,8 +18,6 @@ locals {
         name   = "mdproduction"
         number = "730335294148"
       }
-      name   = "MDPreproduction"
-      number = "485147667400"
     }
     TRN = {
       Preprod = {
