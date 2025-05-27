@@ -32,7 +32,7 @@ locals {
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "Shared-services"
+      Environment = "shared-services"
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
