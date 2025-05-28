@@ -107,7 +107,7 @@ module "transit_gateway_route_table" {
 # Transit Gateway routes - Creates Transit Gateway routes
 #--------------------------------------------------------------------
 
-module "transit_gateway_private_route" {
+module "transit_gateway_route" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-routes?ref=v1.1.17"
   for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.name => route } : {}
   common   = var.common
@@ -119,7 +119,7 @@ module "transit_gateway_private_route" {
     name                   = each.value.name
     blackhole              = false
     destination_cidr_block = each.value.destination_cidr_block
-    attachment_id          = module.transit_gateway_attachment[var.tgw_attachments.name].tgw_attachment_id
+    attachment_id          = module.transit_gateway_attachment.tgw_attachment_id
     route_table_id         = module.transit_gateway_route_table.tgw_rtb_id
   }
 }
