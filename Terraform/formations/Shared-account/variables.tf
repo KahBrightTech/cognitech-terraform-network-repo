@@ -198,16 +198,27 @@ variable "tgw_attachments" {
   default = null
 }
 
+variable "tgw_route_table" {
+  description = "The transit gateway route table variables"
+  type = object({
+    name   = string
+    tgw_id = string
+  })
+  default = null
+}
+
 variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({
-    name               = string
-    route_table_id     = list(string)
-    vpc_cidr_block     = string
-    transit_gateway_id = optional(string)
+    name                   = string
+    blackhole              = bool
+    destination_cidr_block = string
+    attachment_id          = optional(string)
+    route_table_id         = string
   }))
-  default = []
+  default = null
 }
+
 
 variable "vpc_id" {
   description = "The vpc id"

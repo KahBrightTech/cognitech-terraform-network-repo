@@ -195,17 +195,20 @@ inputs = {
     dns_support                     = "enable"
     amazon_side_asn                 = "64512"
   }
+  tgw_route_table = {
+    name = local.vpc_name
+  }
   tgw_attachments = {
     name = local.vpc_name
   }
   tgw_routes = [
     {
-      name           = "dev"
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      name                   = "dev"
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
     },
     {
-      name           = "trn"
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
+      name                   = "trn"
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
     }
   ]
 
