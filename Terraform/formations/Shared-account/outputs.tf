@@ -3,14 +3,14 @@ output "Account_products" {
   value       = module.shared_vpc
 }
 
-output "transit_gateway" {
-  description = "Transit Gateway details"
-  value       = module.transit_gateway
-}
-output "transit_gateway_attachment" {
-  description = "Transit Gateway attachment details"
-  value       = module.transit_gateway_attachment
-}
+# output "transit_gateway" {
+#   description = "Transit Gateway details"
+#   value       = module.transit_gateway
+# }
+# output "transit_gateway_attachment" {
+#   description = "Transit Gateway attachment details"
+#   value       = module.transit_gateway_attachment
+# }
 
 output "s3_app_bucket" {
   description = "S3 bucket details"
