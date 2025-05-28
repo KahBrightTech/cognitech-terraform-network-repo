@@ -81,12 +81,12 @@ module "transit_gateway_route" {
   tgw_routes = {
     name               = each.value.name
     transit_gateway_id = module.transit_gateway.transit_gateway_id
-    route_table_id = [
-      module.shared_vpc[var.tgw_attachments.name].public_routes.sbnt1.public_route_table_id,
-      module.shared_vpc[var.tgw_attachments.name].public_routes.sbnt2.public_route_table_id,
-      try(module.shared_vpc[var.tgw_attachments.name].public_routes.sbnt3.public_route_table_id, null),
-      try(module.shared_vpc[var.tgw_attachments.name].public_routes.sbnt4.public_route_table_id, null)
-    ]
+    route_table_id = compact([ # compact removes all null values from the list
+      module.shared_vpc[each.value.tgw_attachment_name].public_routes.sbnt1.public_route_table_id,
+      module.shared_vpc[each.value.tgw_attachment_name].public_routes.sbnt2.public_route_table_id,
+      try(module.shared_vpc[each.value.tgw_attachment_name].public_routes.sbnt3.public_route_table_id, null),
+      try(module.shared_vpc[each.value.tgw_attachment_name].public_routes.sbnt4.public_route_table_id, null)
+    ])
     vpc_cidr_block = each.value.vpc_cidr_block
   }
 
