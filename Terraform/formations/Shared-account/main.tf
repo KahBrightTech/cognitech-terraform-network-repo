@@ -43,16 +43,15 @@ module "transit_gateway_attachment" {
   ]
   tgw_attachments = {
     transit_gateway_id = module.transit_gateway.transit_gateway_id
-    subnet_ids = [
-      module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.primary_subnet_id, # The output for the shared vpc comes from the create vpc formation hence has an object with all the variables
+    subnet_ids = compact([
+      module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.primary_subnet_id,
       module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.secondary_subnet_id,
       module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.primary_subnet_id,
       module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.secondary_subnet_id,
       try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt3.primary_subnet_id, null),
       try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt3.secondary_subnet_id, null),
       try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt4.primary_subnet_id, null),
-      try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt4.secondary_subnet_id, null), # This will associate subnet 3 and 4 to the transit gateway if they exist
-      # Private subnets
+      try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt4.secondary_subnet_id, null),
       module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id,
       module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id,
       module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt2.primary_subnet_id,
@@ -61,7 +60,7 @@ module "transit_gateway_attachment" {
       try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt3.secondary_subnet_id, null),
       try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.primary_subnet_id, null),
       try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.secondary_subnet_id, null)
-    ]
+    ])
     name = var.tgw_attachments.name
   }
 }
