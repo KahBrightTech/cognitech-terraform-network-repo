@@ -14,14 +14,6 @@ data "aws_iam_roles" "network_role" {
   path_prefix = "/aws-reserved/sso.amazonaws.com/"
 }
 
-locals {
-  route_table_ids = compact([
-    module.shared_vpc[var.tgw_attachments.name].public_routes.sbnt1.public_route_table_id,
-    module.shared_vpc[var.tgw_attachments.name].public_routes.sbnt2.public_route_table_id,
-    try(module.shared_vpc[var.tgw_attachments.name].public_routes.sbnt3.public_route_table_id, null),
-    try(module.shared_vpc[var.tgw_attachments.name].public_routes.sbnt4.public_route_table_id, null)
-  ])
-}
 module "shared_vpc" {
   source   = "../Create-Network"
   for_each = { for vpc in var.vpcs : vpc.name => vpc }
@@ -127,7 +119,7 @@ module "transit_gateway_private_route" {
   tgw_routes = {
     name                   = each.value.name
     blackhole              = false
-    destination_cidr_block = var.tgw_routes.destination_cidr_block
+    destination_cidr_block = each.value.destination_cidr_block
     attachment_id          = module.transit_gateway_attachment[var.tgw_attachments.name].tgw_attachment_id
     route_table_id         = module.transit_gateway_route_table.tgw_rtb_id
   }
