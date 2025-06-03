@@ -43,9 +43,13 @@ locals {
   regions = {
     use1 = {
       availability_zones = {
-        primary   = "us-east-1a"
-        secondary = "us-east-1b"
-        tertiary  = "us-east-1c"
+        primary    = "us-east-1a"
+        secondary  = "us-east-1b"
+        tertiary   = "us-east-1c"
+        quaternary = "us-east-1d"
+        quinary    = "us-east-1e"
+        senary     = "us-east-1f"
+
       }
       name     = "us-east-1"
       name_abr = "use1"
@@ -53,9 +57,12 @@ locals {
 
     usw2 = {
       availability_zones = {
-        primary   = "us-west-2a"
-        secondary = "us-west-2b"
-        tertiary  = "us-west-2c"
+        primary    = "us-west-2a"
+        secondary  = "us-west-2b"
+        tertiary   = "us-west-2c"
+        quaternary = "us-west-2d"
+        quinary    = "us-west-2e"
+        senary     = "us-west-2f"
       }
       name     = "us-west-2"
       name_abr = "usw2"
