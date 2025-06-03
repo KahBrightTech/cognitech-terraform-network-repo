@@ -44,8 +44,8 @@ module "transit_gateway_attachment" {
   tgw_attachments = {
     transit_gateway_id = module.transit_gateway.transit_gateway_id
     subnet_ids = compact([
-      module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.primary_subnet_id,
-      # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.secondary_subnet_id,
+      # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.primary_subnet_id,
+      module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.secondary_subnet_id,
       # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.primary_subnet_id,
       # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.secondary_subnet_id,
       # try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt3.primary_subnet_id, null),
