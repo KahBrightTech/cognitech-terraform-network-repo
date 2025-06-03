@@ -45,49 +45,25 @@ module "transit_gateway_attachment" {
     transit_gateway_id = module.transit_gateway.transit_gateway_id
     subnet_ids = compact([
       module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.primary_subnet_id,
-      module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.secondary_subnet_id,
-      module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.primary_subnet_id,
-      module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.secondary_subnet_id,
-      try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt3.primary_subnet_id, null),
-      try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt3.secondary_subnet_id, null),
-      try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt4.primary_subnet_id, null),
-      try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt4.secondary_subnet_id, null),
-      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id,
-      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id,
-      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt2.primary_subnet_id,
-      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt2.secondary_subnet_id,
-      try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt3.primary_subnet_id, null),
-      try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt3.secondary_subnet_id, null),
-      try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.primary_subnet_id, null),
-      try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.secondary_subnet_id, null)
+      # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.secondary_subnet_id,
+      # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.primary_subnet_id,
+      # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.secondary_subnet_id,
+      # try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt3.primary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt3.secondary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt4.primary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt4.secondary_subnet_id, null),
+      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id
+      # module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id,
+      # module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt2.primary_subnet_id,
+      # module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt2.secondary_subnet_id,
+      # try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt3.primary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt3.secondary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.primary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.secondary_subnet_id, null)
     ])
     name = var.tgw_attachments.name
   }
 }
-
-# module "transit_gateway_attachment_private_subnets" {
-#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.1.17"
-#   common = var.common
-#   vpc_id = module.shared_vpc[var.tgw_attachments.name].vpc_id
-#   depends_on = [
-#     module.shared_vpc,
-#     module.transit_gateway
-#   ]
-#   tgw_attachments = {
-#     transit_gateway_id = module.transit_gateway.transit_gateway_id
-#     subnet_ids = [
-#       module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id, # The output for the shared vpc comes from the create vpc formation hence has an object with all the variables
-#       module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id,
-#       module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt2.primary_subnet_id,
-#       module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt2.secondary_subnet_id,
-#       try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt3.primary_subnet_id, null),
-#       try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt3.secondary_subnet_id, null),
-#       try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.primary_subnet_id, null),
-#       try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.secondary_subnet_id, null) # This will associate subnet 3 and 4 to the transit gateway if they exist
-#     ]
-#     name = var.vpcs.private_subnets.name
-#   }
-# }
 #--------------------------------------------------------------------
 # Transit Gateway route table - Creates Transit Gateway route tables
 #--------------------------------------------------------------------

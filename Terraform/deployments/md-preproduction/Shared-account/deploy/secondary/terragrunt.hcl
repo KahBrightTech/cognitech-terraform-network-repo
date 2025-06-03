@@ -66,22 +66,30 @@ inputs = {
           secondary_availabilty_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
           subnet_type                = local.external
+        },
+        {
+          name                       = "sbnt2"
+          primary_availabilty_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
+          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
+          subnet_type                = local.external
         }
       ]
       private_subnets = [
         {
           name                       = "sbnt1"
-          primary_availabilty_zone   = local.region_blk.availability_zones.tertiary
+          primary_availabilty_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.quaternary
+          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
           subnet_type                = local.internal
         },
         {
           name                       = "sbnt2"
-          primary_availabilty_zone   = local.region_blk.availability_zones.quinary
+          primary_availabilty_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.senary
+          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
           subnet_type                = local.internal
         }
