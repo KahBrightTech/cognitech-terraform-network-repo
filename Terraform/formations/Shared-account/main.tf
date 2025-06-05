@@ -70,7 +70,7 @@ module "transit_gateway_route_table" {
 # Transit Gateway Association - Creates Transit Gateway associations
 #--------------------------------------------------------------------
 module "transit_gateway_association" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.1.18"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-association?ref=v1.1.18"
   common = var.common
   depends_on = [
     module.shared_vpc,
