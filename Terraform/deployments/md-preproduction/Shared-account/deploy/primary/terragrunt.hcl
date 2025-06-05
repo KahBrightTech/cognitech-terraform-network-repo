@@ -189,8 +189,8 @@ inputs = {
   ]
   transit_gateway = {
     name                            = local.vpc_name
-    default_route_table_association = "enable"
-    default_route_table_propagation = "enable"
+    default_route_table_association = "disable"
+    default_route_table_propagation = "disable"
     auto_accept_shared_attachments  = "disable"
     dns_support                     = "enable"
     amazon_side_asn                 = "64512"
@@ -201,16 +201,16 @@ inputs = {
   tgw_attachments = {
     name = local.vpc_name
   }
-  tgw_routes = [
-    {
-      name                   = "dev"
-      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-    },
-    {
-      name                   = "trn"
-      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
-    }
-  ]
+  # tgw_routes = [
+  #   {
+  #     name                   = "dev"
+  #     destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+  #   },
+  #   {
+  #     name                   = "trn"
+  #     destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
+  #   }
+  # ]
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"

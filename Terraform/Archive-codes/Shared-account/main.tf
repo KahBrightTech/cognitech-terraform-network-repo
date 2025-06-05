@@ -36,7 +36,7 @@ module "transit_gateway" {
 module "transit_gateway_attachment" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.1.17"
   common = var.common
-  vpc_id = module.shared_vpc[var.transit_gateway.tgw_attachments.name].vpc_id
+  vpc_id = module.shared_vpc[var.tgw_attachments.name].vpc_id
   depends_on = [
     module.shared_vpc,
     module.transit_gateway
@@ -44,8 +44,22 @@ module "transit_gateway_attachment" {
   tgw_attachments = {
     transit_gateway_id = module.transit_gateway.transit_gateway_id
     subnet_ids = compact([
-      module.shared_vpc[var.transit_gateway.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id,
-      module.shared_vpc[var.transit_gateway.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
+      # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.primary_subnet_id,
+      module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt1.secondary_subnet_id,
+      # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.primary_subnet_id,
+      # module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt2.secondary_subnet_id,
+      # try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt3.primary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt3.secondary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt4.primary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].public_subnet.sbnt4.secondary_subnet_id, null),
+      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id
+      # module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id,
+      # module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt2.primary_subnet_id,
+      # module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt2.secondary_subnet_id,
+      # try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt3.primary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt3.secondary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.primary_subnet_id, null),
+      # try(module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt4.secondary_subnet_id, null)
     ])
     name = var.tgw_attachments.name
   }
@@ -61,33 +75,17 @@ module "transit_gateway_route_table" {
     module.transit_gateway
   ]
   tgw_route_table = {
-    name   = var.transit_gateway.tgw_route_table.name
+    name   = var.tgw_route_table.name
     tgw_id = module.transit_gateway.transit_gateway_id
-  }
-}
-
-#--------------------------------------------------------------------
-# Transit Gateway Association - Creates Transit Gateway associations
-#--------------------------------------------------------------------
-module "transit_gateway_association" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.1.18"
-  common = var.common
-  depends_on = [
-    module.shared_vpc,
-    module.transit_gateway,
-    module.module.transit_gateway_route_table
-  ]
-  tgw_association = {
-    attachment_id  = module.transit_gateway_attachment.tgw_attachment_id
-    route_table_id = module.transit_gateway_route_table.tgw_rtb_id
   }
 }
 #--------------------------------------------------------------------
 # Transit Gateway routes - Creates Transit Gateway routes
 #--------------------------------------------------------------------
+
 module "transit_gateway_route" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-routes?ref=v1.1.17"
-  for_each = var.transit_gateway.tgw_routes != null ? { for route in var.transit_gateway.tgw_routes : route.name => route } : {}
+  for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.name => route } : {}
   common   = var.common
   depends_on = [
     module.shared_vpc,
@@ -101,23 +99,24 @@ module "transit_gateway_route" {
     route_table_id         = module.transit_gateway_route_table.tgw_rtb_id
   }
 }
-#--------------------------------------------------------------------
-# Transit Gateway subnet routes - Creates Transit Gateway subnet routes
-#--------------------------------------------------------------------
-module "transit_gateway_subnet_route" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
-  for_each = var.transit_gateway.tgw_routes != null ? { for route in var.transit_gateway.tgw_routes : route.name => route } : {}
-  common   = var.common
-  depends_on = [
-    module.shared_vpc,
-    module.transit_gateway
-  ]
-  tgw_subnet_route = {
-    route_table_id     = module.transit_gateway_route_table.tgw_rtb_id
-    transit_gateway_id = module.transit_gateway.transit_gateway_id
-    cidr_block         = each.value.destination_cidr_block
-  }
-}
+
+# module "transit_gateway_public_route" {
+#   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-routes?ref=v1.1.17"
+#   for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.name => route } : {}
+#   common   = var.common
+#   depends_on = [
+#     module.shared_vpc,
+#     module.transit_gateway
+#   ]
+#   tgw_routes = {
+#     name                   = each.value.name
+#     blackhole              = false
+#     destination_cidr_block = each.value.destination_cidr_block
+#     attachment_id          = module.transit_gateway_attachment_public_subnets[var.tgw_attachments.name].tgw_attachment_id
+#     route_table_id         = module.transit_gateway_route_table.tgw_rtb_id
+#   }
+# }
+
 
 #--------------------------------------------------------------------
 # S3 Private app bucket
