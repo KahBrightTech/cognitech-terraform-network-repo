@@ -93,10 +93,11 @@ module "private_route" {
   vpc_id   = module.vpc.vpc_id
   common   = var.common
   private_routes = {
-    nat_gateway_id      = module.ngw[each.key].ngw_gateway_primary_id
-    primary_subnet_id   = module.private_subnets[each.value.name].primary_subnet_id
-    secondary_subnet_id = module.private_subnets[each.value.name].secondary_subnet_id
-    tertiary_subnet_id  = module.private_subnets[each.value.name].tertiary_subnet_id
+    nat_gateway_id         = module.ngw[each.key].ngw_gateway_primary_id
+    primary_subnet_id      = module.private_subnets[each.value.name].primary_subnet_id
+    secondary_subnet_id    = module.private_subnets[each.value.name].secondary_subnet_id
+    tertiary_subnet_id     = module.private_subnets[each.value.name].tertiary_subnet_id
+    destination_cidr_block = var.vpc.public_routes.destination_cidr_block
   }
 }
 
