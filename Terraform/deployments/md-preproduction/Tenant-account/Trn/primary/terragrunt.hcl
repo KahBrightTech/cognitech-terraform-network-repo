@@ -26,14 +26,14 @@ locals {
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
-  vpc_name         = "shared-services"
+  vpc_name         = "dev
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "shared-services"
-      ManagedBy   = "terraform:${local.deployment_name}"
+      Environment = " dev "
+      ManagedBy   = " terraform : $ { local.deployment_name } "
     }
   )
 }
@@ -41,7 +41,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Shared-account"
+  source = "../../../../.. //formations/Shared-account"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -60,38 +60,38 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       public_subnets = [
         {
-          name                        = "sbnt1"
-          primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
-          secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
-          subnet_type                 = local.external
+          name                       = "sbnt1"
+          primary_availabilty_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
+          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
+          subnet_type                = local.external
         },
         {
-          name                        = "sbnt2"
-          primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
-          secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
-          subnet_type                 = local.external
+          name                       = "sbnt2"
+          primary_availabilty_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
+          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
+          subnet_type                = local.external
         }
       ]
       private_subnets = [
         {
-          name                        = "sbnt1"
-          primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
-          secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
-          subnet_type                 = local.internal
+          name                       = "sbnt1"
+          primary_availabilty_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
+          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
+          subnet_type                = local.internal
         },
         {
-          name                        = "sbnt2"
-          primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
-          secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
-          subnet_type                 = local.internal
+          name                       = "sbnt2"
+          primary_availabilty_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
+          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
+          subnet_type                = local.internal
         }
       ]
       public_routes = {

@@ -11,12 +11,11 @@ include "env" {
   path   = find_in_parent_folders("locals-env.hcl")
   expose = true
 }
-
 #-------------------------------------------------------
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context   = "primary"
+  region_context   = "secondary"
   deploy_globally  = "true"
   internal         = "private"
   external         = "public"
@@ -27,22 +26,24 @@ locals {
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
+  vpc_name         = "dev"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      ManagedBy = "terraform:${local.deployment_name}"
+      Environment = "Shared-services"
+      ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
 }
-
 #-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../..//formations/customer-products"
+  source = "../../../../..//formations/Tenant-account"
 }
+
 
 #-------------------------------------------------------
 # Inputs 
@@ -50,7 +51,7 @@ terraform {
 inputs = {
   common = {
     global        = local.deploy_globally
-    account_name  = include.cloud.locals.account_name.Kah.name
+    account_name  = include.cloud.locals.account_name.MD.Preprod.name
     region_prefix = local.region_prefix
     tags          = local.tags
     region        = local.region
@@ -58,22 +59,47 @@ inputs = {
 
   vpcs = [
     {
-      name       = include.env.locals.environment
-      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.sit.vpc
-      public_subnets = {
-        name                       = "pub"
+      name       = local.vpc_name
+      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
+      private_subnets = {
+        name                       = "${local.vpc_name}-pvt"
         primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.sit.public_subnets.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.private_subnets.primary
         secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.sit.public_subnets.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.private_subnets.secondary
+      }
+      public_subnets = {
+        name                       = "${local.vpc_name}-pub"
+        primary_availabilty_zone   = local.region_blk.availability_zones.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.public_subnets.primary
+        secondary_availabilty_zone = local.region_blk.availability_zones.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.public_subnets.secondary
+      }
+      nat_gateway = {
+        name = "nat1"
+        type = local.external
+      }
+      private_routes = {
+        destination_cidr_block = "0.0.0.0/0"
       }
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
       }
     }
   ]
-}
 
+  tgw_attachments = {
+    transit_gateway_name = "shared-tgw"
+    shared_vpc_name      = "shared-services"
+    customer_vpc_name    = "dev"
+  }
+  tgw_routes = [
+    {
+      name           = "shared-services"
+      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
+    }
+  ]
+}
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
@@ -92,7 +118,6 @@ remote_state {
     region               = local.region
   }
 }
-
 #-------------------------------------------------------
 # Providers 
 #-------------------------------------------------------
@@ -105,3 +130,20 @@ generate "aws-providers" {
   }
   EOF
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

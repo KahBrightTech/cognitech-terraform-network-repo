@@ -15,14 +15,14 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context   = "primary"
+  region_context   = "secondary"
   deploy_globally  = "true"
   internal         = "private"
   external         = "public"
   region           = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
   region_prefix    = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
   region_blk       = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
-  deployment_name  = "${include.env.locals.name_abr}-${local.vpc_name}-${local.region_context}"
+  deployment_name  = "terraform-${include.env.locals.name_abr}-deploy-app-base-${local.region_context}"
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
@@ -32,7 +32,7 @@ locals {
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = local.vpc_name
+      Environment = "Shared-services"
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
@@ -41,8 +41,9 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../../..//formations/Tenant-account"
+  source = "../../../../..//formations/Tenant-account"
 }
+
 
 #-------------------------------------------------------
 # Inputs 
@@ -59,20 +60,20 @@ inputs = {
   vpcs = [
     {
       name       = local.vpc_name
-      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
+      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
       private_subnets = {
         name                       = "${local.vpc_name}-pvt"
         primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.private_subnets.primary
         secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.private_subnets.secondary
       }
       public_subnets = {
         name                       = "${local.vpc_name}-pub"
         primary_availabilty_zone   = local.region_blk.availability_zones.primary
-        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.primary
+        primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.public_subnets.primary
         secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.secondary
+        secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.public_subnets.secondary
       }
       nat_gateway = {
         name = "nat1"
@@ -88,13 +89,14 @@ inputs = {
   ]
 
   tgw_attachments = {
-    shared_vpc_name = "shared-services"
-    name            = local.vpc_name
+    transit_gateway_name = "shared-tgw"
+    shared_vpc_name      = "shared-services"
+    customer_vpc_name    = "dev"
   }
   tgw_routes = [
     {
-      name           = "shared-services-[local.vpc_name]"
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      name           = "shared-services"
+      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared_services.vpc
     }
   ]
 }
@@ -128,6 +130,12 @@ generate "aws-providers" {
   }
   EOF
 }
+
+
+
+
+
+
 
 
 

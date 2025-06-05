@@ -174,19 +174,6 @@ variable "s3_private_buckets" {
   }))
   default = null
 }
-
-variable "transit_gateway" {
-  description = "values for transit gateway"
-  type = object({
-    name                            = string
-    default_route_table_association = string
-    default_route_table_propagation = string
-    auto_accept_shared_attachments  = string
-    dns_support                     = string
-    amazon_side_asn                 = number
-  })
-}
-
 variable "tgw_attachments" {
   description = "The transit gateway attachment variables"
   type = object({
@@ -207,27 +194,27 @@ variable "tgw_route_table" {
   default = null
 }
 
-# variable "tgw_routes" {
-#   description = "The transit gateway route variables"
-#   type = list(object({
-#     name                   = string
-#     blackhole              = optional(bool)
-#     destination_cidr_block = string
-#     attachment_id          = optional(string)
-#     route_table_id         = optional(string)
-#   }))
-#   default = null
-# }
+variable "tgw_routes" {
+  description = "The transit gateway route variables"
+  type = list(object({
+    name                   = string
+    blackhole              = optional(bool)
+    destination_cidr_block = string
+    attachment_id          = optional(string)
+    route_table_id         = optional(string)
+  }))
+  default = null
+}
 
-# variable "tgw_subnet_route" {
-#   description = "The transit gateway subnet route variables"
-#   type = list(object({
-#     route_table_id     = optional(string)
-#     cidr_block         = optional(string)
-#     transit_gateway_id = optional(string)
-#   }))
-#   default = null
-# }
+variable "tgw_subnet_route" {
+  description = "The transit gateway subnet route variables"
+  type = list(object({
+    route_table_id     = optional(string)
+    cidr_block         = optional(string)
+    transit_gateway_id = optional(string)
+  }))
+  default = null
+}
 
 
 variable "vpc_id" {
