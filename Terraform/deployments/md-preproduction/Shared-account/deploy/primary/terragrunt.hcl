@@ -201,7 +201,6 @@ inputs = {
   tgw_attachments = {
     name = local.vpc_name
   }
-
   # tgw_routes = [
   #   {
   #     name                   = "dev"
