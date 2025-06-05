@@ -211,6 +211,7 @@ inputs = {
   #     destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
   #   }
   # ]
+
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
