@@ -48,10 +48,10 @@ module "public_route" {
   public_routes = {
     public_gateway_id      = module.vpc.igw_id
     destination_cidr_block = var.vpc.public_routes.destination_cidr_block
-    primary_subnet_id      = module.public_subnets[each.value.name].primary_subnet_id
-    secondary_subnet_id    = module.public_subnets[each.value.name].secondary_subnet_id
-    tertiary_subnet_id     = module.public_subnets[each.value.name].tertiary_subnet_id
-    quaternary_subnet_id   = module.public_subnets[each.value.name].quaternary_subnet_id
+    primary_subnet_id      = module.public_subnets[each.key].primary_subnet_id
+    secondary_subnet_id    = module.public_subnets[each.key].secondary_subnet_id
+    tertiary_subnet_id     = module.public_subnets[each.key].tertiary_subnet_id
+    quaternary_subnet_id   = module.public_subnets[each.key].quaternary_subnet_id
   }
 }
 
@@ -94,9 +94,10 @@ module "private_route" {
   common   = var.common
   private_routes = {
     nat_gateway_id         = module.ngw[each.key].ngw_gateway_primary_id
-    primary_subnet_id      = module.private_subnets[each.value.name].primary_subnet_id
-    secondary_subnet_id    = module.private_subnets[each.value.name].secondary_subnet_id
-    tertiary_subnet_id     = module.private_subnets[each.value.name].tertiary_subnet_id
+    primary_subnet_id      = module.private_subnets[each.key].primary_subnet_id
+    secondary_subnet_id    = module.private_subnets[each.key].secondary_subnet_id
+    tertiary_subnet_id     = module.private_subnets[each.key].tertiary_subnet_id
+    quaternary_subnet_id   = module.private_subnets[each.key].quaternary_subnet_id
     destination_cidr_block = var.vpc.public_routes.destination_cidr_block
   }
 }
