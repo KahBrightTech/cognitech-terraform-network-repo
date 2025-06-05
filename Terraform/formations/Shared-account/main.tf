@@ -47,7 +47,7 @@ module "transit_gateway_attachment" {
       module.shared_vpc[var.transit_gateway.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id,
       module.shared_vpc[var.transit_gateway.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
     ])
-    name = var.tgw_attachments.name
+    name = var.transit_gateway.tgw_attachments.name
   }
 }
 #--------------------------------------------------------------------
