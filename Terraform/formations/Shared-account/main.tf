@@ -75,7 +75,7 @@ module "transit_gateway_association" {
   depends_on = [
     module.shared_vpc,
     module.transit_gateway,
-    module.module.transit_gateway_route_table
+    module.transit_gateway_route_table
   ]
   tgw_association = {
     attachment_id  = module.transit_gateway_attachment.tgw_attachment_id
