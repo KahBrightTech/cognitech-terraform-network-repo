@@ -69,7 +69,7 @@ variable "vpcs" {
       quaternary_subnet_id   = optional(string)
       has_tertiary_subnet    = optional(bool, false)
       has_quaternary_subnet  = optional(bool, false)
-      subnet_name            = string
+      subnet_name            = optional(string)
     })
     security_groups = optional(list(object({
       key         = string
