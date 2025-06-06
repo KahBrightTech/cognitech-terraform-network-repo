@@ -52,7 +52,7 @@ module "public_route" {
     secondary_subnet_id    = each.value.secondary_subnet_id
     tertiary_subnet_id     = each.value.tertiary_subnet_id
     vpc_name               = var.vpc.name
-    subnet_name            = each.value.name
+    subnet_name            = each.key
   }
 }
 
@@ -101,7 +101,7 @@ module "private_route" {
     tertiary_subnet_id     = each.value.tertiary_subnet_id
     destination_cidr_block = var.vpc.private_routes.destination_cidr_block
     vpc_name               = var.vpc.name
-    subnet_name            = each.value.name
+    subnet_name            = each.key
   }
 }
 
