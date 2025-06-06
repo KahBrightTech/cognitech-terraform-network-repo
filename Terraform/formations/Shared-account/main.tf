@@ -28,8 +28,8 @@ module "transit_gateway" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.1.28"
   transit_gateway = {
     vpc_name = var.vpcs.name
-    common   = var.common
   }
+  common = var.common
 }
 
 #--------------------------------------------------------------------
