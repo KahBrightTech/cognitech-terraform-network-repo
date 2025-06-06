@@ -50,6 +50,7 @@ variable "vpcs" {
       public_gateway_id      = optional(string)
       destination_cidr_block = optional(string)
       subnet_ids             = optional(list(string))
+      subnet_name            = string
     }))
     nat_gateway = optional(object({
       name              = string
@@ -68,6 +69,7 @@ variable "vpcs" {
       quaternary_subnet_id   = optional(string)
       has_tertiary_subnet    = optional(bool, false)
       has_quaternary_subnet  = optional(bool, false)
+      subnet_name            = string
     })
     security_groups = optional(list(object({
       key         = string
