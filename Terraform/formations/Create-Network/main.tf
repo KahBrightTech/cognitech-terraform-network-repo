@@ -52,6 +52,7 @@ module "public_route" {
     secondary_subnet_id    = each.value.secondary_subnet_id
     tertiary_subnet_id     = each.value.tertiary_subnet_id
     vpc_name               = var.vpc.name
+    subnet_name            = each.value.name
   }
 }
 
@@ -89,7 +90,7 @@ module "private_subnets" {
 # Subnet Route - Creates Private routes
 #--------------------------------------------------------------------
 module "private_route" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/private_routes?ref=v1.1.30"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/private_routes?ref=v1.1.31"
   for_each = module.private_subnets
   vpc_id   = module.vpc.vpc_id
   common   = var.common
@@ -100,6 +101,7 @@ module "private_route" {
     tertiary_subnet_id     = each.value.tertiary_subnet_id
     destination_cidr_block = var.vpc.private_routes.destination_cidr_block
     vpc_name               = var.vpc.name
+    subnet_name            = each.value.name
   }
 }
 
