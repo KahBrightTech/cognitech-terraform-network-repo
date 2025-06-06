@@ -52,6 +52,7 @@ module "public_route" {
     secondary_subnet_id    = module.public_subnets[each.key].secondary_subnet_id
     tertiary_subnet_id     = module.public_subnets[each.key].tertiary_subnet_id
     quaternary_subnet_id   = module.public_subnets[each.key].quaternary_subnet_id
+    vpc_name               = var.vpc.name
   }
 }
 
@@ -70,6 +71,7 @@ module "ngw" {
     subnet_id_tertiary   = each.value.tertiary_subnet_id
     subnet_id_quaternary = each.value.quaternary_subnet_id
     type                 = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.type : "unknown"
+    vpc_name             = var.vpc.name
   }
 }
 
@@ -99,6 +101,7 @@ module "private_route" {
     tertiary_subnet_id     = module.private_subnets[each.key].tertiary_subnet_id
     quaternary_subnet_id   = module.private_subnets[each.key].quaternary_subnet_id
     destination_cidr_block = var.vpc.public_routes.destination_cidr_block
+    vpc_name               = var.vpc.name
   }
 }
 
@@ -113,6 +116,7 @@ module "security_groups" {
     description                  = each.value.description
     security_group_egress_rules  = each.value.egress
     security_group_ingress_rules = each.value.ingress
+    vpc_name                     = var.vpc.name
   }
 
 }
