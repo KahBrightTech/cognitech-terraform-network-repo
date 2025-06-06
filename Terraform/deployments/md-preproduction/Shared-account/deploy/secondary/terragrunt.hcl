@@ -60,38 +60,42 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       public_subnets = [
         {
-          name                       = "sbnt1"
-          primary_availabilty_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
-          subnet_type                = local.external
+          name                        = "sbnt1"
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
+          subnet_type                 = local.external
+          vpc_name                    = local.vpc_name
         },
         {
-          name                       = "sbnt2"
-          primary_availabilty_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
-          subnet_type                = local.external
+          name                        = "sbnt2"
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
+          subnet_type                 = local.external
+          vpc_name                    = local.vpc_name
         }
       ]
       private_subnets = [
         {
-          name                       = "sbnt1"
-          primary_availabilty_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
-          subnet_type                = local.internal
+          name                        = "sbnt1"
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name
         },
         {
-          name                       = "sbnt2"
-          primary_availabilty_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
-          subnet_type                = local.internal
+          name                        = "sbnt2"
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name
         }
       ]
       public_routes = {
@@ -101,34 +105,40 @@ inputs = {
         destination_cidr_block = "0.0.0.0/0"
       }
       nat_gateway = {
-        name = "nat"
-        type = local.external
+        name     = "nat"
+        type     = local.external
+        vpc_name = local.vpc_name
       }
       security_groups = [
         {
           key         = "bastion"
           name        = "shared-bastion"
           description = "standrad sharewd bastion security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "alb"
           name        = "shared-alb"
           description = "standard shared alb security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "app"
           name        = "shared-app"
           description = "standard shared app security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "db"
           name        = "shared-db"
           description = "standard shared db security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "nlb"
           name        = "shared-nlb"
           description = "standard shared nlb security group"
+          vpc_name    = local.vpc_name
         }
       ]
       security_group_rules = [
