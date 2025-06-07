@@ -42,7 +42,6 @@ module "transit_gateway_association" {
   common = var.common
   depends_on = [
     module.customer_vpc,
-    module.transit_gateway,
     module.transit_gateway_route_table
   ]
   tgw_association = {
@@ -59,7 +58,6 @@ module "transit_gateway_route" {
   common   = var.common
   depends_on = [
     module.customer_vpc,
-    module.transit_gateway
   ]
   tgw_routes = {
     name                   = each.value.name
@@ -78,7 +76,6 @@ module "transit_gateway_subnet_route" {
   common   = var.common
   depends_on = [
     module.customer_vpc,
-    module.transit_gateway
   ]
   tgw_subnet_route = {
     route_table_id     = each.Is_this_shared_services ? each.value.route_table_id : module.customer_vpc[var.vpcs.name].private_routes[each.value.subnet_name].private_route_table_id
