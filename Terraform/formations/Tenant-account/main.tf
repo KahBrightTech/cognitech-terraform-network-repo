@@ -23,7 +23,6 @@ module "transit_gateway_attachment" {
   vpc_id = module.customer_vpc[var.tgw_attachments.name].vpc_id
   depends_on = [
     module.customer_vpc,
-    module.transit_gateway
   ]
   tgw_attachments = {
     transit_gateway_id = module.transit_gateway.transit_gateway_id
@@ -42,7 +41,6 @@ module "transit_gateway_association" {
   common = var.common
   depends_on = [
     module.customer_vpc,
-    module.transit_gateway_route_table
   ]
   tgw_association = {
     attachment_id  = module.transit_gateway_attachment.tgw_attachment_id
@@ -63,7 +61,7 @@ module "transit_gateway_route" {
     name                   = each.value.name
     blackhole              = each.value.blackhole != null ? each.value.blackhole : false
     destination_cidr_block = each.value.destination_cidr_block
-    attachment_id          = each.Is_this_shared_services ? each.value.shared_services_attachment_id : module.transit_gateway_attachment.tgw_attachment_id
+    attachment_id          = each.value.Is_this_shared_services ? each.value.shared_services_attachment_id : module.transit_gateway_attachment.tgw_attachment_id
     route_table_id         = each.value.route_table_id
   }
 }
@@ -78,7 +76,7 @@ module "transit_gateway_subnet_route" {
     module.customer_vpc,
   ]
   tgw_subnet_route = {
-    route_table_id     = each.Is_this_shared_services ? each.value.route_table_id : module.customer_vpc[var.vpcs.name].private_routes[each.value.subnet_name].private_route_table_id
+    route_table_id     = each.value.Is_this_shared_services ? each.value.route_table_id : module.customer_vpc[var.vpcs.name].private_routes[each.value.subnet_name].private_route_table_id
     transit_gateway_id = each.value.transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name
