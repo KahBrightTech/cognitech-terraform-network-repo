@@ -244,6 +244,7 @@ inputs = {
       Is_this_shared_services = false
     }
   ]
+
   s3_private_buckets = [
     {
       name              = " $ { local.vpc_name } - app-bucket "
