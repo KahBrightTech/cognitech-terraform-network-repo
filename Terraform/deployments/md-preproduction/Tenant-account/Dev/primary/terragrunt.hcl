@@ -227,29 +227,33 @@ inputs = {
       route_tablet_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
     }
   ]
+  tgw_shared_services_subnet_rout = [
+    {
+      name               = "shared-services-sbnt1"
+      route_table_id     = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.primary].private_route_table_id
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+    },
+    {
+      name               = "shared-services-sbnt2"
+      route_table_id     = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.secondary].private_route_table_id
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+    }
+  ]
+
   tgw_subnet_route = [
     {
-      name                    = "shared-services-sbnt1"
-      route_table_id          = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.primary].private_route_table_id
-      cidr_block              = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-      transit_gateway_id      = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-      Is_this_shared_services = true
-      subnet_name             = include.env.locals.subnet_prefix.primary
+      name               = "${local.vpc_name}-${include.env.locals.subnet_prefix.primary}"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+      subnet_name        = include.env.locals.subnet_prefix.primary
     },
     {
-      name                    = "shared-services-sbnt2"
-      route_table_id          = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.secondary].private_route_table_id
-      cidr_block              = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-      transit_gateway_id      = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-      Is_this_shared_services = true
-      subnet_name             = include.env.locals.subnet_prefix.secondary
-    },
-    {
-      name                    = "${local.vpc_name}-${include.env.locals.subnet_prefix.primary}"
-      cidr_block              = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-      transit_gateway_id      = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-      Is_this_shared_services = false
-      vpc_name                = local.vpc_name
+      name               = "${local.vpc_name}-${include.env.locals.subnet_prefix.secondary}"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+      subnet_name        = include.env.locals.subnet_prefix.secondary
     }
   ]
 
