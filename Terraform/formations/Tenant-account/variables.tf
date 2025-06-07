@@ -192,7 +192,7 @@ variable "tgw_attachments" {
 variable "tgw_association" {
   description = "The transit gateway association variables"
   type = object({
-    route_table_id = string
+    route_table_id = optional(string)
   })
   default = null
 }
@@ -203,7 +203,7 @@ variable "tgw_routes" {
     blackhole                     = optional(bool)
     destination_cidr_block        = string
     attachment_id                 = optional(string)
-    route_table_id                = optional(string)
+    route_table_id                = string
     shared_services_attachment_id = optional(string)
     Is_this_shared_services       = optional(bool, false)
   }))
@@ -219,6 +219,7 @@ variable "tgw_subnet_route" {
     transit_gateway_id      = optional(string)
     subnet_name             = optional(string, null)
     Is_this_shared_services = optional(bool, false)
+    vpc_name                = optional(string, null)
   }))
   default = null
 }

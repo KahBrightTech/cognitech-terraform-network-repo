@@ -209,7 +209,7 @@ inputs = {
   }
 
   tgw_association = {
-    route_tablet_id = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
+    route_table_id = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
   }
 
   tgw_routes = [
@@ -249,6 +249,7 @@ inputs = {
       cidr_block              = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
       transit_gateway_id      = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
       Is_this_shared_services = false
+      vpc_name                = local.vpc_name
     }
   ]
 
