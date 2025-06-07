@@ -11,6 +11,11 @@ output "transit_gateway_attachment" {
   description = "Transit Gateway attachment details"
   value       = module.transit_gateway_attachment
 }
+
+output "transit_gateway_route_table" {
+  description = "Transit Gateway route table details"
+  value       = module.transit_gateway_route_table
+}
 output "s3_app_bucket" {
   description = "S3 bucket details"
   value       = module.s3_app_bucket

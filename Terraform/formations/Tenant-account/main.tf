@@ -101,7 +101,7 @@ module "transit_gateway_route" {
     blackhole              = each.value.blackhole != null ? each.value.blackhole : false
     destination_cidr_block = each.value.destination_cidr_block
     attachment_id          = module.transit_gateway_attachment.tgw_attachment_id
-    route_table_id         = module.transit_gateway_route_table.tgw_rtb_id
+    route_table_id         = each.value.route_table_id
   }
 }
 # #--------------------------------------------------------------------

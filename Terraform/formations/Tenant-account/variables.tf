@@ -200,6 +200,7 @@ variable "tgw_routes" {
 variable "tgw_subnet_route" {
   description = "The transit gateway subnet route variables"
   type = list(object({
+    name               = string
     route_table_id     = optional(string)
     cidr_block         = optional(string)
     transit_gateway_id = optional(string)

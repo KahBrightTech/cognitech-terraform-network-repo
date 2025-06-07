@@ -38,6 +38,13 @@ locals {
   )
 }
 #-------------------------------------------------------
+# Dependencies 
+#-------------------------------------------------------
+dependency "shared_services" {
+  config_path = "../../../../Shared-account/${local.region_context}"
+}
+
+#-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
 terraform {
@@ -197,37 +204,29 @@ inputs = {
       }
     }
   ]
-  transit_gateway = {
-    name                            = local.vpc_name
-    default_route_table_association = "disable"
-    default_route_table_propagation = "disable"
-    auto_accept_shared_attachments  = "disable"
-    dns_support                     = "enable"
-    amazon_side_asn                 = "64512"
-    vpc_name                        = local.vpc_name
-  }
-  tgw_route_table = {
-    name = local.vpc_name
-  }
   tgw_attachments = {
     name = local.vpc_name
   }
-  # tgw_routes = [
-  #   {
-  #     name                   = "dev"
-  #     destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-  #   },
-  #   {
-  #     name                   = "trn"
-  #     destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
-  #   }
-  # ]
+  tgw_routes = [
+    {
+      name = local.vpc_name "
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      route_tablet_id        = dependency.shared_services.outputs.ransit_gateway_route_table.tgw_rtb_id
+      blackhole              = true 
+
+    },
+    {
+      name                   = " shared-services "
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      route_tablet_id        = dependency.shared_services.outputs.ransit_gateway_route_table.tgw_rtb_id
+    }
+  ]
   s3_private_buckets = [
     {
-      name              = "${local.vpc_name}-app-bucket"
-      description       = "The application bucket for different apps"
+      name              = " $ { local.vpc_name } - app-bucket "
+      description       = " The application bucket for different apps "
       enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
+      policy            = " $ { include.cloud.locals.repo.root } / iam_policies / s3_app_policy.json "
     }
   ]
 }
@@ -235,29 +234,29 @@ inputs = {
 # State Configuration
 #-------------------------------------------------------
 remote_state {
-  backend = "s3"
+  backend = " s3 "
   generate = {
-    path      = "backend.tf"
-    if_exists = "overwrite"
+    path      = " backend.tf "
+    if_exists = " overwrite "
   }
   config = {
     bucket               = local.state_bucket
-    bucket_sse_algorithm = "AES256"
+    bucket_sse_algorithm = " AES256 "
     dynamodb_table       = local.state_lock_table
     encrypt              = true
-    key                  = "${local.deployment_name}/terraform.tfstate"
+    key                  = " $ { local.deployment_name } / terraform.tfstate "
     region               = local.region
   }
 }
 #-------------------------------------------------------
 # Providers 
 #-------------------------------------------------------
-generate "aws-providers" {
-  path      = "aws-provider.tf"
-  if_exists = "overwrite"
+generate " aws-providers " {
+  path      = " aws-provider.tf "
+  if_exists = " overwrite "
   contents  = <<-EOF
-  provider "aws" {
-    region = "${local.region}"
+  provider " aws " {
+    region = " $ { local.region } "
   }
   EOF
 }

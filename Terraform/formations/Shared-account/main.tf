@@ -83,46 +83,8 @@ module "transit_gateway_association" {
   }
 }
 #--------------------------------------------------------------------
-# Transit Gateway routes - Creates Transit Gateway routes
-#--------------------------------------------------------------------
-# module "transit_gateway_route" {
-#   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-routes?ref=v1.1.17"
-#   for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.name => route } : {}
-#   common   = var.common
-#   depends_on = [
-#     module.shared_vpc,
-#     module.transit_gateway
-#   ]
-#   tgw_routes = {
-#     name                   = each.value.name
-#     blackhole              = false
-#     destination_cidr_block = each.value.destination_cidr_block
-#     attachment_id          = module.transit_gateway_attachment.tgw_attachment_id
-#     route_table_id         = module.transit_gateway_route_table.tgw_rtb_id
-#   }
-# }
-# #--------------------------------------------------------------------
-# # Transit Gateway subnet routes - Creates Transit Gateway subnet routes
-# #--------------------------------------------------------------------
-# module "transit_gateway_subnet_route" {
-#   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
-#   for_each = var.tgw_subnet_route != null ? { for route in var.tgw_subnet_route : route.name => route } : {}
-#   common   = var.common
-#   depends_on = [
-#     module.shared_vpc,
-#     module.transit_gateway
-#   ]
-#   tgw_subnet_route = {
-#     route_table_id     = module.transit_gateway_route_table.tgw_rtb_id
-#     transit_gateway_id = module.transit_gateway.transit_gateway_id
-#     cidr_block         = each.value.destination_cidr_block
-#   }
-# }
-
-#--------------------------------------------------------------------
 # S3 Private app bucket
 #--------------------------------------------------------------------
-
 module "s3_app_bucket" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.1.1"
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
