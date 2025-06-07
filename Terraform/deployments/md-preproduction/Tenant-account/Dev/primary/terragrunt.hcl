@@ -41,7 +41,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../.. //formations/Shared-account"
+  source = "../../../../.. //formations/Tenant-account"
 }
 #-------------------------------------------------------
 # Inputs 

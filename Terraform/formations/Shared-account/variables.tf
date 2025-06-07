@@ -46,12 +46,12 @@ variable "vpcs" {
       subnet_type                     = optional(string)
       vpc_name                        = string
     }))
-    public_routes = optional(object({
+    public_routes = object({
       public_gateway_id      = optional(string)
       destination_cidr_block = optional(string)
       subnet_ids             = optional(list(string))
       subnet_name            = optional(string)
-    }))
+    })
     nat_gateway = optional(object({
       name              = string
       type              = string

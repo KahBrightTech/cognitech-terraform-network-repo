@@ -15,7 +15,7 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context   = "primary"
+  region_context   = "secondary"
   deploy_globally  = "true"
   internal         = "private"
   external         = "public"
@@ -41,7 +41,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Shared-account"
+  source = "../../../..//formations/Shared-account"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -199,29 +199,26 @@ inputs = {
   ]
   transit_gateway = {
     name                            = local.vpc_name
-    default_route_table_association = "disable"
-    default_route_table_propagation = "disable"
+    default_route_table_association = "enable"
+    default_route_table_propagation = "enable"
     auto_accept_shared_attachments  = "disable"
     dns_support                     = "enable"
     amazon_side_asn                 = "64512"
-    vpc_name                        = local.vpc_name
-  }
-  tgw_route_table = {
-    name = local.vpc_name
   }
   tgw_attachments = {
     name = local.vpc_name
   }
-  # tgw_routes = [
-  #   {
-  #     name                   = "dev"
-  #     destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-  #   },
-  #   {
-  #     name                   = "trn"
-  #     destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
-  #   }
-  # ]
+  tgw_routes = [
+    {
+      name           = "dev"
+      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+    },
+    {
+      name           = "trn"
+      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
+    }
+  ]
+
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
@@ -231,6 +228,7 @@ inputs = {
     }
   ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
