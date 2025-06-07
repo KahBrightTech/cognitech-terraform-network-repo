@@ -209,16 +209,29 @@ inputs = {
   }
   tgw_routes = [
     {
-      name = local.vpc_name "
+      name                   = local.vpc_name
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
       route_tablet_id        = dependency.shared_services.outputs.ransit_gateway_route_table.tgw_rtb_id
-      blackhole              = true 
+      blackhole              = true
 
     },
     {
-      name                   = " shared-services "
+      name                    = "shared-services"
+      is_this_shared_services = true
+      destination_cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      route_tablet_id         = dependency.shared_services.outputs.ransit_gateway_route_table.tgw_rtb_id
+      blackhole               = false
+    }
+  ]
+  tgw_subnet_route = [
+    {
+      name               = "shared-services-sb"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      route_table_id     = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+    },
+    {
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-      route_tablet_id        = dependency.shared_services.outputs.ransit_gateway_route_table.tgw_rtb_id
     }
   ]
   s3_private_buckets = [

@@ -67,9 +67,18 @@ output "private_subnet" {
 }
 
 #-------------------------------------------------------
-#Public subnet oRoutes
+#Public subnet Routes
 #-------------------------------------------------------
 output "public_routes" {
   description = "Output of all public routes"
   value       = module.public_route
+}
+
+
+#-------------------------------------------------------
+#Private subnet Routes
+#-------------------------------------------------------
+output "private_routes" {
+  description = "Output of all private routes"
+  value       = module.private_route
 }

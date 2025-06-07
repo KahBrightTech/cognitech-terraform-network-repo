@@ -2,42 +2,7 @@
 #--------------------------------------------------------------------
 # Data block to fetch values from the console 
 #--------------------------------------------------------------------
-data "aws_ec2_transit_gateway" "tgw" {
-  filter {
-    name   = "tag:Name"
-    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-tgw"]
-  }
-}
-data "aws_vpc" "shared_vpc" {
-  filter {
-    name   = "tag:Name"
-    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-vpc"]
-  }
-}
-
-data "aws_subnet" "primary-public" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.shared_vpc.id]
-  }
-
-  filter {
-    name   = "tag:Name"
-    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-pub-primary"]
-  }
-}
-
-data "aws_subnet" "secondary-public" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.shared_vpc.id]
-  }
-
-  filter {
-    name   = "tag:Name"
-    values = ["${var.common.account_name}-${var.common.region_prefix}-${var.tgw_attachments.shared_vpc_name}-pub-secondary"]
-  }
-}
+data "aws_caller_identity" "current" {}
 
 #--------------------------------------------------------------------
 # Creating customer resources
@@ -100,7 +65,7 @@ module "transit_gateway_route" {
     name                   = each.value.name
     blackhole              = each.value.blackhole != null ? each.value.blackhole : false
     destination_cidr_block = each.value.destination_cidr_block
-    attachment_id          = module.transit_gateway_attachment.tgw_attachment_id
+    attachment_id          = var.Is_this_shared_services ? var.tgw_attachments.shared_services_attachment_id : module.transit_gateway_attachment.tgw_attachment_id
     route_table_id         = each.value.route_table_id
   }
 }
@@ -116,9 +81,9 @@ module "transit_gateway_subnet_route" {
     module.transit_gateway
   ]
   tgw_subnet_route = {
-    route_table_id     = module.transit_gateway_route_table.tgw_rtb_id
-    transit_gateway_id = module.transit_gateway.transit_gateway_id
-    cidr_block         = each.value.destination_cidr_block
+    route_table_id     = var.tgw_subnet_route.is_this_shared_services ? var.tgw_attachments.shared_services_attachment_id : module.transit_gateway_attachment.tgw_attachment_id
+    transit_gateway_id = each.value.transit_gateway_id
+    cidr_block         = each.value.cidr_block
   }
 }
 
