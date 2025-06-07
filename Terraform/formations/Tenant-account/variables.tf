@@ -218,6 +218,7 @@ variable "tgw_subnet_route" {
     cidr_block         = optional(string)
     transit_gateway_id = optional(string)
     subnet_name        = optional(string, null)
+    vpc_name           = optional(string, null)
   }))
   default = null
 }
