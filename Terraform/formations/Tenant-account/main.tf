@@ -76,7 +76,7 @@ module "transit_gateway_subnet_route" {
     module.customer_vpc,
   ]
   tgw_subnet_route = {
-    route_table_id     = each.value.Is_this_shared_services ? each.value.route_table_id : module.customer_vpc[var.vpcs.name].private_routes[each.value.subnet_name].private_route_table_id
+    route_table_id     = each.value.Is_this_shared_services ? each.value.route_table_id : module.customer_vpc[var.vpcs[0].name].private_routes[each.value.subnet_name].private_route_table_id
     transit_gateway_id = each.value.transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name

@@ -192,7 +192,7 @@ variable "tgw_attachments" {
 variable "tgw_association" {
   description = "The transit gateway association variables"
   type = object({
-    route_table_id = optional(string)
+    route_table_id = string
   })
   default = null
 }
