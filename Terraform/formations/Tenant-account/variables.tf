@@ -185,6 +185,13 @@ variable "tgw_attachments" {
   default = null
 }
 
+variable "tgw_association" {
+  description = "The transit gateway association variables"
+  type = object({
+    route_table_id = optional(string)
+  })
+  default = null
+}
 variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({

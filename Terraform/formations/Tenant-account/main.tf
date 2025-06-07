@@ -44,7 +44,7 @@ module "transit_gateway_association" {
   ]
   tgw_association = {
     attachment_id  = module.transit_gateway_attachment.tgw_attachment_id
-    route_table_id = var.tgw_routes.route_table_id
+    route_table_id = var.tgw_association.route_table_id
   }
 }
 #--------------------------------------------------------------------
