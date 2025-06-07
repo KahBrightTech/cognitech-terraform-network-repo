@@ -26,14 +26,14 @@ locals {
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
-  vpc_name         = "dev
+  vpc_name         = "dev"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = " dev "
-      ManagedBy   = " terraform : $ { local.deployment_name } "
+      Environment = "dev"
+      ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
 }
@@ -41,7 +41,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../.. //formations/Tenant-account"
+  source = "../../../../..//formations/Tenant-account"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -66,6 +66,7 @@ inputs = {
           secondary_availability_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
           subnet_type                 = local.external
+          vpc_name                    = local.vpc_name
         },
         {
           name                        = "sbnt2"
@@ -74,6 +75,7 @@ inputs = {
           secondary_availability_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
           subnet_type                 = local.external
+          vpc_name                    = local.vpc_name
         }
       ]
       private_subnets = [
@@ -84,6 +86,7 @@ inputs = {
           secondary_availability_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
           subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name
         },
         {
           name                        = "sbnt2"
@@ -92,6 +95,7 @@ inputs = {
           secondary_availability_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
           subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name
         }
       ]
       public_routes = {
@@ -101,34 +105,40 @@ inputs = {
         destination_cidr_block = "0.0.0.0/0"
       }
       nat_gateway = {
-        name = "nat"
-        type = local.external
+        name     = "nat"
+        type     = local.external
+        vpc_name = local.vpc_name
       }
       security_groups = [
         {
           key         = "bastion"
           name        = "shared-bastion"
           description = "standrad sharewd bastion security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "alb"
           name        = "shared-alb"
           description = "standard shared alb security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "app"
           name        = "shared-app"
           description = "standard shared app security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "db"
           name        = "shared-db"
           description = "standard shared db security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "nlb"
           name        = "shared-nlb"
           description = "standard shared nlb security group"
+          vpc_name    = local.vpc_name
         }
       ]
       security_group_rules = [
@@ -194,6 +204,7 @@ inputs = {
     auto_accept_shared_attachments  = "disable"
     dns_support                     = "enable"
     amazon_side_asn                 = "64512"
+    vpc_name                        = local.vpc_name
   }
   tgw_route_table = {
     name = local.vpc_name
@@ -250,7 +261,3 @@ generate "aws-providers" {
   }
   EOF
 }
-
-
-
-

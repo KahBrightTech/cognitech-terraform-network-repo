@@ -185,15 +185,6 @@ variable "tgw_attachments" {
   default = null
 }
 
-variable "tgw_route_table" {
-  description = "The transit gateway route table variables"
-  type = object({
-    name   = string
-    tgw_id = optional(string)
-  })
-  default = null
-}
-
 variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({

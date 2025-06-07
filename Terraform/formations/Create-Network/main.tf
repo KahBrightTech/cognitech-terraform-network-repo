@@ -41,7 +41,7 @@ module "public_subnets" {
 # Public Route - Creates public routes
 #--------------------------------------------------------------------
 module "public_route" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.30"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Routes/public_routes?ref=v1.1.31"
   for_each = module.public_subnets
   vpc_id   = module.vpc.vpc_id
   common   = var.common

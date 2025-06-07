@@ -82,7 +82,7 @@ module "transit_gateway_association" {
   ]
   tgw_association = {
     attachment_id  = module.transit_gateway_attachment.tgw_attachment_id
-    route_table_id = module.transit_gateway_route_table.tgw_rtb_id
+    route_table_id = var.tgw_routes.route_table_id
   }
 }
 #--------------------------------------------------------------------
@@ -98,7 +98,7 @@ module "transit_gateway_route" {
   ]
   tgw_routes = {
     name                   = each.value.name
-    blackhole              = false
+    blackhole              = each.value.blackhole != null ? each.value.blackhole : false
     destination_cidr_block = each.value.destination_cidr_block
     attachment_id          = module.transit_gateway_attachment.tgw_attachment_id
     route_table_id         = module.transit_gateway_route_table.tgw_rtb_id
