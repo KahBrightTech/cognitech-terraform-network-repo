@@ -207,6 +207,11 @@ inputs = {
     name               = local.vpc_name
     transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
   }
+
+  tgw_association = {
+    route_tablet_id = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
+  }
+
   tgw_routes = [
     {
       name                   = local.vpc_name
@@ -229,6 +234,7 @@ inputs = {
       cidr_block              = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
       transit_gateway_id      = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
       Is_this_shared_services = true
+      subnet_name             = include.env.locals.subnet_prefix.primary
     },
     {
       name                    = "shared-services-sbnt2"
@@ -236,6 +242,7 @@ inputs = {
       cidr_block              = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
       transit_gateway_id      = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
       Is_this_shared_services = true
+      subnet_name             = include.env.locals.subnet_prefix.secondary
     },
     {
       name                    = "${local.vpc_name}-${include.env.locals.subnet_prefix.primary}"
