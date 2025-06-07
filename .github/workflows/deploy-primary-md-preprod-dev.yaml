@@ -6,7 +6,8 @@ on:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
-      - "Terraform/deployments/md-preproduction/Tenant-account/Dev/deploy/primary/**/*"
+      - ".github/workflows/deploy-primary-md-preprod-dev.yaml"
+      - "Terraform/deployments/md-preproduction/Tenant-account/Dev/primary/**/*"
   workflow_dispatch:
     inputs:
       terragrunt_action:
@@ -25,7 +26,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/md-preproduction/Tenant-account/Dev/deploy/primary
+  DEPLOYMENT_PATH: Terraform/deployments/md-preproduction/Tenant-account/Dev/primary
 
 permissions:
   packages: write

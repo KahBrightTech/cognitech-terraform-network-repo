@@ -55,16 +55,13 @@ locals {
     }
   }
 
-  subnet = {
-    private = {
-      primary   = "priv"
-      secondary = "priv"
-    }
-    public = {
-      primary   = "pub"
-      secondary = "pub"
-    }
+  subnet_prefix = {
+    primary    = "sbnt1"
+    secondary  = "sbnt2"
+    tertiary   = "sbnt3"
+    quaternary = "sbnt4"
   }
+
   remote_dynamodb_table = "Terraform"
   tags = {
     Environment  = local.environment

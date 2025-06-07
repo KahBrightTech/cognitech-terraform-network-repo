@@ -177,11 +177,10 @@ variable "s3_private_buckets" {
 variable "tgw_attachments" {
   description = "The transit gateway attachment variables"
   type = object({
-    transit_gateway_id            = optional(string)
-    subnet_ids                    = optional(list(string))
-    transit_gateway_name          = optional(string)
-    name                          = optional(string)
-    shared_services_attachment_id = optional(string)
+    transit_gateway_id   = optional(string)
+    subnet_ids           = optional(list(string))
+    transit_gateway_name = optional(string)
+    name                 = optional(string)
   })
   default = null
 }
@@ -189,11 +188,13 @@ variable "tgw_attachments" {
 variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({
-    name                   = string
-    blackhole              = optional(bool)
-    destination_cidr_block = string
-    attachment_id          = optional(string)
-    route_table_id         = optional(string)
+    name                          = string
+    blackhole                     = optional(bool)
+    destination_cidr_block        = string
+    attachment_id                 = optional(string)
+    route_table_id                = optional(string)
+    shared_services_attachment_id = optional(string)
+    Is_this_shared_services       = optional(bool, false)
   }))
   default = null
 }
@@ -201,11 +202,12 @@ variable "tgw_routes" {
 variable "tgw_subnet_route" {
   description = "The transit gateway subnet route variables"
   type = list(object({
-    name                         = string
-    route_table_id               = optional(string)
-    cidr_block                   = optional(string)
-    transit_gateway_id           = optional(string)
-    shared_services_subnet_rt_Id = optional(string)
+    name                    = string
+    route_table_id          = optional(string)
+    cidr_block              = optional(string)
+    transit_gateway_id      = optional(string)
+    subnet_name             = optional(string, null)
+    Is_this_shared_services = optional(bool, false)
   }))
   default = null
 }
@@ -217,8 +219,4 @@ variable "vpc_id" {
   default     = null
 }
 
-variable "Is_this_shared_services" {
-  description = "Is this shared services"
-  type        = bool
-  default     = false
-}
+

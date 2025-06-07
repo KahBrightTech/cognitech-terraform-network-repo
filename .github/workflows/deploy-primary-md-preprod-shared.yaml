@@ -6,6 +6,7 @@ on:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
+      - ".github/workflows/deploy-primary-md-preprod-shared.yaml"
       - "Terraform/deployments/md-preproduction/Shared-account/primary/**/*"
   workflow_dispatch:
     inputs:
