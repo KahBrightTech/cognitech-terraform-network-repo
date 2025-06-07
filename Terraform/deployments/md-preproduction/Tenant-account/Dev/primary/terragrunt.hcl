@@ -212,14 +212,14 @@ inputs = {
       name                   = local.vpc_name
       blackhole              = true
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-      route_tablet_id        = dependency.shared_services.outputs.Transit_gateway_route_table.tgw_rtb_id
+      route_tablet_id        = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
     },
     {
       name                    = "shared-services"
       blackhole               = false
       Is_this_shared_services = true
       destination_cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-      route_tablet_id         = dependency.shared_services.outputs.Transit_gateway_route_table.tgw_rtb_id
+      route_tablet_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
     }
   ]
   tgw_subnet_route = [
