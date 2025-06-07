@@ -205,7 +205,8 @@ inputs = {
     }
   ]
   tgw_attachments = {
-    name = local.vpc_name
+    name               = local.vpc_name
+    transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
   }
   tgw_routes = [
     {

@@ -25,7 +25,7 @@ module "transit_gateway_attachment" {
     module.customer_vpc,
   ]
   tgw_attachments = {
-    transit_gateway_id = module.transit_gateway.transit_gateway_id
+    transit_gateway_id = var.tgw_attachments.transit_gateway_id
     subnet_ids = compact([
       module.customer_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id,
       module.customer_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
