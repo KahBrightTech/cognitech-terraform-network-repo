@@ -247,10 +247,10 @@ inputs = {
 
   s3_private_buckets = [
     {
-      name              = " $ { local.vpc_name } - app-bucket "
-      description       = " The application bucket for different apps "
+      name              = "${local.vpc_name}-app-bucket"
+      description       = "The application bucket for different apps"
       enable_versioning = true
-      policy            = " $ { include.cloud.locals.repo.root } / iam_policies / s3_app_policy.json "
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     }
   ]
 }
@@ -258,29 +258,29 @@ inputs = {
 # State Configuration
 #-------------------------------------------------------
 remote_state {
-  backend = " s3 "
+  backend = "s3"
   generate = {
-    path      = " backend.tf "
-    if_exists = " overwrite "
+    path      = "backend.tf"
+    if_exists = "overwrite"
   }
   config = {
     bucket               = local.state_bucket
-    bucket_sse_algorithm = " AES256 "
+    bucket_sse_algorithm = "AES256"
     dynamodb_table       = local.state_lock_table
     encrypt              = true
-    key                  = " $ { local.deployment_name } / terraform.tfstate "
+    key                  = "${local.deployment_name}/terraform.tfstate "
     region               = local.region
   }
 }
 #-------------------------------------------------------
 # Providers 
 #-------------------------------------------------------
-generate " aws-providers " {
-  path      = " aws-provider.tf "
-  if_exists = " overwrite "
+generate "aws-providers" {
+  path      = "aws-provider.tf"
+  if_exists = "overwrite"
   contents  = <<-EOF
-  provider " aws " {
-    region = " $ { local.region } "
+  provider "aws" {
+    region = "${local.region}"
   }
   EOF
 }
