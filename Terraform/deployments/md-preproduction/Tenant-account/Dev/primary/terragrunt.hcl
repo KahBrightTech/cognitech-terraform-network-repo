@@ -256,7 +256,6 @@ inputs = {
       subnet_name        = include.env.locals.subnet_prefix.secondary
     }
   ]
-
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
