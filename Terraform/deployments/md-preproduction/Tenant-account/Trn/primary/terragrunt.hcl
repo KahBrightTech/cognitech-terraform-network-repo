@@ -212,6 +212,7 @@ inputs = {
           )
         }
       ]
+
       s3 = {
         name        = "${local.vpc_name}-data-xfer"
         description = "The bucket used for data transfers"

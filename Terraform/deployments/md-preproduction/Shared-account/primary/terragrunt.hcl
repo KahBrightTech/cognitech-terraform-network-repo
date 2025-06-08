@@ -157,7 +157,7 @@ inputs = {
                 key         = "egress-all-traffic-bastion-sg"
                 description = "BASE - Outbound all traffic from Bastion SG to Internet"
                 ip_protocol = "-1"
-                cidr_blocks = [local.internet]
+                cidr_blocks = "0.0.0/0"
               }
             ]
           )
