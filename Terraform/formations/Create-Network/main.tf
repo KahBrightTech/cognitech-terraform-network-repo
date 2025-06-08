@@ -127,8 +127,8 @@ module "security_group_rules" {
   common   = var.common
   security_group = {
     security_group_id = module.security_groups[each.value.sg_key].security_group_id
-    egress_rules = each.value.egress != null ? [
-      for item in each.value.egress : (
+    egress_rules = [
+      for item in coalesce(each.value.egress, []) : (
         item.target_sg_key != null ? merge(
           item,
           {
@@ -138,9 +138,9 @@ module "security_group_rules" {
           }
         ) : item
       )
-    ] : []
-    ingress_rules = each.value.ingress != null ? [
-      for item in each.value.ingress : (
+    ]
+    ingress_rules = [
+      for item in coalesce(each.value.ingress, []) : (
         item.source_sg_key != null ? merge(
           item,
           {
@@ -151,8 +151,7 @@ module "security_group_rules" {
           }
         ) : item
       )
-    ] : []
-
+    ]
   }
 }
 
