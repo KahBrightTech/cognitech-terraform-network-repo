@@ -152,7 +152,14 @@ inputs = {
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.windows_bastion_base,
             include.cloud.locals.security_group_rules.locals.egress.linux_bastion_base,
-            []
+            [
+              {
+                key         = "egress-all-traffic-bastion-sg"
+                description = "BASE - Outbound all traffic from Bastion SG to Internet"
+                ip_protocol = "-1"
+                cidr_blocks = [local.internet]
+              }
+            ]
           )
         },
         {

@@ -187,7 +187,24 @@ inputs = {
           sg_key = "app"
           ingress = concat(
             include.cloud.locals.security_group_rules.locals.ingress.app_base,
-            []
+            [
+              {
+                key         = "ingress-22-shared-services-vpc"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+                description = "BASE - Inbound SSH traffic from Shared Services Public Subnet 1 to App SG on tcp port 22"
+                from_port   = 22
+                to_port     = 22
+                ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-3389-shared-services-vpc"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+                description = "BASE - Inbound SSH traffic from Shared Services Public Subnet 1 to App SG on tcp port 22"
+                from_port   = 3389
+                to_port     = 3389
+                ip_protocol = "tcp"
+              }
+            ]
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.app_base,

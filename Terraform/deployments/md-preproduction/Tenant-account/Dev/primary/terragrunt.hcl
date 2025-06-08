@@ -187,7 +187,24 @@ inputs = {
           sg_key = "app"
           ingress = concat(
             include.cloud.locals.security_group_rules.locals.ingress.app_base,
-            []
+            [
+              {
+                key         = "ingress-22-shared-services-vpc"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+                description = "BASE - Inbound SSH traffic from Shared Services Public Subnet 1 to App SG on tcp port 22"
+                from_port   = 22
+                to_port     = 22
+                ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-3389-shared-services-vpc"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+                description = "BASE - Inbound SSH traffic from Shared Services Public Subnet 1 to App SG on tcp port 22"
+                from_port   = 3389
+                to_port     = 3389
+                ip_protocol = "tcp"
+              }
+            ]
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.app_base,
@@ -227,6 +244,7 @@ inputs = {
       blackhole              = false
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
       route_table_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
+      attachment_id          = dependency.shared_services.outputs.transit_gateway_attachment.tgw_attachment_id
     }
   ]
   tgw_shared_services_subnet_route = [
