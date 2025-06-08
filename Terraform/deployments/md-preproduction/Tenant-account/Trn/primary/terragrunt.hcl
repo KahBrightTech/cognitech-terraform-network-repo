@@ -26,22 +26,28 @@ locals {
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
-  vpc_name         = "dev
+  vpc_name         = "trn"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = " dev "
-      ManagedBy   = " terraform : $ { local.deployment_name } "
+      Environment = "trn"
+      ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
+}
+#-------------------------------------------------------
+# Dependencies 
+#-------------------------------------------------------
+dependency "shared_services" {
+  config_path = "../../../Shared-account/${local.region_context}"
 }
 #-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../.. //formations/Shared-account"
+  source = "../../../../..//formations/Tenant-account"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -60,38 +66,42 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       public_subnets = [
         {
-          name                       = "sbnt1"
-          primary_availabilty_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
-          subnet_type                = local.external
+          name                        = include.env.locals.subnet_prefix.primary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
+          subnet_type                 = local.external
+          vpc_name                    = local.vpc_name
         },
         {
-          name                       = "sbnt2"
-          primary_availabilty_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
-          subnet_type                = local.external
+          name                        = include.env.locals.subnet_prefix.secondary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
+          subnet_type                 = local.external
+          vpc_name                    = local.vpc_name
         }
       ]
       private_subnets = [
         {
-          name                       = "sbnt1"
-          primary_availabilty_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
-          subnet_type                = local.internal
+          name                        = include.env.locals.subnet_prefix.primary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name
         },
         {
-          name                       = "sbnt2"
-          primary_availabilty_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
-          secondary_availabilty_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block       = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
-          subnet_type                = local.internal
+          name                        = include.env.locals.subnet_prefix.secondary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name
         }
       ]
       public_routes = {
@@ -101,34 +111,40 @@ inputs = {
         destination_cidr_block = "0.0.0.0/0"
       }
       nat_gateway = {
-        name = "nat"
-        type = local.external
+        name     = "nat"
+        type     = local.external
+        vpc_name = local.vpc_name
       }
       security_groups = [
         {
           key         = "bastion"
           name        = "shared-bastion"
           description = "standrad sharewd bastion security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "alb"
           name        = "shared-alb"
           description = "standard shared alb security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "app"
           name        = "shared-app"
           description = "standard shared app security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "db"
           name        = "shared-db"
           description = "standard shared db security group"
+          vpc_name    = local.vpc_name
         },
         {
           key         = "nlb"
           name        = "shared-nlb"
           description = "standard shared nlb security group"
+          vpc_name    = local.vpc_name
         }
       ]
       security_group_rules = [
@@ -171,7 +187,24 @@ inputs = {
           sg_key = "app"
           ingress = concat(
             include.cloud.locals.security_group_rules.locals.ingress.app_base,
-            []
+            [
+              {
+                key         = "ingress-22-shared-services-vpc"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+                description = "BASE - Inbound SSH traffic from Shared Services Public Subnet 1 to App SG on tcp port 22"
+                from_port   = 22
+                to_port     = 22
+                ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-3389-shared-services-vpc"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+                description = "BASE - Inbound SSH traffic from Shared Services Public Subnet 1 to App SG on tcp port 22"
+                from_port   = 3389
+                to_port     = 3389
+                ip_protocol = "tcp"
+              }
+            ]
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.app_base,
@@ -187,30 +220,64 @@ inputs = {
       }
     }
   ]
-  transit_gateway = {
-    name                            = local.vpc_name
-    default_route_table_association = "disable"
-    default_route_table_propagation = "disable"
-    auto_accept_shared_attachments  = "disable"
-    dns_support                     = "enable"
-    amazon_side_asn                 = "64512"
-  }
-  tgw_route_table = {
-    name = local.vpc_name
-  }
   tgw_attachments = {
-    name = local.vpc_name
+    name               = local.vpc_name
+    transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
   }
-  # tgw_routes = [
-  #   {
-  #     name                   = "dev"
-  #     destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-  #   },
-  #   {
-  #     name                   = "trn"
-  #     destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
-  #   }
-  # ]
+
+  tgw_association = {
+    route_table_id = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
+  }
+
+  tgw_routes = [
+    {
+      name                   = "spoke-to-hub-tgw-route"
+      blackhole              = true
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      route_table_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
+    }
+  ]
+
+  tgw_shared_services_routes = [
+    {
+      name                   = "hub-to-spoke-tgw-route"
+      blackhole              = false
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      route_table_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
+      attachment_id          = dependency.shared_services.outputs.transit_gateway_attachment.tgw_attachment_id
+    }
+  ]
+  tgw_shared_services_subnet_route = [
+    {
+      name               = "hub-to-spoke-sbnt1-subnet-rt"
+      route_table_id     = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.primary].private_route_table_id
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+    },
+    {
+      name               = "hub-to-spoke-sbnt2-subnet-rt"
+      route_table_id     = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.secondary].private_route_table_id
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+    }
+  ]
+
+  tgw_subnet_route = [
+    {
+      name               = "${local.vpc_name}-${include.env.locals.subnet_prefix.primary}"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+      subnet_name        = include.env.locals.subnet_prefix.primary
+      vpc_name           = local.vpc_name
+    },
+    {
+      name               = "${local.vpc_name}-${include.env.locals.subnet_prefix.secondary}"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+      subnet_name        = include.env.locals.subnet_prefix.secondary
+      vpc_name           = local.vpc_name
+    }
+  ]
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
@@ -220,6 +287,7 @@ inputs = {
     }
   ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
@@ -234,7 +302,7 @@ remote_state {
     bucket_sse_algorithm = "AES256"
     dynamodb_table       = local.state_lock_table
     encrypt              = true
-    key                  = "${local.deployment_name}/terraform.tfstate"
+    key                  = "${local.deployment_name}/terraform.tfstate "
     region               = local.region
   }
 }
@@ -250,7 +318,3 @@ generate "aws-providers" {
   }
   EOF
 }
-
-
-
-
