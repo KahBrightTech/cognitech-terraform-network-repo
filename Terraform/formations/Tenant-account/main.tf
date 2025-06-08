@@ -59,9 +59,27 @@ module "transit_gateway_route" {
   ]
   tgw_routes = {
     name                   = each.value.name
-    blackhole              = each.value.blackhole != null ? each.value.blackhole : false
+    blackhole              = each.value.blackhole
     destination_cidr_block = each.value.destination_cidr_block
-    attachment_id          = each.value.Is_this_shared_services ? each.value.shared_services_attachment_id : module.transit_gateway_attachment.tgw_attachment_id
+    attachment_id          = each.value.blackhole == false ? module.transit_gateway_attachment.tgw_attachment_id : null
+    route_table_id         = each.value.route_table_id
+  }
+}
+#--------------------------------------------------------------------
+# Transit Gateway routes - Creates Transit Gateway routes for shared services
+#--------------------------------------------------------------------
+module "transit_gateway_shared_services_route" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-routes?ref=v1.1.17"
+  for_each = var.tgw_shared_services_routes != null ? { for route in var.tgw_shared_services_routes : route.name => route } : {}
+  common   = var.common
+  depends_on = [
+    module.customer_vpc,
+  ]
+  tgw_routes = {
+    name                   = each.value.name
+    blackhole              = each.value.blackhole
+    destination_cidr_block = each.value.destination_cidr_block
+    attachment_id          = each.value.attachment_id
     route_table_id         = each.value.route_table_id
   }
 }

@@ -199,13 +199,23 @@ variable "tgw_association" {
 variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({
-    name                          = string
-    blackhole                     = optional(bool)
-    destination_cidr_block        = string
-    attachment_id                 = optional(string)
-    route_table_id                = string
-    shared_services_attachment_id = optional(string)
-    Is_this_shared_services       = optional(bool, false)
+    name                   = string
+    blackhole              = optional(bool)
+    destination_cidr_block = string
+    attachment_id          = optional(string)
+    route_table_id         = string
+  }))
+  default = null
+}
+
+variable "tgw_shared_services_routes" {
+  description = "The transit gateway route variables"
+  type = list(object({
+    name                   = string
+    blackhole              = optional(bool)
+    destination_cidr_block = string
+    attachment_id          = optional(string)
+    route_table_id         = string
   }))
   default = null
 }
