@@ -214,28 +214,30 @@ inputs = {
 
   tgw_routes = [
     {
-      name                   = local.vpc_name
+      name                   = "spoke-to-hub-tgw-route"
       blackhole              = true
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
       route_table_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
-    },
-    {
-      name                    = "shared-services"
-      blackhole               = false
-      Is_this_shared_services = true
-      destination_cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-      route_table_id          = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
     }
   ]
-  tgw_shared_services_subnet_rout = [
+
+  tgw_shared_services_routes = [
     {
-      name               = "shared-services-sbnt1"
+      name                   = "hub-to-spoke-tgw-route"
+      blackhole              = false
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      route_table_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
+    }
+  ]
+  tgw_shared_services_subnet_route = [
+    {
+      name               = "hub-to-spoke-sbnt1-subnet-rt"
       route_table_id     = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.primary].private_route_table_id
       cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
       transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
     },
     {
-      name               = "shared-services-sbnt2"
+      name               = "hub-to-spoke-sbnt2-subnet-rt"
       route_table_id     = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.secondary].private_route_table_id
       cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
       transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
