@@ -79,20 +79,20 @@ locals {
     ]
     linux_bastion_base = [
       {
-        key           = " egress-22-bastion-sg "
-        target_sg_key = " bastion "
-        description   = " BASE - Outbound SSH traffic to Bastion SG on tcp port 22 (SSH) "
+        key           = "egress-22-bastion-sg"
+        target_sg_key = "bastion"
+        description   = "BASE - Outbound SSH traffic to Bastion SG on tcp port 22 (SSH)"
         from_port     = 22
         to_port       = 22
-        ip_protocol   = " tcp "
+        ip_protocol   = "tcp"
       },
       {
-        key           = " egress-22-app-sg "
-        target_sg_key = " app "
-        description   = " BASE - Outbound SSH traffic to App SG on tcp port 22 (SSH) "
+        key           = "egress-22-app-sg"
+        target_sg_key = "app"
+        description   = "BASE - Outbound SSH traffic to App SG on tcp port 22 (SSH)"
         from_port     = 22
         to_port       = 22
-        ip_protocol   = " tcp "
+        ip_protocol   = "tcp"
       }
     ]
     app_base = [
