@@ -230,26 +230,26 @@ inputs = {
 
   tgw_subnet_route = [
     {
-      name        = "hub-to-spoke-sbnt1-subnet-rt"
+      name        = "private-sbnt1-subnet-rt"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
       subnet_name = include.env.locals.subnet_prefix.primary
       vpc_name    = local.vpc_name
     },
     {
-      name        = "hub-to-spoke-sbnt2-subnet-rt"
+      name        = "private-sbnt2-subnet-rt"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
       subnet_name = include.env.locals.subnet_prefix.secondary
       vpc_name    = local.vpc_name
     },
     {
-      name                = "hub-to-spoke-sbnt1-subnet-rt"
+      name                = "public-sbnt1-subnet-rt"
       cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
       subnet_name         = include.env.locals.subnet_prefix.primary
       vpc_name            = local.vpc_name
       create_public_route = true
     },
     {
-      name                = "hub-to-spoke-sbnt2-subnet-rt"
+      name                = "public-sbnt2-subnet-rt"
       cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
       subnet_name         = include.env.locals.subnet_prefix.secondary
       vpc_name            = local.vpc_name
