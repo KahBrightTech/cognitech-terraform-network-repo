@@ -223,11 +223,26 @@ inputs = {
   tgw_shared_services_routes = [
     {
       name                   = "spoke-to-hub-tgw-route"
-      blackhole              = true
+      blackhole              = false
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
     }
   ]
-  tgw_shared_services_subnet_route = [
+  tgw_shared_services_private_subnet_route = [
+    {
+      name        = "hub-to-spoke-sbnt1-subnet-rt"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+      subnet_name = include.env.locals.subnet_prefix.primary
+      vpc_name    = local.vpc_name
+    },
+    {
+      name        = "hub-to-spoke-sbnt2-subnet-rt"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+      subnet_name = include.env.locals.subnet_prefix.secondary
+      vpc_name    = local.vpc_name
+    }
+  ]
+
+  tgw_shared_services_public_subnet_route = [
     {
       name        = "hub-to-spoke-sbnt1-subnet-rt"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr

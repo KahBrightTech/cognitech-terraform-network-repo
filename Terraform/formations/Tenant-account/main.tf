@@ -65,37 +65,37 @@ module "transit_gateway_route" {
     route_table_id         = each.value.route_table_id
   }
 }
-#--------------------------------------------------------------------
-# Transit Gateway routes - Creates Transit Gateway routes for shared services
-#--------------------------------------------------------------------
-module "transit_gateway_shared_services_route" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-routes?ref=v1.1.17"
-  for_each = var.tgw_shared_services_routes != null ? { for route in var.tgw_shared_services_routes : route.name => route } : {}
-  common   = var.common
-  depends_on = [
-    module.customer_vpc,
-  ]
-  tgw_routes = {
-    name                   = each.value.name
-    blackhole              = each.value.blackhole
-    destination_cidr_block = each.value.destination_cidr_block
-    attachment_id          = each.value.blackhole == false ? each.value.attachment_id : null
-    route_table_id         = each.value.route_table_id
-  }
-}
 
 # #--------------------------------------------------------------------
 # # Transit Gateway subnet routes - Creates Transit Gateway subnet routes
 # #--------------------------------------------------------------------
-module "transit_gateway_subnet_route" {
+module "transit_gateway_private_subnet_route" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
-  for_each = var.tgw_subnet_route != null ? { for route in var.tgw_subnet_route : route.name => route } : {}
+  for_each = var.tgw_private_subnet_route != null ? { for route in var.tgw_private_subnet_route : route.name => route } : {}
   common   = var.common
   depends_on = [
     module.customer_vpc,
   ]
   tgw_subnet_route = {
     route_table_id     = module.customer_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
+    transit_gateway_id = each.value.transit_gateway_id
+    cidr_block         = each.value.cidr_block
+    subnet_name        = each.value.subnet_name
+  }
+}
+
+# #--------------------------------------------------------------------
+# # Transit Gateway subnet routes - Creates Transit Gateway subnet routes
+# #--------------------------------------------------------------------
+module "transit_gateway_public_subnet_route" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
+  for_each = var.tgw_public_subnet_route != null ? { for route in vartgw_public_subnet_route : route.name => route } : {}
+  common   = var.common
+  depends_on = [
+    module.customer_vpc,
+  ]
+  tgw_subnet_route = {
+    route_table_id     = module.customer_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].public_route_table_id
     transit_gateway_id = each.value.transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name
