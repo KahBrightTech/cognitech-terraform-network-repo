@@ -208,32 +208,19 @@ variable "tgw_routes" {
   }))
   default = null
 }
-variable "tgw_private_subnet_route" {
+variable "tgw_subnet_route" {
   description = "The transit gateway subnet route variables"
   type = list(object({
-    name               = string
-    route_table_id     = optional(string)
-    cidr_block         = optional(string)
-    transit_gateway_id = optional(string)
-    subnet_name        = optional(string, null)
-    vpc_name           = optional(string, null)
+    name                = string
+    route_table_id      = optional(string)
+    cidr_block          = optional(string)
+    transit_gateway_id  = optional(string)
+    subnet_name         = optional(string, null)
+    vpc_name            = optional(string, null)
+    create_public_route = optional(bool, false)
   }))
   default = null
 }
-
-variable "tgw_public_subnet_route" {
-  description = "The transit gateway subnet route variables"
-  type = list(object({
-    name               = string
-    route_table_id     = optional(string)
-    cidr_block         = optional(string)
-    transit_gateway_id = optional(string)
-    subnet_name        = optional(string, null)
-    vpc_name           = optional(string, null)
-  }))
-  default = null
-}
-
 variable "vpc_id" {
   description = "The vpc id"
   type        = string

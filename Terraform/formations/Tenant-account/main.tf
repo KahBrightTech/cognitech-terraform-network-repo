@@ -67,41 +67,23 @@ module "transit_gateway_route" {
 }
 
 # #--------------------------------------------------------------------
-# # Transit Gateway subnet routes - Creates Transit Gateway subnet routes
+# # Transit Gateway subnet routes - Creates Transit Gateway subnet routes for subnets
 # #--------------------------------------------------------------------
-module "transit_gateway_private_subnet_route" {
+module "transit_gateway_subnet_route" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
-  for_each = var.tgw_private_subnet_route != null ? { for route in var.tgw_private_subnet_route : route.name => route } : {}
+  for_each = var.tgw_subnet_route != null ? { for route in var.tgw_subnet_route : route.name => route } : {}
   common   = var.common
   depends_on = [
-    module.customer_vpc,
+    module.shared_vpc,
+    module.transit_gateway
   ]
   tgw_subnet_route = {
-    route_table_id     = module.customer_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
-    transit_gateway_id = each.value.transit_gateway_id
+    route_table_id     = each.value.create_public_route ? module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
+    transit_gateway_id = module.transit_gateway.transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name
   }
 }
-
-# #--------------------------------------------------------------------
-# # Transit Gateway subnet routes - Creates Transit Gateway subnet routes
-# #--------------------------------------------------------------------
-module "transit_gateway_public_subnet_route" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
-  for_each = var.tgw_public_subnet_route != null ? { for route in vartgw_public_subnet_route : route.name => route } : {}
-  common   = var.common
-  depends_on = [
-    module.customer_vpc,
-  ]
-  tgw_subnet_route = {
-    route_table_id     = module.customer_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id
-    transit_gateway_id = each.value.transit_gateway_id
-    cidr_block         = each.value.cidr_block
-    subnet_name        = each.value.subnet_name
-  }
-}
-
 #--------------------------------------------------------------------
 # S3 Private app bucket
 #--------------------------------------------------------------------

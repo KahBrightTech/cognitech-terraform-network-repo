@@ -229,29 +229,40 @@ inputs = {
     route_table_id = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
   }
 
-  tgw_shared_services_routes = [
+  tgw_routes = [
     {
       name                   = "hub-to-spoke-tgw-route"
       blackhole              = false
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       route_table_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
-      attachment_id          = dependency.shared_services.outputs.transit_gateway_attachment.tgw_attachment_id
     }
   ]
   tgw_subnet_route = [
     {
-      name               = "${local.vpc_name}-${include.env.locals.subnet_prefix.primary}"
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-      subnet_name        = include.env.locals.subnet_prefix.primary
-      vpc_name           = local.vpc_name
+      name        = "private-sbnt1-subnet-rt"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      subnet_name = include.env.locals.subnet_prefix.primary
+      vpc_name    = local.vpc_name
     },
     {
-      name               = "${local.vpc_name}-${include.env.locals.subnet_prefix.secondary}"
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-      subnet_name        = include.env.locals.subnet_prefix.secondary
-      vpc_name           = local.vpc_name
+      name        = "private-sbnt2-subnet-rt"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      subnet_name = include.env.locals.subnet_prefix.secondary
+      vpc_name    = local.vpc_name
+    },
+    {
+      name                = "public-sbnt1-subnet-rt"
+      cidr_block          = cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      subnet_name         = include.env.locals.subnet_prefix.primary
+      vpc_name            = local.vpc_name
+      create_public_route = true
+    },
+    {
+      name                  = "public-sbnt2-subnet-rt"
+      cidr_block cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      subnet_name           = include.env.locals.subnet_prefix.secondary
+      vpc_name              = local.vpc_name
+      create_public_route   = true
     }
   ]
   s3_private_buckets = [
