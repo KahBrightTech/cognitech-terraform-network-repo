@@ -239,20 +239,23 @@ inputs = {
   ]
   tgw_subnet_route = [
     {
-      name        = "private-sbnt1-subnet-rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-      subnet_name = include.env.locals.subnet_prefix.primary
-      vpc_name    = local.vpc_name
+      name               = "private-sbnt1-subnet-rt"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+      subnet_name        = include.env.locals.subnet_prefix.primary
+      vpc_name           = local.vpc_name
     },
     {
-      name        = "private-sbnt2-subnet-rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-      subnet_name = include.env.locals.subnet_prefix.secondary
-      vpc_name    = local.vpc_name
+      name               = "private-sbnt2-subnet-rt"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
+      subnet_name        = include.env.locals.subnet_prefix.secondary
+      vpc_name           = local.vpc_name
     },
     {
       name                = "public-sbnt1-subnet-rt"
       cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      transit_gateway_id  = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
       subnet_name         = include.env.locals.subnet_prefix.primary
       vpc_name            = local.vpc_name
       create_public_route = true
@@ -260,6 +263,7 @@ inputs = {
     {
       name                = "public-sbnt2-subnet-rt"
       cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      transit_gateway_id  = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
       subnet_name         = include.env.locals.subnet_prefix.secondary
       vpc_name            = local.vpc_name
       create_public_route = true
