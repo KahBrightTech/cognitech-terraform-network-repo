@@ -203,6 +203,14 @@ inputs = {
                 from_port   = 3389
                 to_port     = 3389
                 ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-icmp-shared-services-vpc"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+                description = "BASE - Inbound ICMP traffic from Shared Services Public Subnet 1 to App SG"
+                from_port   = -1
+                to_port     = -1
+                ip_protocol = "icmp"
               }
             ]
           )

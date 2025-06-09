@@ -133,6 +133,22 @@ locals {
         from_port     = 80
         to_port       = 80
         ip_protocol   = "tcp"
+      },
+      {
+        key         = "egress-443-internet"
+        cidr_ipv4   = local.internet
+        description = "BASE - Inbound HTTP traffic from Internet to ALB SG on tcp port 443 (HTTPS)"
+        from_port   = 443
+        to_port     = 443
+        ip_protocol = "tcp"
+      },
+      {
+        key         = "egress-80-internet"
+        cidr_ipv4   = local.internet
+        description = "BASE - Inbound HTTP traffic from Internet to ALB SG on tcp port 80 (HTTP)"
+        from_port   = 80
+        to_port     = 80
+        ip_protocol = "tcp"
       }
     ]
   }
