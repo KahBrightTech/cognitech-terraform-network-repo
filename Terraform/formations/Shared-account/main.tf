@@ -101,6 +101,25 @@ module "transit_gateway_shared_services_route" {
     route_table_id         = module.transit_gateway_route_table.tgw_rtb_id
   }
 }
+
+# #--------------------------------------------------------------------
+# # Transit Gateway subnet routes - Shared services
+# #--------------------------------------------------------------------
+module "transit_gateway_shared_subnet_route" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
+  for_each = var.tgw_shared_services_subnet_route != null ? { for route in var.tgw_shared_services_subnet_route : route.name => route } : {}
+  common   = var.common
+  depends_on = [
+    module.shared_vpc,
+    module.transit_gateway
+  ]
+  tgw_subnet_route = {
+    route_table_id     = module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
+    transit_gateway_id = module.transit_gateway.transit_gateway_id
+    cidr_block         = each.value.cidr_block
+    subnet_name        = each.value.subnet_name
+  }
+}
 #--------------------------------------------------------------------
 # S3 Private app bucket
 #--------------------------------------------------------------------

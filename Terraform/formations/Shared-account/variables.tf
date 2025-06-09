@@ -224,6 +224,19 @@ variable "tgw_shared_services_routes" {
   }))
   default = null
 }
+
+variable "tgw_shared_services_subnet_route" {
+  description = "The transit gateway subnet route variables"
+  type = list(object({
+    name               = string
+    route_table_id     = optional(string)
+    cidr_block         = optional(string)
+    transit_gateway_id = optional(string)
+    subnet_name        = optional(string, null)
+    vpc_name           = optional(string, null)
+  }))
+  default = null
+}
 variable "vpc_id" {
   description = "The vpc id"
   type        = string

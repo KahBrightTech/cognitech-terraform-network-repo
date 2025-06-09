@@ -238,21 +238,6 @@ inputs = {
       attachment_id          = dependency.shared_services.outputs.transit_gateway_attachment.tgw_attachment_id
     }
   ]
-  tgw_shared_services_subnet_route = [
-    {
-      name               = "hub-to-spoke-sbnt1-subnet-rt"
-      route_table_id     = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.primary].private_route_table_id
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-    },
-    {
-      name               = "hub-to-spoke-sbnt2-subnet-rt"
-      route_table_id     = dependency.shared_services.outputs.Account_products.shared-services.private_routes[include.env.locals.subnet_prefix.secondary].private_route_table_id
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-    }
-  ]
-
   tgw_subnet_route = [
     {
       name               = "${local.vpc_name}-${include.env.locals.subnet_prefix.primary}"

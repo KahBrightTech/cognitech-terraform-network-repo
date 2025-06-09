@@ -83,22 +83,6 @@ module "transit_gateway_shared_services_route" {
     route_table_id         = each.value.route_table_id
   }
 }
-# #--------------------------------------------------------------------
-# # Transit Gateway subnet routes - Shared services
-# #--------------------------------------------------------------------
-module "transit_gateway_shared_subnet_route" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
-  for_each = var.tgw_shared_services_subnet_route != null ? { for route in var.tgw_shared_services_subnet_route : route.name => route } : {}
-  common   = var.common
-  depends_on = [
-    module.customer_vpc,
-  ]
-  tgw_subnet_route = {
-    route_table_id     = each.value.route_table_id
-    transit_gateway_id = each.value.transit_gateway_id
-    cidr_block         = each.value.cidr_block
-  }
-}
 
 # #--------------------------------------------------------------------
 # # Transit Gateway subnet routes - Creates Transit Gateway subnet routes
