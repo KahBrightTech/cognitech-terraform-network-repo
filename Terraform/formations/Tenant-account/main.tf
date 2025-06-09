@@ -74,11 +74,11 @@ module "transit_gateway_subnet_route" {
   for_each = var.tgw_subnet_route != null ? { for route in var.tgw_subnet_route : route.name => route } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway
   ]
   tgw_subnet_route = {
-    route_table_id     = each.value.create_public_route ? module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
+    route_table_id     = each.value.create_public_route ? module.customer_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.customer_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
     transit_gateway_id = module.transit_gateway.transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name
