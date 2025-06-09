@@ -133,7 +133,7 @@ module "transit_gateway_shared_public_subnet_route" {
     module.transit_gateway
   ]
   tgw_subnet_route = {
-    route_table_id     = module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].public_route_table_id
+    route_table_id     = module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id
     transit_gateway_id = module.transit_gateway.transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name

@@ -227,6 +227,7 @@ inputs = {
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
     }
   ]
+
   tgw_shared_services_private_subnet_route = [
     {
       name        = "hub-to-spoke-sbnt1-subnet-rt"
