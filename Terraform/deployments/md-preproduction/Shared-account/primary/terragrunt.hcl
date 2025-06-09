@@ -220,7 +220,7 @@ inputs = {
     name = local.vpc_name
   }
 
-  tgw_routes = [
+  tgw_shared_services_routes = [
     {
       name                   = "spoke-to-hub-tgw-route"
       blackhole              = true
