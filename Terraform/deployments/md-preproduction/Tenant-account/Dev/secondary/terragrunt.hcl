@@ -229,21 +229,13 @@ inputs = {
     route_table_id = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
   }
 
-  tgw_routes = [
-    {
-      name                   = "spoke-to-hub-tgw-route"
-      blackhole              = true
-      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-      route_table_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
-    }
-  ]
-
   tgw_shared_services_routes = [
     {
       name                   = "hub-to-spoke-tgw-route"
       blackhole              = false
-      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       route_table_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
+      attachment_id          = dependency.shared_services.outputs.transit_gateway_attachment.tgw_attachment_id
     }
   ]
   tgw_shared_services_subnet_route = [
