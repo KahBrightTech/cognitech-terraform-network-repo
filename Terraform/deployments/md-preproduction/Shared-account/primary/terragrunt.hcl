@@ -62,18 +62,18 @@ inputs = {
         {
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt1.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt1.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
           subnet_type                 = local.external
           vpc_name                    = local.vpc_name
         },
         {
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt2.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt2.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
           subnet_type                 = local.external
           vpc_name                    = local.vpc_name
         }
@@ -82,18 +82,18 @@ inputs = {
         {
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt1.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt1.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
           subnet_type                 = local.internal
           vpc_name                    = local.vpc_name
         },
         {
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt2.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt2.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
           subnet_type                 = local.internal
           vpc_name                    = local.vpc_name
         }
@@ -224,7 +224,7 @@ inputs = {
     {
       name                   = "spoke-to-hub-tgw-route"
       blackhole              = true
-      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
     }
   ]
   tgw_shared_services_subnet_route = [
