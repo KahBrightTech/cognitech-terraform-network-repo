@@ -115,3 +115,4 @@ module "s3_app_bucket" {
     policy            = each.value.policy
   }
 }
+

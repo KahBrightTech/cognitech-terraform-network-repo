@@ -220,7 +220,7 @@ variable "tgw_shared_services_routes" {
     blackhole              = optional(bool)
     destination_cidr_block = string
     attachment_id          = optional(string)
-    route_table_id         = string
+    route_table_id         = optional(string)
   }))
   default = null
 }
