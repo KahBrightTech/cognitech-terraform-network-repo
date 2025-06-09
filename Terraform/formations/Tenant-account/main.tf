@@ -79,7 +79,7 @@ module "transit_gateway_shared_services_route" {
     name                   = each.value.name
     blackhole              = each.value.blackhole
     destination_cidr_block = each.value.destination_cidr_block
-    attachment_id          = each.value.attachment_id
+    attachment_id          = each.value.blackhole == false ? each.value.attachment_id : null
     route_table_id         = each.value.route_table_id
   }
 }

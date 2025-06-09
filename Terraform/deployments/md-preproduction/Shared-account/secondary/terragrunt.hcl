@@ -60,7 +60,7 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       public_subnets = [
         {
-          name                        = "sbnt1"
+          name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
@@ -69,7 +69,7 @@ inputs = {
           vpc_name                    = local.vpc_name
         },
         {
-          name                        = "sbnt2"
+          name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
@@ -80,7 +80,7 @@ inputs = {
       ]
       private_subnets = [
         {
-          name                        = "sbnt1"
+          name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
@@ -89,7 +89,7 @@ inputs = {
           vpc_name                    = local.vpc_name
         },
         {
-          name                        = "sbnt2"
+          name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
@@ -152,7 +152,14 @@ inputs = {
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.windows_bastion_base,
             include.cloud.locals.security_group_rules.locals.egress.linux_bastion_base,
-            []
+            [
+              {
+                key         = "egress-all-traffic-bastion-sg"
+                cidr_ipv4   = "0.0.0.0/0"
+                description = "BASE - Outbound all traffic from Bastion SG to Internet"
+                ip_protocol = "-1"
+              }
+            ]
           )
         },
         {
@@ -199,26 +206,27 @@ inputs = {
   ]
   transit_gateway = {
     name                            = local.vpc_name
-    default_route_table_association = "enable"
-    default_route_table_propagation = "enable"
+    default_route_table_association = "disable"
+    default_route_table_propagation = "disable"
     auto_accept_shared_attachments  = "disable"
     dns_support                     = "enable"
     amazon_side_asn                 = "64512"
+    vpc_name                        = local.vpc_name
+  }
+  tgw_route_table = {
+    name = local.vpc_name
   }
   tgw_attachments = {
     name = local.vpc_name
   }
+
   tgw_routes = [
     {
-      name           = "dev"
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.dev.vpc
-    },
-    {
-      name           = "trn"
-      vpc_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.trn.vpc
+      name                   = "spoke-to-hub-tgw-route"
+      blackhole              = true
+      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
     }
   ]
-
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
@@ -228,7 +236,6 @@ inputs = {
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------

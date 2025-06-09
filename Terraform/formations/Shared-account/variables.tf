@@ -59,6 +59,7 @@ variable "vpcs" {
       secondary_subnet  = optional(string)
       tertiary_subnet   = optional(string)
       quaternary_subnet = optional(string)
+      subnet_name       = optional(string)
     }))
     private_routes = object({
       nat_gateway_id         = optional(string)
@@ -209,6 +210,18 @@ variable "tgw_route_table" {
     name   = string
     tgw_id = optional(string)
   })
+  default = null
+}
+
+variable "tgw_shared_services_routes" {
+  description = "The transit gateway route variables"
+  type = list(object({
+    name                   = string
+    blackhole              = optional(bool)
+    destination_cidr_block = string
+    attachment_id          = optional(string)
+    route_table_id         = string
+  }))
   default = null
 }
 variable "vpc_id" {

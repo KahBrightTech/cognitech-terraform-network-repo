@@ -59,6 +59,7 @@ variable "vpcs" {
       secondary_subnet  = optional(string)
       tertiary_subnet   = optional(string)
       quaternary_subnet = optional(string)
+      subnet_name       = optional(string)
     }))
     private_routes = object({
       nat_gateway_id         = optional(string)

@@ -60,7 +60,7 @@ module "public_route" {
 # Natgateway - Creates natgateways
 #--------------------------------------------------------------------
 module "ngw" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/natgateway?ref=v1.1.28"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/natgateway?ref=v1.1.32"
   for_each = module.public_subnets
   bypass   = (var.vpc.nat_gateway == null)
   common   = var.common
@@ -72,6 +72,7 @@ module "ngw" {
     subnet_id_quaternary = each.value.quaternary_subnet_id
     type                 = var.vpc.nat_gateway != null ? var.vpc.nat_gateway.type : "unknown"
     vpc_name             = var.vpc.name
+    subnet_name          = each.key
   }
 }
 
