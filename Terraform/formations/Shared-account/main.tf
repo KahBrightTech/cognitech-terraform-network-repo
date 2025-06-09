@@ -86,9 +86,9 @@ module "transit_gateway_association" {
 #--------------------------------------------------------------------
 # Transit Gateway routes - Creates Transit Gateway routes for shared services
 #--------------------------------------------------------------------
-module "transit_gateway_shared_services_route" {
+module "transit_gateway_route" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-routes?ref=v1.1.17"
-  for_each = var.tgw_shared_services_routes != null ? { for route in var.tgw_shared_services_routes : route.name => route } : {}
+  for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.name => route } : {}
   common   = var.common
   depends_on = [
     module.shared_vpc,
@@ -105,16 +105,16 @@ module "transit_gateway_shared_services_route" {
 # #--------------------------------------------------------------------
 # # Transit Gateway subnet routes - Shared services private subnets
 # #--------------------------------------------------------------------
-module "transit_gateway_shared_private_subnet_route" {
+module "transit_gateway_subnet_route" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
-  for_each = var.tgw_shared_services_private_subnet_route != null ? { for route in var.tgw_shared_services_private_subnet_route : route.name => route } : {}
+  for_each = var.tgw_subnet_route != null ? { for route in var.tgw_subnet_route : route.name => route } : {}
   common   = var.common
   depends_on = [
     module.shared_vpc,
     module.transit_gateway
   ]
   tgw_subnet_route = {
-    route_table_id     = module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
+    route_table_id     = each.value.create_public_route ? module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
     transit_gateway_id = module.transit_gateway.transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name
@@ -123,22 +123,22 @@ module "transit_gateway_shared_private_subnet_route" {
 
 # #--------------------------------------------------------------------
 # # Transit Gateway subnet routes - Shared services public subnets
-# #--------------------------------------------------------------------
-module "transit_gateway_shared_public_subnet_route" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
-  for_each = var.tgw_shared_services_public_subnet_route != null ? { for route in var.tgw_shared_services_public_subnet_route : route.name => route } : {}
-  common   = var.common
-  depends_on = [
-    module.shared_vpc,
-    module.transit_gateway
-  ]
-  tgw_subnet_route = {
-    route_table_id     = module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id
-    transit_gateway_id = module.transit_gateway.transit_gateway_id
-    cidr_block         = each.value.cidr_block
-    subnet_name        = each.value.subnet_name
-  }
-}
+# # #--------------------------------------------------------------------
+# module "transit_gateway_public_subnet_route" {
+#   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-subnet-route?ref=v1.1.18"
+#   for_each = var.tgw_public_subnet_route != null ? { for route in var.tgw_public_subnet_route : route.name => route } : {}
+#   common   = var.common
+#   depends_on = [
+#     module.shared_vpc,
+#     module.transit_gateway
+#   ]
+#   tgw_subnet_route = {
+#     route_table_id     = module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id
+#     transit_gateway_id = module.transit_gateway.transit_gateway_id
+#     cidr_block         = each.value.cidr_block
+#     subnet_name        = each.value.subnet_name
+#   }
+# }
 #--------------------------------------------------------------------
 # S3 Private app bucket
 #--------------------------------------------------------------------
