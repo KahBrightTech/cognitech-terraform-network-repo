@@ -103,7 +103,7 @@ module "s3_app_bucket" {
 # IAM Roles and Policies
 #--------------------------------------------------------------------
 module "IAM_roles" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.1.35"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.1.40"
   for_each = (var.iam_roles != null) ? { for item in var.iam_roles : item.name => item } : {}
   common   = var.common
   iam_role = each.value
@@ -113,7 +113,7 @@ module "IAM_roles" {
 # Module to create EC2 instance profiles
 #--------------------------------------------------------------------
 module "ec2_profiles" {
-  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.1.39"
+  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.1.40"
   for_each     = (var.ec2_profiles != null) ? { for item in var.ec2_profiles : item.name => item } : {}
   common       = var.common
   ec2_profiles = each.value

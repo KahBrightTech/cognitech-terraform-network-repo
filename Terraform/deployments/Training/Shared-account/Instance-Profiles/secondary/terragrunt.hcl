@@ -40,9 +40,8 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../../..//formations/Create-Lambdas"
+  source = "../../../../..//modules/Create-Instance-profiles"
 }
-
 
 #-------------------------------------------------------
 # Inputs 
@@ -55,28 +54,20 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
-  Lambdas = [
+  ec2_profiles = [
     {
-      function_name        = "${local.vpc_name}-start-instance"
-      description          = "Lambda function to start an EC2 instance"
-      runtime              = include.env.locals.lambda.start_instance.runtime
-      handler              = include.env.locals.lambda.start_instance.handler
-      timeout              = include.env.locals.lambda.start_instance.timeout
-      private_bucklet_name = include.env.locals.lambda.start_instance.private_bucklet_name
-      lamda_s3_key         = include.env.locals.lambda.start_instance.lamda_s3_key
-      layer_description    = "Lambda Layer for shared libraries"
-      layer_s3_key         = include.env.locals.lambda.start_instance.layer_s3_key
-    },
-    {
-      function_name        = "${local.vpc_name}-stop-instance"
-      description          = "Lambda function to stop an EC2 instance"
-      runtime              = include.env.locals.lambda.stop_instance.runtime
-      handler              = include.env.locals.lambda.stop_instance.handler
-      timeout              = include.env.locals.lambda.stop_instance.timeout
-      private_bucklet_name = include.env.locals.lambda.stop_instance.private_bucklet_name
-      lamda_s3_key         = include.env.locals.lambda.stop_instance.lamda_s3_key
-      layer_description    = "Lambda Layer for shared libraries"
-      layer_s3_key         = include.env.locals.lambda.stop_instance.layer_s3_key
+      name               = "${local.vpc_name}"
+      description        = "EC2 Instance Profile for Shared Services"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+      ]
+      policy = {
+        name        = "s3"
+        description = "EC2 Instance Permission for S3"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
+      }
     }
   ]
 }
@@ -99,6 +90,7 @@ remote_state {
     region               = local.region
   }
 }
+
 #-------------------------------------------------------
 # Providers 
 #-------------------------------------------------------
@@ -109,8 +101,13 @@ generate "aws-providers" {
   provider "aws" {
     region = "${local.region}"
   }
+  provider "secretsmanager" {
+    credential = "${get_env("TF_VAR_KSM_CONFIG")}" 
+  }
   EOF
 }
+
+
 
 
 
