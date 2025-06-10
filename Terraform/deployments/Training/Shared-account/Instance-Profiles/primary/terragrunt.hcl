@@ -56,7 +56,7 @@ inputs = {
   }
   ec2_profiles = [
     {
-      name               = "${local.vpc_name}-ec2-instance-profile"
+      name               = "${local.vpc_name}"
       description        = "EC2 Instance Profile for Shared Services"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
