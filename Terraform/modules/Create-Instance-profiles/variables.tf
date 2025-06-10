@@ -12,7 +12,7 @@ variable "common" {
 
 variable "ec2_profiles" {
   description = "IAM Role configuration"
-  type = object({
+  type = list(object({
     name                      = string
     description               = optional(string)
     path                      = optional(string, "/")
@@ -29,7 +29,7 @@ variable "ec2_profiles" {
       path          = optional(string, "/")
       custom_policy = optional(bool, true)
     }))
-  })
+  }))
   default = null
 }
 
