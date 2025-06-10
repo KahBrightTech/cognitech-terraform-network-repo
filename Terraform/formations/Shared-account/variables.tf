@@ -239,6 +239,28 @@ variable "tgw_subnet_route" {
   default = null
 }
 
+variable "iam_roles" {
+  description = "IAM Roles and policies to be created"
+  type = list(object({
+    name                      = string
+    description               = optional(string)
+    path                      = optional(string, "/")
+    assume_role_policy        = string
+    custom_assume_role_policy = optional(bool, true)
+    force_detach_policies     = optional(bool, false)
+    managed_policy_arns       = optional(list(string))
+    max_session_duration      = optional(number, 3600)
+    permissions_boundary      = optional(string)
+    policy = optional(object({
+      name          = string
+      description   = optional(string)
+      policy        = string
+      path          = optional(string, "/")
+      custom_policy = optional(bool, true)
+    }))
+  }))
+  default = null
+}
 variable "vpc_id" {
   description = "The vpc id"
   type        = string
