@@ -273,21 +273,6 @@ inputs = {
       create_public_route = true
     }
   ]
-
-  # tgw_public_subnet_route = [
-  #   {
-  #     name        = "hub-to-spoke-sbnt1-subnet-rt"
-  #     cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-  #     subnet_name = include.env.locals.subnet_prefix.primary
-  #     vpc_name    = local.vpc_name
-  #   },
-  #   {
-  #     name        = "hub-to-spoke-sbnt2-subnet-rt"
-  #     cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-  #     subnet_name = include.env.locals.subnet_prefix.secondary
-  #     vpc_name    = local.vpc_name
-  #   }
-  # ]
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
