@@ -26,3 +26,8 @@ output "IAM_roles" {
   description = "IAM roles and policies details"
   value       = module.IAM_roles
 }
+
+output "ec2_profiles" {
+  description = "EC2 instance profiles details"
+  value       = module.ec2_profiles
+}
