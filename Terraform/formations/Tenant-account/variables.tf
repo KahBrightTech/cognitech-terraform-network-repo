@@ -222,7 +222,7 @@ variable "tgw_subnet_route" {
   default = null
 }
 
-variable "iam_role" {
+variable "iam_roles" {
   description = "IAM Roles and policies to be created"
   type = list(object({
     name                      = string

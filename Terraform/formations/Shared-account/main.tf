@@ -140,19 +140,8 @@ module "s3_app_bucket" {
 # IAM Roles and Policies
 #--------------------------------------------------------------------
 module "IAM_roles" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.1.33"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.1.35"
   for_each = (var.iam_roles != null) ? { for item in var.iam_roles : item.name => item } : {}
   common   = var.common
   iam_role = each.value
-  # iam_role = {
-  #   name                      = each.value.name
-  #   description               = each.value.description
-  #   path                      = each.value.path
-  #   assume_role_policy        = each.value.assume_role_policy
-  #   custom_assume_role_policy = each.value.custom_assume_role_policy
-  #   force_detach_policies     = each.value.force_detach_policies
-  #   managed_policy_arns       = each.value.managed_policy_arns
-  #   policies                  = each.value.policies != null ? { for policy in each.value.policies : policy.name => policy } : {}
-  # }
 }
-
