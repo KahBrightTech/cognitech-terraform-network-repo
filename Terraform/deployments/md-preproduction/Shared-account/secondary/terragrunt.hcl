@@ -147,7 +147,24 @@ inputs = {
           ingress = concat(
             include.cloud.locals.security_group_rules.locals.ingress.windows_bastion_base,
             include.cloud.locals.security_group_rules.locals.ingress.linux_bastion_base,
-            []
+            [
+              {
+                key         = "ingress-22-Account"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+                description = "BASE - Inbound SSH traffic from entire account cidr on tcp port 22"
+                from_port   = 22
+                to_port     = 22
+                ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-3389-Account"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+                description = "BASE - Inbound SSH traffic from  entire account cidr on tcp port 3389"
+                from_port   = 3389
+                to_port     = 3389
+                ip_protocol = "tcp"
+              },
+            ]
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.windows_bastion_base,
@@ -220,25 +237,40 @@ inputs = {
     name = local.vpc_name
   }
 
-  tgw_shared_services_routes = [
+  tgw_routes = [
     {
       name                   = "spoke-to-hub-tgw-route"
-      blackhole              = true
+      blackhole              = false
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
     }
   ]
-  tgw_shared_services_subnet_route = [
+
+  tgw_subnet_route = [
     {
-      name        = "hub-to-spoke-sbnt1-subnet-rt"
+      name        = "private-sbnt1-subnet-rt"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
       subnet_name = include.env.locals.subnet_prefix.primary
       vpc_name    = local.vpc_name
     },
     {
-      name        = "hub-to-spoke-sbnt2-subnet-rt"
+      name        = "private-sbnt2-subnet-rt"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
       subnet_name = include.env.locals.subnet_prefix.secondary
       vpc_name    = local.vpc_name
+    },
+    {
+      name                = "public-sbnt1-subnet-rt"
+      cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+      subnet_name         = include.env.locals.subnet_prefix.primary
+      vpc_name            = local.vpc_name
+      create_public_route = true
+    },
+    {
+      name                = "public-sbnt2-subnet-rt"
+      cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+      subnet_name         = include.env.locals.subnet_prefix.secondary
+      vpc_name            = local.vpc_name
+      create_public_route = true
     }
   ]
   s3_private_buckets = [

@@ -15,7 +15,7 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context   = "primary"
+  region_context   = "secondary"
   deploy_globally  = "true"
   internal         = "private"
   external         = "public"
@@ -26,13 +26,13 @@ locals {
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
-  vpc_name         = "dev"
+  vpc_name         = "uat"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "dev"
+      Environment = "uat"
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )

@@ -199,7 +199,7 @@ inputs = {
               {
                 key         = "ingress-3389-shared-services-vpc"
                 cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-                description = "BASE - Inbound SSH traffic from Shared Services Public Subnet 1 to App SG on tcp port 22"
+                description = "BASE - Inbound SSH traffic from Shared Services Public Subnet 1 to App SG on tcp port 3389"
                 from_port   = 3389
                 to_port     = 3389
                 ip_protocol = "tcp"
