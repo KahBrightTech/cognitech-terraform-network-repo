@@ -54,8 +54,6 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
-
-
   ec2_profiles = [
     {
       name               = "${local.vpc_name}-ec2-instance-profile"
