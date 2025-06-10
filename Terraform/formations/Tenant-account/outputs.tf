@@ -13,3 +13,8 @@ output "s3_app_bucket" {
   value       = module.s3_app_bucket
   depends_on  = [module.customer_vpc]
 }
+
+output "IAM_roles" {
+  description = "IAM roles and policies details"
+  value       = module.IAM_roles
+}
