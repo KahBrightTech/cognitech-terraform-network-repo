@@ -147,7 +147,24 @@ inputs = {
           ingress = concat(
             include.cloud.locals.security_group_rules.locals.ingress.windows_bastion_base,
             include.cloud.locals.security_group_rules.locals.ingress.linux_bastion_base,
-            []
+            [
+              {
+                key         = "ingress-22-Account"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+                description = "BASE - Inbound SSH traffic from entire account cidr on tcp port 22"
+                from_port   = 22
+                to_port     = 22
+                ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-3389-Account"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+                description = "BASE - Inbound SSH traffic from  entire account cidr on tcp port 3389"
+                from_port   = 3389
+                to_port     = 3389
+                ip_protocol = "tcp"
+              },
+            ]
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.windows_bastion_base,
