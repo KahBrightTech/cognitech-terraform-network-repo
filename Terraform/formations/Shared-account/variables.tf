@@ -285,6 +285,17 @@ variable "ec2_profiles" {
   }))
   default = null
 }
+variable "iam_policies" {
+  description = "IAM Role configuration"
+  type = list(object({
+    name          = string
+    description   = optional(string)
+    policy        = string
+    path          = optional(string, "/")
+    custom_policy = optional(bool, true)
+  }))
+  default = null
+}
 
 variable "vpc_id" {
   description = "The vpc id"
