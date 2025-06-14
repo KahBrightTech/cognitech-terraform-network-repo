@@ -147,7 +147,7 @@ module "iam_roles" {
 }
 
 #--------------------------------------------------------------------
-# Module to create EC2 instance profiles
+# EC2 instance profiles
 #--------------------------------------------------------------------
 module "ec2_profiles" {
   source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.1.43"
@@ -157,7 +157,7 @@ module "ec2_profiles" {
 }
 
 #--------------------------------------------------------------------
-# IAM olicies
+# IAM policies
 #--------------------------------------------------------------------
 module "iam_policies" {
   source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Policies?ref=v1.1.44"
