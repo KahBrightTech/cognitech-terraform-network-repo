@@ -7,7 +7,7 @@ on:
       - "*" # Run on push to any feature branch
     paths:
       - ".github/workflows/deploy-primary-training-iam-policy.yaml"
-      - "Terraform/deployments/Training/Shared-account/IAM-Policcies/primary/**/*"
+      - "Terraform/deployments/Training/Shared-account/IAM-Policies/primary/**/*"
   workflow_dispatch:
     inputs:
       terragrunt_action:
@@ -26,7 +26,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/Training/Shared-account/IAM-Policcies/primary
+  DEPLOYMENT_PATH: Terraform/deployments/Training/Shared-account/IAM-Policies/primary
 
   TF_VAR_KSM_CONFIG: ${{ secrets.TF_VAR_KSM_CONFIG }}
 
