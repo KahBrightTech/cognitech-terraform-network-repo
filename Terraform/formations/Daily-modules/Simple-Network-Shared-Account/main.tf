@@ -20,6 +20,21 @@ module "shared_vpc" {
   vpc      = each.value
   common   = var.common
 }
+#--------------------------------------------------------------------
+# S3 Private app bucket
+#--------------------------------------------------------------------
+module "s3_app_bucket" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.1.48"
+  for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
+  common   = var.common
+  s3 = {
+    name              = each.value.name
+    description       = each.value.description
+    enable_versioning = each.value.enable_versioning
+    policy            = each.value.policy
+  }
+}
+
 
 #--------------------------------------------------------------------
 # IAM Roles and Policies
