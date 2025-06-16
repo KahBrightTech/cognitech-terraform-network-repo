@@ -11,8 +11,8 @@ locals {
   owner       = "kbrigthain@gmail.com"
 
   remote_state_bucket = {
-    primary   = "terragruntuse1"
-    secondary = "terragruntusw2"
+    primary   = "terragruntint"
+    secondary = "terragruntintusw2"
   }
 
   subnet_prefix = {
@@ -22,7 +22,7 @@ locals {
     quaternary = "sbnt4"
   }
 
-  remote_dynamodb_table = "Terraform"
+  remote_dynamodb_table = "Terragrunt"
   tags = {
     Environment  = local.environment
     Owner        = local.owner
