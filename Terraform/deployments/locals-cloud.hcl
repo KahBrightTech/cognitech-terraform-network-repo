@@ -29,6 +29,17 @@ locals {
         number = "730335294148"
       }
     }
+    INT = {
+      Preprod = {
+        name   = "int-preproduction"
+        number = "730335294148"
+      }
+      Prod = {
+        name   = "int-production"
+        number = "388927731914"
+      }
+    }
+
   }
   billing_code_number = {
     kah = "90471"

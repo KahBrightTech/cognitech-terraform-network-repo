@@ -41,7 +41,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../..//formations/Shared-account"
+  source = "../../../..//formations/Daily-modules/Simple-Network-Shared-Account"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -49,7 +49,7 @@ terraform {
 inputs = {
   common = {
     global        = local.deploy_globally
-    account_name  = include.cloud.locals.account_name.MD.Preprod.name
+    account_name  = include.cloud.locals.account_name.INT.Preprod.name
     region_prefix = local.region_prefix
     tags          = local.tags
     region        = local.region
@@ -78,36 +78,8 @@ inputs = {
           vpc_name                    = local.vpc_name
         }
       ]
-      private_subnets = [
-        {
-          name                        = include.env.locals.subnet_prefix.primary
-          primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
-          secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
-          subnet_type                 = local.internal
-          vpc_name                    = local.vpc_name
-        },
-        {
-          name                        = include.env.locals.subnet_prefix.secondary
-          primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
-          secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
-          subnet_type                 = local.internal
-          vpc_name                    = local.vpc_name
-        }
-      ]
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
-      }
-      private_routes = {
-        destination_cidr_block = "0.0.0.0/0"
-      }
-      nat_gateway = {
-        name     = "nat"
-        type     = local.external
-        vpc_name = local.vpc_name
       }
       security_groups = [
         {
@@ -219,58 +191,6 @@ inputs = {
         policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
 
       }
-    }
-  ]
-  transit_gateway = {
-    name                            = local.vpc_name
-    default_route_table_association = "disable"
-    default_route_table_propagation = "disable"
-    auto_accept_shared_attachments  = "disable"
-    dns_support                     = "enable"
-    amazon_side_asn                 = "64512"
-    vpc_name                        = local.vpc_name
-  }
-  tgw_route_table = {
-    name = local.vpc_name
-  }
-  tgw_attachments = {
-    name = local.vpc_name
-  }
-
-  tgw_routes = [
-    {
-      name                   = "spoke-to-hub-tgw-route"
-      blackhole              = false
-      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
-    }
-  ]
-
-  tgw_subnet_route = [
-    {
-      name        = "private-sbnt1-subnet-rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-      subnet_name = include.env.locals.subnet_prefix.primary
-      vpc_name    = local.vpc_name
-    },
-    {
-      name        = "private-sbnt2-subnet-rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-      subnet_name = include.env.locals.subnet_prefix.secondary
-      vpc_name    = local.vpc_name
-    },
-    {
-      name                = "public-sbnt1-subnet-rt"
-      cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-      subnet_name         = include.env.locals.subnet_prefix.primary
-      vpc_name            = local.vpc_name
-      create_public_route = true
-    },
-    {
-      name                = "public-sbnt2-subnet-rt"
-      cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-      subnet_name         = include.env.locals.subnet_prefix.secondary
-      vpc_name            = local.vpc_name
-      create_public_route = true
     }
   ]
   s3_private_buckets = [
