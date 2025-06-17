@@ -164,10 +164,13 @@ module "s3_data_bucket" {
     description = var.vpc.s3.description
     policy      = var.vpc.s3.policy
   }
-
 }
 
-
+module "state_lock" {
+  source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Dynamodbtable?ref=v1.1.54"
+  common     = var.common
+  state_lock = var.state_locks
+}
 
 
 

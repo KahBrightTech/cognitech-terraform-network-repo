@@ -152,3 +152,17 @@ variable "vpc" {
   })
   default = null
 }
+
+variable "state_locks" {
+  description = "DynamoDB Table for Terraform State Locking"
+  type = list(object({
+    table_name = string
+    hash_key   = string
+    attributes = optional(list(object({
+      name = string
+      type = string
+    })), [])
+    billing_mode = optional(string, "PAY_PER_REQUEST")
+  }))
+  default = null
+}
