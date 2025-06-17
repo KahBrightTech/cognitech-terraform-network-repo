@@ -60,3 +60,11 @@ output "public_routes" {
   description = "Output of all public routes"
   value       = module.public_route
 }
+
+#-------------------------------------------------------
+# State locks
+#-------------------------------------------------------
+output "state_locks" {
+  description = "State locks for the network module"
+  value       = module.state_lock
+}

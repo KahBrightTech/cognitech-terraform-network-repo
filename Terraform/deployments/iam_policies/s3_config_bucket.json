@@ -1,0 +1,32 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EnforcedTLS",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::[[resource_name]]",
+        "arn:aws:s3:::[[resource_name]]/*"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      }
+    },
+    {
+      "Sid": "RootAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::[[account_number]]:root"
+      },
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::[[resource_name]]",
+        "arn:aws:s3:::[[resource_name]]/*"
+      ]
+    }
+  ]
+}

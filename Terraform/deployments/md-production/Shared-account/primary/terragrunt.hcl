@@ -279,6 +279,53 @@ inputs = {
       description       = "The application bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
+    },
+    {
+      name              = "${local.vpc_name}-config-bucket"
+      description       = "The configuration bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_bucket.json"
+    }
+  ]
+
+  ec2_profiles = [
+    {
+      name               = "${local.vpc_name}"
+      description        = "EC2 Instance Profile for Shared Services"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+      ]
+      policy = {
+        name        = "ec2-instance-permission-for-s3"
+        description = "EC2 Instance Permission for S3"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
+      }
+    }
+  ]
+
+  iam_roles = [
+    {
+      name               = "Test"
+      description        = "Test IAM"
+      path               = "/shared-services/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+      ]
+      policy = {
+        name        = "Test"
+        description = "Test IAM policy"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
+      }
+    }
+  ]
+  state_locks = [
+    {
+      name     = "terragrunt-lock"
+      hash_key = "LockID"
     }
   ]
 }
@@ -312,6 +359,7 @@ generate "aws-providers" {
   }
   EOF
 }
+
 
 
 
