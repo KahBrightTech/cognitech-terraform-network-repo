@@ -117,15 +117,10 @@ module "s3_data_bucket" {
 }
 
 module "state_lock" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Dynamodbtable?ref=v1.1.54"
-  for_each = var.state_locks != null ? { for item in var.state_locks : item.table_name => item } : {}
-  common   = var.common
-  state_lock = {
-    table_name   = each.value.table_name
-    hash_key     = each.value.hash_key
-    attributes   = each.value.attributes
-    billing_mode = each.value.billing_mode
-  }
+  source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Dynamodbtable?ref=v1.1.54"
+  for_each   = var.state_locks != null ? { for item in var.state_locks : item.table_name => item } : {}
+  common     = var.common
+  state_lock = each.value
 }
 
 
