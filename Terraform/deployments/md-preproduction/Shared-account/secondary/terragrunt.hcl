@@ -49,7 +49,7 @@ terraform {
 inputs = {
   common = {
     global        = local.deploy_globally
-    account_name  = include.cloud.locals.account_name.MD.Preprod.name
+    account_name  = include.cloud.locals.account_info[include.env.locals.name_abr].name
     region_prefix = local.region_prefix
     tags          = local.tags
     region        = local.region
@@ -304,12 +304,11 @@ inputs = {
       }
     }
   ]
-
   iam_roles = [
     {
-      name               = "Test"
-      description        = "Test IAM"
-      path               = "/shared-services/"
+      name               = "${local.vpc_name}-iam-role"
+      description        = "IAM Role for Shared Services"
+      path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
@@ -324,8 +323,14 @@ inputs = {
   ]
   state_locks = [
     {
-      name     = "terragrunt-lock"
-      hash_key = "LockID"
+      table_name = "terragrunt-lock"
+      hash_key   = "LockID"
+      attributes = [
+        {
+          name = "LockID"
+          type = "S"
+        }
+      ]
     }
   ]
 }

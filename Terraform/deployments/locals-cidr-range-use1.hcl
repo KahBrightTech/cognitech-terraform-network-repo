@@ -304,7 +304,7 @@ locals {
         }
       }
     }
-    int = {
+    intpp = {
       segments = {
         Account_cidr = "10.1.0.0/16"
         shared-services = {
