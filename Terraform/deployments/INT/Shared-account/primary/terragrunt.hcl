@@ -242,8 +242,8 @@ inputs = {
     }
   ]
   state_locks = {
-    name     = "terragrunt-lock"
-    hash_key = "LockID"
+    table_name = "terragrunt-lock"
+    hash_key   = "LockID"
   }
 
 }

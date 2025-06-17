@@ -117,7 +117,7 @@ module "s3_data_bucket" {
 }
 
 module "state_lock" {
-  source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Dynamodbtable?ref=v1.1.52"
+  source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Dynamodbtable?ref=v1.1.53"
   common     = var.common
   state_lock = var.state_locks
 }
