@@ -118,9 +118,9 @@ variable "vpc" {
 
 variable "state_locks" {
   description = "DynamoDB Table for Terraform State Locking"
-  type = list(object({
+  type = object({
     name     = string
     hash_key = string
-  }))
+  })
   default = null
 }

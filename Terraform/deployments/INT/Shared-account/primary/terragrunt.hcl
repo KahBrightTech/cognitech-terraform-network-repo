@@ -241,12 +241,11 @@ inputs = {
       }
     }
   ]
-  state_locks = [
-    {
-      name     = "terragrunt-lock"
-      hash_key = "LockID"
-    }
-  ]
+  state_locks = {
+    name     = "terragrunt-lock"
+    hash_key = "LockID"
+  }
+
 }
 
 #-------------------------------------------------------

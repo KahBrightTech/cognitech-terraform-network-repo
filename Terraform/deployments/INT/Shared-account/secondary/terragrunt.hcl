@@ -224,12 +224,11 @@ inputs = {
       }
     }
   ]
-
   iam_roles = [
     {
-      name               = "Test"
-      description        = "Test IAM"
-      path               = "/shared-services/"
+      name               = "${local.vpc_name}-iam-role"
+      description        = "IAM Role for Shared Services"
+      path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
@@ -242,13 +241,13 @@ inputs = {
       }
     }
   ]
-  state_locks = [
-    {
-      name     = "terragrunt-lock"
-      hash_key = "LockID"
-    }
-  ]
+  state_locks = {
+    name     = "terragrunt-lock"
+    hash_key = "LockID"
+  }
+
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
