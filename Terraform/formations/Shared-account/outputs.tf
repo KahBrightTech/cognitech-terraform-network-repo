@@ -2,7 +2,6 @@ output "Account_products" {
   description = "List of resources to be created"
   value       = module.shared_vpc
 }
-
 output "transit_gateway" {
   description = "Transit Gateway details"
   value       = module.transit_gateway
@@ -36,3 +35,4 @@ output "iam_policies" {
   description = "IAM policies details"
   value       = module.iam_policies
 }
+

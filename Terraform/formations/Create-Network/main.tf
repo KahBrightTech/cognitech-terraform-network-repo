@@ -156,6 +156,20 @@ module "security_group_rules" {
   }
 }
 
+#--------------------------------------------------------------------
+# Route53 Private Hosted Zones
+#--------------------------------------------------------------------
+module "zones" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Route-53-hosted-zones?ref=v1.1.57"
+  for_each = var.vpc != null ? var.vpc.route53_zones != null ? { for item in var.vpc.route53_zones : item.key => item } : {} : {}
+  common   = var.common
+  route53_zones = {
+    name    = each.value.name
+    comment = each.value.comment
+    vpc_id  = each.value.private_zone ? module.vpc.vpc_id : null
+  }
+}
+
 module "s3_data_bucket" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.1.51"
   common = var.common
