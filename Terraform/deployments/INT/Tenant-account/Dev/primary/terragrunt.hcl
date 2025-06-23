@@ -27,6 +27,7 @@ locals {
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
   vpc_name         = "dev"
+  vpc_name_abr     = "dev"
 
   # Composite variables 
   tags = merge(
@@ -198,6 +199,12 @@ inputs = {
 
       }
     }
+    route53_zones = [
+      {
+        key  = local.vpc_name_abr
+        name = "${local.vpc_name_abr}.cognitech.com"
+      }
+    ]
   ]
   s3_private_buckets = [
     {
@@ -245,18 +252,6 @@ inputs = {
         description = "Test IAM policy"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
-    }
-  ]
-  state_locks = [
-    {
-      table_name = "terragrunt-lock"
-      hash_key   = "LockID"
-      attributes = [
-        {
-          name = "LockID"
-          type = "S"
-        }
-      ]
     }
   ]
 }

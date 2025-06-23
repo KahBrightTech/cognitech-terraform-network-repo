@@ -27,6 +27,7 @@ locals {
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
   vpc_name         = "shared-services"
+  vpc_name_abr     = "shr"
 
   # Composite variables 
   tags = merge(
@@ -192,6 +193,12 @@ inputs = {
 
       }
     }
+    route53_zones = [
+      {
+        key  = local.vpc_name_abr
+        name = "${local.vpc_name_abr}.cognitech.com"
+      }
+    ]
   ]
   s3_private_buckets = [
     {
