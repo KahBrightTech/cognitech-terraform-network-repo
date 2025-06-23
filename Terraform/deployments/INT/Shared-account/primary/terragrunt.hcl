@@ -42,7 +42,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../..//formations/Daily-modules/Simple-Network-Shared-Account"
+  source = "../../../..//formations/Simple-Network-Shared-Account"
 }
 #-------------------------------------------------------
 # Inputs 

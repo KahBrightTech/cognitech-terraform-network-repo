@@ -8,7 +8,7 @@ data "aws_caller_identity" "current" {}
 # Creating customer resources
 #--------------------------------------------------------------------
 module "customer_vpc" {
-  source   = "../Create-Network"
+  source   = "../Simple-network"
   for_each = { for vpc in var.vpcs : vpc.name => vpc }
   vpc      = each.value
   common   = var.common

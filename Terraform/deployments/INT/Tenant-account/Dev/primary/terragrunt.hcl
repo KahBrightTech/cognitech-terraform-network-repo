@@ -45,7 +45,7 @@ dependency "shared_services" {
   config_path = "../../../Shared-account/${local.region_context}"
 }
 #-------------------------------------------------------
-# Source     
+# Source
 #-------------------------------------------------------
 terraform {
   source = "../../../../..//formations/Simple-Network-Tenant-Account"
