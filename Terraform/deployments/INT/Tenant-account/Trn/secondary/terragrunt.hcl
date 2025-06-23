@@ -64,7 +64,7 @@ inputs = {
   vpcs = [
     {
       name       = local.vpc_name
-      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
+      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].vpc
       public_subnets = [
         {
           name                        = include.env.locals.subnet_prefix.primary
