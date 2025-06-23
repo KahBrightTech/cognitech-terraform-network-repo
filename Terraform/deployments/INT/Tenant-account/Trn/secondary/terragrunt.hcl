@@ -48,7 +48,7 @@ dependency "shared_services" {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../..//formations/Daily-modules/Simple-Network-Tenant-Account"
+  source = "../../../../..//formations/Daily-modules/Simple-Network-Tenant-Account"
 }
 #-------------------------------------------------------
 # Inputs 
