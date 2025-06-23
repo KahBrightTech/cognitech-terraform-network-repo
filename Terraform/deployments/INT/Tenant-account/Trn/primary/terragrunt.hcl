@@ -69,18 +69,18 @@ inputs = {
         {
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt1.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt1.secondary
           subnet_type                 = local.external
           vpc_name                    = local.vpc_name
         },
         {
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt2.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt2.secondary
           subnet_type                 = local.external
           vpc_name                    = local.vpc_name
         }
@@ -198,13 +198,13 @@ inputs = {
         policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
 
       }
+      route53_zones = [
+        {
+          key  = local.vpc_name_abr
+          name = "${local.vpc_name_abr}.cognitech.com"
+        }
+      ]
     }
-    route53_zones = [
-      {
-        key  = local.vpc_name_abr
-        name = "${local.vpc_name_abr}.cognitech.com"
-      }
-    ]
   ]
   s3_private_buckets = [
     {
