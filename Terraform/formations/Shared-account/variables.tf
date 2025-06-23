@@ -177,6 +177,7 @@ variable "s3_private_buckets" {
       key = string
     })))
     route53_zones = optional(list(object({
+      key           = string
       name          = string
       vpc_id        = optional(string)
       comment       = optional(string, null)

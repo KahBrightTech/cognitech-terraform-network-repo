@@ -113,6 +113,7 @@ variable "vpc" {
       })))
     }))
     route53_zones = optional(list(object({
+      key           = string
       name          = string
       vpc_id        = optional(string)
       comment       = optional(string, null)
