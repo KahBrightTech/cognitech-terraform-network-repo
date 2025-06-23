@@ -1,14 +1,8 @@
-output "customer_products" {
-  description = "List of resources to be created for the customer"
-  value       = module.customer_vpc
+output "Account_products" {
+  description = "List of resources to be created"
+  value       = module.shared_vpc
 }
-output "s3_app_bucket" {
-  description = "S3 bucket details"
-  value       = module.s3_app_bucket
-  depends_on  = [module.customer_vpc]
-}
-
-output "iam_roles" {
+output "IAM_roles" {
   description = "IAM roles and policies details"
   value       = module.iam_roles
 }
