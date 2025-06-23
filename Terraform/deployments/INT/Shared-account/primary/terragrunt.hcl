@@ -192,13 +192,13 @@ inputs = {
         policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
 
       }
+      route53_zones = [
+        {
+          key  = local.vpc_name_abr
+          name = "${local.vpc_name_abr}.cognitech.com"
+        }
+      ]
     }
-    route53_zones = [
-      {
-        key  = local.vpc_name_abr
-        name = "${local.vpc_name_abr}.cognitech.com"
-      }
-    ]
   ]
   s3_private_buckets = [
     {
