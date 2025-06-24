@@ -242,7 +242,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name        = "Test"
+        name        = "${local.vpc_name}-iam-role-policy"
         description = "Test IAM policy"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }

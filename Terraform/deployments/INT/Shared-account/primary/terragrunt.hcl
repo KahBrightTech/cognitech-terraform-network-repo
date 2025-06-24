@@ -225,7 +225,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name        = "ec2-instance-permission-for-s3"
+        name        = "${local.vpc_name}-ec2-instance-profile-policy"
         description = "EC2 Instance Permission for S3"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
@@ -242,22 +242,10 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name        = "Test"
+        name        = "${local.vpc_name}-iam-role-policy"
         description = "Test IAM policy"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
-    }
-  ]
-  state_locks = [
-    {
-      table_name = "terragrunt-lock"
-      hash_key   = "LockID"
-      attributes = [
-        {
-          name = "LockID"
-          type = "S"
-        }
-      ]
     }
   ]
 }
@@ -291,6 +279,9 @@ generate "aws-providers" {
   }
   EOF
 }
+
+
+
 
 
 
