@@ -48,7 +48,7 @@ dependency "shared_services" {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Daily-modules/Simple-Network-Tenant-Account"
+  source = "../../../../..//formations/Simple-Network-Tenant-Account"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -213,12 +213,12 @@ inputs = {
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     },
-    {
-      name              = "${local.vpc_name}-config-bucket"
-      description       = "The configuration bucket for different apps"
-      enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_bucket.json"
-    }
+    # {
+    #   name              = "${local.vpc_name}-config-bucket"
+    #   description       = "The configuration bucket for different apps"
+    #   enable_versioning = true
+    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_bucket.json"
+    # }
   ]
 
   ec2_profiles = [
@@ -231,7 +231,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name        = "ec2-instance-permission-for-s3"
+        name        = "${local.vpc_name}-ec2-instance-profile-policy"
         description = "EC2 Instance Permission for S3"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
@@ -248,7 +248,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name        = "Test"
+        name        = "${local.vpc_name}-iam-role-policy"
         description = "Test IAM policy"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
@@ -285,6 +285,9 @@ generate "aws-providers" {
   }
   EOF
 }
+
+
+
 
 
 
