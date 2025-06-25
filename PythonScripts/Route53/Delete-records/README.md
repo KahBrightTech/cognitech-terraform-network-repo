@@ -6,7 +6,7 @@
 2. Run the following command, replacing the arguments as needed:
 
    ```sh
-   python run_dns_action.py --name test.kahbrigthllc.com --type A --value 192.0.2.1
+   python delete_record.py --name test.kahbrigthllc.com test2.kahbrigthllc.com --type A CNAME --value 192.0.2.1 target.example.com
    ```
    - `--zone-id`: The Route53 hosted zone ID
    - `--name`: The DNS record name

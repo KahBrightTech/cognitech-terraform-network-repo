@@ -1,32 +1,28 @@
-# delete_dns_record.py
+import boto3
+def delete_dns_record(zone_id, record_name, record_type, target_value, ttl=300):
+    client = boto3.client('route53')
 
-import argparse
-from dns_manager import delete_dns_record
+    if record_type not in ['A', 'CNAME']:
+        raise ValueError(f"Unsupported record type: {record_type}. Use 'A' or 'CNAME'.")
 
-# Hardcoded zone ID
-DEFAULT_ZONE_ID = 'Z123456ABCDEFG'
+    change_batch = {
+        'Comment': f'Deleting {record_type} record for {record_name}',
+        'Changes': [
+            {
+                'Action': 'DELETE',
+                'ResourceRecordSet': {
+                    'Name': record_name,
+                    'Type': record_type,
+                    'TTL': ttl,
+                    'ResourceRecords': [{'Value': target_value}]
+                }
+            }
+        ]
+    }
 
-def main():
-    parser = argparse.ArgumentParser(description="Delete DNS record (A or CNAME) from Route 53")
-    # --zone-id is hardcoded
-    parser.add_argument('--name', required=True, help='DNS record name (e.g. test.example.com.)')
-    parser.add_argument('--type', required=True, choices=['A', 'CNAME'], help='DNS record type')
-    parser.add_argument('--value', required=True, help='Target value (IP for A, FQDN for CNAME)')
-    parser.add_argument('--ttl', type=int, default=300, help='Time-to-live (must match existing record)')
+    response = client.change_resource_record_sets(
+        HostedZoneId=zone_id,
+        ChangeBatch=change_batch
+    )
 
-    args = parser.parse_args()
-
-    try:
-        change_id = delete_dns_record(
-            zone_id=DEFAULT_ZONE_ID,
-            record_name=args.name,
-            record_type=args.type,
-            target_value=args.value,
-            ttl=args.ttl
-        )
-        print(f"✅ Record deletion requested. Change ID: {change_id}")
-    except Exception as e:
-        print(f"❌ Error: {e}")
-
-if __name__ == '__main__':
-    main()
+    return response['ChangeInfo']['Id']

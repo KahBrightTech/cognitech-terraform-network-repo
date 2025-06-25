@@ -6,10 +6,10 @@
 2. Run the following command, replacing the arguments as needed:
 
    ```sh
-   python run_dns_actions.py --zone-id Z0334718LG87PKPVYABM --name test.kahbrigthllc.com --type A --value 192.0.2.1
+   python create_record.py --name test.kahbrigthllc.com test2.kahbrigthllc.com --type A CNAME --value 192.0.2.1 target.example.com
    ```
-
    - `--zone-id`: The Route53 hosted zone ID
    - `--name`: The DNS record name
    - `--type`: The DNS record type (e.g., A, CNAME)
    - `--value`: The DNS record value (e.g., IP address)
+
