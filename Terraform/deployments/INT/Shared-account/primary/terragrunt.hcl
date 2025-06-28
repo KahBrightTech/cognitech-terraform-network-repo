@@ -211,7 +211,7 @@ inputs = {
       name              = "${local.vpc_name}-config-bucket"
       description       = "The configuration bucket for different apps"
       enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_bucket.json"
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     }
   ]
 
