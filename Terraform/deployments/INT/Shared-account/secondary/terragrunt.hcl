@@ -256,7 +256,6 @@ inputs = {
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
     }
   ]
-
 }
 #-------------------------------------------------------
 # State Configuration
@@ -286,8 +285,12 @@ generate "aws-providers" {
   provider "aws" {
     region = "${local.region}"
   }
+  provider "secretsmanager" {
+    credential = "${get_env("TF_VAR_KSM_CONFIG")}" 
+  }
   EOF
 }
+
 
 
 
