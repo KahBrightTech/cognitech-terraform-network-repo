@@ -69,7 +69,7 @@ module "iam_policies" {
 # Creates key pairs for EC2 instances
 #--------------------------------------------------------------------
 module "ec2_key_pairs" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-key-pair?ref=v1.1.67"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-key-pair?ref=v1.1.69"
   for_each = (var.key_pairs != null) ? { for item in var.key_pairs : item.name => item } : {}
   common   = var.common
   key_pair = each.value
