@@ -250,12 +250,12 @@ inputs = {
   ]
   key_pairs = [
     {
-      name = "${local.vpc_name}-key-pair"
+      name = "${local.vpc_name}"
     }
   ]
   secrets = [
     {
-      name             = "${local.vpc_name}-key-pairs"
+      name             = "${local.vpc_name}"
       description      = "Keeps ec2 key pairs"
       is_this_key_pair = true
       value            = {}
