@@ -81,7 +81,7 @@ module "ec2_key_pairs" {
 # Creates secrets
 #--------------------------------------------------------------------
 module "secrets" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Secrets-manager?ref=v1.1.65"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Secrets-manager?ref=v1.1.66"
   for_each = (var.secrets != null) ? { for item in var.secrets : item.name => item } : {}
   common   = var.common
   secrets_manager = {
