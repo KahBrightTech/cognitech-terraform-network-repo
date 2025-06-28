@@ -256,7 +256,6 @@ inputs = {
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
     }
   ]
-
 }
 #-------------------------------------------------------
 # State Configuration
