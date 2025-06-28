@@ -258,10 +258,7 @@ inputs = {
       name             = "${local.vpc_name}-key-pairs"
       description      = "Keeps ec2 key pairs"
       is_this_key_pair = true
-      # value = jsonencode({
-      #   username = " testuser ",
-      #   password = " testpassword "
-      # })
+      value            = {}
     }
   ]
 }
