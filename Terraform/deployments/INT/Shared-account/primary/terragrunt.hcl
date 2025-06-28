@@ -291,6 +291,9 @@ generate "aws-providers" {
   provider "aws" {
     region = "${local.region}"
   }
+  provider "secretsmanager" {
+    credential = "${get_env("TF_VAR_KSM_CONFIG")}" 
+  }
   EOF
 }
 
