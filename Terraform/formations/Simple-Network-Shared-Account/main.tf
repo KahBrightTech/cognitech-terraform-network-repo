@@ -89,7 +89,7 @@ module "secrets" {
     description             = each.value.description
     recovery_window_in_days = each.value.recovery_window_in_days
     policy                  = each.value.policy
-    value                   = each.value.is_this_key_pair ? module.ec2_key_pairs[each.value.name].key_pair : each.value.value
+    value                   = each.value.is_this_key_pair ? module.ec2_key_pairs[each.value.name].name : each.value.value
     is_this_key_pair        = each.value.is_this_key_pair
     record_folder_uid       = each.value.record_folder_uid
   }
