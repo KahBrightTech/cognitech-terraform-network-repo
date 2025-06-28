@@ -250,20 +250,13 @@ inputs = {
   ]
   key_pairs = [
     {
-      name = "${local.vpc_name}-key-pair"
+      name               = "${local.vpc_name}"
+      secret_name        = "${local.vpc_name}-private-key"
+      secret_description = "Private key for ${local.vpc_name} VPC"
+      policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
     }
   ]
-  secrets = [
-    {
-      name             = "${local.vpc_name}-key-pairs"
-      description      = "Keeps ec2 key pairs"
-      is_this_key_pair = true
-      # value = jsonencode({
-      #   username = " testuser ",
-      #   password = " testpassword "
-      # })
-    }
-  ]
+
 }
 #-------------------------------------------------------
 # State Configuration
