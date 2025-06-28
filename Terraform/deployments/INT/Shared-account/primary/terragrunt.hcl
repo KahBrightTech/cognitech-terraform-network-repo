@@ -255,10 +255,10 @@ inputs = {
   ]
   secrets = [
     {
-      name             = "${local.vpc_name}"
-      description      = "Keeps ec2 key pairs"
-      is_this_key_pair = true
-      value            = {}
+      name              = "${local.vpc_name}"
+      description       = "Keeps ec2 key pairs"
+      is_this_key_pair  = true
+      record_folder_uid = ""
     }
   ]
 }
