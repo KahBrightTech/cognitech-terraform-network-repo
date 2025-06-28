@@ -208,6 +208,29 @@ variable "iam_policies" {
   default = null
 }
 
+variable "key_pairs" {
+  description = "Key pair configuration for EC2 instances"
+  type = list(object({
+    name = string
+  }))
+  default = null
+}
+
+
+variable "secrets" {
+  description = "Secrets Manager variables"
+  type = list(object({
+    name                    = string
+    description             = string
+    is_this_key_pair        = optional(bool, false)
+    recovery_window_in_days = optional(number)
+    policy                  = optional(string)
+    value                   = optional(map(string))
+    record_folder_uid       = optional(string)
+  }))
+  default = null
+}
+
 variable "vpc_id" {
   description = "The vpc id"
   type        = string

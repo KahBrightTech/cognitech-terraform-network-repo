@@ -65,3 +65,34 @@ module "iam_policies" {
   iam_policy = each.value
 }
 
+#--------------------------------------------------------------------
+# Creates key pairs for EC2 instances
+#--------------------------------------------------------------------
+module "ec2_key_pairs" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-key-pair?ref=v1.1.62"
+  for_each = (var.key_pairs != null) ? { for item in var.key_pairs : item.name => item } : {}
+  common   = var.common
+  key_pair = each.value
+}
+
+
+
+#--------------------------------------------------------------------
+# Creates secrets
+#--------------------------------------------------------------------
+module "secrets" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Secrets-manager?ref=v1.1.1"
+  for_each = (var.secrets != null) ? { for item in var.secrets : item.name => item } : {}
+  common   = var.common
+  secrets_manager = {
+    name                    = each.value.name
+    description             = each.value.description
+    recovery_window_in_days = each.value.recovery_window_in_days
+    policy                  = each.value.policy
+    value                   = each.value.is_this_key_pair ? module.ec2_key_pairs[each.value.name].key_pair : each.value.value
+    is_this_key_pair        = each.value.is_this_key_pair
+    record_folder_uid       = each.value.record_folder_uid
+  }
+
+}
+

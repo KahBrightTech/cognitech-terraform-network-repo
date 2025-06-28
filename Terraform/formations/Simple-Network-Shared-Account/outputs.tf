@@ -16,3 +16,12 @@ output "iam_policies" {
   description = "IAM policies details"
   value       = module.iam_policies
 }
+
+output "ec2_key_pairs" {
+  description = "ec2 key pairs details"
+  value       = module.ec2_key_pairs
+}
+output "secrets" {
+  description = "Output for Secrets Manager"
+  value       = module.secrets
+}
