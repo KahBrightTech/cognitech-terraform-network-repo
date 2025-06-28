@@ -250,7 +250,7 @@ inputs = {
   ]
   key_pairs = [
     {
-      name               = "${local.vpc_name}"
+      name               = "${local.vpc_name}-key-pair"
       secret_name        = "${local.vpc_name}-ec2-private-key"
       secret_description = "Private key for ${local.vpc_name} VPC"
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
