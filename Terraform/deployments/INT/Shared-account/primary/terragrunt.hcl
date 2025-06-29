@@ -214,7 +214,6 @@ inputs = {
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     }
   ]
-
   ec2_profiles = [
     {
       name               = "${local.vpc_name}"

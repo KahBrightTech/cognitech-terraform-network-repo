@@ -42,7 +42,11 @@ module "iam_roles" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.1.40"
   for_each = (var.iam_roles != null) ? { for item in var.iam_roles : item.name => item } : {}
   common   = var.common
-  iam_role = each.value
+  iam_role = merge(each.value, {
+    policy = merge(each.value.policy, {
+      policy = each.value.policy.custom_policy ? jsonencode(jsondecode(file(each.value.policy.policy))) : file(each.value.policy.policy)
+    })
+  })
 }
 
 #--------------------------------------------------------------------
