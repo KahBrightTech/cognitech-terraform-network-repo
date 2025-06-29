@@ -233,7 +233,7 @@ inputs = {
   ]
   iam_roles = [
     {
-      name               = "${local.vpc_name}-iam-role"
+      name               = "${local.vpc_name}-instance"
       description        = "IAM Role for Shared Services"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
@@ -242,7 +242,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name        = "${local.vpc_name}-iam-role-policy"
+        name        = "${local.vpc_name}-instance"
         description = "Test IAM policy"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
