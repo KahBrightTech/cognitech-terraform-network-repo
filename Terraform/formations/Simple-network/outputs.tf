@@ -62,9 +62,9 @@ output "public_routes" {
 }
 
 #-------------------------------------------------------
-# State locks
+# Hosted Zones
 #-------------------------------------------------------
-output "state_locks" {
-  description = "State locks for the network module"
-  value       = module.state_lock
+output "hosted_zones" {
+  description = "Hosted zones for the network module"
+  value       = module.hosted_zones
 }
