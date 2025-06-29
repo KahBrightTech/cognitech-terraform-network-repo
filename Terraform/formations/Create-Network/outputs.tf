@@ -88,5 +88,5 @@ output "private_routes" {
 #-------------------------------------------------------
 output "zones" {
   description = "Hosted zones for the network module"
-  value       = module.hosted_zones
+  value       = module.zones
 }
