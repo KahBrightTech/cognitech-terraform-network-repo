@@ -212,13 +212,7 @@ inputs = {
       description       = "The application bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
-    },
-    # {
-    #   name              = "${local.vpc_name}-config-bucket"
-    #   description       = "The configuration bucket for different apps"
-    #   enable_versioning = true
-    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_bucket.json"
-    # }
+    }
   ]
 
   ec2_profiles = [
@@ -231,7 +225,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name        = "${local.vpc_name}-ec2-instance-profile-policy"
+        name        = "${local.vpc_name}-ec2-instance-profile"
         description = "EC2 Instance Permission for S3"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
@@ -239,7 +233,7 @@ inputs = {
   ]
   iam_roles = [
     {
-      name               = "${local.vpc_name}-iam-role"
+      name               = "${local.vpc_name}-instance"
       description        = "IAM Role for Shared Services"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
@@ -248,7 +242,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name        = "${local.vpc_name}-iam-role-policy"
+        name        = "${local.vpc_name}-instance"
         description = "Test IAM policy"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }

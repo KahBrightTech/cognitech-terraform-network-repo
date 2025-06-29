@@ -225,7 +225,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name        = "${local.vpc_name}-ec2-instance-profile-policy"
+        name        = "${local.vpc_name}-ec2-instance-profile"
         description = "EC2 Instance Permission for S3"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
