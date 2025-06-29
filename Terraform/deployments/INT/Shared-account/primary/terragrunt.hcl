@@ -248,6 +248,7 @@ inputs = {
       }
     }
   ]
+
   key_pairs = [
     {
       name               = "${local.vpc_name}-key-pair"

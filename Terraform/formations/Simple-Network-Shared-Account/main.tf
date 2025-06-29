@@ -44,7 +44,7 @@ module "iam_roles" {
   common   = var.common
   iam_role = merge(each.value, {
     policy = merge(each.value.policy, {
-      policy = each.value.policy.custom_policy ? jsonencode(jsondecode(file(each.value.policy.policy))) : file(each.value.policy.policy)
+      policy = each.value.policy.custom_policy ? jsonencode(jsondecode(file(each.value.policy.policy))) : each.value.policy.policy
     })
   })
 }
