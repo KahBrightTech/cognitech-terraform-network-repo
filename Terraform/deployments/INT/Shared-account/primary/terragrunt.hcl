@@ -241,10 +241,9 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
       ]
       policy = {
-        name          = "${local.vpc_name}-instance"
-        description   = "Test IAM policy"
-        policy        = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
-        custom_policy = true
+        name        = "${local.vpc_name}-instance"
+        description = "Test IAM policy"
+        policy      = file("${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json")
       }
     }
   ]
