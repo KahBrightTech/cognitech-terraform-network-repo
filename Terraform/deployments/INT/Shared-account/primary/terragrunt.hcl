@@ -257,8 +257,11 @@ inputs = {
       create_secret      = true
     },
     {
-      name          = "${local.vpc_name}-windows-key-pair"
-      create_secret = false
+      name               = "${local.vpc_name}-windows-key-pair"
+      create_secret      = true
+      secret_name        = "${local.vpc_name}-windows-ec2-private-key"
+      secret_description = "Private key for ${local.vpc_name} VPC Windows instances"
+      policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
     }
   ]
 }
