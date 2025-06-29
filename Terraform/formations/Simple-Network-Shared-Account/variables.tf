@@ -215,7 +215,7 @@ variable "key_pairs" {
     secret_name        = optional(string)
     secret_description = optional(string)
     policy             = optional(string)
-    create_secret      = optional(bool, true)
+    create_secret      = bool
   }))
   default = null
 }
