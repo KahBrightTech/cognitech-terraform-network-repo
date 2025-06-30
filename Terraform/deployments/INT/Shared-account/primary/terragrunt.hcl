@@ -28,6 +28,7 @@ locals {
   state_lock_table = include.env.locals.remote_dynamodb_table
   vpc_name         = "shared-services"
   vpc_name_abr     = "shr"
+  internet_cidr    = "0.0.0/0"
 
   # Composite variables 
   tags = merge(
@@ -178,11 +179,35 @@ inputs = {
           sg_key = "app"
           ingress = concat(
             include.cloud.locals.security_group_rules.locals.ingress.app_base,
-            []
+            [
+              {
+                key         = "ingress-22-internet"
+                cidr_ipv4   = local.internet_cidr
+                description = "BASE - Inbound SSH traffic from the internet on tcp port 22"
+                from_port   = 22
+                to_port     = 22
+                ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-3389-internet"
+                cidr_ipv4   = local.internet_cidr
+                description = "BASE - Inbound SSH traffic from the internet on tcp port 3389"
+                from_port   = 3389
+                to_port     = 3389
+                ip_protocol = "tcp"
+              },
+            ]
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.app_base,
-            []
+            [
+              {
+                key         = "egress-all-traffic-bastion-sg"
+                cidr_ipv4   = "0.0.0.0/0"
+                description = "BASE - Outbound all traffic from Bastion SG to Internet"
+                ip_protocol = "-1"
+              }
+            ]
           )
         }
       ]
@@ -222,6 +247,7 @@ inputs = {
       managed_policy_arns = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       ]
       policy = {
         name        = "${local.vpc_name}-ec2-instance-profile"
@@ -239,6 +265,7 @@ inputs = {
       managed_policy_arns = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       ]
       policy = {
         name        = "${local.vpc_name}-instance"
