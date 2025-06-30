@@ -313,6 +313,7 @@ generate "aws-providers" {
   provider "aws" {
     region = "${local.region}"
   }
+  EOF
 }
 
 
