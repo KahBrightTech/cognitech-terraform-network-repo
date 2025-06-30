@@ -28,6 +28,7 @@ locals {
   state_lock_table = include.env.locals.remote_dynamodb_table
   vpc_name         = "trn"
   vpc_name_abr     = "trn"
+  internet_cidr    = "0.0.0.0/0"
 
   # Composite variables 
   tags = merge(
@@ -312,10 +313,6 @@ generate "aws-providers" {
   provider "aws" {
     region = "${local.region}"
   }
-  provider "secretsmanager" {
-    credential = "${get_env("TF_VAR_KSM_CONFIG")}" 
-  }
-  EOF
 }
 
 

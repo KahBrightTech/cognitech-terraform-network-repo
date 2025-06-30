@@ -28,7 +28,7 @@ locals {
   state_lock_table = include.env.locals.remote_dynamodb_table
   vpc_name         = "shared-services"
   vpc_name_abr     = "shr"
-  internet_cidr    = "0.0.0/0"
+  internet_cidr    = "0.0.0.0/0"
 
   # Composite variables 
   tags = merge(
