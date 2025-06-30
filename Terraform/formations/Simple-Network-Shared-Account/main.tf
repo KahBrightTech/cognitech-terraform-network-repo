@@ -50,7 +50,7 @@ module "iam_roles" {
 # EC2 instance profiles
 #--------------------------------------------------------------------
 module "ec2_profiles" {
-  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.1.61"
+  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.1.77"
   for_each     = (var.ec2_profiles != null) ? { for item in var.ec2_profiles : item.name => item } : {}
   common       = var.common
   ec2_profiles = each.value
@@ -60,7 +60,7 @@ module "ec2_profiles" {
 # IAM policies
 #--------------------------------------------------------------------
 module "iam_policies" {
-  source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Policies?ref=v1.1.44"
+  source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Policies?ref=v1.1.77"
   for_each   = (var.iam_policies != null) ? { for item in var.iam_policies : item.name => item } : {}
   common     = var.common
   iam_policy = each.value
