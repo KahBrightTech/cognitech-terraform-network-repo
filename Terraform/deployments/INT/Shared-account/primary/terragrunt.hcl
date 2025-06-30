@@ -246,7 +246,7 @@ inputs = {
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
         "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       ]
       policy = {
@@ -264,7 +264,7 @@ inputs = {
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
         "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       ]
       policy = {
