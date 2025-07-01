@@ -240,9 +240,9 @@ inputs = {
     },
     {
       name              = "${local.vpc_name}-dest-replication-bucket"
-      description       = "The replication bucket"
+      description       = "The destination replication bucket"
       enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_destination_replication_bucket.json"
     }
   ]
   ec2_profiles = [
