@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SourceBucketPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObjectRetention",
+        "s3:GetObjectVersionTagging",
+        "s3:GetObjectVersionAcl",
+        "s3:ListBucket",
+        "s3:GetObjectVersionForReplication",
+        "s3:GetObjectLegalHold",
+        "s3:GetReplicationConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::int-preproduction-use1-shared-services-source-replication-bucket/*",
+        "arn:aws:s3:::int-preproduction-use1-shared-services-source-replication-bucket"
+      ]
+    },
+    {
+      "Sid": "DestinationBucketPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ReplicateObject",
+        "s3:ObjectOwnerOverrideToBucketOwner",
+        "s3:GetObjectVersionTagging",
+        "s3:ReplicateTags",
+        "s3:ReplicateDelete"
+      ],
+      "Resource": [
+        "arn:aws:s3:::mdproduction-use1-shared-services-destination-replication-bucket/*"
+      ]
+    }
+  ]
+}

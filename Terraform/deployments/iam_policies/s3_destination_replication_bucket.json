@@ -1,0 +1,23 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReplicationPermissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::730335294148:role/int-preproduction-use1-shared-services-source-replication-role"
+      },
+      "Action": [
+        "s3:ReplicateDelete",
+        "s3:ReplicateObject",
+        "s3:ObjectOwnerOverrideToBucketOwner",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning"
+      ],
+      "Resource": [
+        "arn:aws:s3:::[[resource_name]]",
+        "arn:aws:s3:::[[resource_name]]/*"
+      ]
+    }
+  ]
+}
