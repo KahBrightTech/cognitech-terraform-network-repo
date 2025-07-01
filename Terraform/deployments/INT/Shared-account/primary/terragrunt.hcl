@@ -242,9 +242,9 @@ inputs = {
       name              = "${local.vpc_name}-src-replication-bucket"
       description       = "The source replication bucket"
       enable_versioning = true
+      policy            = []
     }
   ]
-
   ec2_profiles = [
     {
       name               = "${local.vpc_name}"
