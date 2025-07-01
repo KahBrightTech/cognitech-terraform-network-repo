@@ -262,6 +262,7 @@ inputs = {
       }
     }
   ]
+
   iam_roles = [
     {
       name               = "${local.vpc_name}-instance"
