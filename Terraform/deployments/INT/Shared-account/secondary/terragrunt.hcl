@@ -240,7 +240,7 @@ inputs = {
     },
     {
       name              = "${local.vpc_name}-src-replication-bucket"
-      description       = "The source replication"
+      description       = "The source replication bucket"
       enable_versioning = true
     }
   ]
