@@ -239,7 +239,7 @@ inputs = {
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
     {
-      name              = "${local.vpc_name}-source-replication-bucket"
+      name              = "${local.vpc_name}-src-replication-bucket"
       description       = "The source replication"
       enable_versioning = true
     }
