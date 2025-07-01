@@ -27,6 +27,7 @@ env:
   IAM_ROLE: arn:aws:iam::485147667400:role/prod-OIDCGitHubRole-role
   REGION: us-east-1
   DEPLOYMENT_PATH: Terraform/deployments/md-prod/Shared-account/primary
+  TF_VAR_KSM_CONFIG: ${{ secrets.TF_VAR_KSM_CONFIG }}
 
 permissions:
   packages: write
