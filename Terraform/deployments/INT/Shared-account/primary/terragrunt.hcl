@@ -301,6 +301,19 @@ inputs = {
       create_secret      = true
     }
   ]
+  s3_replication_rules = [
+    {
+      name               = "INT-${local.vpc_name}-replication-rule"
+      source_bucket      = "${local.vpc_name}-src-replication-bucket"
+      destination_bucket = "${local.vpc_name}-dest-replication-bucket"
+      role_arn           = "arn:aws:iam::${include.cloud.locals.account_info[include.env.locals.name_abr].number}:role/${include.cloud.locals.account_info[include.env.locals.name_abr].name}-[include.cloud.locals.region_prefix]-[local.vpc_name]-source-replication-role"
+      rules = [
+        {
+          id = "replication-rule-1"
+        }
+      ]
+    }
+  ]
 }
 #-------------------------------------------------------
 # State Configuration

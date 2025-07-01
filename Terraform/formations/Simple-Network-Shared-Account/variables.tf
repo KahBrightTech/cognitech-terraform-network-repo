@@ -228,5 +228,22 @@ variable "vpc_id" {
 }
 
 
+variable "s3_replication_rules" {
+  description = "S3 replication rules configuration"
+  type = list(object({
+    name               = string
+    source_bucket      = string
+    destination_bucket = string
+    role_arn           = string
+    rules = list(object({
+      id     = string
+      prefix = optional(string, "")
+    }))
+    storage_class = optional(string, "STANDARD")
+  }))
+  default = null
+
+}
+
 
 

@@ -21,3 +21,9 @@ output "ec2_key_pairs" {
   description = "ec2 key pairs details"
   value       = module.ec2_key_pairs
 }
+
+output "replication_rules" {
+  description = "S3 replication rules details"
+  value       = module.s3_replication_rules
+
+}
