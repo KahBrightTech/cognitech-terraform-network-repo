@@ -82,10 +82,10 @@ module "ec2_key_pairs" {
 # Creates replication Rules for S3 buckets
 #--------------------------------------------------------------------
 module "s3_replication_rules" {
-  source           = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/s3-Replication-Rule?ref=v1.1.85"
-  for_each         = (var.s3_replication_rules != null) ? { for item in var.s3_replication_rules : item.name => item } : {}
-  common           = var.common
-  replication_rule = each.value
+  source              = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/s3-Replication-Rule?ref=v1.1.85"
+  for_each            = (var.s3_replication_rules != null) ? { for item in var.s3_replication_rules : item.name => item } : {}
+  common              = var.common
+  s3_replication_rule = each.value
 }
 
 
