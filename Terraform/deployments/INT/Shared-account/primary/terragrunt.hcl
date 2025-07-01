@@ -244,6 +244,7 @@ inputs = {
       enable_versioning = true
     }
   ]
+
   ec2_profiles = [
     {
       name               = "${local.vpc_name}"
