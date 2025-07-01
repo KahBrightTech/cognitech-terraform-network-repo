@@ -239,10 +239,10 @@ inputs = {
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
     {
-      name              = "${local.vpc_name}-src-replication-bucket"
-      description       = "The source replication bucket"
-      enable_versioning = true
-      policy            = []
+      name                 = "${local.vpc_name}-src-replication-bucket"
+      description          = "The source replication bucket"
+      enable_versioning    = true
+      enable_bucket_policy = false
     }
   ]
   ec2_profiles = [
