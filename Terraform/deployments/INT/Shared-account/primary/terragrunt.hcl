@@ -314,7 +314,6 @@ inputs = {
       type                       = "application"
       security_groups            = ["alb"]
       type                       = "application"
-      security_groups            = ["alb"]
       subnets                    = ["pub1", "pub2"]
       enable_deletion_protection = true
       enable_access_logs         = true
