@@ -238,6 +238,7 @@ variable "load_balancers" {
     internal        = optional(bool, false)
     type            = string # "application" or "network"
     security_groups = list(string)
+    vpc_name        = string
     subnets         = optional(list(string))
     subnet_mappings = optional(list(object({
       subnet_id            = string
