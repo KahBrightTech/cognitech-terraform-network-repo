@@ -309,12 +309,15 @@ inputs = {
   ]
   load_balancers = [
     {
-      key                        = "client"
-      name                       = "${local.vpc_name}-client"
-      type                       = "application"
-      security_groups            = ["alb"]
-      type                       = "application"
-      subnets                    = ["pub1", "pub2"]
+      key             = "client"
+      name            = "${local.vpc_name}-client"
+      type            = "application"
+      security_groups = ["alb"]
+      type            = "application"
+      subnets = [
+        include.env.locals.subnet_prefix.primary,
+        include.env.locals.subnet_prefix.secondary
+      ]
       enable_deletion_protection = true
       enable_access_logs         = true
       access_logs_bucket         = "app-bucket"
