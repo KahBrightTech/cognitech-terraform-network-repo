@@ -319,6 +319,7 @@ inputs = {
       enable_access_logs         = true
       access_logs_bucket         = "app-bucket"
       access_logs_prefix         = "client-logs/"
+      vpc_name                   = local.vpc_name
     }
   ]
 }
