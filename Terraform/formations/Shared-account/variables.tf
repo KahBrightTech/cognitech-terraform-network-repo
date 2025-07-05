@@ -15,6 +15,7 @@ variable "vpcs" {
     name       = string
     cidr_block = string
     public_subnets = list(object({
+      key                            = string
       name                           = string
       primary_availability_zone      = optional(string)
       primary_availability_zone_id   = optional(string)
@@ -30,6 +31,7 @@ variable "vpcs" {
       vpc_name                       = string
     }))
     private_subnets = list(object({
+      key                             = string
       name                            = string
       primary_availability_zone       = optional(string)
       primary_availability_zone_id    = optional(string)
@@ -124,6 +126,7 @@ variable "vpcs" {
       })))
     })))
     s3 = optional(object({
+      Key                      = string
       name                     = string
       description              = string
       name_override            = optional(string)
@@ -154,6 +157,7 @@ variable "vpcs" {
 variable "s3_private_buckets" {
   description = "S3 bucket variables"
   type = list(object({
+    key                      = string
     name                     = string
     description              = string
     name_override            = optional(string)
@@ -330,7 +334,7 @@ variable "load_balancers" {
     name            = string
     internal        = optional(bool, false)
     type            = string # "application" or "network"
-    security_groups = optional(list(string))
+    security_groups = list(string)
     subnets         = optional(list(string))
     subnet_mappings = optional(list(object({
       subnet_id            = string
