@@ -90,11 +90,11 @@ module "load_balancers" {
     {
       security_groups = [
         for sg_key in each.value.security_groups :
-        module.shared_vpc[var.vpc_name].security_groups[sg_key].id
+        module.shared_vpc[each.value.vpc_name].security_groups[sg_key].id
       ]
       subnets = [
         for subnet_key in each.value.subnets :
-        module.shared_vpc[var.vpc_name].subnets[subnet_key].id
+        module.shared_vpc[each.value.vpc_name].subnets[subnet_key].id
       ]
     }
   )
