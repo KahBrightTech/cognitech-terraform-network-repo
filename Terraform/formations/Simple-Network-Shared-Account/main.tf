@@ -94,7 +94,9 @@ module "load_balancers" {
       ]
       subnets = [
         for subnet_key in each.value.subnets :
-        module.shared_vpc[each.value.vpc_name].subnets[subnet_key].id
+        (each.value.use_private_subnets == true) ?
+        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ]
     }
   )
