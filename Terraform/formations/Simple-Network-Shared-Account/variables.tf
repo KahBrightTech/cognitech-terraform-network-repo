@@ -15,6 +15,7 @@ variable "vpcs" {
     name       = string
     cidr_block = string
     public_subnets = list(object({
+      key                            = string
       name                           = string
       primary_availability_zone      = optional(string)
       primary_availability_zone_id   = optional(string)
@@ -87,6 +88,7 @@ variable "vpcs" {
       })))
     })))
     s3 = optional(object({
+      key                      = string
       name                     = string
       description              = string
       name_override            = optional(string)
@@ -125,6 +127,7 @@ variable "vpcs" {
 variable "s3_private_buckets" {
   description = "S3 bucket variables"
   type = list(object({
+    key                      = string
     name                     = string
     description              = string
     name_override            = optional(string)
@@ -227,23 +230,27 @@ variable "vpc_id" {
   default     = null
 }
 
-
-variable "s3_replication_rules" {
-  description = "S3 replication rules configuration"
+variable "load_balancers" {
+  description = "Load Balancer configuration"
   type = list(object({
-    name               = string
-    source_bucket      = string
-    destination_bucket = string
-    role_arn           = string
-    rules = list(object({
-      id     = string
-      prefix = optional(string, "")
-    }))
-    storage_class = optional(string, "STANDARD")
+    key                 = string
+    name                = string
+    internal            = optional(bool, false)
+    type                = string # "application" or "network"
+    security_groups     = list(string)
+    vpc_name            = string
+    use_private_subnets = optional(bool, false)
+    subnets             = optional(list(string))
+    subnet_mappings = optional(list(object({
+      subnet_id            = string
+      private_ipv4_address = optional(string)
+    })))
+    enable_deletion_protection = optional(bool, false)
+    enable_access_logs         = optional(bool, false)
+    access_logs_bucket         = optional(string)
+    access_logs_prefix         = optional(string)
   }))
   default = null
-
 }
-
 
 

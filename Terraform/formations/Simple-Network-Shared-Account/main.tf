@@ -79,13 +79,13 @@ module "ec2_key_pairs" {
 }
 
 #--------------------------------------------------------------------
-# Creates replication Rules for S3 buckets
+# Createss load balancers
 #--------------------------------------------------------------------
-module "s3_replication_rules" {
-  source              = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/s3-Replication-Rule?ref=v1.1.86"
-  for_each            = (var.s3_replication_rules != null) ? { for item in var.s3_replication_rules : item.name => item } : {}
-  common              = var.common
-  s3_replication_rule = each.value
+module "load_balancers" {
+  source        = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers?ref=v1.1.88"
+  for_each      = (var.load_balancers != null) ? { for item in var.load_balancers : item.key => item } : {}
+  common        = var.common
+  load_balancer = each.value
 }
 
 

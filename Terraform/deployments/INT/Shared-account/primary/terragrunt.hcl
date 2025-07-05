@@ -62,6 +62,7 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       public_subnets = [
         {
+          key                         = "pub1"
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
@@ -71,6 +72,7 @@ inputs = {
           vpc_name                    = local.vpc_name
         },
         {
+          key                         = "pub2"
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
@@ -212,6 +214,7 @@ inputs = {
         }
       ]
       s3 = {
+        key         = "data-xfer"
         name        = "${local.vpc_name}-data-xfer"
         description = "The bucket used for data transfers"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
@@ -227,18 +230,21 @@ inputs = {
   ]
   s3_private_buckets = [
     {
+      key               = "app-bucket"
       name              = "${local.vpc_name}-app-bucket"
       description       = "The application bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     },
     {
+      key               = "config-bucket"
       name              = "${local.vpc_name}-config-bucket"
       description       = "The configuration bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
     {
+      key                  = "src-replication-bucket"
       name                 = "${local.vpc_name}-src-replication-bucket"
       description          = "The source replication bucket"
       enable_versioning    = true
@@ -301,17 +307,22 @@ inputs = {
       create_secret      = true
     }
   ]
-  s3_replication_rules = [
+  load_balancers = [
     {
-      name               = "INT-${local.vpc_name}-replication-rule"
-      source_bucket      = "${local.vpc_name}-src-replication-bucket"
-      destination_bucket = "${local.vpc_name}-dest-replication-bucket"
-      role_arn           = "arn:aws:iam::${include.cloud.locals.account_info[include.env.locals.name_abr].number}:role/${include.cloud.locals.account_info[include.env.locals.name_abr].name}-[include.cloud.locals.region_prefix]-[local.vpc_name]-source-replication-role"
-      rules = [
-        {
-          id = "replication-rule-1"
-        }
+      key             = "client"
+      name            = "${local.vpc_name}-client"
+      type            = "application"
+      security_groups = ["alb"]
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        "pub1",
+        "pub2"
       ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "app-bucket"
+      access_logs_prefix         = "client-logs/"
     }
   ]
 }

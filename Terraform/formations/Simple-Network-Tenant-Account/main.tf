@@ -60,3 +60,23 @@ module "iam_policies" {
   iam_policy = each.value
 }
 
+#--------------------------------------------------------------------
+# Creates key pairs for EC2 instances
+#--------------------------------------------------------------------
+module "ec2_key_pairs" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-key-pair?ref=v1.1.72"
+  for_each = (var.key_pairs != null) ? { for item in var.key_pairs : item.name => item } : {}
+  common   = var.common
+  key_pair = each.value
+}
+
+#--------------------------------------------------------------------
+# Createss load balancers
+#--------------------------------------------------------------------
+module "load_balancers" {
+  source        = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers?ref=v1.1.88"
+  for_each      = (var.load_balancers != null) ? { for item in var.load_balancers : item.key => item } : {}
+  common        = var.common
+  load_balancer = each.value
+}
+

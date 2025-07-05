@@ -305,9 +305,41 @@ variable "iam_policies" {
   default = null
 }
 
+variable "key_pairs" {
+  description = "Key pair configuration for EC2 instances"
+  type = list(object({
+    name               = string
+    secret_name        = optional(string)
+    secret_description = optional(string)
+    policy             = optional(string)
+    create_secret      = bool
+  }))
+  default = null
+}
+
 variable "vpc_id" {
   description = "The vpc id"
   type        = string
   default     = null
 }
 
+variable "load_balancers" {
+  description = "Load Balancer configuration"
+  type = list(object({
+    key             = string
+    name            = string
+    internal        = optional(bool, false)
+    type            = string # "application" or "network"
+    security_groups = optional(list(string))
+    subnets         = optional(list(string))
+    subnet_mappings = optional(list(object({
+      subnet_id            = string
+      private_ipv4_address = optional(string)
+    })))
+    enable_deletion_protection = optional(bool, false)
+    enable_access_logs         = optional(bool, false)
+    access_logs_bucket         = optional(string)
+    access_logs_prefix         = optional(string)
+  }))
+  default = null
+}

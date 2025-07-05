@@ -36,3 +36,12 @@ output "iam_policies" {
   value       = module.iam_policies
 }
 
+output "ec2_key_pairs" {
+  description = "ec2 key pairs details"
+  value       = module.ec2_key_pairs
+}
+output "load_balancers" {
+  description = "Load balancers details"
+  value       = module.load_balancers
+
+}
