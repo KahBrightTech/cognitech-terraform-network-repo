@@ -315,8 +315,7 @@ inputs = {
       security_groups = ["alb"]
       type            = "application"
       subnets = [
-        include.env.locals.subnet_prefix.primary,
-        include.env.locals.subnet_prefix.secondary
+        include.env.locals.subnet_prefix.primary
       ]
       enable_deletion_protection = true
       enable_access_logs         = true
