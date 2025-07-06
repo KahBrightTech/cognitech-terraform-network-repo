@@ -233,14 +233,11 @@ variable "vpc_id" {
 variable "load_balancers" {
   description = "Load Balancer configuration"
   type = list(object({
-    key                 = string
-    name                = string
-    internal            = optional(bool, false)
-    type                = string # "application" or "network"
-    security_groups     = list(string)
-    vpc_name            = string
-    use_private_subnets = optional(bool, false)
-    subnets             = optional(list(string))
+    name            = string
+    internal        = optional(bool, false)
+    type            = string # "application" or "network"
+    security_groups = optional(list(string))
+    subnets         = optional(list(string))
     subnet_mappings = optional(list(object({
       subnet_id            = string
       private_ipv4_address = optional(string)
@@ -249,8 +246,19 @@ variable "load_balancers" {
     enable_access_logs         = optional(bool, false)
     access_logs_bucket         = optional(string)
     access_logs_prefix         = optional(string)
+    create_default_listener    = optional(bool, false)
+    default_listener = optional(object({
+      port     = optional(string)
+      protocol = optional(string)
+      fixed_response = optional(object({
+        content_type = optional(string, "text/plain")
+        message_body = optional(string, "Oops! The page you are looking for does not exist.")
+        status_code  = optional(string, "200")
+      }))
+    }))
   }))
   default = null
 }
+
 
 

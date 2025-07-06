@@ -82,7 +82,7 @@ module "ec2_key_pairs" {
 # Createss load balancers
 #--------------------------------------------------------------------
 module "load_balancers" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers?ref=v1.1.93"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers?ref=v1.1.94"
   for_each = (var.load_balancers != null) ? { for item in var.load_balancers : item.key => item } : {}
   common   = var.common
   load_balancer = merge(
@@ -98,8 +98,10 @@ module "load_balancers" {
         module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
         module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ])
-    }
+    },
+    (each.value.create_default_listener == true && each.value.default_listener != null && each.value.type == "application") ? {
+      default_listener = each.value.default_listener
+    } : {}
   )
 }
-
 

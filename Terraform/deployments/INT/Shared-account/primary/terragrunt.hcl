@@ -308,23 +308,24 @@ inputs = {
     }
   ]
   load_balancers = [
-    # {
-    #   key             = "client"
-    #   name            = "${local.vpc_name}-client"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   type            = "application"
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "app-bucket"
-    #   access_logs_prefix         = "client-logs"
-    #   vpc_name                   = local.vpc_name
-    # }
+    {
+      key             = "client"
+      name            = "${local.vpc_name}-client"
+      type            = "application"
+      security_groups = ["alb"]
+      type            = "application"
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "app-bucket"
+      access_logs_prefix         = "client-logs"
+      vpc_name                   = local.vpc_name
+    }
   ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
