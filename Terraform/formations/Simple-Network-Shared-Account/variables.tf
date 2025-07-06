@@ -233,12 +233,13 @@ variable "vpc_id" {
 variable "load_balancers" {
   description = "Load Balancer configuration"
   type = list(object({
-    key             = string
-    name            = string
-    internal        = optional(bool, false)
-    type            = string # "application" or "network"
-    security_groups = optional(list(string))
-    subnets         = optional(list(string))
+    key                 = string
+    name                = string
+    internal            = optional(bool, false)
+    type                = string # "application" or "network"
+    security_groups     = optional(list(string))
+    use_private_subnets = optional(bool, false)
+    subnets             = optional(list(string))
     subnet_mappings = optional(list(object({
       subnet_id            = string
       private_ipv4_address = optional(string)
