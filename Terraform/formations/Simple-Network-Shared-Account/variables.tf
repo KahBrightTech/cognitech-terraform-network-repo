@@ -233,6 +233,7 @@ variable "vpc_id" {
 variable "load_balancers" {
   description = "Load Balancer configuration"
   type = list(object({
+    key             = string
     name            = string
     internal        = optional(bool, false)
     type            = string # "application" or "network"
