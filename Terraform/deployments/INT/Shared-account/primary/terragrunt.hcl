@@ -321,7 +321,7 @@ inputs = {
       enable_deletion_protection = true
       enable_access_logs         = true
       access_logs_bucket         = "app-bucket"
-      access_logs_prefix         = "client-logs"
+      access_logs_prefix         = "AWSLogs"
       vpc_name                   = local.vpc_name
     }
   ]

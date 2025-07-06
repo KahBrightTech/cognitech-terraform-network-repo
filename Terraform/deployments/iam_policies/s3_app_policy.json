@@ -27,6 +27,24 @@
           "aws:PrincipalArn": ["[[admin_role]]", "[[github_oidc_role]]"]
         }
       }
+    },
+    {
+      "Sid": "Allow ELB service to write access logs",
+      "Principal": {
+        "AWS": "arn:aws:iam::[[account_number]]:root"
+      },
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::[[resource_name]]/AWSLogs/*"
+    },
+    {
+      "Sid": "Allow ELB service to check bucket location",
+      "Principal": {
+        "AWS": "arn:aws:iam::[[account_number]]:root"
+      },
+      "Effect": "Allow",
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:aws:s3:::[[resource_name]]"
     }
   ]
 }
