@@ -311,7 +311,7 @@ inputs = {
   load_balancers = [
     {
       key             = "etl"
-      name            = "${local.vpc_name}-etl"
+      name            = "${local.vpc_name_abr}-etl"
       type            = "application"
       security_groups = ["alb"]
       type            = "application"
