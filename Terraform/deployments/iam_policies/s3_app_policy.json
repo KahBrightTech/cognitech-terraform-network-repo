@@ -35,7 +35,7 @@
       },
       "Effect": "Allow",
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::[[resource_name]]/AWSLogs/*"
+      "Resource": "arn:aws:s3:::[[resource_name]]/ELB/*"
     },
     {
       "Sid": "Allow ELB service to check bucket location",

@@ -311,7 +311,7 @@ inputs = {
   load_balancers = [
     {
       key             = "etl"
-      name            = "${local.vpc_name_abr}-etl"
+      name            = "${local.vpc_name}"
       type            = "application"
       security_groups = ["alb"]
       type            = "application"
@@ -321,7 +321,7 @@ inputs = {
       enable_deletion_protection = true
       enable_access_logs         = true
       access_logs_bucket         = "app-bucket"
-      access_logs_prefix         = "AWSLogs"
+      access_logs_prefix         = "ELB"
       vpc_name                   = local.vpc_name
     }
   ]
