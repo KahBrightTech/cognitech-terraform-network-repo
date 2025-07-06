@@ -309,8 +309,8 @@ inputs = {
   ]
   load_balancers = [
     {
-      key             = "cyp"
-      name            = "${local.vpc_name_abr}-cyp"
+      key             = "cognitech"
+      name            = "${local.vpc_name}-cognitech"
       type            = "application"
       security_groups = ["alb"]
       type            = "application"
