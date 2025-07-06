@@ -98,10 +98,8 @@ module "load_balancers" {
         module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
         module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ])
-    },
-    (each.value.create_default_listener == true && each.value.default_listener != null && each.value.type == "application") ? {
-      default_listener = each.value.default_listener
-    } : {}
+      default_listener = (each.value.create_default_listener == true && each.value.default_listener != null && each.value.type == "application") ? each.value.default_listener : null
+    }
   )
 }
 
