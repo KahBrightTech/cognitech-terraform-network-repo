@@ -37,11 +37,11 @@
       "Action": "s3:PutObject",
       "Resource": [
         "arn:aws:s3:::[[resource_name]]/*",
-        "arn:aws:s3:::[[resource_name]]"
+        "arn:aws:s3:::[[resource_name]]/*"
       ],
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": ["us-east-1", "us-west-2"],
+          "aws:RequestedRegion": ["us-east-1"],
           "aws:PrincipalArn": ["[[admin_role]]", "[[github_oidc_role]]"]
         }
       }
