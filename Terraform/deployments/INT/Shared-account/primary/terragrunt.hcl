@@ -320,7 +320,6 @@ inputs = {
       name            = "${local.vpc_name}"
       type            = "application"
       security_groups = ["alb"]
-      type            = "application"
       subnets = [
         include.env.locals.subnet_prefix.primary
       ]
@@ -335,8 +334,6 @@ inputs = {
     }
   ]
 }
-
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
