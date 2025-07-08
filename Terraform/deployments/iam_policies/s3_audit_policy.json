@@ -42,6 +42,9 @@
       "Condition": {
         "StringEquals": {
           "aws:RequestedRegion": ["us-east-1"]
+        },
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:elasticloadbalancing:region:[[account_number]]:loadbalancer/*"
         }
       }
     }
