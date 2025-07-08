@@ -317,7 +317,7 @@ inputs = {
   ]
   load_balancers = [
     {
-      key             = "etl"
+      key             = "${local.vpc_name}"
       name            = "${local.vpc_name}"
       type            = "application"
       security_groups = ["alb"]
@@ -332,7 +332,6 @@ inputs = {
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------

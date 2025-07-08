@@ -243,8 +243,7 @@ variable "load_balancers" {
     use_private_subnets = optional(bool, false)
     subnets             = optional(list(string))
     subnet_mappings = optional(list(object({
-      subnet_key           = string
-      az_subnet_selector   = string
+      subnet_id            = string
       private_ipv4_address = optional(string)
     })))
     enable_deletion_protection = optional(bool, false)

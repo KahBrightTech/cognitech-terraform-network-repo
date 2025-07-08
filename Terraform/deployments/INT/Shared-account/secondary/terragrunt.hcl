@@ -50,11 +50,12 @@ terraform {
 #-------------------------------------------------------
 inputs = {
   common = {
-    global        = local.deploy_globally
-    account_name  = include.cloud.locals.account_info[include.env.locals.name_abr].name
-    region_prefix = local.region_prefix
-    tags          = local.tags
-    region        = local.region
+    global           = local.deploy_globally
+    account_name     = include.cloud.locals.account_info[include.env.locals.name_abr].name
+    region_prefix    = local.region_prefix
+    tags             = local.tags
+    region           = local.region
+    account_name_abr = include.env.locals.name_abr
   }
   vpcs = [
     {
@@ -62,6 +63,7 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       public_subnets = [
         {
+          key                         = include.env.locals.subnet_prefix.primary
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
@@ -71,6 +73,7 @@ inputs = {
           vpc_name                    = local.vpc_name
         },
         {
+          key                         = include.env.locals.subnet_prefix.secondary
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
@@ -212,6 +215,7 @@ inputs = {
         }
       ]
       s3 = {
+        key         = "data-xfer"
         name        = "${local.vpc_name}-data-xfer"
         description = "The bucket used for data transfers"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
@@ -227,22 +231,33 @@ inputs = {
   ]
   s3_private_buckets = [
     {
+      key               = "app-bucket"
       name              = "${local.vpc_name}-app-bucket"
       description       = "The application bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     },
     {
+      key               = "config-bucket"
       name              = "${local.vpc_name}-config-bucket"
       description       = "The configuration bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
     {
-      name              = "${local.vpc_name}-src-replication-bucket"
-      description       = "The source replication bucket"
+      key                  = "src-replication-bucket"
+      name                 = "${local.vpc_name}-src-replication-bucket"
+      description          = "The source replication bucket"
+      enable_versioning    = true
+      enable_bucket_policy = false
+    },
+    {
+      key               = "audit-bucket"
+      name              = "${local.vpc_name}-audit-bucket"
+      description       = "The audit bucket for different apps"
       enable_versioning = true
-    }
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
+    },
   ]
   ec2_profiles = [
     {
@@ -261,6 +276,7 @@ inputs = {
       }
     }
   ]
+
   iam_roles = [
     {
       name               = "${local.vpc_name}-instance"
@@ -297,6 +313,22 @@ inputs = {
       secret_description = "Private key for ${local.vpc_name} VPC"
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
+    }
+  ]
+  load_balancers = [
+    {
+      key             = "${local.vpc_name}"
+      name            = "${local.vpc_name}"
+      type            = "application"
+      security_groups = ["alb"]
+      type            = "application"
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "audit-bucket"
+      vpc_name                   = local.vpc_name
     }
   ]
 }

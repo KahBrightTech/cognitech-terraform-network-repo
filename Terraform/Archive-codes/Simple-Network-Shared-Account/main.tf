@@ -98,16 +98,9 @@ module "load_balancers" {
         module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
         module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ])
-      subnet_mappings = (each.value.subnet_mappings != null) ? [
-        for mapping in each.value.subnet_mappings : {
-          subnet_id = lookup(
-            module.shared_vpc[each.value.vpc_name].private_subnet[mapping.subnet_key],
-            "${mapping.az_subnet_selector}_subnet_id",
-            null
-          )
-          private_ipv4_address = mapping.private_ipv4_address
-        }
-      ] : []
     }
+    # (each.value.create_default_listener == true && each.value.default_listener != null && each.value.type == "application") ? {
+    #   default_listener = each.value.default_listener
+    # } : {}
   )
 }
