@@ -330,6 +330,7 @@ inputs = {
       create_default_listener    = true
       default_listener = {
         certificate_arn = "arn:aws:acm:us-east-1:730335294148:certificate/deee8f5a-a635-4e7a-9fe9-feb541dc8934"
+        fixed_response  = {}
       }
     }
   ]
