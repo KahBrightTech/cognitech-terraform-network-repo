@@ -276,7 +276,6 @@ inputs = {
       }
     }
   ]
-
   iam_roles = [
     {
       name               = "${local.vpc_name}-instance"
@@ -327,7 +326,7 @@ inputs = {
       ]
       enable_deletion_protection = true
       enable_access_logs         = true
-      access_logs_bucket         = "audit-bucket"
+      access_logs_bucket         = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
     }
   ]
