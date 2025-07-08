@@ -41,8 +41,7 @@
       ],
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": ["us-east-1"],
-          "aws:PrincipalArn": ["[[admin_role]]", "[[github_oidc_role]]"]
+          "aws:RequestedRegion": ["us-east-1"]
         }
       }
     }
