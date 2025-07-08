@@ -250,7 +250,14 @@ inputs = {
       description          = "The source replication bucket"
       enable_versioning    = true
       enable_bucket_policy = false
-    }
+    },
+    {
+      key               = "audit-bucket"
+      name              = "${local.vpc_name}-audit-bucket"
+      description       = "The audit bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
+    },
   ]
   ec2_profiles = [
     {
@@ -320,8 +327,7 @@ inputs = {
       ]
       enable_deletion_protection = true
       enable_access_logs         = true
-      access_logs_bucket         = "app-bucket"
-      access_logs_prefix         = "ELB"
+      access_logs_bucket         = "audit-bucket"
       vpc_name                   = local.vpc_name
     }
   ]
