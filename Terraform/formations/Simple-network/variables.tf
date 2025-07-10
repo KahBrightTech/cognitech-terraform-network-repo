@@ -131,6 +131,10 @@ variable "vpc" {
             encryption_configuration = optional(object({
               replica_kms_key_id = string
             }))
+            replication_time = optional(object({
+              minutes = number
+            }))
+            replica_modification = optional(bool, true)
           })
         }))
       })))
