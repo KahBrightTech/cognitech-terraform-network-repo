@@ -250,7 +250,7 @@ inputs = {
       enable_bucket_policy = false
       replication = [
         {
-          role_arn = "arn:aws:iam::${local.account_id}:role/${local.account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
+          role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
           rules = [
             {
               id     = "replication-rule-1"
@@ -334,6 +334,7 @@ inputs = {
       create_secret      = true
     }
   ]
+
   load_balancers = [
     # {
     #   key             = "${local.vpc_name}"
