@@ -30,6 +30,7 @@ locals {
   vpc_name_abr     = "shr"
   internet_cidr    = "0.0.0.0/0"
   account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
+  aws_account_name = include.cloud.locals.account_info[include.env.locals.name_abr].name
 
   # Composite variables 
   tags = merge(

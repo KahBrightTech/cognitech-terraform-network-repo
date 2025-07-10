@@ -30,6 +30,7 @@ locals {
   vpc_name_abr     = "shr"
   internet_cidr    = "0.0.0.0/0"
   account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
+  aws_account_name = include.cloud.locals.account_info[include.env.locals.name_abr].name
 
   # Composite variables 
   tags = merge(
@@ -249,7 +250,7 @@ inputs = {
       enable_bucket_policy = false
       replication = [
         {
-          role_arn = "arn:aws:iam::${local.account_id}:role/${local.account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
+          role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
           rules = [
             {
               id     = "replication-rule-1"
