@@ -32,7 +32,7 @@ module "s3_app_bucket" {
       name              = each.value.name
       description       = each.value.description
       enable_versioning = each.value.enable_versioning
-      replication       = each.value.replication != null ? each.value.replication : []
+      replication       = each.value.replication != null ? each.value.replication : {}
     },
     (each.value.enable_bucket_policy != false && each.value.policy != null) ? { policy = each.value.policy } : {}
   )
