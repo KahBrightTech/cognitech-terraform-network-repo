@@ -150,7 +150,7 @@ variable "s3_private_buckets" {
     objects = optional(list(object({
       key = string
     })))
-    replication = optional(list(object({
+    replication = optional(object({
       role_arn = string
       rules = list(object({
         id                        = string
@@ -171,7 +171,7 @@ variable "s3_private_buckets" {
           }))
         })
       }))
-    })))
+    }))
   }))
   default = null
 }
