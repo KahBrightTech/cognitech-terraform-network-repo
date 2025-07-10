@@ -257,11 +257,8 @@ inputs = {
             destination = {
               bucket_arn    = "arn:aws:s3:::mdproduction-use1-shared-services-dest-replication-bucket"
               storage_class = "STANDARD"
-              replication_time = {
-                status = "Enabled"
-                time = {
-                  minutes = 15
-                }
+              encryption_configuration = {
+                replica_kms_key_id = "arn:aws:kms:${local.region}:${local.account_id}:key/mrk-587301af90c9440c813284f882515d18"
               }
             }
           }
