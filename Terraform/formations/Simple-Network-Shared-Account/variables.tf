@@ -89,7 +89,6 @@ variable "vpcs" {
       })))
     })))
     s3 = optional(object({
-      key                      = string
       name                     = string
       description              = string
       name_override            = optional(string)
@@ -128,7 +127,6 @@ variable "vpcs" {
 variable "s3_private_buckets" {
   description = "S3 bucket variables"
   type = list(object({
-    key                      = string
     name                     = string
     description              = string
     name_override            = optional(string)

@@ -215,7 +215,6 @@ inputs = {
         }
       ]
       s3 = {
-        key         = "data-xfer"
         name        = "${local.vpc_name}-data-xfer"
         description = "The bucket used for data transfers"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
@@ -231,21 +230,18 @@ inputs = {
   ]
   s3_private_buckets = [
     {
-      key               = "app-bucket"
       name              = "${local.vpc_name}-app-bucket"
       description       = "The application bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     },
     {
-      key               = "config-bucket"
       name              = "${local.vpc_name}-config-bucket"
       description       = "The configuration bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
     {
-      key                  = "src-replication-bucket"
       name                 = "${local.vpc_name}-src-replication-bucket"
       description          = "The source replication bucket"
       enable_versioning    = true
@@ -257,6 +253,13 @@ inputs = {
       description       = "The audit bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
+    },
+    {
+      key               = "report-bucket"
+      name              = "${local.vpc_name}-report-bucket"
+      description       = "The report bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
     },
   ]
   ec2_profiles = [
@@ -315,24 +318,24 @@ inputs = {
     }
   ]
   load_balancers = [
-    {
-      key             = "${local.vpc_name}"
-      name            = "${local.vpc_name}"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = true
-      enable_access_logs         = true
-      access_logs_bucket         = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-      vpc_name                   = local.vpc_name
-      create_default_listener    = true
-      default_listener = {
-        certificate_arn = "arn:aws:acm:us-east-1:730335294148:certificate/deee8f5a-a635-4e7a-9fe9-feb541dc8934"
-        fixed_response  = {}
-      }
-    }
+    # {
+    #   key             = "${local.vpc_name}"
+    #   name            = "${local.vpc_name}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    #   create_default_listener    = true
+    #   default_listener = {
+    #     certificate_arn = "arn:aws:acm:us-east-1:730335294148:certificate/deee8f5a-a635-4e7a-9fe9-feb541dc8934"
+    #     fixed_response  = {}
+    #   }
+    # }
   ]
 }
 
