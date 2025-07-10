@@ -248,113 +248,112 @@ inputs = {
       description          = "The source replication bucket"
       enable_versioning    = true
       enable_bucket_policy = false
-      replication = [
-        {
-          role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
-          rules = [
-            {
-              id     = "${local.vpc_name}-replication-rule-1"
-              status = "Enabled"
-              destination = {
-                bucket_arn    = "arn:aws:s3:::${local.vpc_name}-dest-replication-bucket"
-                storage_class = "STANDARD"
-              }
+      replication = {
+        role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
+        rules = [
+          {
+            id     = "${local.vpc_name}-replication-rule-1"
+            status = "Enabled"
+            destination = {
+              bucket_arn    = "arn:aws:s3:::${local.vpc_name}-dest-replication-bucket"
+              storage_class = "STANDARD"
             }
-          ]
-        }
-      ]
-    },
-    {
-      key               = "audit-bucket"
-      name              = "${local.vpc_name}-audit-bucket"
-      description       = "The audit bucket for different apps"
-      enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
-    },
-    {
-      key               = "report-bucket"
-      name              = "${local.vpc_name}-report-bucket"
-      description       = "The report bucket for different apps"
-      enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
-    },
-  ]
-  ec2_profiles = [
-    {
-      name               = "${local.vpc_name}"
-      description        = "EC2 Instance Profile for Shared Services"
-      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
-      managed_policy_arns = [
-        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-      ]
-      policy = {
-        name        = "${local.vpc_name}-ec2-instance-profile"
-        description = "EC2 Instance Permission for S3"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
+          }
+        ]
       }
     }
-  ]
-  iam_roles = [
-    {
-      name               = "${local.vpc_name}-instance"
-      description        = "IAM Role for Shared Services"
-      path               = "/"
-      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
-      managed_policy_arns = [
-        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-      ]
-      policy = {
-        name        = "${local.vpc_name}-instance"
-        description = "Test IAM policy"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
-      }
-    },
-    {
-      name               = "${local.vpc_name}-source-replication"
-      description        = "IAM Role for Shared Services replication rule"
-      path               = "/"
-      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/s3_trust_policy.json"
-      policy = {
-        name        = "${local.vpc_name}-source-replication"
-        description = "IAM policy for source replication"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
-      }
+  },
+  {
+    key               = "audit-bucket"
+    name              = "${local.vpc_name}-audit-bucket"
+    description       = "The audit bucket for different apps"
+    enable_versioning = true
+    policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
+  },
+  {
+    key               = "report-bucket"
+    name              = "${local.vpc_name}-report-bucket"
+    description       = "The report bucket for different apps"
+    enable_versioning = true
+    policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
+  },
+]
+ec2_profiles = [
+  {
+    name               = "${local.vpc_name}"
+    description        = "EC2 Instance Profile for Shared Services"
+    assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+    managed_policy_arns = [
+      "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+      "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+      "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    ]
+    policy = {
+      name        = "${local.vpc_name}-ec2-instance-profile"
+      description = "EC2 Instance Permission for S3"
+      policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
     }
-  ]
-  key_pairs = [
-    {
-      name               = "${local.vpc_name}-key-pair"
-      secret_name        = "${local.vpc_name}-ec2-private-key"
-      secret_description = "Private key for ${local.vpc_name} VPC"
-      policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      create_secret      = true
+  }
+]
+iam_roles = [
+  {
+    name               = "${local.vpc_name}-instance"
+    description        = "IAM Role for Shared Services"
+    path               = "/"
+    assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+    managed_policy_arns = [
+      "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+      "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+      "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    ]
+    policy = {
+      name        = "${local.vpc_name}-instance"
+      description = "Test IAM policy"
+      policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
     }
-  ]
+  },
+  {
+    name               = "${local.vpc_name}-source-replication"
+    description        = "IAM Role for Shared Services replication rule"
+    path               = "/"
+    assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/s3_trust_policy.json"
+    policy = {
+      name        = "${local.vpc_name}-source-replication"
+      description = "IAM policy for source replication"
+      policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
+    }
+  }
+]
+key_pairs = [
+  {
+    name               = "${local.vpc_name}-key-pair"
+    secret_name        = "${local.vpc_name}-ec2-private-key"
+    secret_description = "Private key for ${local.vpc_name} VPC"
+    policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+    create_secret      = true
+  }
+]
 
-  load_balancers = [
-    # {
-    #   key             = "${local.vpc_name}"
-    #   name            = "${local.vpc_name}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    #   create_default_listener    = true
-    #   default_listener = {
-    #     certificate_arn = "arn:aws:acm:us-east-1:730335294148:certificate/deee8f5a-a635-4e7a-9fe9-feb541dc8934"
-    #     fixed_response  = {}
-    #   }
-    # }
-  ]
+load_balancers = [
+  # {
+  #   key             = "${local.vpc_name}"
+  #   name            = "${local.vpc_name}"
+  #   type            = "application"
+  #   security_groups = ["alb"]
+  #   subnets = [
+  #     include.env.locals.subnet_prefix.primary
+  #   ]
+  #   enable_deletion_protection = true
+  #   enable_access_logs         = true
+  #   access_logs_bucket         = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+  #   vpc_name                   = local.vpc_name
+  #   create_default_listener    = true
+  #   default_listener = {
+  #     certificate_arn = "arn:aws:acm:us-east-1:730335294148:certificate/deee8f5a-a635-4e7a-9fe9-feb541dc8934"
+  #     fixed_response  = {}
+  #   }
+  # }
+]
 }
 
 #-------------------------------------------------------
