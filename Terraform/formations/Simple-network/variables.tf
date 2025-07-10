@@ -112,6 +112,28 @@ variable "vpc" {
       objects = optional(list(object({
         key = string
       })))
+      replication = optional(list(object({
+        role_arn = string
+        rules = list(object({
+          id                        = string
+          status                    = string
+          delete_marker_replication = optional(bool, false)
+          prefix                    = optional(string, "")
+          filter = optional(object({
+            prefix = string
+          }))
+          destination = object({
+            bucket_arn    = string
+            storage_class = optional(string, "STANDARD")
+            access_control_translation = optional(object({
+              owner = string
+            }))
+            encryption_configuration = optional(object({
+              replica_kms_key_id = string
+            }))
+          })
+        }))
+      })))
     }))
     route53_zones = optional(list(object({
       key           = string

@@ -29,6 +29,7 @@ locals {
   vpc_name         = "shared-services"
   vpc_name_abr     = "shr"
   internet_cidr    = "0.0.0.0/0"
+  account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
 
   # Composite variables 
   tags = merge(
@@ -246,6 +247,21 @@ inputs = {
       description          = "The source replication bucket"
       enable_versioning    = true
       enable_bucket_policy = false
+      replication = [
+        {
+          role_arn = "arn:aws:iam::${local.account_id}:role/${local.account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
+          rules = [
+            {
+              id     = "replication-rule-1"
+              status = "Enabled"
+              destination = {
+                bucket_arn    = "arn:aws:s3:::${local.vpc_name}-dest-replication-bucket"
+                storage_class = "STANDARD"
+              }
+            }
+          ]
+        }
+      ]
     },
     {
       key               = "audit-bucket"
