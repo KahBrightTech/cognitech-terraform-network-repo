@@ -255,7 +255,7 @@ inputs = {
             id     = "${local.vpc_name}-replication-rule-1"
             status = "Enabled"
             destination = {
-              bucket_arn    = "arn:aws:s3:::${local.vpc_name}-dest-replication-bucket"
+              bucket_arn    = "arn:aws:s3:::mdproduction-use1-shared-services-dest-replication-bucket"
               storage_class = "STANDARD"
             }
           }
