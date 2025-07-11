@@ -252,7 +252,7 @@ inputs = {
         role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
         rules = [
           {
-            id     = "${local.vpc_name}-replication-rule-1"
+            id     = "replication-rule-1"
             status = "Enabled"
             destination = {
               bucket_arn    = "arn:aws:s3:::mdproduction-use1-shared-services-dest-replication-bucket"
