@@ -47,6 +47,14 @@
         "arn:aws:s3:::int-preproduction-use1-shared-services-report-bucket/*",
         "arn:aws:s3:::int-preproduction-use1-shared-services-report-bucket"
       ]
+    },
+    {
+      "Sid": "KMSPermissions",
+      "Effect": "Allow",
+      "Action": ["kms:GenerateDataKey", "kms:Decrypt"],
+      "Resource": [
+        "arn:aws:kms:us-east-1:123456789012:key/mrk-587301af90c9440c813284f882515d18"
+      ]
     }
   ]
 }
