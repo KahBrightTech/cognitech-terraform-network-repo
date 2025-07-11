@@ -172,7 +172,7 @@ variable "s3_private_buckets" {
             minutes = optional(number, 15)
           }))
           replica_modification = optional(object({
-            enabled                         = optional(bool, true)
+            enabled                         = optional(bool, false)
             metrics_event_threshold_minutes = optional(number, 15)
           }))
         })
