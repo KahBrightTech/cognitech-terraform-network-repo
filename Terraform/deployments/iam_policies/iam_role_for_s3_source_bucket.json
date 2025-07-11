@@ -51,7 +51,14 @@
     {
       "Sid": "KMSPermissions",
       "Effect": "Allow",
-      "Action": ["kms:GenerateDataKey", "kms:Decrypt"],
+      "Action": [
+        "kms:GenerateDataKey",
+        "kms:Decrypt",
+        "kms:DescribeKey",
+        "kms:Encrypt",
+        "kms:ReEncryptFrom",
+        "kms:ReEncryptTo"
+      ],
       "Resource": [
         "arn:aws:kms:us-east-1:123456789012:key/mrk-587301af90c9440c813284f882515d18"
       ]
