@@ -271,6 +271,7 @@ inputs = {
         ]
       }
     },
+
     {
       key               = "audit-bucket"
       name              = "${local.vpc_name}-audit-bucket"
