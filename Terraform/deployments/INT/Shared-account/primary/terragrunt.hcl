@@ -249,6 +249,7 @@ inputs = {
       enable_versioning    = true
       enable_bucket_policy = false
       encryption = {
+        enabled       = true
         sse_algorithm = "aws:kms"
         kms_key_id    = "arn:aws:kms:${local.region}:${local.account_id}:key/mrk-587301af90c9440c813284f882515d18"
       }
