@@ -49,18 +49,35 @@
       ]
     },
     {
-      "Sid": "KMSPermissions",
+      "Sid": "SourceKeyDecryption",
       "Effect": "Allow",
-      "Action": [
-        "kms:GenerateDataKey",
-        "kms:Decrypt",
-        "kms:DescribeKey",
-        "kms:Encrypt",
-        "kms:ReEncryptFrom",
-        "kms:ReEncryptTo"
-      ],
+      "Action": ["kms:Decrypt"],
+      "Condition": {
+        "StringLike": {
+          "kms:ViaService": "s3.us-east-1.amazonaws.com",
+          "kms:EncryptionContext:aws:s3:arn": [
+            "arn:aws:s3:::int-preproduction-use1-shared-services-src-replication-bucket/*"
+          ]
+        }
+      },
       "Resource": [
-        "arn:aws:kms:us-east-1:123456789012:key/mrk-587301af90c9440c813284f882515d18"
+        "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
+      ]
+    },
+    {
+      "Sid": "DestinationKeyEncryption",
+      "Effect": "Allow",
+      "Action": ["kms:Encrypt"],
+      "Condition": {
+        "StringLike": {
+          "kms:ViaService": "s3.us-east-1.amazonaws.com",
+          "kms:EncryptionContext:aws:s3:arn": [
+            "arn:aws:s3:::mdproduction-use1-shared-services-dest-replication-bucket/*"
+          ]
+        }
+      },
+      "Resource": [
+        "arn:aws:kms:us-east-1:485147667400:key/mrk-587301af90c9440c813284f882515d18"
       ]
     }
   ]
