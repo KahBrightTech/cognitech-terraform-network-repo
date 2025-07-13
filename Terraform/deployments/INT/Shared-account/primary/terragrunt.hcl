@@ -289,6 +289,7 @@ inputs = {
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
     },
+
   ]
   ec2_profiles = [
     {
