@@ -253,6 +253,7 @@ inputs = {
         sse_algorithm = "aws:kms"
         kms_key_id    = "arn:aws:kms:${local.region}:${local.account_id}:key/mrk-587301af90c9440c813284f882515d18"
       }
+
       # replication = {
       #   role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
       #   rules = [
