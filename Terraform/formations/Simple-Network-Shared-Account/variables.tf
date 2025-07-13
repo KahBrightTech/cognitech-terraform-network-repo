@@ -134,7 +134,18 @@ variable "s3_private_buckets" {
     enable_versioning        = optional(bool, true)
     enable_bucket_policy     = optional(bool, true)
     override_policy_document = optional(string)
-    iam_role_arn_pattern     = optional(map(string), null)
+    encryption = optional(object({
+      enabled            = optional(bool, true)
+      sse_algorithm      = optional(string, "AES256")
+      kms_master_key_id  = optional(string, null)
+      bucket_key_enabled = optional(bool, false)
+      }), {
+      enabled            = true
+      sse_algorithm      = "AES256"
+      kms_master_key_id  = null
+      bucket_key_enabled = false
+    })
+    iam_role_arn_pattern = optional(map(string), null)
     lifecycle = optional(object({
       standard_expiration_days          = number
       infrequent_access_expiration_days = number
