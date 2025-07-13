@@ -249,9 +249,10 @@ inputs = {
       enable_versioning    = true
       enable_bucket_policy = false
       encryption = {
-        enabled           = true
-        sse_algorithm     = "aws:kms"
-        kms_master_key_id = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
+        enabled            = true
+        sse_algorithm      = "aws:kms"
+        kms_master_key_id  = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
+        bucket_key_enabled = true
       }
 
       # replication = {
