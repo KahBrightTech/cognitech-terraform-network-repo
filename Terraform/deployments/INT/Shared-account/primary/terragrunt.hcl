@@ -251,7 +251,7 @@ inputs = {
       encryption = {
         enabled           = true
         sse_algorithm     = "aws:kms"
-        kms_master_key_id = "arn:aws:kms:${local.region}:${local.account_id}:key/mrk-587301af90c9440c813284f882515d18"
+        kms_master_key_id = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
       }
 
       # replication = {
