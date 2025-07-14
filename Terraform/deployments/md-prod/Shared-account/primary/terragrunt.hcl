@@ -247,12 +247,12 @@ inputs = {
       name              = "${local.vpc_name}-dest-replication-bucket"
       description       = "The destination replication bucket"
       enable_versioning = true
-      encryption = {
-        enabled            = true
-        sse_algorithm      = "aws:kms"
-        kms_master_key_id  = "arn:aws:kms:${local.region}:${local.account_id}:key/mrk-587301af90c9440c813284f882515d18"
-        bucket_key_enabled = false
-      }
+      # encryption = {
+      #   enabled            = true
+      #   sse_algorithm      = "aws:kms"
+      #   kms_master_key_id  = "arn:aws:kms:${local.region}:${local.account_id}:key/mrk-587301af90c9440c813284f882515d18"
+      #   bucket_key_enabled = false
+      # }
       policy = "${include.cloud.locals.repo.root}/iam_policies/s3_destination_replication_bucket.json"
     }
   ]
