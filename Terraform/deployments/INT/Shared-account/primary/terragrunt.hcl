@@ -271,7 +271,7 @@ inputs = {
                 minutes = "15"
               }
               encryption_configuration = {
-                replica_kms_key_id = "arn:aws:kms:${local.region}:${local.account_id}:key/mrk-587301af90c9440c813284f882515d18"
+                replica_kms_key_id = "arn:aws:kms:${local.region}:485147667400:key/mrk-587301af90c9440c813284f882515d18"
               }
               replica_modification = {
                 enabled = true
