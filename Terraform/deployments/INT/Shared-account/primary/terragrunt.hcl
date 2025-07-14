@@ -263,6 +263,9 @@ inputs = {
             destination = {
               bucket_arn    = "arn:aws:s3:::mdproduction-use1-shared-services-dest-replication-bucket"
               storage_class = "STANDARD"
+              access_control_translation = {
+                owner = "Destination"
+              }
               replication_time = {
                 minutes = "15"
               }
