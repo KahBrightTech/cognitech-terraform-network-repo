@@ -187,6 +187,7 @@ variable "s3_private_buckets" {
           access_control_translation = optional(object({
             owner = string
           }))
+          account_id = optional(number)
           encryption_configuration = optional(object({
             replica_kms_key_id = string
           }))
