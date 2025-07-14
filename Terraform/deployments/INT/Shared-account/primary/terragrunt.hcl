@@ -252,7 +252,7 @@ inputs = {
         enabled            = true
         sse_algorithm      = "aws:kms"
         kms_master_key_id  = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
-        bucket_key_enabled = true
+        bucket_key_enabled = false
       }
       replication = {
         role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
