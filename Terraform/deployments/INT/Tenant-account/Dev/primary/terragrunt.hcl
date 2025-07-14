@@ -29,6 +29,8 @@ locals {
   vpc_name         = "dev"
   vpc_name_abr     = "dev"
   internet_cidr    = "0.0.0.0/0"
+  account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
+  aws_account_name = include.cloud.locals.account_info[include.env.locals.name_abr].name
 
   # Composite variables 
   tags = merge(
@@ -56,11 +58,12 @@ terraform {
 #-------------------------------------------------------
 inputs = {
   common = {
-    global        = local.deploy_globally
-    account_name  = include.cloud.locals.account_info[include.env.locals.name_abr].name
-    region_prefix = local.region_prefix
-    tags          = local.tags
-    region        = local.region
+    global           = local.deploy_globally
+    account_name     = include.cloud.locals.account_info[include.env.locals.name_abr].name
+    region_prefix    = local.region_prefix
+    tags             = local.tags
+    region           = local.region
+    account_name_abr = include.env.locals.name_abr
   }
   vpcs = [
     {
@@ -282,6 +285,27 @@ inputs = {
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
     }
+  ]
+
+  load_balancers = [
+    # {
+    #   key             = "${local.vpc_name}"
+    #   name            = "${local.vpc_name}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    #   create_default_listener    = true
+    #   default_listener = {
+    #     certificate_arn = "arn:aws:acm:us-east-1:730335294148:certificate/deee8f5a-a635-4e7a-9fe9-feb541dc8934"
+    #     fixed_response  = {}
+    #   }
+    # }
   ]
 }
 #-------------------------------------------------------

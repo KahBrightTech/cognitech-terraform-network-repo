@@ -29,6 +29,8 @@ locals {
   vpc_name         = "shared-services"
   vpc_name_abr     = "shr"
   internet_cidr    = "0.0.0.0/0"
+  account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
+  aws_account_name = include.cloud.locals.account_info[include.env.locals.name_abr].name
 
   # Composite variables 
   tags = merge(
@@ -50,11 +52,12 @@ terraform {
 #-------------------------------------------------------
 inputs = {
   common = {
-    global        = local.deploy_globally
-    account_name  = include.cloud.locals.account_info[include.env.locals.name_abr].name
-    region_prefix = local.region_prefix
-    tags          = local.tags
-    region        = local.region
+    global           = local.deploy_globally
+    account_name     = include.cloud.locals.account_info[include.env.locals.name_abr].name
+    region_prefix    = local.region_prefix
+    tags             = local.tags
+    region           = local.region
+    account_name_abr = include.env.locals.name_abr
   }
   vpcs = [
     {
@@ -62,6 +65,7 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       public_subnets = [
         {
+          key                         = include.env.locals.subnet_prefix.primary
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
@@ -71,6 +75,7 @@ inputs = {
           vpc_name                    = local.vpc_name
         },
         {
+          key                         = include.env.locals.subnet_prefix.secondary
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
@@ -242,7 +247,13 @@ inputs = {
       name              = "${local.vpc_name}-dest-replication-bucket"
       description       = "The destination replication bucket"
       enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_destination_replication_bucket.json"
+      encryption = {
+        enabled            = true
+        sse_algorithm      = "aws:kms"
+        kms_master_key_id  = "arn:aws:kms:${local.region}:${local.account_id}:key/mrk-587301af90c9440c813284f882515d18"
+        bucket_key_enabled = false
+      }
+      policy = "${include.cloud.locals.repo.root}/iam_policies/s3_destination_replication_bucket.json"
     }
   ]
   ec2_profiles = [
@@ -288,6 +299,27 @@ inputs = {
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
     }
+  ]
+
+  load_balancers = [
+    # {
+    #   key             = "${local.vpc_name}"
+    #   name            = "${local.vpc_name}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    #   create_default_listener    = true
+    #   default_listener = {
+    #     certificate_arn = "arn:aws:acm:us-east-1:730335294148:certificate/deee8f5a-a635-4e7a-9fe9-feb541dc8934"
+    #     fixed_response  = {}
+    #   }
+    # }
   ]
 }
 #-------------------------------------------------------
