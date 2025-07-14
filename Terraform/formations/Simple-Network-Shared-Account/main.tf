@@ -33,7 +33,7 @@ module "s3_app_bucket" {
       description       = each.value.description
       enable_versioning = each.value.enable_versioning
       replication       = each.value.replication != null ? each.value.replication : null
-      encrytion         = var.s3.encryption != null ? var.s3.encryption : null
+      encryption        = each.value.encryption != null ? each.value.encryption : null
     },
     (each.value.enable_bucket_policy != false && each.value.policy != null) ? { policy = each.value.policy } : {}
   )
