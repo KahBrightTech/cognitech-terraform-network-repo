@@ -20,7 +20,7 @@ locals {
     tertiary   = "sbnt3"
     quaternary = "sbnt4"
   }
-
+  public_domain         = "cognitechllc.org"
   remote_dynamodb_table = "Terragrunt"
   tags = {
     Environment  = local.environment

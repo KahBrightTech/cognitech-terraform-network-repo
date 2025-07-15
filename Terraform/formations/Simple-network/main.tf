@@ -130,12 +130,19 @@ module "s3_data_bucket" {
   }
 }
 
-module "state_lock" {
-  source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Dynamodbtable?ref=v1.1.55"
-  for_each   = var.state_locks != null ? { for item in var.state_locks : item.table_name => item } : {}
-  common     = var.common
-  state_lock = each.value
+module "certificate" {
+  source      = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/ACM-Public-Certs?ref=v1.2.25"
+  for_each    = var.vpc != null ? var.vpc.certificates != null ? { for item in var.vpc.certificates : item.name => item } : {} : {}
+  common      = var.common
+  certificate = each.value
 }
+
+# module "state_lock" {
+#   source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Dynamodbtable?ref=v1.1.55"
+#   for_each   = var.state_locks != null ? { for item in var.state_locks : item.table_name => item } : {}
+#   common     = var.common
+#   state_lock = each.value
+# }
 
 
 
