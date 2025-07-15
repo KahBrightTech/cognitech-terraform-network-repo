@@ -162,7 +162,7 @@ variable "vpc" {
     certificates = optional(list(object({
       name              = optional(string)
       domain_name       = optional(string)
-      validation_method = optional(string, "DNS") # "DNS" or "EMAIL"
+      validation_method = string # "DNS" or "EMAIL"
     })))
   })
   default = null
