@@ -255,7 +255,6 @@ inputs = {
       description          = "The source replication bucket"
       enable_versioning    = true
       enable_bucket_policy = false
-
       # encryption = {
       #   enabled            = true
       #   sse_algorithm      = "aws:kms"
