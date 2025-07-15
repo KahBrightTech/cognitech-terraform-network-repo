@@ -135,9 +135,9 @@ module "certificate" {
   for_each = var.vpc != null ? var.vpc.certificates != null ? { for item in var.vpc.certificates : item.name => item } : {} : {}
   common   = var.common
   certificate = {
-    name        = each.value.name
-    domain_name = each.value.domain_name
-    validation  = each.value.validation
+    name              = each.value.name
+    domain_name       = each.value.domain_name
+    validation_method = each.value.validation_method
   }
 }
 
