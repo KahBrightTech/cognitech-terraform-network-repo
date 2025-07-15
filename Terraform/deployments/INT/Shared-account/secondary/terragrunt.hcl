@@ -351,10 +351,11 @@ inputs = {
       create_secret      = true
     }
   ]
+
   certificates = [
     {
       name              = "${local.vpc_name_abr}"
-      domain_name       = include.env.locals.public_domain
+      domain_name       = "*.shared.${include.env.locals.public_domain}"
       validation_method = "DNS"
     }
   ]
