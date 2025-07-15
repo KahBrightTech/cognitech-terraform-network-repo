@@ -69,14 +69,3 @@ output "zones" {
   value       = module.zones
 }
 
-output "certificate" {
-  description = "Certificate details"
-  value = var.vpc != null ? var.vpc.certificates != null ? {
-    for key, item in module.certificate :
-    key => {
-      arn = item.arn
-      id  = item.id
-    }
-  } : null : null
-
-}

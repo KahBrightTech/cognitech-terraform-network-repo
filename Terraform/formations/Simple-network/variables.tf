@@ -159,11 +159,6 @@ variable "vpc" {
       private_zone  = optional(bool, true)
       force_destroy = optional(bool, true)
     })))
-    certificates = optional(list(object({
-      name              = optional(string)
-      domain_name       = optional(string)
-      validation_method = string # "DNS" or "EMAIL"
-    })))
   })
   default = null
 }

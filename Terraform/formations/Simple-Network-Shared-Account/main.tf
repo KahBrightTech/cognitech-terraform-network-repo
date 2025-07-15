@@ -80,6 +80,16 @@ module "ec2_key_pairs" {
   key_pair = each.value
 }
 
+module "certificates" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/ACM-Public-Certs?ref=v1.2.28"
+  for_each = var.vpc.certificates != null ? { for item in var.vpc.certificates : item.name => item } : {}
+  common   = var.common
+  certificate = {
+    name              = each.value.name
+    domain_name       = each.value.domain_name
+    validation_method = each.value.validation_method
+  }
+}
 #--------------------------------------------------------------------
 # Createss load balancers
 #--------------------------------------------------------------------

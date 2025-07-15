@@ -22,6 +22,11 @@ output "ec2_key_pairs" {
   value       = module.ec2_key_pairs
 }
 
+output "certificates" {
+  description = "ACM Certificates details"
+  value       = module.certificates
+}
+
 output "load_balancers" {
   description = "Load balancers details"
   value       = module.load_balancers
