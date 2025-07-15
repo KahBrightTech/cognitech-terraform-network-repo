@@ -355,7 +355,7 @@ inputs = {
   certificates = [
     {
       name              = "${local.vpc_name_abr}"
-      domain_name       = include.env.locals.public_domain
+      domain_name       = "*.${include.env.locals.public_domain}"
       validation_method = "DNS"
     }
   ]
