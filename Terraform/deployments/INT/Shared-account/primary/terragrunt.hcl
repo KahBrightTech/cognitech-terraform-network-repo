@@ -228,13 +228,6 @@ inputs = {
           name = "${local.vpc_name_abr}.cognitech.com"
         }
       ]
-      certificates = [
-        {
-          name              = "${local.vpc_name_abr}"
-          domain_name       = "*.shared.${include.env.locals.public_domain}"
-          validation_method = "DNS"
-        }
-      ]
     }
   ]
   s3_private_buckets = [
@@ -356,6 +349,14 @@ inputs = {
       secret_description = "Private key for ${local.vpc_name} VPC"
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
+    }
+  ]
+  certificates = [
+    {
+      name              = "${local.vpc_name_abr}"
+      domain_name       = "*.shared.${include.env.locals.public_domain}"
+      validation_method = "DNS"
+      zone_name         = include.env.locals.public_domain
     }
   ]
 
