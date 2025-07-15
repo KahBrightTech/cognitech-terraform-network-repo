@@ -131,10 +131,14 @@ module "s3_data_bucket" {
 }
 
 module "certificate" {
-  source      = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/ACM-Public-Certs?ref=v1.2.28"
-  for_each    = var.vpc != null ? var.vpc.certificates != null ? { for item in var.vpc.certificates : item.name => item } : {} : {}
-  common      = var.common
-  certificate = each.value
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/ACM-Public-Certs?ref=v1.2.28"
+  for_each = var.vpc != null ? var.vpc.certificates != null ? { for item in var.vpc.certificates : item.name => item } : {} : {}
+  common   = var.common
+  certificate = {
+    name        = each.value.name
+    domain_name = each.value.domain_name
+    validation  = each.value.validation
+  }
 }
 
 # module "state_lock" {
