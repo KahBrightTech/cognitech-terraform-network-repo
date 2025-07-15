@@ -82,7 +82,7 @@ module "ec2_key_pairs" {
 
 module "certificates" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/ACM-Public-Certs?ref=v1.2.28"
-  for_each = var.vpc.certificates != null ? { for item in var.vpc.certificates : item.name => item } : {}
+  for_each = var.certificates != null ? { for item in var.certificates : item.name => item } : {}
   common   = var.common
   certificate = {
     name              = each.value.name

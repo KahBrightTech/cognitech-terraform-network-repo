@@ -351,6 +351,7 @@ inputs = {
       create_secret      = true
     }
   ]
+
   certificates = [
     {
       name              = "${local.vpc_name_abr}"
