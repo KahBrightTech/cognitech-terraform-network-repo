@@ -370,13 +370,20 @@ inputs = {
       ]
       enable_deletion_protection = true
       enable_access_logs         = true
-      access_logs_bucket         = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
       create_default_listener    = true
-      # default_listener = {
-      #   certificate_arn = "arn:aws:acm:us-east-1:730335294148:certificate/deee8f5a-a635-4e7a-9fe9-feb541dc8934"
-      #   fixed_response  = {}
-      # }
+    },
+    {
+      key             = "etl"
+      name            = "etl"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      vpc_name                   = local.vpc_name
     }
   ]
 }
