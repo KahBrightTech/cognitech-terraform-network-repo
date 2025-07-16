@@ -123,6 +123,17 @@ module "load_balancers" {
       ] : []
       # Set default certificate from shared VPC module when create_default_listener is true
       default_listener = (each.value.create_default_listener == true) ? merge(
+        {
+          port        = 443
+          protocol    = "HTTPS"
+          action_type = "fixed-response"
+          ssl_policy  = "ELBSecurityPolicy-2016-08"
+          fixed_response = {
+            content_type = "text/plain"
+            message_body = "Oops! The page you are looking for does not exist."
+            status_code  = "200"
+          }
+        },
         lookup(each.value, "default_listener", {}),
         {
           certificate_arn = try(lookup(each.value, "default_listener", {}).certificate_arn, null) != null ? lookup(each.value, "default_listener", {}).certificate_arn : try(module.certificates[each.value.vpc_name].arn, null)
