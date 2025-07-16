@@ -95,7 +95,7 @@ module "certificates" {
 # Createss load balancers
 #--------------------------------------------------------------------
 module "load_balancers" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers?ref=v1.2.31"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers?ref=v1.2.32"
   for_each = (var.load_balancers != null) ? { for item in var.load_balancers : item.key => item } : {}
   common   = var.common
   load_balancer = merge(
