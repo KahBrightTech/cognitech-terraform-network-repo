@@ -359,7 +359,6 @@ inputs = {
       zone_name         = include.env.locals.public_domain
     }
   ]
-
   load_balancers = [
     {
       key             = "${local.vpc_name}"

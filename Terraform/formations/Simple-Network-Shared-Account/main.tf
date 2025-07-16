@@ -125,7 +125,7 @@ module "load_balancers" {
       default_listener = (each.value.create_default_listener == true) ? merge(
         lookup(each.value, "default_listener", {}),
         {
-          certificate_arn = lookup(each.value.default_listener, "certificate_arn", null) != null ? each.value.default_listener.certificate_arn : try(module.shared_vpc.certificates[each.value.vpc_name].arn, null)
+          certificate_arn = (lookup(each.value, "default_listener", null) != null && lookup(each.value.default_listener, "certificate_arn", null) != null) ? each.value.default_listener.certificate_arn : try(module.shared_vpc.certificates[each.value.vpc_name].arn, null)
         }
       ) : lookup(each.value, "default_listener", null)
     }
