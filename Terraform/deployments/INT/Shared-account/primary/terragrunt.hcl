@@ -372,7 +372,8 @@ inputs = {
             start_window      = 60
             completion_window = 120
             lifecycle = {
-              delete_after = 90
+              cold_storage_after_days = 30
+              delete_after_days       = 90
             }
           },
           {
@@ -381,7 +382,8 @@ inputs = {
             start_window      = 120
             completion_window = 360
             lifecycle = {
-              delete_after = 180
+              cold_storage_after_days = 60
+              delete_after_days       = 180
             }
           }
         ]

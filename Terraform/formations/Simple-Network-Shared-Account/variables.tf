@@ -294,20 +294,23 @@ variable "certificates" {
 variable "backups" {
   description = "Backup configuration"
   type = list(object({
-    name        = string
-    kms_key_arn = optional(string)
-    role_name   = optional(string)
+    name       = string
+    kms_key_id = optional(string)
+    role_name  = optional(string)
     plan = object({
-      name              = optional(string)
-      rule_name         = optional(string)
-      schedule          = optional(string)
-      start_window      = optional(number)
-      completion_window = optional(number)
-      lifecycle = optional(object({
-        delete_after = optional(number)
+      name = string
+      rules = list(object({
+        rule_name         = string
+        schedule          = string
+        start_window      = optional(number)
+        completion_window = optional(number)
+        lifecycle = optional(object({
+          cold_storage_after_days = optional(number)
+          delete_after_days       = optional(number)
+        }))
       }))
       selection = optional(object({
-        selection_name = optional(string)
+        selection_name = string
         selection_tags = optional(list(object({
           type  = string
           key   = string
