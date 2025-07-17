@@ -392,7 +392,7 @@ inputs = {
             {
               type  = "STRINGEQUALS"
               key   = "Backup"
-              value = "{local.aws_account_name}-${local.region_prefix}-continous-backup"
+              value = "&{local.aws_account_name}-${local.region_prefix}-continous-backup"
             }
           ]
         }
