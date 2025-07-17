@@ -359,7 +359,7 @@ inputs = {
       zone_name         = include.env.locals.public_domain
     }
   ]
-  backup = [
+  backups = [
     {
       name       = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-backup-vault"
       kms_key_id = include.env.locals.kms_key_id
