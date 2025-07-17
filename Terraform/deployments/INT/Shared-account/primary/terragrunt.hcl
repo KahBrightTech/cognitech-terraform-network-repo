@@ -361,10 +361,10 @@ inputs = {
   ]
   backups = [
     {
-      name       = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-backup-vault"
+      name       = "${local.aws_account_name}-${local.region_prefix}-backup-vault"
       kms_key_id = include.env.locals.kms_key_id
       plan = {
-        name = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-backup-plan"
+        name = "${local.aws_account_name}-${local.region_prefix}-backup-plan"
         rules = [
           {
             rule_name         = "DailyBackup"
@@ -386,7 +386,7 @@ inputs = {
           }
         ]
         selection = {
-          selection_name = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-backup-selection"
+          selection_name = "${local.aws_account_name}-${local.region_prefix}-backup-selection"
           selection_tags = [
             {
               type  = "STRINGEQUALS"
