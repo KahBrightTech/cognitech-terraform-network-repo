@@ -99,7 +99,7 @@ module "certificates" {
 # Creates AWS Backup 
 #--------------------------------------------------------------------
 module "backups" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWSBackup?ref=v1.2.38"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWSBackup?ref=v1.2.39"
   for_each = var.backups != null ? { for item in var.backups : item.name => item } : {}
   common   = var.common
   backup   = each.value
