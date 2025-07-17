@@ -21,6 +21,7 @@ locals {
     quaternary = "sbnt4"
   }
   public_domain         = "cognitechllc.org"
+  kms_key_id            = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
   remote_dynamodb_table = "Terragrunt"
   tags = {
     Environment  = local.environment

@@ -359,6 +359,47 @@ inputs = {
       zone_name         = include.env.locals.public_domain
     }
   ]
+
+  backup = [
+    {
+      name       = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-backup-vault"
+      kms_key_id = include.env.locals.kms_key_id
+      plan = {
+        name = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-backup-plan"
+        rules = [
+          {
+            rule_name         = "DailyBackup"
+            schedule          = "cron(0 15 ? * * *)"
+            start_window      = 60
+            completion_window = 120
+            lifecycle = {
+              delete_after = 90
+            }
+          },
+          {
+            rule_name         = "WeeklyBackup"
+            schedule          = "cron(0 15 ? * 1 *)"
+            start_window      = 120
+            completion_window = 360
+            lifecycle = {
+              delete_after = 180
+            }
+          }
+        ]
+        selection = {
+          selection_name = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-backup-selection"
+          selection_tags = [
+            {
+              type  = "STRINGEQUALS"
+              key   = "Backup"
+              value = "{local.aws_account_name}-${local.region_prefix}-continous-backup"
+            }
+          ]
+        }
+      }
+    }
+  ]
+
   load_balancers = [
     # {
     #   key             = "${local.vpc_name}"

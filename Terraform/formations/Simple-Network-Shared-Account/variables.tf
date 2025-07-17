@@ -290,6 +290,35 @@ variable "certificates" {
   }))
   default = null
 }
+
+variable "backups" {
+  description = "Backup configuration"
+  type = list(object({
+    name        = string
+    kms_key_arn = optional(string)
+    role_name   = optional(string)
+    plan = object({
+      name              = optional(string)
+      rule_name         = optional(string)
+      schedule          = optional(string)
+      start_window      = optional(number)
+      completion_window = optional(number)
+      lifecycle = optional(object({
+        delete_after = optional(number)
+      }))
+      selection = optional(object({
+        selection_name = optional(string)
+        selection_tags = optional(list(object({
+          type  = string
+          key   = string
+          value = string
+        })), [])
+        resources = optional(list(string))
+      }))
+    })
+  }))
+  default = null
+}
 variable "load_balancers" {
   description = "Load Balancer configuration"
   type = list(object({

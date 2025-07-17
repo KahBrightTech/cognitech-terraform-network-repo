@@ -32,3 +32,12 @@ output "load_balancers" {
   value       = module.load_balancers
 
 }
+
+
+#-------------------------------------------------------
+# AWS Backup outputs
+#-------------------------------------------------------
+output "backup" {
+  description = "AWS Backup outputs"
+  value       = module.backups
+}

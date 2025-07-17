@@ -80,6 +80,9 @@ module "ec2_key_pairs" {
   key_pair = each.value
 }
 
+#--------------------------------------------------------------------
+# Creates Certificates
+#--------------------------------------------------------------------
 module "certificates" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/ACM-Public-Certs?ref=v1.2.29"
   for_each = var.certificates != null ? { for item in var.certificates : item.name => item } : {}
@@ -91,6 +94,17 @@ module "certificates" {
     zone_name         = each.value.zone_name
   }
 }
+
+#--------------------------------------------------------------------
+# Creates AWS Backup 
+#--------------------------------------------------------------------
+module "backups" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWSBackup?ref=v1.2.34"
+  for_each = var.backups != null ? { for item in var.backups : item.name => item } : {}
+  common   = var.common
+  backup   = each.value
+}
+
 #--------------------------------------------------------------------
 # Createss load balancers
 #--------------------------------------------------------------------
