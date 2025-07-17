@@ -359,7 +359,6 @@ inputs = {
       zone_name         = include.env.locals.public_domain
     }
   ]
-
   backup = [
     {
       name       = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-backup-vault"
@@ -399,7 +398,6 @@ inputs = {
       }
     }
   ]
-
   load_balancers = [
     # {
     #   key             = "${local.vpc_name}"
