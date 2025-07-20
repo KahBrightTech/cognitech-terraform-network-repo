@@ -87,7 +87,7 @@ jobs:
     needs: Plan
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terragrunt_action == 'apply' && github.ref == 'refs/heads/main'
-    environment:
+    environment: # This is what allows environment secrets to work instead of repository secrets
       name: production
     steps:
       - name: Awaiting approval before applying changes
