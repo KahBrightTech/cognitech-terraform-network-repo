@@ -178,3 +178,13 @@ module "ssm_parameters" {
   common        = var.common
   ssm_parameter = each.value
 }
+
+#--------------------------------------------------------------------
+# ALB listeners
+#--------------------------------------------------------------------
+module "alb_listeners" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers-listeners?ref=v1.2.46"
+  for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.name => item } : {}
+  common   = var.common
+  listener = each.value
+}

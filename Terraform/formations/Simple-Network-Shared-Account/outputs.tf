@@ -58,3 +58,11 @@ output "ssm_parameters" {
   value       = module.ssm_parameters
 }
 
+
+#-------------------------------------------------------
+# ALB listener outputs
+#-------------------------------------------------------
+output "alb_listeners" {
+  description = "Output for ALB Listeners"
+  value       = module.alb_listeners
+}
