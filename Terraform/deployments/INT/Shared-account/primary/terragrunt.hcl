@@ -443,14 +443,13 @@ inputs = {
   ]
   secrets = [
     {
-      name              = "ansible-credentials"
-      description       = "Ansible tower credentials"
-      policy            = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      record_folder_uid = ""
-      value = jsonencode({
+      name        = "ansible-credentials"
+      description = "Ansible tower credentials"
+      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
         username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
         password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
-      })
+      }
     }
   ]
 }
