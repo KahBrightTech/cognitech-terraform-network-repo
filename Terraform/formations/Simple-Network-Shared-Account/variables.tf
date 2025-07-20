@@ -386,7 +386,7 @@ variable "ssm_parameters" {
 
 variable "alb_listeners" {
   description = "Load Balancer listener configuration"
-  type = object({
+  type = list(object({
     key               = string
     load_balancer_arn = string
     port              = number
@@ -409,5 +409,6 @@ variable "alb_listeners" {
         duration = optional(number) # Duration in seconds for lb_cookie type
       }))
     }))
-  })
+  }))
+  default = null
 }
