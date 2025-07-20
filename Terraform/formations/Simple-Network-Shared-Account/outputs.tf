@@ -66,3 +66,19 @@ output "alb_listeners" {
   description = "Output for ALB Listeners"
   value       = module.alb_listeners
 }
+
+#-------------------------------------------------------
+# NLB listener outputs
+#-------------------------------------------------------
+output "nlb_listeners" {
+  description = "Output for NLB Listeners"
+  value       = module.nlb_listeners
+}
+
+#-------------------------------------------------------
+# Target Group outputs  
+#-------------------------------------------------------
+output "target_groups" {
+  description = "Output for Target Groups"
+  value       = module.target_groups
+}

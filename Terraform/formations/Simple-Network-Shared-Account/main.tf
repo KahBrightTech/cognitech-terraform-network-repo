@@ -197,3 +197,52 @@ module "alb_listeners" {
     }
   )
 }
+
+#--------------------------------------------------------------------
+# NLB listeners
+#--------------------------------------------------------------------
+module "nlb_listeners" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.2.50"
+  for_each = (var.nlb_listeners != null) ? { for item in var.nlb_listeners : item.key => item } : {}
+  common   = var.common
+  listener = merge(
+    each.value,
+    {
+      # Resolve load balancer ARN from the load balancer key
+      load_balancer_arn = try(
+        module.load_balancers[each.value.elb_key].arn,
+        each.value.load_balancer_arn
+      )
+      vpc_id = try(
+        module.shared_vpc[each.value.vpc_name].vpc_id,
+        each.value.vpc_id
+      )
+      certificate_arn = try(
+        module.certificates[each.value.vpc_name].arn,
+        each.value.certificate_arn
+      )
+      target_group_arn = try(
+        module.target_groups[each.value.tg_key].arn,
+        each.value.target_group_arn
+      )
+    }
+  )
+}
+
+#--------------------------------------------------------------------
+# Target groups
+#--------------------------------------------------------------------
+module "target_groups" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Target-groups?ref=v1.2.50"
+  for_each = (var.target_groups != null) ? { for item in var.target_groups : item.name => item } : {}
+  common   = var.common
+  target_group = merge(
+    each.value,
+    {
+      vpc_id = try(
+        module.shared_vpc[each.value.vpc_name].vpc_id,
+        each.value.vpc_id
+      )
+    }
+  )
+}

@@ -413,3 +413,74 @@ variable "alb_listeners" {
   }))
   default = null
 }
+
+variable "nlb_listeners" {
+  description = "Network Load Balancer listener configuration"
+  type = list(object({
+    key               = string
+    load_balancer_arn = string
+    elb_key           = optional(string)
+    port              = number
+    protocol          = string
+    ssl_policy        = optional(string)
+    certificate_arn   = optional(string)
+    vpc_name          = string
+    forward = optional(object({
+      target_group_arn = string
+      tg_key           = optional(string)
+      stickiness = optional(object({
+        enabled  = bool
+        type     = string           # e.g., "lb_cookie"
+        duration = optional(number) # Duration in seconds for lb_cookie type
+      }))
+    }))
+    target_group = optional(object({
+      Key      = string
+      name     = optional(string)
+      port     = optional(number)
+      protocol = optional(string)
+      vpc_id   = optional(string)
+      attachment = optional(object({
+        target_id = optional(string)
+        port      = optional(number)
+      }))
+      health_check = optional(object({
+        enabled             = optional(bool, true)
+        protocol            = optional(string)
+        port                = optional(number)
+        path                = optional(string)
+        interval            = optional(number)
+        timeout             = optional(number)
+        healthy_threshold   = optional(number)
+        unhealthy_threshold = optional(number)
+      }))
+    }))
+  }))
+  default = null
+}
+
+variable "target_groups" {
+  description = "Target Group configuration"
+  type = list(object({
+    name     = string
+    port     = number
+    protocol = string
+    vpc_id   = string
+    vpc_name = string
+    attachment = object({
+      target_id = string
+      port      = number
+    })
+    health_check = optional(object({
+      enabled             = optional(bool, true)
+      protocol            = optional(string)
+      port                = optional(number)
+      path                = optional(string)
+      interval            = optional(number)
+      timeout             = optional(number)
+      healthy_threshold   = optional(number)
+      unhealthy_threshold = optional(number)
+    }))
+  }))
+  default = null
+}

@@ -359,6 +359,31 @@ inputs = {
       zone_name         = include.env.locals.public_domain
     }
   ]
+  secrets = [
+    {
+      name        = "ansible-credentials"
+      description = "Ansible tower credentials"
+      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
+        password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+      }
+    }
+  ]
+  ssm_parameters = [
+    {
+      name        = "/Standard/ansible/username"
+      description = "Ansible Tower Username"
+      type        = "String"
+      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
+    },
+    {
+      name        = "/Standard/ansible/password"
+      description = "Ansible Tower Password"
+      type        = "SecureString"
+      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+    }
+  ]
   backups = [
     {
       name       = "${local.aws_account_name}-${local.region_prefix}-backup-vault"
@@ -454,31 +479,34 @@ inputs = {
       }
     }
   ]
-  secrets = [
+  nlb_listeners = [
     {
-      name        = "ansible-credentials"
-      description = "Ansible tower credentials"
-      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      value = {
-        username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
-        password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+      key        = "ssrs"
+      elb_key    = "ssrs"
+      protocol   = "TLS"
+      port       = 443
+      ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
+      forward = {
+        tg_key = "ssrs"
       }
+
     }
   ]
-  ssm_parameters = [
+  target_groups = [
     {
-      name        = "/Standard/ansible/username"
-      description = "Ansible Tower Username"
-      type        = "String"
-      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
-    },
-    {
-      name        = "/Standard/ansible/password"
-      description = "Ansible Tower Password"
-      type        = "SecureString"
-      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+      key      = "ssrs"
+      name     = "ssrs"
+      protocol = "HTTPS"
+      port     = 443
+      health_check = {
+        protocol = "HTTPS"
+        port     = "443"
+        path     = "/"
+      }
+      vpc_name = local.vpc_name
     }
   ]
+
 }
 #-------------------------------------------------------
 # State Configuration
