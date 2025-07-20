@@ -448,8 +448,8 @@ inputs = {
       policy            = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       record_folder_uid = ""
       value = jsonencode({
-        username = $ { get_env("TF_VAR_ANSIBLE_TOWER_USERNAME") }
-        password = $ { get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD") }
+        username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
+        password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
       })
     }
   ]
