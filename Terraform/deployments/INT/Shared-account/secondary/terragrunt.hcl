@@ -399,7 +399,6 @@ inputs = {
       }
     }
   ]
-
   load_balancers = [
     # {
     #   key             = "${local.vpc_name}"
@@ -444,17 +443,31 @@ inputs = {
   ]
   secrets = [
     {
-      name              = "ansible-credentials"
-      description       = "Ansible tower credentials"
-      policy            = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      record_folder_uid = ""
-      value = jsonencode({
+      name        = "ansible-credentials"
+      description = "Ansible tower credentials"
+      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
         username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
         password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
-      })
+      }
+    }
+  ]
+  ssm_parameters = [
+    {
+      name        = "/${local.vpc_name}/ansible/username"
+      description = "Ansible Tower Username"
+      type        = "String"
+      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
+    },
+    {
+      name        = "/${local.vpc_name}/ansible/password"
+      description = "Ansible Tower Password"
+      type        = "SecureString"
+      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
     }
   ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------

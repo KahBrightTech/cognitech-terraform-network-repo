@@ -371,3 +371,15 @@ variable "secrets" {
   default = null
 }
 
+variable "ssm_parameters" {
+  description = "SSM Parameter variables"
+  type = list(object({
+    name        = string
+    description = string
+    type        = string
+    value       = string
+    tier        = optional(string, "Standard") # Default to Standard if not specified
+    overwrite   = optional(bool, false)        # Default to false if not specified
+  }))
+  default = null
+}

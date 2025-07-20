@@ -49,3 +49,12 @@ output "secrets" {
   description = "Output for Secrets Manager"
   value       = module.secrets
 }
+
+#-------------------------------------------------------
+# AWS Secrets Manager outputs
+#-------------------------------------------------------
+output "ssm_parameters" {
+  description = "Output for SSM Parameters"
+  value       = module.ssm_parameters
+}
+

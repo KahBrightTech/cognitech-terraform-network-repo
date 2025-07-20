@@ -452,6 +452,20 @@ inputs = {
       }
     }
   ]
+  ssm_parameters = [
+    {
+      name        = "/${local.vpc_name}/ansible/username"
+      description = "Ansible Tower Username"
+      type        = "String"
+      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
+    },
+    {
+      name        = "/${local.vpc_name}/ansible/password"
+      description = "Ansible Tower Password"
+      type        = "SecureString"
+      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+    }
+  ]
 }
 
 #-------------------------------------------------------
