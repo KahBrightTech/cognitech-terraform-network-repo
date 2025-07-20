@@ -441,6 +441,7 @@ inputs = {
       vpc_name                   = local.vpc_name
     }
   ]
+
   alb_listeners = [
     {
       key      = "etl"
