@@ -173,7 +173,7 @@ module "secrets" {
 # Creates SSM Parameters
 #--------------------------------------------------------------------
 module "ssm_parameters" {
-  source        = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/SSM-Parameter-store?ref=v1.2.43"
+  source        = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/SSM-Parameter-store?ref=v1.2.44"
   for_each      = (var.ssm_parameters != null) ? { for item in var.ssm_parameters : item.name => item } : {}
   common        = var.common
   ssm_parameter = each.value
