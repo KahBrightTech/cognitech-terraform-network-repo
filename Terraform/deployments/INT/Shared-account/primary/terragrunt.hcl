@@ -443,17 +443,14 @@ inputs = {
   ]
   alb_listeners = [
     {
-      key           = "etl"
-      load_balancer = "etl"
-      protocol      = "HTTP"
-      port          = 80
-      default_action = {
-        type = "fixed-response"
-        fixed_response = {
-          content_type = "text/plain"
-          message_body = "This is a default response from the ETL ALB listener."
-          status_code  = "200"
-        }
+      key      = "etl"
+      elb_key  = "etl"
+      protocol = "HTTP"
+      port     = 80
+      fixed_response = {
+        content_type = "text/plain"
+        message_body = "This is a default response from the ETL ALB listener."
+        status_code  = "200"
       }
     }
   ]

@@ -388,7 +388,8 @@ variable "alb_listeners" {
   description = "Load Balancer listener configuration"
   type = list(object({
     key               = string
-    load_balancer_arn = string
+    load_balancer_arn = optional(string)
+    elb_key           = optional(string)
     port              = number
     protocol          = string
     ssl_policy        = optional(string)

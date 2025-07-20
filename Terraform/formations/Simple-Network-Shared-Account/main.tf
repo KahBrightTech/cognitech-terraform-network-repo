@@ -184,7 +184,16 @@ module "ssm_parameters" {
 #--------------------------------------------------------------------
 module "alb_listeners" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers-listeners?ref=v1.2.46"
-  for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.name => item } : {}
+  for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.key => item } : {}
   common   = var.common
-  listener = each.value
+  listener = merge(
+    each.value,
+    {
+      # Resolve load balancer ARN from the load balancer key
+      load_balancer_arn = try(
+        module.load_balancers[each.value.elb_key].arn,
+        each.value.load_balancer_arn
+      )
+    }
+  )
 }
