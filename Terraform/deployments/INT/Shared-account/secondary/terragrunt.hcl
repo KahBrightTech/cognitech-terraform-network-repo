@@ -359,31 +359,99 @@ inputs = {
       zone_name         = include.env.locals.public_domain
     }
   ]
+  backups = [
+    {
+      name       = "${local.aws_account_name}-${local.region_prefix}-backup-vault"
+      kms_key_id = include.env.locals.kms_key_id
+      plan = {
+        name = "${local.aws_account_name}-${local.region_prefix}-backup-plan"
+        rules = [
+          {
+            rule_name         = "DailyBackup"
+            schedule          = "cron(0 15 ? * * *)"
+            start_window      = 60
+            completion_window = 120
+            lifecycle = {
+              delete_after_days = 30
+            }
+          },
+          {
+            rule_name         = "WeeklyBackup"
+            schedule          = "cron(0 15 ? * 1 *)"
+            start_window      = 120
+            completion_window = 360
+            lifecycle = {
+              cold_storage_after_days = 60
+              delete_after_days       = 180
+            }
+          }
+        ]
+        selection = {
+          selection_name = "${local.aws_account_name}-${local.region_prefix}-backup-selection"
+          selection_tags = [
+            {
+              type  = "STRINGEQUALS"
+              key   = "Backup"
+              value = "${local.aws_account_name}-${local.region_prefix}-continous-backup"
+            }
+          ]
+        }
+      }
+    }
+  ]
+
   load_balancers = [
+    # {
+    #   key             = "${local.vpc_name}"
+    #   name            = "${local.vpc_name}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    #   create_default_listener    = true
+    # },
+    # {
+    #   key             = "etl"
+    #   name            = "etl"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    # },
+    # {
+    #   key             = "ssrs"
+    #   name            = "ssrs"
+    #   type            = "network"
+    #   security_groups = ["nlb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    # }
+  ]
+  secrets = [
     {
-      key             = "${local.vpc_name}"
-      name            = "${local.vpc_name}"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = true
-      enable_access_logs         = true
-      vpc_name                   = local.vpc_name
-      create_default_listener    = true
-    },
-    {
-      key             = "etl"
-      name            = "etl"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = true
-      enable_access_logs         = true
-      vpc_name                   = local.vpc_name
+      name              = "ansible-credentials"
+      description       = "Ansible tower credentials"
+      policy            = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      record_folder_uid = ""
+      value = jsonencode({
+        username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
+        password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+      })
     }
   ]
 }

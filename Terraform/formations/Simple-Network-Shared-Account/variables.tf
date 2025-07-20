@@ -359,5 +359,16 @@ variable "load_balancers" {
   default = null
 }
 
-
+variable "secrets" {
+  description = "Secrets Manager variables"
+  type = list(object({
+    name                    = string
+    description             = string
+    recovery_window_in_days = optional(number)
+    policy                  = optional(string)
+    value                   = optional(map(string))
+    record_folder_uid       = optional(string)
+  }))
+  default = null
+}
 

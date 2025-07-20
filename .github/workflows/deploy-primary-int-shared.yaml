@@ -28,6 +28,8 @@ env:
   DEPLOYMENT_PATH: Terraform/deployments/INT/Shared-account/primary
 
   TF_VAR_KSM_CONFIG: ${{ secrets.TF_VAR_KSM_CONFIG }}
+  TF_VAR_ANSBILE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_USERNAME }}
+  TF_VAR_ANSBILE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_PASSWORD }}
 
 permissions:
   packages: write

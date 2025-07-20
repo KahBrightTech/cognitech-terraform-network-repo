@@ -41,3 +41,11 @@ output "backup" {
   description = "AWS Backup outputs"
   value       = module.backups
 }
+
+#-------------------------------------------------------
+# AWS Secrets Manager outputs
+#-------------------------------------------------------
+output "secrets" {
+  description = "Output for Secrets Manager"
+  value       = module.secrets
+}
