@@ -223,8 +223,11 @@ module "nlb_listeners" {
       )
       # Set target_group_arn from forward configuration or direct target group
       target_group_arn = try(
-        module.target_groups[each.value.forward.tg_key].arn,
-        each.value.forward.target_group_arn,
+        each.value.forward != null ? module.target_groups[each.value.forward.tg_key].arn : null,
+        each.value.forward != null ? each.value.forward.target_group_arn : null,
+        each.value.target_group != null ? module.target_groups[each.value.target_group.key].arn : null,
+        each.value.target_group_arn,
+        null
       )
     }
   )
