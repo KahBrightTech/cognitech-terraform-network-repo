@@ -214,16 +214,18 @@ module "nlb_listeners" {
         each.value.load_balancer_arn
       )
       vpc_id = try(
-        module.shared_vpc[each.value.target_group.vpc_name].vpc_id,
-        each.value.target_group.vpc_id
+        each.value.target_group != null ? module.shared_vpc[each.value.target_group.vpc_name].vpc_id : null,
+        each.value.target_group != null ? each.value.target_group.vpc_id : null,
+        each.value.vpc_id
       )
       certificate_arn = try(
         module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       )
       target_group_arn = try(
-        module.target_groups[each.value.target_group.key].arn,
-        each.value.forward.target_group_arn
+        each.value.target_group != null ? module.target_groups[each.value.target_group.key].arn : null,
+        each.value.forward != null ? each.value.forward.target_group_arn : null,
+        each.value.target_group_arn
       )
     }
   )
