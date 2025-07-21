@@ -489,7 +489,6 @@ inputs = {
       forward = {
         tg_key = "ssrs"
       }
-
     }
   ]
   target_groups = [
