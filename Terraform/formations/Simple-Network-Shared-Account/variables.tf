@@ -418,13 +418,12 @@ variable "nlb_listeners" {
   description = "Network Load Balancer listener configuration"
   type = list(object({
     key               = string
-    load_balancer_arn = string
+    load_balancer_arn = optional(string)
     elb_key           = optional(string)
     port              = number
     protocol          = string
     ssl_policy        = optional(string)
     certificate_arn   = optional(string)
-    vpc_name          = string
     forward = optional(object({
       target_group_arn = string
       tg_key           = optional(string)
@@ -440,6 +439,7 @@ variable "nlb_listeners" {
       port     = optional(number)
       protocol = optional(string)
       vpc_id   = optional(string)
+      vpc_name = optional(string)
       attachment = optional(object({
         target_id = optional(string)
         port      = optional(number)
