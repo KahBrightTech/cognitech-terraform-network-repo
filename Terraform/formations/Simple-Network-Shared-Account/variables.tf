@@ -467,6 +467,7 @@ variable "nlb_listeners" {
 variable "target_groups" {
   description = "Target Group configuration"
   type = list(object({
+    key      = optional(string)
     name     = string
     port     = number
     protocol = string
