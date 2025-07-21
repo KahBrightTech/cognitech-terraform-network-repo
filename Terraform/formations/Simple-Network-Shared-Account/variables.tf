@@ -465,12 +465,12 @@ variable "target_groups" {
     name     = string
     port     = number
     protocol = string
-    vpc_id   = string
-    vpc_name = string
-    attachment = object({
+    vpc_id   = optional(string)
+    vpc_name = optional(string)
+    attachment = optional(object({
       target_id = string
       port      = number
-    })
+    }))
     health_check = optional(object({
       enabled             = optional(bool, true)
       protocol            = optional(string)
