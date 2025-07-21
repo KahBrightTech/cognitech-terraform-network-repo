@@ -425,86 +425,85 @@ inputs = {
     }
   ]
   load_balancers = [
-    {
-      key             = "${local.vpc_name}"
-      name            = "${local.vpc_name}"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = true
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-      vpc_name                   = local.vpc_name
-      create_default_listener    = true
-    },
-    {
-      key             = "etl"
-      name            = "etl"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = true
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-      vpc_name                   = local.vpc_name
-    },
-    {
-      key             = "ssrs"
-      name            = "ssrs"
-      type            = "network"
-      security_groups = ["nlb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = true
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-      vpc_name                   = local.vpc_name
-    }
+    # {
+    #   key             = "${local.vpc_name}"
+    #   name            = "${local.vpc_name}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    #   create_default_listener    = true
+    # },
+    # {
+    #   key             = "etl"
+    #   name            = "etl"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    # },
+    # {
+    #   key             = "ssrs"
+    #   name            = "ssrs"
+    #   type            = "network"
+    #   security_groups = ["nlb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    # }
   ]
   alb_listeners = [
-    {
-      key      = "etl"
-      elb_key  = "etl"
-      protocol = "HTTP"
-      port     = 80
-      fixed_response = {
-        content_type = "text/plain"
-        message_body = "This is a default response from the ETL ALB listener."
-        status_code  = "200"
-      }
-    }
+    # {
+    #   key      = "etl"
+    #   elb_key  = "etl"
+    #   protocol = "HTTP"
+    #   port     = 80
+    #   fixed_response = {
+    #     content_type = "text/plain"
+    #     message_body = "This is a default response from the ETL ALB listener."
+    #     status_code  = "200"
+    #   }
+    # }
   ]
   nlb_listeners = [
-    {
-      key        = "ssrs"
-      elb_key    = "ssrs"
-      protocol   = "TLS"
-      port       = 443
-      ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
-      forward = {
-        default_action = "forward"
-        tg_key         = "ssrs"
-      }
-    }
+    # {
+    #   key        = "ssrs"
+    #   elb_key    = "ssrs"
+    #   protocol   = "TLS"
+    #   port       = 443
+    #   ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
+    #   forward = {
+    #     tg_key = "ssrs"
+    #   }
+    # }
   ]
   target_groups = [
-    {
-      key      = "ssrs"
-      name     = "ssrs"
-      protocol = "HTTPS"
-      port     = 443
-      health_check = {
-        protocol = "HTTPS"
-        port     = "443"
-        path     = "/"
-      }
-      vpc_name = local.vpc_name
-    }
+    # {
+    #   key      = "ssrs"
+    #   name     = "ssrs"
+    #   protocol = "HTTPS"
+    #   port     = 443
+    #   health_check = {
+    #     protocol = "HTTPS"
+    #     port     = "443"
+    #     path     = "/"
+    #   }
+    #   vpc_name = local.vpc_name
+    # }
   ]
 }
 
