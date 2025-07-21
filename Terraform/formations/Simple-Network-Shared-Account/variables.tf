@@ -440,6 +440,7 @@ variable "nlb_listeners" {
       port     = optional(number)
       protocol = optional(string)
       vpc_id   = optional(string)
+      vpc_name = optional(string)
       attachment = optional(object({
         target_id = optional(string)
         port      = optional(number)

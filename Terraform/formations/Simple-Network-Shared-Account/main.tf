@@ -215,7 +215,7 @@ module "nlb_listeners" {
       )
       vpc_id = try(
         module.shared_vpc[each.value.target_group.vpc_name].vpc_id,
-        each.value.vpc_id
+        each.value.target_group.vpc_id
       )
       certificate_arn = try(
         module.certificates[each.value.vpc_name].arn,
@@ -223,7 +223,7 @@ module "nlb_listeners" {
       )
       target_group_arn = try(
         module.target_groups[each.value.target_group.key].arn,
-        each.value.target_group_arn
+        each.value.forward.target_group_arn
       )
     }
   )
