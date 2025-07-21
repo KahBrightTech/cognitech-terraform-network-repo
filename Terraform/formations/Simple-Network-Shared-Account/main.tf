@@ -229,8 +229,8 @@ module "nlb_listeners" {
         each.value.forward,
         {
           target_group_arn = try(
-            module.target_groups[each.value.forward.tg_key].arn,
-            each.value.forward.target_group_arn
+            each.value.forward.target_group_arn,
+            each.value.forward.tg_key != null ? module.target_groups[each.value.forward.tg_key].arn : null
           )
         }
       )
