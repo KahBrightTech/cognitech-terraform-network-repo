@@ -425,7 +425,7 @@ variable "nlb_listeners" {
     ssl_policy        = optional(string)
     certificate_arn   = optional(string)
     forward = optional(object({
-      target_group_arn = string
+      target_group_arn = optional(string)
       tg_key           = optional(string)
       stickiness = optional(object({
         enabled  = bool
@@ -454,6 +454,11 @@ variable "nlb_listeners" {
         healthy_threshold   = optional(number)
         unhealthy_threshold = optional(number)
       }))
+      stickiness = optional(object({
+        enabled  = optional(bool, false)
+        type     = optional(string)
+        duration = optional(number)
+      }))
     }))
   }))
   default = null
@@ -480,6 +485,11 @@ variable "target_groups" {
       timeout             = optional(number)
       healthy_threshold   = optional(number)
       unhealthy_threshold = optional(number)
+    }))
+    stickiness = optional(object({
+      enabled  = optional(bool, false)
+      type     = optional(string)
+      duration = optional(number)
     }))
   }))
   default = null
