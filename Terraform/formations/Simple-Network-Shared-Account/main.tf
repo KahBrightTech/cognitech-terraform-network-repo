@@ -235,6 +235,13 @@ module "nlb_listeners" {
         }
       )
     } : {},
+    # Only add target_group_arn if target_group is not null
+    each.value.target_group != null ? {
+      target_group_arn = try(
+        module.target_groups[each.value.target_group.key].arn,
+        each.value.target_group_arn
+      )
+    } : {}
   )
 }
 
@@ -243,7 +250,7 @@ module "nlb_listeners" {
 #--------------------------------------------------------------------
 module "target_groups" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Target-groups?ref=v1.2.60"
-  for_each = (var.target_groups != null) ? { for item in var.target_groups : item.name => item } : {}
+  for_each = (var.target_groups != null) ? { for item in var.target_groups : item.key => item } : {}
   common   = var.common
   target_group = merge(
     each.value,
