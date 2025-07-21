@@ -425,9 +425,9 @@ variable "nlb_listeners" {
     ssl_policy        = optional(string)
     certificate_arn   = optional(string)
     vpc_name          = optional(string)
+    tg_key            = optional(string)
     forward = optional(object({
       target_group_arn = optional(string)
-      tg_key           = optional(string)
       stickiness = optional(object({
         enabled  = bool
         type     = string           # e.g., "lb_cookie"
