@@ -505,7 +505,6 @@ inputs = {
       vpc_name = local.vpc_name
     }
   ]
-
 }
 #-------------------------------------------------------
 # State Configuration
