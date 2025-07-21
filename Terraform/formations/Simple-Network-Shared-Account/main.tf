@@ -202,7 +202,7 @@ module "alb_listeners" {
 # NLB listeners
 #--------------------------------------------------------------------
 module "nlb_listeners" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.2.60"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.2.61"
   for_each = (var.nlb_listeners != null) ? { for item in var.nlb_listeners : item.key => item } : {}
   common   = var.common
   nlb_listener = merge(
@@ -214,8 +214,7 @@ module "nlb_listeners" {
         each.value.load_balancer_arn
       )
       vpc_id = try(
-        each.value.target_group != null ? module.shared_vpc[each.value.target_group.vpc_name].vpc_id : null,
-        each.value.target_group != null ? each.value.target_group.vpc_id : null,
+        module.shared_vpc[each.value.vpc_name].vpc_id,
         each.value.vpc_id
       )
       certificate_arn = try(
@@ -224,11 +223,8 @@ module "nlb_listeners" {
       )
       # Set target_group_arn from forward configuration or direct target group
       target_group_arn = try(
-        each.value.forward != null && each.value.forward.tg_key != null ? module.target_groups[each.value.forward.tg_key].arn : null,
-        each.value.target_group != null ? module.target_groups[each.value.target_group.key].arn : null,
-        each.value.forward != null ? each.value.forward.target_group_arn : null,
-        each.value.target_group_arn,
-        null
+        module.target_groups[each.value.forward.tg_key].arn,
+        each.value.forward.target_group_arn,
       )
     }
   )
@@ -238,7 +234,7 @@ module "nlb_listeners" {
 # Target groups
 #--------------------------------------------------------------------
 module "target_groups" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Target-groups?ref=v1.2.60"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Target-groups?ref=v1.2.61"
   for_each = (var.target_groups != null) ? { for item in var.target_groups : item.key => item } : {}
   common   = var.common
   target_group = merge(
