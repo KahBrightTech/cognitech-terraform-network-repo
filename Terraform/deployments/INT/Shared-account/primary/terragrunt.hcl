@@ -487,7 +487,8 @@ inputs = {
       port       = 443
       ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
       forward = {
-        tg_key = "ssrs"
+        default_action = "forward"
+        tg_key         = "ssrs"
       }
     }
   ]
