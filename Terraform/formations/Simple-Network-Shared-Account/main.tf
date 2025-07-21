@@ -222,26 +222,15 @@ module "nlb_listeners" {
         module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       )
-    },
-    # Handle forward configuration with target group reference
-    each.value.forward != null && each.value.forward.tg_key != null ? {
-      forward = merge(
-        each.value.forward,
-        {
-          target_group_arn = try(
-            each.value.forward.target_group_arn,
-            each.value.forward.tg_key != null ? module.target_groups[each.value.forward.tg_key].arn : null
-          )
-        }
-      )
-    } : {},
-    # Only add target_group_arn if target_group is not null
-    each.value.target_group != null ? {
+      # Set target_group_arn from forward configuration or direct target group
       target_group_arn = try(
-        module.target_groups[each.value.target_group.key].arn,
-        each.value.target_group_arn
+        each.value.forward != null && each.value.forward.tg_key != null ? module.target_groups[each.value.forward.tg_key].arn : null,
+        each.value.target_group != null ? module.target_groups[each.value.target_group.key].arn : null,
+        each.value.forward != null ? each.value.forward.target_group_arn : null,
+        each.value.target_group_arn,
+        null
       )
-    } : {}
+    }
   )
 }
 
