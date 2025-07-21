@@ -420,6 +420,7 @@ variable "nlb_listeners" {
     key               = string
     load_balancer_arn = optional(string)
     elb_key           = optional(string)
+    tg_key            = optional(string)
     port              = number
     protocol          = string
     ssl_policy        = optional(string)
