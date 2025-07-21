@@ -420,11 +420,11 @@ variable "nlb_listeners" {
     key               = string
     load_balancer_arn = optional(string)
     elb_key           = optional(string)
-    tg_key            = optional(string)
     port              = number
     protocol          = string
     ssl_policy        = optional(string)
     certificate_arn   = optional(string)
+    vpc_name          = optional(string)
     forward = optional(object({
       target_group_arn = optional(string)
       tg_key           = optional(string)
@@ -440,7 +440,6 @@ variable "nlb_listeners" {
       port     = optional(number)
       protocol = optional(string)
       vpc_id   = optional(string)
-      vpc_name = optional(string)
       attachment = optional(object({
         target_id = optional(string)
         port      = optional(number)

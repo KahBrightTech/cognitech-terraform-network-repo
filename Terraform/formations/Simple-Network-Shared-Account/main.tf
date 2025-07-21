@@ -214,7 +214,7 @@ module "nlb_listeners" {
         each.value.load_balancer_arn
       )
       vpc_id = try(
-        module.shared_vpc[each.value.vpc_name].vpc_id,
+        module.shared_vpc[each.value.target_group.vpc_name].vpc_id,
         each.value.vpc_id
       )
       certificate_arn = try(
@@ -222,7 +222,7 @@ module "nlb_listeners" {
         each.value.certificate_arn
       )
       target_group_arn = try(
-        module.target_groups[each.value.tg_key].arn,
+        module.target_groups[each.value.target_group.key].arn,
         each.value.target_group_arn
       )
     }
