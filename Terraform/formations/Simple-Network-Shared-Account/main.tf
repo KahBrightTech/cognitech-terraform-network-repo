@@ -194,20 +194,21 @@ module "target_groups" {
 #--------------------------------------------------------------------
 module "alb_listeners" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.2.69"
-  for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.key => item } : {}
+  for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.name => item } : {}
   common   = var.common
   alb_listener = merge(
     each.value,
     {
       # Resolve load balancer ARN from the load balancer key
       alb_arn = try(
-        module.load_balancers[each.value.elb_key].arn,
-        each.value.load_balancer_arn
+        module.load_balancers[each.value.alb_key].arn,
+        each.value.alb_arn
       )
-      certificate_arn = each.value.protocol == "HTTPS" ? try(module.certificates[each.value.vpc_name].arn,
+      certificate_arn = each.value.protocol == "HTTPS" ? try(
+        module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = module.shared_vpc[each.value.vpc_name].vpc_id
+      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
     }
   )
 }
@@ -226,10 +227,11 @@ module "nlb_listeners" {
         module.load_balancers[each.value.nlb_key].arn,
         each.value.nlb_arn
       )
-      certificate_arn = each.value.protocol == "TLS" ? try(module.certificates[each.value.vpc_name].arn,
+      certificate_arn = each.value.protocol == "TLS" ? try(
+        module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = module.shared_vpc[each.value.vpc_name].vpc_id
+      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
     }
   )
 }
