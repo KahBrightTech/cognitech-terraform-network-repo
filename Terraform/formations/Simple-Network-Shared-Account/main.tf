@@ -204,7 +204,7 @@ module "alb_listeners" {
         module.load_balancers[each.value.elb_key].arn,
         each.value.load_balancer_arn
       )
-      certificate_arn = var.alb_listeners.protocol == "HTTPS" ? try(module.certificates[each.value.vpc_name].arn,
+      certificate_arn = each.value.protocol == "HTTPS" ? try(module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
       vpc_id = module.shared_vpc[each.value.vpc_name].vpc_id
@@ -226,7 +226,7 @@ module "nlb_listeners" {
         module.load_balancers[each.value.nlb_key].arn,
         each.value.nlb_arn
       )
-      certificate_arn = var.nlb_listeners.protocol == "TLS" ? try(module.certificates[each.value.vpc_name].arn,
+      certificate_arn = each.value.protocol == "TLS" ? try(module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
       vpc_id = module.shared_vpc[each.value.vpc_name].vpc_id
