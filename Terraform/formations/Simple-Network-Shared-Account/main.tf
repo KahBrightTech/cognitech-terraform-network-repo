@@ -224,7 +224,7 @@ module "alb_listeners" {
 #--------------------------------------------------------------------
 module "nlb_listeners" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.2.77"
-  for_each = (var.nlb_listeners != null) ? { for item in var.nlb_listeners : item.key => item } : {}
+  for_each = (var.nlb_listeners != null) ? { for item in var.nlb_listeners : item.key => item if item.action != "forward" || item.target_group != null } : {}
   common   = var.common
   nlb_listener = merge(
     each.value,
