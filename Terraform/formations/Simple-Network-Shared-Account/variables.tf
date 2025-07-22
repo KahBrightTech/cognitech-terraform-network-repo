@@ -387,6 +387,7 @@ variable "ssm_parameters" {
 variable "alb_listeners" {
   description = "Load Balancer listener configuration"
   type = list(object({
+    key              = optional(string)
     alb_arn          = optional(string)
     alb_key          = optional(string)
     action           = optional(string, "forward")
