@@ -408,16 +408,16 @@ variable "alb_listeners" {
       certificate_arn = string
     })))
     target_group = optional(object({
-      name     = string
-      port     = number
-      protocol = string
-      attachment = optional(list(object({
-        target_id = string
-        port      = number
+      name     = optional(string)
+      port     = optional(number)
+      protocol = optional(string)
+      attachments = optional(list(object({
+        target_id = optional(string)
+        port      = optional(number)
       })))
       stickiness = optional(object({
-        enabled         = bool
-        type            = string
+        enabled         = optional(bool)
+        type            = optional(string)
         cookie_duration = optional(number)
         cookie_name     = optional(string)
       }))
@@ -447,13 +447,13 @@ variable "nlb_listeners" {
     vpc_id          = optional(string)
     vpc_name        = optional(string)
     sni_certificates = optional(list(object({
-      domain_name     = string
-      certificate_arn = string
+      domain_name     = optional(string)
+      certificate_arn = optional(string)
     })))
     target_group = optional(object({
-      name     = string
-      port     = number
-      protocol = string
+      name     = optional(string)
+      port     = optional(number)
+      protocol = optional(string)
       attachments = optional(object({
         target_id      = optional(string)
         port           = optional(number)
@@ -461,8 +461,8 @@ variable "nlb_listeners" {
         use_private_ip = optional(bool, false) # If true, use private IP of the EC2 instance
       }))
       stickiness = optional(object({
-        enabled         = bool
-        type            = string
+        enabled         = optional(bool)
+        type            = optional(string)
         cookie_duration = optional(number)
         cookie_name     = optional(string)
       }))
