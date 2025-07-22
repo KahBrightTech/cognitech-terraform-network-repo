@@ -501,7 +501,6 @@ inputs = {
           vpc_name = local.vpc_name
         }
       ]
-
     }
   ]
   target_groups = [
