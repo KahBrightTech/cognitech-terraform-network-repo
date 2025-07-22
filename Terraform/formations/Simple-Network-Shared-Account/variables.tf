@@ -410,10 +410,10 @@ variable "alb_listeners" {
       name     = string
       port     = number
       protocol = string
-      attachment = optional(object({
+      attachment = optional(list(object({
         target_id = string
         port      = number
-      }))
+      })))
       stickiness = optional(object({
         enabled         = bool
         type            = string
