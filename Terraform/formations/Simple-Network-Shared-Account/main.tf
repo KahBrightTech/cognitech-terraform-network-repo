@@ -196,7 +196,7 @@ module "alb_listeners" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.2.69"
   for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.key => item } : {}
   common   = var.common
-  listener = merge(
+  alb_listener = merge(
     each.value,
     {
       # Resolve load balancer ARN from the load balancer key
