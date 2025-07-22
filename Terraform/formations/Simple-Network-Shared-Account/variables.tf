@@ -387,7 +387,7 @@ variable "ssm_parameters" {
 variable "alb_listeners" {
   description = "Load Balancer listener configuration"
   type = list(object({
-    alb_arn          = string
+    alb_arn          = optional(string)
     alb_key          = optional(string)
     action           = optional(string, "forward")
     port             = number
@@ -395,7 +395,7 @@ variable "alb_listeners" {
     ssl_policy       = optional(string)
     certificate_arn  = optional(string)
     alt_alb_hostname = optional(string)
-    vpc_id           = string
+    vpc_id           = optional(string)
     vpc_name         = optional(string)
     fixed_response = optional(object({
       content_type = optional(string, "text/plain")
@@ -437,13 +437,13 @@ variable "nlb_listeners" {
     key             = optional(string)
     name            = optional(string)
     nlb_key         = optional(string)
-    nlb_arn         = string
+    nlb_arn         = optional(string)
     action          = optional(string, "forward")
     port            = number
     protocol        = string
     ssl_policy      = optional(string)
     certificate_arn = optional(string)
-    vpc_id          = string
+    vpc_id          = optional(string)
     vpc_name        = optional(string)
     sni_certificates = optional(list(object({
       domain_name     = string
