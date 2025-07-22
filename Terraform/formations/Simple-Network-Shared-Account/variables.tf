@@ -387,28 +387,45 @@ variable "ssm_parameters" {
 variable "alb_listeners" {
   description = "Load Balancer listener configuration"
   type = list(object({
-    key               = string
-    load_balancer_arn = optional(string)
-    elb_key           = optional(string)
-    port              = number
-    protocol          = string
-    ssl_policy        = optional(string)
-    certificate_arn   = optional(string)
-
-    # Default action configuration - either fixed_response OR forward, not both
+    alb_arn          = string
+    alb_key          = optional(string)
+    action           = optional(string, "forward")
+    port             = number
+    protocol         = string
+    ssl_policy       = optional(string)
+    certificate_arn  = optional(string)
+    alt_alb_hostname = optional(string)
+    vpc_id           = string
+    vpc_name         = optional(string)
     fixed_response = optional(object({
       content_type = optional(string, "text/plain")
       message_body = optional(string, "Oops! The page you are looking for does not exist.")
       status_code  = optional(string, "200")
     }))
-
-    forward = optional(object({
-      target_group_arn = string
-      stickiness = optional(object({
-        enabled  = bool
-        type     = string           # e.g., "lb_cookie"
-        duration = optional(number) # Duration in seconds for lb_cookie type
+    sni_certificates = optional(list(object({
+      domain_name     = string
+      certificate_arn = string
+    })))
+    target_group = optional(object({
+      name     = string
+      port     = number
+      protocol = string
+      attachment = optional(object({
+        target_id = string
+        port      = number
       }))
+      stickiness = optional(object({
+        enabled         = bool
+        type            = string
+        cookie_duration = optional(number)
+        cookie_name     = optional(string)
+      }))
+      health_check = object({
+        protocol = optional(string)
+        port     = optional(number)
+        path     = optional(string)
+        matcher  = optional(string)
+      })
     }))
   }))
   default = null
@@ -417,50 +434,44 @@ variable "alb_listeners" {
 variable "nlb_listeners" {
   description = "Network Load Balancer listener configuration"
   type = list(object({
-    key               = string
-    load_balancer_arn = optional(string)
-    elb_key           = optional(string)
-    port              = number
-    protocol          = string
-    ssl_policy        = optional(string)
-    certificate_arn   = optional(string)
-    vpc_name          = optional(string)
-    vpc_id            = optional(string)
-    forward = optional(object({
-      target_group_arn = optional(string)
-      tg_key           = optional(string)
-      stickiness = optional(object({
-        enabled  = bool
-        type     = string           # e.g., "lb_cookie"
-        duration = optional(number) # Duration in seconds for lb_cookie type
-      }))
-    }))
+    key             = optional(string)
+    name            = optional(string)
+    nlb_key         = optional(string)
+    nlb_arn         = string
+    action          = optional(string, "forward")
+    port            = number
+    protocol        = string
+    ssl_policy      = optional(string)
+    certificate_arn = optional(string)
+    vpc_id          = string
+    vpc_name        = optional(string)
+    sni_certificates = optional(list(object({
+      domain_name     = string
+      certificate_arn = string
+    })))
     target_group = optional(object({
-      Key      = string
-      name     = optional(string)
-      port     = optional(number)
-      protocol = optional(string)
-      vpc_id   = optional(string)
-      vpc_name = optional(string)
-      attachment = optional(object({
-        target_id = optional(string)
-        port      = optional(number)
-      }))
-      health_check = optional(object({
-        enabled             = optional(bool, true)
-        protocol            = optional(string)
-        port                = optional(number)
-        path                = optional(string)
-        interval            = optional(number)
-        timeout             = optional(number)
-        healthy_threshold   = optional(number)
-        unhealthy_threshold = optional(number)
+      name     = string
+      port     = number
+      protocol = string
+      attachments = optional(object({
+        target_id      = optional(string)
+        port           = optional(number)
+        ec2_key        = optional(string)
+        use_private_ip = optional(bool, false) # If true, use private IP of the EC2 instance
       }))
       stickiness = optional(object({
-        enabled  = optional(bool, false)
-        type     = optional(string)
-        duration = optional(number)
+        enabled         = bool
+        type            = string
+        cookie_duration = optional(number)
+        cookie_name     = optional(string)
       }))
+      health_check = object({
+        enabled  = optional(bool, true)
+        protocol = optional(string)
+        port     = optional(number)
+        path     = optional(string)
+        matcher  = optional(string, "200")
+      })
     }))
   }))
   default = null
@@ -469,31 +480,30 @@ variable "nlb_listeners" {
 variable "target_groups" {
   description = "Target Group configuration"
   type = list(object({
-    key      = optional(string)
-    name     = string
-    port     = number
-    protocol = string
-    vpc_id   = optional(string)
-    vpc_name = optional(string)
-    attachment = optional(object({
+    key                = optional(string)
+    name               = string
+    port               = number
+    protocol           = string
+    preserve_client_ip = optional(bool)
+    target_type        = optional(string, "instance")
+    tags               = optional(map(string))
+    vpc_id             = string
+    attachments = optional(list(object({
       target_id = string
       port      = number
-    }))
-    health_check = optional(object({
-      enabled             = optional(bool, true)
-      protocol            = optional(string)
-      port                = optional(number)
-      path                = optional(string)
-      interval            = optional(number)
-      timeout             = optional(number)
-      healthy_threshold   = optional(number)
-      unhealthy_threshold = optional(number)
-    }))
+    })))
     stickiness = optional(object({
-      enabled  = optional(bool, false)
-      type     = optional(string)
-      duration = optional(number)
+      enabled         = bool
+      type            = string
+      cookie_duration = optional(number)
+      cookie_name     = optional(string)
     }))
+    health_check = object({
+      protocol = optional(string)
+      port     = optional(number)
+      path     = optional(string)
+      matcher  = optional(string)
+    })
   }))
   default = null
 }
