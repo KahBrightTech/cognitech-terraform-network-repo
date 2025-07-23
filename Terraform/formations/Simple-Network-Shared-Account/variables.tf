@@ -454,12 +454,12 @@ variable "nlb_listeners" {
       name     = optional(string)
       port     = optional(number)
       protocol = optional(string)
-      attachments = optional(object({
+      attachments = optional(list(object({
         target_id      = optional(string)
         port           = optional(number)
         ec2_key        = optional(string)
         use_private_ip = optional(bool, false) # If true, use private IP of the EC2 instance
-      }))
+      })))
       stickiness = optional(object({
         enabled         = optional(bool)
         type            = optional(string)
@@ -490,8 +490,8 @@ variable "target_groups" {
     tags               = optional(map(string))
     vpc_id             = string
     attachments = optional(list(object({
-      target_id = string
-      port      = number
+      target_id = optional(string)
+      port      = optional(number)
     })))
     stickiness = optional(object({
       enabled         = bool
