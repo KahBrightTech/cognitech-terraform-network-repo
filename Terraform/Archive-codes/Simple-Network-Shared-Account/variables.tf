@@ -89,7 +89,6 @@ variable "vpcs" {
       })))
     })))
     s3 = optional(object({
-      key                      = string
       name                     = string
       description              = string
       name_override            = optional(string)
@@ -97,6 +96,17 @@ variable "vpcs" {
       enable_versioning        = optional(bool, true)
       data_transfer_policy     = optional(string)
       override_policy_document = optional(string)
+      encryption = optional(object({
+        enabled            = optional(bool, true)
+        sse_algorithm      = optional(string, "AES256")
+        kms_master_key_id  = optional(string, null)
+        bucket_key_enabled = optional(bool, false)
+        }), {
+        enabled            = true
+        sse_algorithm      = "AES256"
+        kms_master_key_id  = null
+        bucket_key_enabled = false
+      })
       lifecycle = optional(object({
         standard_expiration_days          = number
         infrequent_access_expiration_days = number
@@ -128,7 +138,6 @@ variable "vpcs" {
 variable "s3_private_buckets" {
   description = "S3 bucket variables"
   type = list(object({
-    key                      = string
     name                     = string
     description              = string
     name_override            = optional(string)
@@ -136,7 +145,18 @@ variable "s3_private_buckets" {
     enable_versioning        = optional(bool, true)
     enable_bucket_policy     = optional(bool, true)
     override_policy_document = optional(string)
-    iam_role_arn_pattern     = optional(map(string), null)
+    encryption = optional(object({
+      enabled            = optional(bool, true)
+      sse_algorithm      = optional(string, "AES256")
+      kms_master_key_id  = optional(string, null)
+      bucket_key_enabled = optional(bool, false)
+      }), {
+      enabled            = true
+      sse_algorithm      = "AES256"
+      kms_master_key_id  = null
+      bucket_key_enabled = false
+    })
+    iam_role_arn_pattern = optional(map(string), null)
     lifecycle = optional(object({
       standard_expiration_days          = number
       infrequent_access_expiration_days = number
@@ -152,6 +172,35 @@ variable "s3_private_buckets" {
     objects = optional(list(object({
       key = string
     })))
+    replication = optional(object({
+      role_arn = string
+      rules = list(object({
+        status                    = string
+        delete_marker_replication = optional(bool, false)
+        prefix                    = optional(string, "")
+        filter = optional(object({
+          prefix = string
+        }))
+        destination = object({
+          bucket_arn    = string
+          storage_class = optional(string, "STANDARD")
+          access_control_translation = optional(object({
+            owner = string
+          }))
+          account_id = optional(number)
+          encryption_configuration = optional(object({
+            replica_kms_key_id = string
+          }))
+          replication_time = optional(object({
+            minutes = optional(number, 15)
+          }))
+          replica_modification = optional(object({
+            enabled                         = optional(bool, false)
+            metrics_event_threshold_minutes = optional(number, 15)
+          }))
+        })
+      }))
+    }))
   }))
   default = null
 }
@@ -231,6 +280,48 @@ variable "vpc_id" {
   default     = null
 }
 
+variable "certificates" {
+  description = "ACM Certificate configuration"
+  type = list(object({
+    name              = string
+    domain_name       = string
+    validation_method = string # "DNS" or "EMAIL"
+    zone_name         = string # Route53 zone name for DNS validation
+  }))
+  default = null
+}
+
+variable "backups" {
+  description = "Backup configuration"
+  type = list(object({
+    name       = string
+    kms_key_id = optional(string)
+    role_name  = optional(string)
+    plan = object({
+      name = string
+      rules = list(object({
+        rule_name         = string
+        schedule          = string
+        start_window      = optional(number)
+        completion_window = optional(number)
+        lifecycle = optional(object({
+          cold_storage_after_days = optional(number)
+          delete_after_days       = optional(number)
+        }))
+      }))
+      selection = optional(object({
+        selection_name = string
+        selection_tags = optional(list(object({
+          type  = string
+          key   = string
+          value = string
+        })), [])
+        resources = optional(list(string))
+      }))
+    })
+  }))
+  default = null
+}
 variable "load_balancers" {
   description = "Load Balancer configuration"
   type = list(object({
@@ -243,7 +334,8 @@ variable "load_balancers" {
     use_private_subnets = optional(bool, false)
     subnets             = optional(list(string))
     subnet_mappings = optional(list(object({
-      subnet_id            = string
+      subnet_key           = string
+      az_subnet_selector   = string
       private_ipv4_address = optional(string)
     })))
     enable_deletion_protection = optional(bool, false)
@@ -252,17 +344,167 @@ variable "load_balancers" {
     access_logs_prefix         = optional(string)
     create_default_listener    = optional(bool, false)
     default_listener = optional(object({
-      port     = optional(string)
-      protocol = optional(string)
-      fixed_response = optional(object({
+      port            = optional(number, "443")
+      protocol        = optional(string, "HTTPS")
+      action_type     = optional(string, "fixed-response")
+      ssl_policy      = optional(string, "ELBSecurityPolicy-2016-08")
+      certificate_arn = optional(string)
+      fixed_response = object({
         content_type = optional(string, "text/plain")
         message_body = optional(string, "Oops! The page you are looking for does not exist.")
         status_code  = optional(string, "200")
-      }))
+      })
     }))
   }))
   default = null
 }
 
+variable "secrets" {
+  description = "Secrets Manager variables"
+  type = list(object({
+    name                    = string
+    description             = string
+    recovery_window_in_days = optional(number)
+    policy                  = optional(string)
+    value                   = optional(map(string))
+  }))
+  default = null
+}
 
+variable "ssm_parameters" {
+  description = "SSM Parameter variables"
+  type = list(object({
+    name        = string
+    description = string
+    type        = string
+    value       = string
+    tier        = optional(string, "Standard") # Default to Standard if not specified
+    overwrite   = optional(bool, false)        # Default to false if not specified
+  }))
+  default = null
+}
 
+variable "alb_listeners" {
+  description = "Load Balancer listener configuration"
+  type = list(object({
+    key              = optional(string)
+    alb_arn          = optional(string)
+    alb_key          = optional(string)
+    action           = optional(string, "forward")
+    port             = number
+    protocol         = string
+    ssl_policy       = optional(string)
+    certificate_arn  = optional(string)
+    alt_alb_hostname = optional(string)
+    vpc_id           = optional(string)
+    vpc_name         = optional(string)
+    fixed_response = optional(object({
+      content_type = optional(string, "text/plain")
+      message_body = optional(string, "Oops! The page you are looking for does not exist.")
+      status_code  = optional(string, "200")
+    }))
+    sni_certificates = optional(list(object({
+      domain_name     = string
+      certificate_arn = string
+    })))
+    target_group = optional(object({
+      name     = optional(string)
+      port     = optional(number)
+      protocol = optional(string)
+      attachments = optional(list(object({
+        target_id = optional(string)
+        port      = optional(number)
+      })))
+      stickiness = optional(object({
+        enabled         = optional(bool)
+        type            = optional(string)
+        cookie_duration = optional(number)
+        cookie_name     = optional(string)
+      }))
+      health_check = object({
+        protocol = optional(string)
+        port     = optional(number)
+        path     = optional(string)
+        matcher  = optional(string)
+      })
+    }))
+  }))
+  default = null
+}
+
+variable "nlb_listeners" {
+  description = "Network Load Balancer listener configuration"
+  type = list(object({
+    key             = optional(string)
+    name            = optional(string)
+    nlb_key         = optional(string)
+    nlb_arn         = optional(string)
+    action          = optional(string, "forward")
+    port            = number
+    protocol        = string
+    ssl_policy      = optional(string)
+    certificate_arn = optional(string)
+    vpc_id          = optional(string)
+    vpc_name        = optional(string)
+    sni_certificates = optional(list(object({
+      domain_name     = optional(string)
+      certificate_arn = optional(string)
+    })))
+    target_group = optional(object({
+      name     = optional(string)
+      port     = optional(number)
+      protocol = optional(string)
+      attachments = optional(object({
+        target_id      = optional(string)
+        port           = optional(number)
+        ec2_key        = optional(string)
+        use_private_ip = optional(bool, false) # If true, use private IP of the EC2 instance
+      }))
+      stickiness = optional(object({
+        enabled         = optional(bool)
+        type            = optional(string)
+        cookie_duration = optional(number)
+        cookie_name     = optional(string)
+      }))
+      health_check = object({
+        enabled  = optional(bool, true)
+        protocol = optional(string)
+        port     = optional(number)
+        path     = optional(string)
+        matcher  = optional(string, "200")
+      })
+    }))
+  }))
+  default = null
+}
+
+variable "target_groups" {
+  description = "Target Group configuration"
+  type = list(object({
+    key                = optional(string)
+    name               = string
+    port               = number
+    protocol           = string
+    preserve_client_ip = optional(bool)
+    target_type        = optional(string, "instance")
+    tags               = optional(map(string))
+    vpc_id             = string
+    attachments = optional(list(object({
+      target_id = string
+      port      = number
+    })))
+    stickiness = optional(object({
+      enabled         = bool
+      type            = string
+      cookie_duration = optional(number)
+      cookie_name     = optional(string)
+    }))
+    health_check = object({
+      protocol = optional(string)
+      port     = optional(number)
+      path     = optional(string)
+      matcher  = optional(string)
+    })
+  }))
+  default = null
+}
