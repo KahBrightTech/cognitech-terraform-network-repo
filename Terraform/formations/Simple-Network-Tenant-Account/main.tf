@@ -115,9 +115,6 @@ module "load_balancers" {
           }
         },
         lookup(each.value, "default_listener", {}),
-        {
-          certificate_arn = try(lookup(each.value, "default_listener", {}).certificate_arn, null) != null ? lookup(each.value, "default_listener", {}).certificate_arn : try(module.certificates[each.value.vpc_name].arn, null)
-        }
       ) : null
     }
   )

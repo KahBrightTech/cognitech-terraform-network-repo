@@ -375,7 +375,6 @@ inputs = {
       }
     }
   ]
-
   target_groups = [
     # {
     #   key      = "ssrs"
