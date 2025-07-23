@@ -301,7 +301,6 @@ inputs = {
       key             = "${local.vpc_name}"
       name            = "${local.vpc_name}"
       type            = "application"
-      certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
       security_groups = ["alb"]
       subnets = [
         include.env.locals.subnet_prefix.primary
