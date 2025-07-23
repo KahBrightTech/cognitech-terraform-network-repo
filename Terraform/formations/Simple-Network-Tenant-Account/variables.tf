@@ -223,6 +223,16 @@ variable "key_pairs" {
   default = null
 }
 
+variable "certificates" {
+  description = "ACM Certificate configuration"
+  type = list(object({
+    name              = string
+    domain_name       = string
+    validation_method = string # "DNS" or "EMAIL"
+    zone_name         = string # Route53 zone name for DNS validation
+  }))
+  default = null
+}
 variable "vpc_id" {
   description = "The vpc id"
   type        = string

@@ -72,10 +72,25 @@ module "ec2_key_pairs" {
 }
 
 #--------------------------------------------------------------------
+# Creates Certificates
+#--------------------------------------------------------------------
+module "certificates" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/ACM-Public-Certs?ref=v1.2.29"
+  for_each = var.certificates != null ? { for item in var.certificates : item.name => item } : {}
+  common   = var.common
+  certificate = {
+    name              = each.value.name
+    domain_name       = each.value.domain_name
+    validation_method = each.value.validation_method
+    zone_name         = each.value.zone_name
+  }
+}
+
+#--------------------------------------------------------------------
 # Createss load balancers
 #--------------------------------------------------------------------
 module "load_balancers" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers?ref=v1.2.33"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Load-Balancers?ref=v1.2.85"
   for_each = (var.load_balancers != null) ? { for item in var.load_balancers : item.key => item } : {}
   common   = var.common
   load_balancer = merge(
@@ -104,25 +119,19 @@ module "load_balancers" {
       # Set default certificate from shared VPC module when create_default_listener is true
       default_listener = (each.value.create_default_listener == true) ? merge(
         {
-          port            = 443
-          protocol        = "HTTPS"
-          action_type     = "fixed-response"
-          ssl_policy      = "ELBSecurityPolicy-2016-08"
-          certificate_arn = try(each.value.default_listener.certificate_arn, null)
+          port        = 443
+          protocol    = "HTTPS"
+          action_type = "fixed-response"
+          ssl_policy  = "ELBSecurityPolicy-2016-08"
           fixed_response = {
             content_type = "text/plain"
             message_body = "Oops! The page you are looking for does not exist."
             status_code  = "200"
           }
         },
-        try(each.value.default_listener, {}),
-        # Ensure fixed_response is never overridden with null
-        try(each.value.default_listener.fixed_response, null) != null ? {} : {
-          fixed_response = {
-            content_type = "text/plain"
-            message_body = "Oops! The page you are looking for does not exist."
-            status_code  = "200"
-          }
+        lookup(each.value, "default_listener", {}),
+        {
+          certificate_arn = try(lookup(each.value, "default_listener", {}).certificate_arn, null) != null ? lookup(each.value, "default_listener", {}).certificate_arn : try(module.certificates[each.value.vpc_name].arn, null)
         }
       ) : null
     }
@@ -177,9 +186,10 @@ module "alb_listeners" {
         each.value.alb_arn
       )
       certificate_arn = each.value.protocol == "HTTPS" ? try(
+        module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {
@@ -205,9 +215,10 @@ module "nlb_listeners" {
         each.value.nlb_arn
       )
       certificate_arn = each.value.protocol == "TLS" ? try(
+        module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {

@@ -295,7 +295,6 @@ inputs = {
       create_secret      = true
     }
   ]
-
   load_balancers = [
     {
       key             = "${local.vpc_name}"
