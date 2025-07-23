@@ -83,18 +83,18 @@ module "load_balancers" {
     {
       security_groups = [
         for sg_key in each.value.security_groups :
-        module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+        module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
       ]
       subnets = flatten([
         for subnet_key in each.value.subnets :
         (each.value.use_private_subnets == true) ?
-        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+        module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ])
       subnet_mappings = (each.value.subnet_mappings != null) ? [
         for mapping in each.value.subnet_mappings : {
           subnet_id = lookup(
-            module.shared_vpc[each.value.vpc_name].private_subnet[mapping.subnet_key],
+            module.customer_vpc[each.value.vpc_name].private_subnet[mapping.subnet_key],
             "${mapping.az_subnet_selector}_subnet_id",
             null
           )
@@ -174,7 +174,7 @@ module "alb_listeners" {
         module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {
@@ -203,7 +203,7 @@ module "nlb_listeners" {
         module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {
