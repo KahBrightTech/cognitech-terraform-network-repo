@@ -317,6 +317,7 @@ inputs = {
     {
       key             = "etl"
       name            = "etl"
+      vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "application"
       security_groups = ["alb"]
       subnets = [
@@ -330,6 +331,7 @@ inputs = {
     {
       key             = "ssrs"
       name            = "ssrs"
+      vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "network"
       security_groups = ["nlb"]
       subnets = [
