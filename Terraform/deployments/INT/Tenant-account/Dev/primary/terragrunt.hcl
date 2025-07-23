@@ -310,13 +310,11 @@ inputs = {
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
       create_default_listener    = true
-      default_listener = {
-        certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
-      }
     },
     {
       key             = "etl"
       name            = "etl"
+      vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "application"
       security_groups = ["alb"]
       subnets = [
@@ -326,10 +324,12 @@ inputs = {
       enable_access_logs         = true
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
+      create_default_listener    = false
     },
     {
       key             = "ssrs"
       name            = "ssrs"
+      vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "network"
       security_groups = ["nlb"]
       subnets = [
@@ -339,6 +339,7 @@ inputs = {
       enable_access_logs         = true
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
+      create_default_listener    = false
     }
   ]
   alb_listeners = [
