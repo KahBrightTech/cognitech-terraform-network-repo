@@ -331,6 +331,7 @@ variable "load_balancers" {
     type                = string # "application" or "network"
     security_groups     = optional(list(string))
     vpc_name            = string
+    vpc_name_abr        = optional(string)
     use_private_subnets = optional(bool, false)
     subnets             = optional(list(string))
     subnet_mappings = optional(list(object({
