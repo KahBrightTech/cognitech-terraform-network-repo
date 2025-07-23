@@ -469,9 +469,11 @@ inputs = {
   alb_listeners = [
     {
       key      = "etl"
-      elb_key  = "etl"
-      protocol = "HTTP"
-      port     = 80
+      alb_key  = "etl"
+      protocol = "HTTPS"
+      port     = 443
+      action   = "fixed-response"
+      vpc_name = local.vpc_name
       fixed_response = {
         content_type = "text/plain"
         message_body = "This is a default response from the ETL ALB listener."
@@ -482,31 +484,39 @@ inputs = {
   nlb_listeners = [
     {
       key        = "ssrs"
-      elb_key    = "ssrs"
+      nlb_key    = "ssrs"
       protocol   = "TLS"
       port       = 443
       ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
-      forward = {
-        tg_key = "ssrs"
+      action     = "forward"
+      vpc_name   = local.vpc_name
+      target_group = {
+        name     = "ssrs"
+        protocol = "TLS"
+        port     = 443
+        health_check = {
+          protocol = "HTTPS"
+          port     = "443"
+          path     = "/"
+        }
       }
     }
   ]
   target_groups = [
-    {
-      key      = "ssrs"
-      name     = "ssrs"
-      protocol = "HTTPS"
-      port     = 443
-      health_check = {
-        protocol = "HTTPS"
-        port     = "443"
-        path     = "/"
-      }
-      vpc_name = local.vpc_name
-    }
+    # {
+    #   key      = "ssrs"
+    #   name     = "ssrs"
+    #   protocol = "HTTPS"
+    #   port     = 443
+    #   health_check = {
+    #     protocol = "HTTPS"
+    #     port     = "443"
+    #     path     = "/"
+    #   }
+    #   vpc_name = local.vpc_name
+    # }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------

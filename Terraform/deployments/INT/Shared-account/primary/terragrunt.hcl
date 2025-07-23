@@ -473,6 +473,7 @@ inputs = {
       protocol = "HTTPS"
       port     = 443
       action   = "fixed-response"
+      vpc_name = local.vpc_name
       fixed_response = {
         content_type = "text/plain"
         message_body = "This is a default response from the ETL ALB listener."
