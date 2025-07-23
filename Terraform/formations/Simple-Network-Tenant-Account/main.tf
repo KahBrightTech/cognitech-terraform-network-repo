@@ -168,7 +168,6 @@ module "alb_listeners" {
         each.value.alb_arn
       )
       certificate_arn = each.value.protocol == "HTTPS" ? try(
-        module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
       vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
@@ -197,7 +196,6 @@ module "nlb_listeners" {
         each.value.nlb_arn
       )
       certificate_arn = each.value.protocol == "TLS" ? try(
-        module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
       vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
