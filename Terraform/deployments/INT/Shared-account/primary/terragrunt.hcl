@@ -488,7 +488,8 @@ inputs = {
       port       = 443
       ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
       action     = "forward"
-      target_groups = [
+      vpc_name   = local.vpc_name
+      target_group = [
         {
           name     = "ssrs"
           protocol = "HTTPS"
@@ -498,7 +499,6 @@ inputs = {
             port     = "443"
             path     = "/"
           }
-          vpc_name = local.vpc_name
         }
       ]
     }
