@@ -29,6 +29,8 @@ locals {
   vpc_name         = "trn"
   vpc_name_abr     = "trn"
   internet_cidr    = "0.0.0.0/0"
+  account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
+  aws_account_name = include.cloud.locals.account_info[include.env.locals.name_abr].name
 
   # Composite variables 
   tags = merge(
@@ -56,11 +58,12 @@ terraform {
 #-------------------------------------------------------
 inputs = {
   common = {
-    global        = local.deploy_globally
-    account_name  = include.cloud.locals.account_info[include.env.locals.name_abr].name
-    region_prefix = local.region_prefix
-    tags          = local.tags
-    region        = local.region
+    global           = local.deploy_globally
+    account_name     = include.cloud.locals.account_info[include.env.locals.name_abr].name
+    region_prefix    = local.region_prefix
+    tags             = local.tags
+    region           = local.region
+    account_name_abr = include.env.locals.name_abr
   }
   vpcs = [
     {
@@ -68,6 +71,7 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].vpc
       public_subnets = [
         {
+          key                         = include.env.locals.subnet_prefix.primary
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt1.primary
@@ -77,6 +81,7 @@ inputs = {
           vpc_name                    = local.vpc_name
         },
         {
+          key                         = include.env.locals.subnet_prefix.secondary
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt2.primary
@@ -237,7 +242,14 @@ inputs = {
       description       = "The application bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
-    }
+    },
+    {
+      key               = "audit-bucket"
+      name              = "${local.vpc_name}-audit-bucket"
+      description       = "The audit bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
+    },
   ]
   ec2_profiles = [
     {
@@ -282,6 +294,102 @@ inputs = {
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
     }
+  ]
+
+  load_balancers = [
+    {
+      key             = "${local.vpc_name}"
+      name            = "${local.vpc_name}"
+      type            = "application"
+      certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+      create_default_listener    = true
+    },
+    {
+      key             = "etl"
+      name            = "etl"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+    },
+    {
+      key             = "ssrs"
+      name            = "ssrs"
+      type            = "network"
+      security_groups = ["nlb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+    }
+  ]
+  alb_listeners = [
+    {
+      key             = "etl"
+      alb_key         = "etl"
+      protocol        = "HTTPS"
+      port            = 443
+      action          = "fixed-response"
+      certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
+      vpc_name        = local.vpc_name
+      fixed_response = {
+        content_type = "text/plain"
+        message_body = "This is a default response from the ETL ALB listener."
+        status_code  = "200"
+      }
+    }
+  ]
+  nlb_listeners = [
+    {
+      key             = "ssrs"
+      nlb_key         = "ssrs"
+      protocol        = "TLS"
+      port            = 443
+      ssl_policy      = "ELBSecurityPolicy-TLS-1-2-2017-01"
+      certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
+      action          = "forward"
+      vpc_name        = local.vpc_name
+      target_group = {
+        name     = "ssrs"
+        protocol = "TLS"
+        port     = 443
+        health_check = {
+          protocol = "HTTPS"
+          port     = "443"
+          path     = "/"
+        }
+      }
+    }
+  ]
+  target_groups = [
+    # {
+    #   key      = "ssrs"
+    #   name     = "ssrs"
+    #   protocol = "HTTPS"
+    #   port     = 443
+    #   health_check = {
+    #     protocol = "HTTPS"
+    #     port     = "443"
+    #     path     = "/"
+    #   }
+    #   vpc_name = local.vpc_name
+    # }
   ]
 }
 #-------------------------------------------------------
