@@ -27,7 +27,7 @@ locals {
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
   vpc_name         = "trn"
-  vpc_name_abr     = "trn"
+  vpc_name_abr     = "tr"
   internet_cidr    = "0.0.0.0/0"
   account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
   aws_account_name = include.cloud.locals.account_info[include.env.locals.name_abr].name
@@ -295,13 +295,22 @@ inputs = {
       create_secret      = true
     }
   ]
-
+  certificates = [
+    {
+      name              = "${local.vpc_name}"
+      domain_name       = "*.shared.${include.env.locals.public_domain}"
+      validation_method = "DNS"
+      zone_name         = include.env.locals.public_domain
+    }
+  ]
+  secrets        = []
+  ssm_parameters = []
   load_balancers = [
     {
       key             = "${local.vpc_name}"
       name            = "${local.vpc_name}"
+      vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "application"
-      certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
       security_groups = ["alb"]
       subnets = [
         include.env.locals.subnet_prefix.primary
@@ -311,13 +320,11 @@ inputs = {
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
       create_default_listener    = true
-      default_listener = {
-        certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
-      }
     },
     {
       key             = "etl"
       name            = "etl"
+      vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "application"
       security_groups = ["alb"]
       subnets = [
@@ -327,10 +334,12 @@ inputs = {
       enable_access_logs         = true
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
+      create_default_listener    = false
     },
     {
       key             = "ssrs"
       name            = "ssrs"
+      vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "network"
       security_groups = ["nlb"]
       subnets = [
@@ -340,6 +349,7 @@ inputs = {
       enable_access_logs         = true
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
+      create_default_listener    = false
     }
   ]
   alb_listeners = [
