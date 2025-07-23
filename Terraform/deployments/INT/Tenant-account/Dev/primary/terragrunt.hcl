@@ -240,7 +240,14 @@ inputs = {
       description       = "The application bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
-    }
+    },
+    {
+      key               = "audit-bucket"
+      name              = "${local.vpc_name}-audit-bucket"
+      description       = "The audit bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
+    },
   ]
   ec2_profiles = [
     {
@@ -288,23 +295,98 @@ inputs = {
   ]
 
   load_balancers = [
+    {
+      key             = "${local.vpc_name}"
+      name            = "${local.vpc_name}"
+      type            = "application"
+      certificate_arn = dependency.shared_services.outputs.certificates.arn
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+      create_default_listener    = true
+    },
+    {
+      key             = "etl"
+      name            = "etl"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+    },
+    {
+      key             = "ssrs"
+      name            = "ssrs"
+      type            = "network"
+      security_groups = ["nlb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+    }
+  ]
+  alb_listeners = [
+    {
+      key             = "etl"
+      alb_key         = "etl"
+      protocol        = "HTTPS"
+      port            = 443
+      action          = "fixed-response"
+      certificate_arn = dependency.shared_services.outputs.certificates.arn
+      vpc_name        = local.vpc_name
+      fixed_response = {
+        content_type = "text/plain"
+        message_body = "This is a default response from the ETL ALB listener."
+        status_code  = "200"
+      }
+    }
+  ]
+  nlb_listeners = [
+    {
+      key             = "ssrs"
+      nlb_key         = "ssrs"
+      protocol        = "TLS"
+      port            = 443
+      ssl_policy      = "ELBSecurityPolicy-TLS-1-2-2017-01"
+      certificate_arn = dependency.shared_services.outputs.certificates.arn
+      action          = "forward"
+      vpc_name        = local.vpc_name
+      target_group = {
+        name     = "ssrs"
+        protocol = "TLS"
+        port     = 443
+        health_check = {
+          protocol = "HTTPS"
+          port     = "443"
+          path     = "/"
+        }
+      }
+    }
+  ]
+  target_groups = [
     # {
-    #   key             = "${local.vpc_name}"
-    #   name            = "${local.vpc_name}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    #   create_default_listener    = true
-    #   default_listener = {
-    #     certificate_arn = "arn:aws:acm:us-east-1:730335294148:certificate/deee8f5a-a635-4e7a-9fe9-feb541dc8934"
-    #     fixed_response  = {}
+    #   key      = "ssrs"
+    #   name     = "ssrs"
+    #   protocol = "HTTPS"
+    #   port     = 443
+    #   health_check = {
+    #     protocol = "HTTPS"
+    #     port     = "443"
+    #     path     = "/"
     #   }
+    #   vpc_name = local.vpc_name
     # }
   ]
 }
