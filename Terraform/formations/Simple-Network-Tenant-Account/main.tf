@@ -189,7 +189,7 @@ module "alb_listeners" {
         module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {
@@ -218,7 +218,7 @@ module "nlb_listeners" {
         module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {
