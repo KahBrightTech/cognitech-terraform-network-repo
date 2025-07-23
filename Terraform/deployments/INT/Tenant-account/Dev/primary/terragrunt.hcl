@@ -71,6 +71,7 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].vpc
       public_subnets = [
         {
+          key                         = include.env.locals.subnet_prefix.primary
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt1.primary
@@ -80,6 +81,7 @@ inputs = {
           vpc_name                    = local.vpc_name
         },
         {
+          key                         = include.env.locals.subnet_prefix.secondary
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt2.primary
