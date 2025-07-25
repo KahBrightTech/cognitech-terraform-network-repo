@@ -437,7 +437,8 @@ variable "target_groups" {
     preserve_client_ip = optional(bool)
     target_type        = optional(string, "instance")
     tags               = optional(map(string))
-    vpc_id             = string
+    vpc_id             = optional(string)
+    vpc_name           = optional(string)
     vpc_name_abr       = optional(string)
     attachments = optional(list(object({
       target_id = optional(string)
