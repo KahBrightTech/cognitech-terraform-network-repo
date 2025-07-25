@@ -160,14 +160,20 @@ module "ssm_parameters" {
   ssm_parameter = each.value
 }
 
+
 #--------------------------------------------------------------------
 # Target groups
 #--------------------------------------------------------------------
 module "target_groups" {
-  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Target-groups?ref=v1.2.90"
-  for_each     = (var.target_groups != null) ? { for item in var.target_groups : item.key => item } : {}
-  common       = var.common
-  target_group = each.value
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Target-groups?ref=v1.2.90"
+  for_each = (var.target_groups != null) ? { for item in var.target_groups : item.key => item } : {}
+  common   = var.common
+  target_group = merge(
+    each.value,
+    {
+      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+    }
+  )
 }
 
 #--------------------------------------------------------------------

@@ -443,8 +443,9 @@ variable "alb_listener_rules" {
     priority     = optional(number)
     type         = string
     target_groups = list(object({
-      arn    = string
-      weight = optional(number)
+      tg_name = optional(string)
+      arn     = string
+      weight  = optional(number)
     }))
     conditions = list(object({
       host_headers         = optional(list(string))

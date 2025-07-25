@@ -183,10 +183,15 @@ module "ssm_parameters" {
 # Target groups
 #--------------------------------------------------------------------
 module "target_groups" {
-  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Target-groups?ref=v1.2.90"
-  for_each     = (var.target_groups != null) ? { for item in var.target_groups : item.key => item } : {}
-  common       = var.common
-  target_group = each.value
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Target-groups?ref=v1.2.90"
+  for_each = (var.target_groups != null) ? { for item in var.target_groups : item.key => item } : {}
+  common   = var.common
+  target_group = merge(
+    each.value,
+    {
+      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+    }
+  )
 }
 
 #--------------------------------------------------------------------
@@ -229,14 +234,20 @@ module "alb_listener_rules" {
   rule = merge(
     each.value,
     {
-      listener_arn = try(
-        module.alb_listeners[each.value.listener_key].arn,
-        each.value.listener_arn
-      )
-      arn = try(
-        module.target_groups[each.value.target_group_key].arn,
-        each.value.target_group_arn
-      )
+      listener_arn = each.value.listener_key != null ? module.alb_listeners[each.value.listener_key].arn : each.value.listener_arn
+      # target_groups = [
+      #   for tg in item.target_groups :
+      #   {
+      #     arn    = tg.tg_name != null ? module.target_groups[tg.tg_name].target_group_arn : tg.arn
+      #     weight = tg.weight
+      #   }
+      # ]
+      target_groups = [
+        {
+          arn    = each.value.tg_name != null ? module.target_groups[each.value.tg_name].target_group_arn : each.value.arn
+          weight = each.value.weight
+        }
+      ]
     }
   )
 }
