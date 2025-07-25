@@ -358,25 +358,26 @@ variable "alb_listener_rules" {
     listener_arn = optional(string)
     listener_key = optional(string)
     priority     = optional(number)
-    type         = optional(string)
-    target_groups = list(object({
-      arn    = string
-      weight = optional(number)
-    }))
-    conditions = list(object({
+    type         = string
+    target_groups = optional(list(object({
+      tg_name = optional(string)
+      arn     = optional(string)
+      weight  = optional(number)
+    })))
+    conditions = optional(list(object({
       host_headers         = optional(list(string))
       http_request_methods = optional(list(string))
       path_patterns        = optional(list(string))
       source_ips           = optional(list(string))
       http_headers = optional(list(object({
-        name   = string
+        name   = optional(string)
         values = list(string)
       })))
       query_strings = optional(list(object({
         key   = optional(string)
         value = string
       })))
-    }))
+    })))
   }))
   default = null
 }
