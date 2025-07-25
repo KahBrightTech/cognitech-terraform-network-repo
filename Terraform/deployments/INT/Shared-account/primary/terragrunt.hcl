@@ -440,6 +440,9 @@ inputs = {
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
       create_default_listener    = true
+      default_listener = {
+        key = "acct"
+      }
     },
     {
       key             = "etl"

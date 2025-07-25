@@ -262,6 +262,7 @@ variable "load_balancers" {
     access_logs_prefix         = optional(string)
     create_default_listener    = optional(bool, false)
     default_listener = optional(object({
+      key             = optional(string)
       port            = optional(number, "443")
       protocol        = optional(string, "HTTPS")
       action_type     = optional(string, "fixed-response")
