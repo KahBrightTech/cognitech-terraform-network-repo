@@ -237,7 +237,7 @@ module "alb_listener_rules" {
       {
         listener_arn = each.value.listener_key != null ? module.alb_listeners[each.value.listener_key].alb_listener_arn : each.value.listener_arn
         target_groups = [
-          for tg in each.value.target_groups :
+          for tg in item.target_groups :
           {
             arn    = tg.tg_name != null ? module.target_groups[tg.tg_name].target_group_arn : tg.arn
             weight = tg.weight
