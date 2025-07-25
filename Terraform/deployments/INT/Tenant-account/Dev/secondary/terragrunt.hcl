@@ -334,7 +334,7 @@ inputs = {
       enable_access_logs         = true
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
-      create_default_listener    = false
+      # create_default_listener    = false
     },
     {
       key             = "ssrs"
@@ -349,18 +349,17 @@ inputs = {
       enable_access_logs         = true
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
-      create_default_listener    = false
     }
   ]
   alb_listeners = [
     {
-      key             = "etl"
-      alb_key         = "etl"
-      protocol        = "HTTPS"
-      port            = 443
-      action          = "fixed-response"
-      certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
-      vpc_name        = local.vpc_name
+      key      = "etl"
+      alb_key  = "etl"
+      protocol = "HTTPS"
+      port     = 443
+      action   = "fixed-response"
+      # certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
+      vpc_name = local.vpc_name
       fixed_response = {
         content_type = "text/plain"
         message_body = "This is a default response from the ETL ALB listener."
@@ -370,14 +369,14 @@ inputs = {
   ]
   nlb_listeners = [
     {
-      key             = "ssrs"
-      nlb_key         = "ssrs"
-      protocol        = "TLS"
-      port            = 443
-      ssl_policy      = "ELBSecurityPolicy-TLS-1-2-2017-01"
-      certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
-      action          = "forward"
-      vpc_name        = local.vpc_name
+      key        = "ssrs"
+      nlb_key    = "ssrs"
+      protocol   = "TLS"
+      port       = 443
+      ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
+      # certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
+      action   = "forward"
+      vpc_name = local.vpc_name
       target_group = {
         name         = "ssrs"
         protocol     = "TLS"
