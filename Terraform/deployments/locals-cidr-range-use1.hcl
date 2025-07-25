@@ -377,6 +377,29 @@ locals {
               }
             }
           }
+          sit = {
+            vpc = "10.1.5.0/24"
+            public_subnets = {
+              sbnt1 = {
+                primary   = "10.1.5.0/27"
+                secondary = "10.1.5.32/27"
+              }
+              sbnt2 = {
+                primary   = "10.1.5.64/27"
+                secondary = "10.1.5.96/27"
+              }
+            }
+            private_subnets = {
+              sbnt1 = {
+                primary   = "10.1.5.128/27"
+                secondary = "10.1.5.160/27"
+              }
+              sbnt2 = {
+                primary   = "10.1.5.192/27"
+                secondary = "10.1.5.224/27"
+              }
+            }
+          }
         }
       }
     }
