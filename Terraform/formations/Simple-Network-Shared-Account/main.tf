@@ -244,8 +244,8 @@ module "alb_listener_rules" {
       # ]
       target_groups = [
         {
-          arn    = each.value.tg_name != null ? module.target_groups[each.value.tg_name].target_group_arn : each.value.arn
-          weight = each.value.weight
+          arn    = each.value.target_groups.tg_name != null ? module.target_groups[each.value.target_groups.tg_name].target_group_arn : each.value.target_groups.arn
+          weight = each.value.target_groups.weight
         }
       ]
     }
