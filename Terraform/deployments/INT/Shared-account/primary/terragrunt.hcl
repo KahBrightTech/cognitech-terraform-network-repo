@@ -496,8 +496,8 @@ inputs = {
           type     = "forward"
           target_groups = [
             {
-              tag_name = "etl"
-              weight   = 99
+              tg_name = "etl"
+              weight  = 99
             }
           ]
           conditions = [
