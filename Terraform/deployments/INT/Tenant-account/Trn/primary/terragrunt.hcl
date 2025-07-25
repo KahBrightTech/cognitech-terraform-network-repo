@@ -27,7 +27,7 @@ locals {
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
   vpc_name         = "trn"
-  vpc_name_abr     = "tr"
+  vpc_name_abr     = "cgtt"
   internet_cidr    = "0.0.0.0/0"
   account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
   aws_account_name = include.cloud.locals.account_info[include.env.locals.name_abr].name
@@ -379,9 +379,10 @@ inputs = {
       action          = "forward"
       vpc_name        = local.vpc_name
       target_group = {
-        name     = "ssrs"
-        protocol = "TLS"
-        port     = 443
+        name         = "ssrs"
+        protocol     = "TLS"
+        port         = 443
+        vpc_name_abr = local.vpc_name_abr
         health_check = {
           protocol = "HTTPS"
           port     = "443"
