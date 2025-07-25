@@ -493,7 +493,7 @@ inputs = {
       type         = "forward"
       target_groups = [
         {
-          key    = "acct"
+          key    = "etl"
           weight = 99
         }
       ]
@@ -530,8 +530,8 @@ inputs = {
   ]
   target_groups = [
     {
-      key      = "acct"
-      name     = "acct"
+      key      = "etl"
+      name     = "etl"
       protocol = "HTTPS"
       port     = 443
       health_check = {
