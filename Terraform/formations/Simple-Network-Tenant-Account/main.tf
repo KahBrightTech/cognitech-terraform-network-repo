@@ -171,7 +171,7 @@ module "target_groups" {
   target_group = merge(
     each.value,
     {
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
     }
   )
 }
