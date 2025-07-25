@@ -487,20 +487,25 @@ inputs = {
   ]
   alb_listener_rules = [
     {
-      key          = "etl"
+      index_key    = "etl"
       listener_key = "etl"
-      priority     = 10
-      type         = "forward"
-      target_groups = [
+      rules = [
         {
-          tag_name = "etl"
-          weight   = 99
-        }
-      ]
-      conditions = [
-        {
-          host_headers = [
-            "etl.${local.public_hosted_zone}",
+          key      = "etl"
+          priority = 10
+          type     = "forward"
+          target_groups = [
+            {
+              tag_name = "etl"
+              weight   = 99
+            }
+          ]
+          conditions = [
+            {
+              host_headers = [
+                "etl.${local.public_hosted_zone}",
+              ]
+            }
           ]
         }
       ]

@@ -88,7 +88,7 @@ output "alb_listeners" {
 #-------------------------------------------------------
 output "alb_listener_rules" {
   description = "Output for ALB Listener Rules"
-  value       = module.alb_listener_rules
+  value       = (var.alb_listener_rules != null) ? module.alb_listener_rules : null
 }
 
 #-------------------------------------------------------

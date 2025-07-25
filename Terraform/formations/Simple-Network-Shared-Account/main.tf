@@ -229,11 +229,11 @@ module "alb_listeners" {
 #--------------------------------------------------------------------
 module "alb_listener_rules" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listener-rule?ref=v1.2.92"
-  for_each = (var.alb_listener_rules != null) ? { for item in var.alb_listener_rules : item.key => item } : {}
+  for_each = (var.alb_listener_rules != null) ? { for item in var.alb_listener_rules : item.index_key => item } : {}
   common   = var.common
   rule = [
-    merge(
-      each.value,
+    for item in each.value.rules : merge(
+      item,
       {
         listener_arn = each.value.listener_key != null ? module.alb_listeners[each.value.listener_key].alb_listener_arn : each.value.listener_arn
         target_groups = [
