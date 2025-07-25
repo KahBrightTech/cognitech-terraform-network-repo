@@ -440,9 +440,6 @@ inputs = {
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
       create_default_listener    = true
-      default_listener = {
-        key = "acct"
-      }
     },
     {
       key             = "etl"
@@ -490,8 +487,8 @@ inputs = {
   ]
   alb_listener_rules = [
     {
-      key          = "alb-acct-443"
-      listener_key = "acct"
+      key          = "etl"
+      listener_key = "etl"
       priority     = 10
       type         = "forward"
       target_groups = [
@@ -503,7 +500,7 @@ inputs = {
       conditions = [
         {
           host_headers = [
-            "test.${local.public_hosted_zone}",
+            "etl.${local.public_hosted_zone}",
           ]
         }
       ]
