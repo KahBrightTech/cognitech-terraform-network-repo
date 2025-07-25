@@ -349,7 +349,6 @@ inputs = {
       enable_access_logs         = true
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
-      create_default_listener    = false
     }
   ]
   alb_listeners = [
