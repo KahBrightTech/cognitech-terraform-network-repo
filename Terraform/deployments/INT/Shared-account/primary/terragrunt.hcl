@@ -493,8 +493,8 @@ inputs = {
       type         = "forward"
       target_groups = [
         {
-          key    = "etl"
-          weight = 99
+          tag_name = "etl"
+          weight   = 99
         }
       ]
       conditions = [
