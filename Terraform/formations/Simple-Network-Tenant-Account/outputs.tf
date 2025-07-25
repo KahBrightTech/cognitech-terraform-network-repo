@@ -1,13 +1,23 @@
+#-------------------------------------------------------
+# VPC and Network outputs
+#-------------------------------------------------------
 output "customer_products" {
   description = "List of resources to be created for the customer"
   value       = module.customer_vpc
 }
+
+#-------------------------------------------------------
+# S3 Bucket outputs
+#-------------------------------------------------------
 output "s3_app_bucket" {
   description = "S3 bucket details"
   value       = module.s3_app_bucket
   depends_on  = [module.customer_vpc]
 }
 
+#-------------------------------------------------------
+# IAM outputs
+#-------------------------------------------------------
 output "iam_roles" {
   description = "IAM roles and policies details"
   value       = module.iam_roles
@@ -23,13 +33,68 @@ output "iam_policies" {
   value       = module.iam_policies
 }
 
+#-------------------------------------------------------
+# EC2 outputs
+#-------------------------------------------------------
 output "ec2_key_pairs" {
   description = "ec2 key pairs details"
   value       = module.ec2_key_pairs
 }
 
+#-------------------------------------------------------
+# AWS Load Balancer outputs
+#-------------------------------------------------------
 output "load_balancers" {
   description = "Load balancers details"
   value       = module.load_balancers
 
+}
+
+#-------------------------------------------------------
+# AWS Secrets Manager outputs
+#-------------------------------------------------------
+output "secrets" {
+  description = "Output for Secrets Manager"
+  value       = module.secrets
+}
+
+#-------------------------------------------------------
+# AWS SSM Parameters outputs
+#-------------------------------------------------------
+output "ssm_parameters" {
+  description = "Output for SSM Parameters"
+  value       = module.ssm_parameters
+}
+
+
+#-------------------------------------------------------
+# ALB listener outputs
+#-------------------------------------------------------
+output "alb_listeners" {
+  description = "Output for ALB Listeners"
+  value       = module.alb_listeners
+}
+
+#-------------------------------------------------------
+# ALB listener rules outputs
+#-------------------------------------------------------
+output "alb_listener_rules" {
+  description = "Output for ALB Listener Rules"
+  value       = module.alb_listener_rules
+}
+
+#-------------------------------------------------------
+# NLB listener outputs
+#-------------------------------------------------------
+output "nlb_listeners" {
+  description = "Output for NLB Listeners"
+  value       = module.nlb_listeners
+}
+
+#-------------------------------------------------------
+# Target Group outputs  
+#-------------------------------------------------------
+output "target_groups" {
+  description = "Output for Target Groups"
+  value       = module.target_groups
 }

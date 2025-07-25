@@ -1,7 +1,14 @@
+#-------------------------------------------------------
+# VPC and Network outputs
+#-------------------------------------------------------
 output "Account_products" {
   description = "List of resources to be created"
   value       = module.shared_vpc
 }
+
+#-------------------------------------------------------
+# IAM outputs
+#-------------------------------------------------------
 output "IAM_roles" {
   description = "IAM roles and policies details"
   value       = module.iam_roles
@@ -17,16 +24,25 @@ output "iam_policies" {
   value       = module.iam_policies
 }
 
+#-------------------------------------------------------
+# EC2 outputs
+#-------------------------------------------------------
 output "ec2_key_pairs" {
   description = "ec2 key pairs details"
   value       = module.ec2_key_pairs
 }
 
+#-------------------------------------------------------
+# SSL/TLS Certificate outputs
+#-------------------------------------------------------
 output "certificates" {
   description = "ACM Certificates details"
   value       = module.certificates
 }
 
+#-------------------------------------------------------
+# AWS Load Balancer outputs
+#-------------------------------------------------------
 output "load_balancers" {
   description = "Load balancers details"
   value       = module.load_balancers
@@ -51,7 +67,7 @@ output "secrets" {
 }
 
 #-------------------------------------------------------
-# AWS Secrets Manager outputs
+# AWS SSM Parameters outputs
 #-------------------------------------------------------
 output "ssm_parameters" {
   description = "Output for SSM Parameters"
@@ -65,6 +81,14 @@ output "ssm_parameters" {
 output "alb_listeners" {
   description = "Output for ALB Listeners"
   value       = module.alb_listeners
+}
+
+#-------------------------------------------------------
+# ALB listener rules outputs
+#-------------------------------------------------------
+output "alb_listener_rules" {
+  description = "Output for ALB Listener Rules"
+  value       = module.alb_listener_rules
 }
 
 #-------------------------------------------------------

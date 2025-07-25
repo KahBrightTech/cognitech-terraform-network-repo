@@ -484,6 +484,20 @@ inputs = {
       }
     }
   ]
+  alb_listener_rules = [
+    {
+      key          = "alb-acct-443"
+      listener_key = "acct"
+      priority     = 10
+      type         = "forward"
+      target_groups = [
+        {
+          key    = "acct"
+          weight = 99
+        }
+      ]
+    }
+  ]
   nlb_listeners = [
     {
       key        = "ssrs"
@@ -507,18 +521,18 @@ inputs = {
     }
   ]
   target_groups = [
-    # {
-    #   key      = "ssrs"
-    #   name     = "ssrs"
-    #   protocol = "HTTPS"
-    #   port     = 443
-    #   health_check = {
-    #     protocol = "HTTPS"
-    #     port     = "443"
-    #     path     = "/"
-    #   }
-    #   vpc_name = local.vpc_name
-    # }
+    {
+      key      = "acct"
+      name     = "acct"
+      protocol = "HTTPS"
+      port     = 443
+      health_check = {
+        protocol = "HTTPS"
+        port     = "443"
+        path     = "/"
+      }
+      vpc_name = local.vpc_name
+    }
   ]
 }
 #-------------------------------------------------------

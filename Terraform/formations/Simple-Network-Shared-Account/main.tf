@@ -220,6 +220,28 @@ module "alb_listeners" {
 }
 
 #--------------------------------------------------------------------
+# ALB listener rules
+#--------------------------------------------------------------------
+module "alb_listener_rules" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listener-rule?ref=v1.2.92"
+  for_each = (var.alb_listener_rules != null) ? { for item in var.alb_listener_rules : item.key => item } : {}
+  common   = var.common
+  rule = merge(
+    each.value,
+    {
+      listener_arn = try(
+        module.alb_listeners[each.value.listener_key].arn,
+        each.value.listener_arn
+      )
+      arn = try(
+        module.target_groups[each.value.target_group_key].arn,
+        each.value.target_group_arn
+      )
+    }
+  )
+}
+
+#--------------------------------------------------------------------
 # NLB listeners
 #--------------------------------------------------------------------
 module "nlb_listeners" {
