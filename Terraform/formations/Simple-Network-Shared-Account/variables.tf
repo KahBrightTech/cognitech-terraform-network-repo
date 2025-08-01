@@ -308,6 +308,13 @@ variable "backups" {
           cold_storage_after_days = optional(number)
           delete_after_days       = optional(number)
         }))
+        copy_actions = optional(list(object({
+          destination_vault_arn = optional(string)
+          lifecycle = optional(object({
+            cold_storage_after_days = optional(number)
+            delete_after_days       = optional(number)
+          }))
+        })))
       }))
       selection = optional(object({
         selection_name = string

@@ -59,177 +59,177 @@ inputs = {
     region           = local.region
     account_name_abr = include.env.locals.name_abr
   }
-  # vpcs = [
-  #   {
-  #     name       = local.vpc_name
-  #     cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
-  #     public_subnets = [
-  #       {
-  #         key                         = include.env.locals.subnet_prefix.primary
-  #         name                        = include.env.locals.subnet_prefix.primary
-  #         primary_availability_zone   = local.region_blk.availability_zones.primary
-  #         primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
-  #         secondary_availability_zone = local.region_blk.availability_zones.secondary
-  #         secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
-  #         subnet_type                 = local.external
-  #         vpc_name                    = local.vpc_name
-  #       },
-  #       {
-  #         key                         = include.env.locals.subnet_prefix.secondary
-  #         name                        = include.env.locals.subnet_prefix.secondary
-  #         primary_availability_zone   = local.region_blk.availability_zones.primary
-  #         primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
-  #         secondary_availability_zone = local.region_blk.availability_zones.secondary
-  #         secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
-  #         subnet_type                 = local.external
-  #         vpc_name                    = local.vpc_name
-  #       }
-  #     ]
-  #     public_routes = {
-  #       destination_cidr_block = "0.0.0.0/0"
-  #     }
-  #     security_groups = [
-  #       {
-  #         key         = "bastion"
-  #         name        = "shared-bastion"
-  #         description = "standrad sharewd bastion security group"
-  #         vpc_name    = local.vpc_name
-  #       },
-  #       {
-  #         key         = "alb"
-  #         name        = "shared-alb"
-  #         description = "standard shared alb security group"
-  #         vpc_name    = local.vpc_name
-  #       },
-  #       {
-  #         key         = "app"
-  #         name        = "shared-app"
-  #         description = "standard shared app security group"
-  #         vpc_name    = local.vpc_name
-  #       },
-  #       {
-  #         key         = "db"
-  #         name        = "shared-db"
-  #         description = "standard shared db security group"
-  #         vpc_name    = local.vpc_name
-  #       },
-  #       {
-  #         key         = "nlb"
-  #         name        = "shared-nlb"
-  #         description = "standard shared nlb security group"
-  #         vpc_name    = local.vpc_name
-  #       }
-  #     ]
-  #     security_group_rules = [
-  #       {
-  #         sg_key = "bastion"
-  #         ingress = concat(
-  #           include.cloud.locals.security_group_rules.locals.ingress.windows_bastion_base,
-  #           include.cloud.locals.security_group_rules.locals.ingress.linux_bastion_base,
-  #           [
-  #             {
-  #               key         = "ingress-22-Account"
-  #               cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-  #               description = "BASE - Inbound SSH traffic from entire account cidr on tcp port 22"
-  #               from_port   = 22
-  #               to_port     = 22
-  #               ip_protocol = "tcp"
-  #             },
-  #             {
-  #               key         = "ingress-3389-Account"
-  #               cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-  #               description = "BASE - Inbound SSH traffic from  entire account cidr on tcp port 3389"
-  #               from_port   = 3389
-  #               to_port     = 3389
-  #               ip_protocol = "tcp"
-  #             },
-  #           ]
-  #         )
-  #         egress = concat(
-  #           include.cloud.locals.security_group_rules.locals.egress.windows_bastion_base,
-  #           include.cloud.locals.security_group_rules.locals.egress.linux_bastion_base,
-  #           [
-  #             {
-  #               key         = "egress-all-traffic-bastion-sg"
-  #               cidr_ipv4   = "0.0.0.0/0"
-  #               description = "BASE - Outbound all traffic from Bastion SG to Internet"
-  #               ip_protocol = "-1"
-  #             }
-  #           ]
-  #         )
-  #       },
-  #       {
-  #         sg_key = "alb"
-  #         ingress = concat(
-  #           include.cloud.locals.security_group_rules.locals.ingress.alb_base,
-  #           []
-  #         )
-  #         egress = concat(
-  #           include.cloud.locals.security_group_rules.locals.egress.alb_base,
-  #           []
-  #         )
-  #       },
-  #       {
-  #         sg_key = "nlb"
-  #         ingress = concat(
-  #           include.cloud.locals.security_group_rules.locals.ingress.nlb_base,
-  #           []
-  #         )
-  #         egress = concat(
-  #           include.cloud.locals.security_group_rules.locals.egress.nlb_base,
-  #           []
-  #         )
-  #       },
-  #       {
-  #         sg_key = "app"
-  #         ingress = concat(
-  #           include.cloud.locals.security_group_rules.locals.ingress.app_base,
-  #           [
-  #             {
-  #               key         = "ingress-22-internet"
-  #               cidr_ipv4   = local.internet_cidr
-  #               description = "BASE - Inbound SSH traffic from the internet on tcp port 22"
-  #               from_port   = 22
-  #               to_port     = 22
-  #               ip_protocol = "tcp"
-  #             },
-  #             {
-  #               key         = "ingress-3389-internet"
-  #               cidr_ipv4   = local.internet_cidr
-  #               description = "BASE - Inbound SSH traffic from the internet on tcp port 3389"
-  #               from_port   = 3389
-  #               to_port     = 3389
-  #               ip_protocol = "tcp"
-  #             },
-  #           ]
-  #         )
-  #         egress = concat(
-  #           include.cloud.locals.security_group_rules.locals.egress.app_base,
-  #           [
-  #             {
-  #               key         = "egress-all-traffic-bastion-sg"
-  #               cidr_ipv4   = "0.0.0.0/0"
-  #               description = "BASE - Outbound all traffic from Bastion SG to Internet"
-  #               ip_protocol = "-1"
-  #             }
-  #           ]
-  #         )
-  #       }
-  #     ]
-  #     s3 = {
-  #       name        = "${local.vpc_name}-data-xfer"
-  #       description = "The bucket used for data transfers"
-  #       policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
+  vpcs = [
+    {
+      name       = local.vpc_name
+      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
+      public_subnets = [
+        {
+          key                         = include.env.locals.subnet_prefix.primary
+          name                        = include.env.locals.subnet_prefix.primary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
+          subnet_type                 = local.external
+          vpc_name                    = local.vpc_name
+        },
+        {
+          key                         = include.env.locals.subnet_prefix.secondary
+          name                        = include.env.locals.subnet_prefix.secondary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
+          subnet_type                 = local.external
+          vpc_name                    = local.vpc_name
+        }
+      ]
+      public_routes = {
+        destination_cidr_block = "0.0.0.0/0"
+      }
+      security_groups = [
+        {
+          key         = "bastion"
+          name        = "shared-bastion"
+          description = "standrad sharewd bastion security group"
+          vpc_name    = local.vpc_name
+        },
+        {
+          key         = "alb"
+          name        = "shared-alb"
+          description = "standard shared alb security group"
+          vpc_name    = local.vpc_name
+        },
+        {
+          key         = "app"
+          name        = "shared-app"
+          description = "standard shared app security group"
+          vpc_name    = local.vpc_name
+        },
+        {
+          key         = "db"
+          name        = "shared-db"
+          description = "standard shared db security group"
+          vpc_name    = local.vpc_name
+        },
+        {
+          key         = "nlb"
+          name        = "shared-nlb"
+          description = "standard shared nlb security group"
+          vpc_name    = local.vpc_name
+        }
+      ]
+      security_group_rules = [
+        {
+          sg_key = "bastion"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.ingress.windows_bastion_base,
+            include.cloud.locals.security_group_rules.locals.ingress.linux_bastion_base,
+            [
+              {
+                key         = "ingress-22-Account"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+                description = "BASE - Inbound SSH traffic from entire account cidr on tcp port 22"
+                from_port   = 22
+                to_port     = 22
+                ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-3389-Account"
+                cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+                description = "BASE - Inbound SSH traffic from  entire account cidr on tcp port 3389"
+                from_port   = 3389
+                to_port     = 3389
+                ip_protocol = "tcp"
+              },
+            ]
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.egress.windows_bastion_base,
+            include.cloud.locals.security_group_rules.locals.egress.linux_bastion_base,
+            [
+              {
+                key         = "egress-all-traffic-bastion-sg"
+                cidr_ipv4   = "0.0.0.0/0"
+                description = "BASE - Outbound all traffic from Bastion SG to Internet"
+                ip_protocol = "-1"
+              }
+            ]
+          )
+        },
+        {
+          sg_key = "alb"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.ingress.alb_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.egress.alb_base,
+            []
+          )
+        },
+        {
+          sg_key = "nlb"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.ingress.nlb_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.egress.nlb_base,
+            []
+          )
+        },
+        {
+          sg_key = "app"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.ingress.app_base,
+            [
+              {
+                key         = "ingress-22-internet"
+                cidr_ipv4   = local.internet_cidr
+                description = "BASE - Inbound SSH traffic from the internet on tcp port 22"
+                from_port   = 22
+                to_port     = 22
+                ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-3389-internet"
+                cidr_ipv4   = local.internet_cidr
+                description = "BASE - Inbound SSH traffic from the internet on tcp port 3389"
+                from_port   = 3389
+                to_port     = 3389
+                ip_protocol = "tcp"
+              },
+            ]
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.egress.app_base,
+            [
+              {
+                key         = "egress-all-traffic-bastion-sg"
+                cidr_ipv4   = "0.0.0.0/0"
+                description = "BASE - Outbound all traffic from Bastion SG to Internet"
+                ip_protocol = "-1"
+              }
+            ]
+          )
+        }
+      ]
+      s3 = {
+        name        = "${local.vpc_name}-data-xfer"
+        description = "The bucket used for data transfers"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
 
-  #     }
-  #     route53_zones = [
-  #       {
-  #         key  = local.vpc_name_abr
-  #         name = "${local.vpc_name_abr}.cognitech.com"
-  #       }
-  #     ]
-  #   }
-  # ]
+      }
+      route53_zones = [
+        {
+          key  = local.vpc_name_abr
+          name = "${local.vpc_name_abr}.cognitech.com"
+        }
+      ]
+    }
+  ]
   s3_private_buckets = [
     # {
     #   name              = "${local.vpc_name}-app-bucket"
