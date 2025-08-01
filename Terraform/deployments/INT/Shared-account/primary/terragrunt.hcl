@@ -402,7 +402,7 @@ inputs = {
             }
             copy_actions = [
               {
-                destination_vault_arn = "arn:aws:backup:${local.region}:${local.account_id}:backup-vault:${local.aws_account_name}-${local.region_prefix}-backup-vault"
+                destination_vault_arn = "arn:aws:backup:us-west-2:${local.account_id}:backup-vault:${local.aws_account_name}-usw2-backup-vault"
                 lifecycle = {
                   cold_storage_after_days = 30
                   delete_after_days       = 90
@@ -421,7 +421,7 @@ inputs = {
             }
             copy_actions = [
               {
-                destination_vault_arn = "arn:aws:backup:${local.region}:${local.account_id}:backup-vault:${local.aws_account_name}-${local.region_prefix}-backup-vault"
+                destination_vault_arn = "arn:aws:backup:us-west-2:${local.account_id}:backup-vault:${local.aws_account_name}-usw2-backup-vault"
                 lifecycle = {
                   cold_storage_after_days = 60
                   delete_after_days       = 180
