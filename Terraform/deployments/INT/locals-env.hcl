@@ -20,8 +20,11 @@ locals {
     tertiary   = "sbnt3"
     quaternary = "sbnt4"
   }
-  public_domain         = "cognitechllc.org"
-  kms_key_id            = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
+  public_domain = "cognitechllc.org"
+  kms_key_id = {
+    primary   = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
+    secondary = "arn:aws:kms:us-west-2:730335294148:key/357a0937-678f-4c56-b125-66cc3938e29a"
+  }
   remote_dynamodb_table = "Terragrunt"
   tags = {
     Environment  = local.environment

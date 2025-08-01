@@ -388,7 +388,7 @@ inputs = {
   backups = [
     {
       name       = "${local.aws_account_name}-${local.region_prefix}-backup-vault"
-      kms_key_id = include.env.locals.kms_key_id
+      kms_key_id = include.env.locals.kms_key_id.primary
       plan = {
         name = "${local.aws_account_name}-${local.region_prefix}-backup-plan"
         rules = [
@@ -400,6 +400,15 @@ inputs = {
             lifecycle = {
               delete_after_days = 30
             }
+            copy_actions = [
+              {
+                destination_vault_arn = "arn:aws:backup:${local.region}:${local.account_id}:backup-vault:${local.aws_account_name}-${local.region_prefix}-backup-vault"
+                lifecycle = {
+                  cold_storage_after_days = 30
+                  delete_after_days       = 90
+                }
+              }
+            ]
           },
           {
             rule_name         = "WeeklyBackup"
@@ -410,6 +419,15 @@ inputs = {
               cold_storage_after_days = 60
               delete_after_days       = 180
             }
+            copy_actions = [
+              {
+                destination_vault_arn = "arn:aws:backup:${local.region}:${local.account_id}:backup-vault:${local.aws_account_name}-${local.region_prefix}-backup-vault"
+                lifecycle = {
+                  cold_storage_after_days = 60
+                  delete_after_days       = 180
+                }
+              }
+            ]
           }
         ]
         selection = {

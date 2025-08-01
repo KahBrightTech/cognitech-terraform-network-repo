@@ -387,7 +387,7 @@ inputs = {
   backups = [
     {
       name       = "${local.aws_account_name}-${local.region_prefix}-backup-vault"
-      kms_key_id = include.env.locals.kms_key_id
+      kms_key_id = include.env.locals.kms_key_id.secondary
       plan = {
         name = "${local.aws_account_name}-${local.region_prefix}-backup-plan"
         rules = [
