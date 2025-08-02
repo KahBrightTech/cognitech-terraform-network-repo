@@ -106,3 +106,12 @@ output "target_groups" {
   description = "Output for Target Groups"
   value       = module.target_groups
 }
+
+
+#-------------------------------------------------------
+# SSM Document outputs
+#-------------------------------------------------------
+output "ssm_documents" {
+  description = "Output for SSM Documents"
+  value       = module.ssm_documents
+}
