@@ -442,24 +442,24 @@ inputs = {
       }
     }
   ]
-  # ssm_documents = [
-  #   {
-  #     name               = "nessus-install"
-  #     content            = file("${include.cloud.locals.repo.root}/documents/nessusinstall.yaml")
-  #     document_type      = "Command"
-  #     document_format    = "YAML"
-  #     create_association = true
-  #     targets = {
-  #       key    = "tag:Environment"
-  #       values = ["production"]
-  #     }
-  #     parameters = {
-  #       name  = "Operation"
-  #       value = "Install"
-  #     }
-  #     schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
-  #   }
-  # ]
+  ssm_documents = [
+    {
+      name               = "nessus-install"
+      content            = file("${include.cloud.locals.repo.root}/documents/nessusinstall.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:Environment"
+        values = ["production"]
+      }
+      parameters = {
+        name  = "Operation"
+        value = "Install"
+      }
+      schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
+    }
+  ]
   load_balancers = [
     # {
     #   key             = "acct"
