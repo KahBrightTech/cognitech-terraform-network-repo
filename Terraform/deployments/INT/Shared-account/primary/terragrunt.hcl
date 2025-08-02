@@ -454,8 +454,7 @@ inputs = {
         values = ["production"]
       }
       parameters = {
-        name  = "Operation"
-        value = "Install"
+        Operation = "Install"
       }
       schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
     }
