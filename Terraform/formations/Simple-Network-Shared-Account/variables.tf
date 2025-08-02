@@ -569,17 +569,14 @@ variable "ssm_documents" {
     document_format    = optional(string, "YAML")
     tags               = optional(map(string))
     targets = optional(object({
-      key    = string
-      values = list(string)
+      key    = optional(string)
+      values = optional(list(string))
     }))
-    parameters = optional(object({
-      name  = string
-      value = string
-    }))
+    parameters          = optional(map(string))
     schedule_expression = optional(string)
     output_location = optional(object({
-      s3_bucket_name = string
-      s3_key_prefix  = string
+      s3_bucket_name = optional(string)
+      s3_key_prefix  = optional(string)
     }))
   }))
   default = null
