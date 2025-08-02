@@ -280,11 +280,11 @@ module "nlb_listeners" {
 
 #--------------------------------------------------------------------
 # Creates SSM Document and Association
-#--------------------------------------------------------------------
-module "ssm_documents" {
-  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/SSM-Documents?ref=v1.3.3"
-  for_each     = (var.ssm_documents != null) ? { for item in var.ssm_documents : item.name => item } : {}
-  common       = var.common
-  ssm_document = each.value
-}
+# #--------------------------------------------------------------------
+# module "ssm_documents" {
+#   source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/SSM-Documents?ref=v1.3.3"
+#   for_each     = (var.ssm_documents != null) ? { for item in var.ssm_documents : item.name => item } : {}
+#   common       = var.common
+#   ssm_document = each.value
+# }
 
