@@ -453,9 +453,9 @@ inputs = {
         key    = "tag:Environment"
         values = ["production"]
       }
-      parameters = {
-        Operation = "Install"
-      }
+      # parameters = {
+      #   Operation = "Install"
+      # }
       schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
     }
   ]
