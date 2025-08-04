@@ -399,6 +399,14 @@ inputs = {
             lifecycle = {
               delete_after_days = 30
             }
+            copy_actions = [
+              {
+                destination_vault_arn = "arn:aws:backup:us-west-2:${local.account_id}:backup-vault:${local.aws_account_name}-usw2-backup-vault"
+                lifecycle = {
+                  cold_storage_after_days = 30
+                }
+              }
+            ]
           },
           {
             rule_name         = "WeeklyBackup"
@@ -409,6 +417,15 @@ inputs = {
               cold_storage_after_days = 60
               delete_after_days       = 180
             }
+            copy_actions = [
+              {
+                destination_vault_arn = "arn:aws:backup:us-west-2:${local.account_id}:backup-vault:${local.aws_account_name}-usw2-backup-vault"
+                lifecycle = {
+                  cold_storage_after_days = 60
+                  delete_after_days       = 180
+                }
+              }
+            ]
           }
         ]
         selection = {
@@ -424,93 +441,133 @@ inputs = {
       }
     }
   ]
+  ssm_documents = [
+    {
+      name               = "nessus-install"
+      content            = file("${include.cloud.locals.repo.root}/documents/nessusinstall.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:Environment"
+        values = ["production"]
+      }
+      schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
+    }
+  ]
 
-  # load_balancers = [
-  #   {
-  #     key             = "acct"
-  #     name            = "acct"
-  #     vpc_name_abr    = "${local.vpc_name_abr}"
-  #     type            = "application"
-  #     security_groups = ["alb"]
-  #     subnets = [
-  #       include.env.locals.subnet_prefix.primary
-  #     ]
-  #     enable_deletion_protection = true
-  #     enable_access_logs         = true
-  #     access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-  #     vpc_name                   = local.vpc_name
-  #     create_default_listener    = true
-  #   },
-  #   {
-  #     key             = "etl"
-  #     name            = "etl"
-  #     vpc_name_abr    = "${local.vpc_name_abr}"
-  #     type            = "application"
-  #     security_groups = ["alb"]
-  #     subnets = [
-  #       include.env.locals.subnet_prefix.primary
-  #     ]
-  #     enable_deletion_protection = true
-  #     enable_access_logs         = true
-  #     access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-  #     vpc_name                   = local.vpc_name
-  #   },
-  #   {
-  #     key             = "ssrs"
-  #     name            = "ssrs"
-  #     vpc_name_abr    = "${local.vpc_name_abr}"
-  #     type            = "network"
-  #     security_groups = ["nlb"]
-  #     subnets = [
-  #       include.env.locals.subnet_prefix.primary
-  #     ]
-  #     enable_deletion_protection = true
-  #     enable_access_logs         = true
-  #     access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-  #     vpc_name                   = local.vpc_name
-  #   }
-  # ]
-  # alb_listeners = [
-  #   {
-  #     key      = "etl"
-  #     alb_key  = "etl"
-  #     protocol = "HTTPS"
-  #     port     = 443
-  #     action   = "fixed-response"
-  #     vpc_name = local.vpc_name
-  #     fixed_response = {
-  #       content_type = "text/plain"
-  #       message_body = "This is a default response from the ETL ALB listener."
-  #       status_code  = "200"
-  #     }
-  #   }
-  # ]
-  # nlb_listeners = [
-  #   {
-  #     key        = "ssrs"
-  #     nlb_key    = "ssrs"
-  #     protocol   = "TLS"
-  #     port       = 443
-  #     ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  #     action     = "forward"
-  #     vpc_name   = local.vpc_name
-  #     target_group = {
-  #       name         = "ssrs"
-  #       protocol     = "TLS"
-  #       port         = 443
-  #       vpc_name_abr = local.vpc_name_abr
-  #       health_check = {
-  #         protocol = "HTTPS"
-  #         port     = "443"
-  #         path     = "/"
-  #       }
-  #     }
-  #   }
-  # ]
+  load_balancers = [
+    # {
+    #   key             = "acct"
+    #   name            = "acct"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    #   create_default_listener    = true
+    # },
+    # {
+    #   key             = "etl"
+    #   name            = "etl"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    # },
+    # {
+    #   key             = "ssrs"
+    #   name            = "ssrs"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "network"
+    #   security_groups = ["nlb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    # }
+  ]
+  alb_listeners = [
+    # {
+    #   key      = "etl"
+    #   alb_key  = "etl"
+    #   protocol = "HTTPS"
+    #   port     = 443
+    #   action   = "fixed-response"
+    #   vpc_name = local.vpc_name
+    #   fixed_response = {
+    #     content_type = "text/plain"
+    #     message_body = "This is a default response from the ETL ALB listener."
+    #     status_code  = "200"
+    #   }
+    # }
+  ]
+  alb_listener_rules = [
+    # {
+    #   index_key    = "etl"
+    #   listener_key = "etl"
+    #   rules = [
+    #     {
+    #       key      = "etl"
+    #       priority = 10
+    #       type     = "forward"
+    #       target_groups = [
+    #         {
+    #           tg_name = "etl"
+    #           weight  = 99
+    #         }
+    #       ]
+    #       conditions = [
+    #         {
+    #           host_headers = [
+    #             "etl.${local.public_hosted_zone}",
+    #           ]
+    #         }
+    #       ]
+    #     }
+    #   ]
+    # }
+  ]
+  nlb_listeners = [
+    # {
+    #   key        = "ssrs"
+    #   nlb_key    = "ssrs"
+    #   protocol   = "TLS"
+    #   port       = 443
+    #   ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
+    #   action     = "forward"
+    #   vpc_name   = local.vpc_name
+    #   target_group = {
+    #     name         = "ssrs"
+    #     protocol     = "TLS"
+    #     port         = 443
+    #     vpc_name_abr = local.vpc_name_abr
+    #     health_check = {
+    #       protocol = "HTTPS"
+    #       port     = "443"
+    #       path     = "/"
+    #     }
+    #   }
+    # }
+  ]
   target_groups = [
     # {
-    #   key      = "ssrs"
-    #   name     = "ssrs"
+    #   key      = "etl"
+    #   name     = "etl"
     #   protocol = "HTTPS"
     #   port     = 443
     #   health_check = {
@@ -518,7 +575,8 @@ inputs = {
     #     port     = "443"
     #     path     = "/"
     #   }
-    #   vpc_name = local.vpc_name
+    #   vpc_name     = local.vpc_name
+    #   vpc_name_abr = "${local.vpc_name_abr}"
     # }
   ]
 }
@@ -555,6 +613,8 @@ generate "aws-providers" {
   }
   EOF
 }
+
+
 
 
 

@@ -1,124 +1,127 @@
 schemaVersion: '2.2'
-description: "Document to install Nessus agent on different operating systems"
+description: "Document to install and configure Ansible Tower on Linux servers using AWS Systems Manager (SSM)."
 parameters:
-  NessusLinuxAmazonURI:
+  AnsibleTowerUsername:
     type: String
-    description: "S3 URI for Nessus agent on Amazon Linux"
-    default: s3://effulgencesoftwareinstall/Nessus/Linux/Amazon-Linux-2/Nessus-10.8.3-amzn2.x86_64.rpm
-  NessusLinuxRHELCentOSURI:
+    description: "SSM Parameter Name for Ansible Tower admin username"
+    default: "{{/Standard/ansible/username}}"
+  AnsibleTowerPassword:
     type: String
-    description: "S3 URI for Nessus agent on RHEL/CentOS"
-    default: s3://effulgencesoftwareinstall/Nessus/Linux/Rhel9/Nessus-10.8.3-el9.x86_64.rpm
-  NessusLinuxUbuntuURI:
+    description: "SSM Parameter Name for Ansible Tower admin password"
+    default: "{{/Standard/ansible/password}}"
+  AnsibleTowerS3URI:
     type: String
     description: "S3 URI for Nessus agent on Ubuntu"
     default: s3://effulgencesoftwareinstall/Nessus/Linux/Ubuntu/Nessus-10.8.3-ubuntu1604_amd64.deb
-  NessusWindowsURI:
+  AnsibleS3BucketName:
     type: String
-    description: "S3 URI for Nessus agent on Windows"
+    description: "S3 Bucket Name for Ansible Tower installer"
     default: s3://effulgencesoftwareinstall/Nessus/Windows/Nessus-10.8.3-x64.msi
-  NessusAmznLnxLinuxRPM:
-    type: String
-    description: Filename for Nessus RPM package for amazon linux 2
-    default: Nessus-10.8.3-amzn2.x86_64.rpm
-  NessusRhel9LinuxRPM:
-    type: String
-    description: "Filename for Nessus RPM package for Rhel 9"
-    default: Nessus-10.8.3-el9.x86_64.rpm
-  NessusUbuntuLinuxRPM:
-    type: String
-    description: "Filename for Nessus RPM package for Ubuntu"
-    default: Nessus-10.8.3-ubuntu1604_amd64.deb
-  NessusWindowsMSI:
-    type: String
-    description: "Filename for Nessus RPM package for Windows"
-    default: Nessus-10.8.3-x64.msi
 
 
 mainSteps:
   - action: aws:runShellScript
-    name: InstallNessusAgentLinux
+    name: InstallAnd ConfigureAnsibleTower
     description: |
       Installs Nessus agent on Linux servers
     inputs:
       runCommand:
         - |
-          #!/bin/bash -xe
-          ##############################################################
-          #  INSTALLING AND CONFIGURING NESSUS AGENT  #
-          ##############################################################
-          OS_TYPE=$(cat /etc/os-release | grep ^ID= | cut -d '=' -f 2 | tr -d '"')
-          
-          case "$OS_TYPE" in
-            "amzn")
-              echo "Detected Amazon Linux 2"
-              if rpm -q Nessus; then
-                echo "Nessus is already installed. Skipping installation."
+            #!/bin/bash -xe
+            ##############################################################
+                  #  INSTALLING AND CONFIGURING ANSIBLE TOWER  #
+            ##############################################################              
+              # Variables - Using SSM Parameters from document parameters
+              SSM_PARAMETER_NAME="{{ AnsibleTowerPassword }}" # Use the parameter defined above
+              SSM_USERNAME_PARAMETER="{{ AnsibleTowerUsername }}" # Use the username parameter defined above
+              S3_BUCKET="mustydain"
+              TOWER_ARCHIVE="ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
+              TOWER_FOLDER="/root/ansible-automation-platform-setup-bundle-2.4-1-x86_64"
+              INVENTORY_FILE="$TOWER_FOLDER/inventory"
+              INSTALLER_SOURCE="s3://mustydain/ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"  # S3 Path Variable
+              
+              # Ensure AWS CLI is in the PATH
+              export PATH=/usr/local/bin:$PATH
+              
+              # Install AWS CLI if not installed
+              if ! command -v aws &> /dev/null; then
+                echo "Installing AWS CLI..."
+                sudo yum install unzip -y
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                sudo rm -rf aws
+                unzip -o awscliv2.zip
+                sudo ./aws/install
+                /usr/local/bin/aws --version  # Directly added here to verify installation
+                export PATH=/usr/local/bin:$PATH
+                if ! command -v aws &> /dev/null; then
+                  echo "Error: AWS CLI installation failed!"
+                  exit 1
+                fi
               else
-                aws s3 cp {{ NessusLinuxAmazonURI }} .
-                rpm -ivh {{ NessusAmznLnxLinuxRPM }}
+                echo "AWS CLI already installed. Skipping..."
               fi
-              ;;
-            "rhel"|"centos")
-              echo "Detected RHEL/CentOS"
-              if rpm -q Nessus; then
-                echo "Nessus is already installed. Skipping installation."
+              
+              # Get credentials from SSM Parameters
+              REDHAT_USERNAME=$(aws ssm get-parameter --name "$SSM_USERNAME_PARAMETER" --query "Parameter.Value" --output text --with-decryption)
+              REGISTER_PASSWORD=$(aws ssm get-parameter --name "$SSM_PARAMETER_NAME" --query "Parameter.Value" --output text --with-decryption)
+              
+              # Register with Red Hat Subscription Manager
+              if sudo subscription-manager register --username "$REDHAT_USERNAME" --password "$REGISTER_PASSWORD"; then
+                echo "Red Hat registration successful."
               else
-                aws s3 cp {{ NessusLinuxRHELCentOSURI }} .
-                rpm -ivh {{ NessusRhel9LinuxRPM }}
+                echo "Instance already registered or failed to register."
               fi
-              ;;
-            "ubuntu")
-              echo "Detected Ubuntu"
-              if dpkg -l | grep -q nessus; then
-                echo "Nessus is already installed. Skipping installation."
+              
+              # Update system packages
+              echo "Updating system packages..."
+              sudo yum update -y
+              
+              # Set hostname
+              echo "Setting hostname..."
+              sudo hostnamectl set-hostname ansible
+              echo "127.0.0.1 ansible.local localhost.localdomain" | sudo tee -a /etc/hosts
+              
+              # **Download Ansible Tower installer from S3 (Using Variable for Source)**
+              echo "Downloading Ansible Tower installer from S3..."
+              aws s3 cp "$INSTALLER_SOURCE" /root/
+              if [ ! -f "/root/$TOWER_ARCHIVE" ]; then
+                echo "Error: Failed to download Ansible Tower archive from S3!"
+                exit 1
+              fi
+              
+              # Extract Ansible Tower installer
+              echo "Extracting Ansible Tower archive..."
+              tar -xzf "/root/$TOWER_ARCHIVE" -C /root/
+              
+              # Get admin password from SSM
+              ADMIN_PASSWORD=$(aws ssm get-parameter --name "$SSM_PARAMETER_NAME" --query "Parameter.Value" --output text --with-decryption)
+              
+              # Modify inventory file
+              if [ -f "$INVENTORY_FILE" ]; then
+                echo "Configuring inventory file..."
+                sudo sed -i "s|admin_password=.*|admin_password='$ADMIN_PASSWORD'|" "$INVENTORY_FILE"
+                sudo sed -i "s|pg_password=.*|pg_password='$ADMIN_PASSWORD'|" "$INVENTORY_FILE"
+                sudo sed -i "s|register_username=.*|register_username='$REDHAT_USERNAME'|" "$INVENTORY_FILE"
+                sudo sed -i "s|register_password=.*|register_password='$REGISTER_PASSWORD'|" "$INVENTORY_FILE"
+              
+                echo "[automationcontroller]" | sudo tee -a "$INVENTORY_FILE"
+                echo "ansible ansible_connection=local" | sudo tee -a "$INVENTORY_FILE"
               else
-                snap install aws-cli --classic
-                aws s3 cp {{ NessusLinuxUbuntuURI }} .
-                dpkg -i {{ NessusUbuntuLinuxRPM }}
+                echo "Error: Inventory file not found!"
+                exit 1
               fi
-              ;;
-            *)
-              echo "Unsupported Linux distribution"
-              exit 1
-              ;;
-          esac
-          
-          /bin/systemctl start nessusd.service
-          /bin/systemctl enable nessusd.service
-    precondition:
-      StringEquals:
-        - platformType
-        - Linux
-
-  - action: aws:runPowerShellScript
-    name: InstallNessusAgentWindows
-    description: |
-      Installs Nessus agent on Windows servers
-    inputs:
-      runCommand:
-        - |
-          # PowerShell Script to Install Nessus Agent on Windows
-           if (-not (Get-Command aws -ErrorAction SilentlyContinue)) {
-              Write-Host "AWS CLI is not installed. Exiting..."
-              exit 1
-            }    
-          $S3Path = "{{ NessusWindowsURI }}"
-          $DestPath = "C:\{{ NessusWindowsMSI }}"
-
-          if (Get-Service -Name "Tenable Nessus" -ErrorAction SilentlyContinue) {
-              Write-Host "Nessus is already installed. Skipping installation."
-          } else {
-              Write-Host "Downloading Nessus from S3..."
-              aws s3 cp $S3Path $DestPath
-
-              Write-Host "Installing Nessus..."
-              Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $DestPath /quiet /norestart" -Wait
-          }
-          
-          Start-Service -Name "Tenable Nessus"
-          Set-Service -Name "Tenable Nessus" -StartupType Automatic
-    precondition:
-      StringEquals:
-        - platformType
-        - Windows
+              
+              # Run Ansible Tower setup
+              echo "Starting Ansible Tower setup..."
+              if [ -f "$TOWER_FOLDER/setup.sh" ]; then
+                sudo bash "$TOWER_FOLDER/setup.sh" -e required_ram=2048
+              else
+                echo "Error: Ansible Tower setup script not found!"
+                exit 1
+              fi
+              
+              echo "Ansible Tower setup completed successfully!"
+                  precondition:
+                    StringEquals:
+                      - platformType
+                      - Linux
