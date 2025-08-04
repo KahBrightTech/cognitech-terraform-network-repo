@@ -4,11 +4,11 @@ parameters:
   AnsibleTowerUsername:
     type: String
     description: "SSM Parameter Name for Ansible Tower admin username"
-    default: "{{/Standard/ansible/username}}"
+    default: "{{ssm:/Standard/ansible/username}}"
   AnsibleTowerPassword:
     type: String
     description: "SSM Parameter Name for Ansible Tower admin password"
-    default: "{{/Standard/ansible/password}}"
+    default: "{{ssm:/Standard/ansible/password}}"
   AnsibleTowerS3URI:
     type: String
     description: "S3 URI for Nessus agent on Ubuntu"
@@ -31,18 +31,17 @@ mainSteps:
             ##############################################################
                   #  INSTALLING AND CONFIGURING ANSIBLE TOWER  #
             ##############################################################              
-              # Variables - Using SSM Parameters from document parameters
-              SSM_PARAMETER_NAME="{{ AnsibleTowerPassword }}" # Use the parameter defined above
-              SSM_USERNAME_PARAMETER="{{ AnsibleTowerUsername }}" # Use the username parameter defined above
+              # Variables - Using SSM Parameters from document parameters (auto-resolved by SSM)
+              REDHAT_USERNAME="{{ AnsibleTowerUsername }}" # Auto-resolved by SSM
+              REGISTER_PASSWORD="{{ AnsibleTowerPassword }}" # Auto-resolved by SSM
               S3_BUCKET="mustydain"
               TOWER_ARCHIVE="ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
               TOWER_FOLDER="/root/ansible-automation-platform-setup-bundle-2.4-1-x86_64"
               INVENTORY_FILE="$TOWER_FOLDER/inventory"
               INSTALLER_SOURCE="s3://mustydain/ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"  # S3 Path Variable
-              
+
               # Ensure AWS CLI is in the PATH
-              export PATH=/usr/local/bin:$PATH
-              
+              export PATH=/usr/local/bin:$PATH              
               # Install AWS CLI if not installed
               if ! command -v aws &> /dev/null; then
                 echo "Installing AWS CLI..."
@@ -60,10 +59,6 @@ mainSteps:
               else
                 echo "AWS CLI already installed. Skipping..."
               fi
-              
-              # Get credentials from SSM Parameters
-              REDHAT_USERNAME=$(aws ssm get-parameter --name "$SSM_USERNAME_PARAMETER" --query "Parameter.Value" --output text --with-decryption)
-              REGISTER_PASSWORD=$(aws ssm get-parameter --name "$SSM_PARAMETER_NAME" --query "Parameter.Value" --output text --with-decryption)
               
               # Register with Red Hat Subscription Manager
               if sudo subscription-manager register --username "$REDHAT_USERNAME" --password "$REGISTER_PASSWORD"; then
@@ -93,14 +88,11 @@ mainSteps:
               echo "Extracting Ansible Tower archive..."
               tar -xzf "/root/$TOWER_ARCHIVE" -C /root/
               
-              # Get admin password from SSM
-              ADMIN_PASSWORD=$(aws ssm get-parameter --name "$SSM_PARAMETER_NAME" --query "Parameter.Value" --output text --with-decryption)
-              
-              # Modify inventory file
+              # Modify inventory file (using auto-resolved SSM values)
               if [ -f "$INVENTORY_FILE" ]; then
                 echo "Configuring inventory file..."
-                sudo sed -i "s|admin_password=.*|admin_password='$ADMIN_PASSWORD'|" "$INVENTORY_FILE"
-                sudo sed -i "s|pg_password=.*|pg_password='$ADMIN_PASSWORD'|" "$INVENTORY_FILE"
+                sudo sed -i "s|admin_password=.*|admin_password='$REGISTER_PASSWORD'|" "$INVENTORY_FILE"
+                sudo sed -i "s|pg_password=.*|pg_password='$REGISTER_PASSWORD'|" "$INVENTORY_FILE"
                 sudo sed -i "s|register_username=.*|register_username='$REDHAT_USERNAME'|" "$INVENTORY_FILE"
                 sudo sed -i "s|register_password=.*|register_password='$REGISTER_PASSWORD'|" "$INVENTORY_FILE"
               

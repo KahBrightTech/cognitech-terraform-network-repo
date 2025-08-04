@@ -303,7 +303,7 @@ inputs = {
       enable_versioning = true
       objects = [
         {
-          key = "Ansible_Tower/"
+          key = "Ansible-Tower/"
         }
       ]
     }
@@ -455,8 +455,8 @@ inputs = {
   ]
   ssm_documents = [
     {
-      name               = "nessus-install"
-      content            = file("${include.cloud.locals.repo.root}/documents/nessusinstall.yaml")
+      name               = "ansible-install"
+      content            = file("${include.cloud.locals.repo.root}/documents/AnsibleInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true
