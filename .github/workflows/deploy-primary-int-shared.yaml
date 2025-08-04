@@ -30,6 +30,10 @@ env:
   TF_VAR_KSM_CONFIG: ${{ secrets.TF_VAR_KSM_CONFIG }}
   TF_VAR_ANSIBLE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_USERNAME }}
   TF_VAR_ANSIBLE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_PASSWORD }}
+  TF_VAR_USER_USERNAME1: ${{ secrets.TF_VAR_USER_USERNAME1 }}
+  TF_VAR_USER_PASSWORD1: ${{ secrets.TF_VAR_USER_PASSWORD1 }}
+  TF_VAR_USER_USERNAME2: ${{ secrets.TF_VAR_USER_USERNAME2 }}
+  TF_VAR_USER_PASSWORD2: ${{ secrets.TF_VAR_USER_PASSWORD2 }}
 
 permissions:
   packages: write
@@ -97,6 +101,19 @@ jobs:
     needs: Approve
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terragrunt_action == 'apply' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+    env:
+      IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
+      REGION: us-east-1
+      DEPLOYMENT_PATH: Terraform/deployments/INT/Shared-account/primary
+      TF_VAR_KSM_CONFIG: ${{ secrets.TF_VAR_KSM_CONFIG }}
+      TF_VAR_ANSIBLE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_TOWER_USERNAME }}
+      TF_VAR_ANSIBLE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_TOWER_PASSWORD }}
+      TF_VAR_USER_USERNAME1: ${{ secrets.TF_VAR_USER_USERNAME1 }}
+      TF_VAR_USER_PASSWORD1: ${{ secrets.TF_VAR_USER_PASSWORD1 }}
+      TF_VAR_USER_USERNAME2: ${{ secrets.TF_VAR_USER_USERNAME2 }}
+      TF_VAR_USER_PASSWORD2: ${{ secrets.TF_VAR_USER_PASSWORD2 }}
     defaults:
       run:
         shell: bash
@@ -136,6 +153,17 @@ jobs:
     needs: Plan
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terragrunt_action == 'destroy' && github.ref == 'refs/heads/main'
+    env:
+      IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
+      REGION: us-east-1
+      DEPLOYMENT_PATH: Terraform/deployments/INT/Shared-account/primary
+      TF_VAR_KSM_CONFIG: ${{ secrets.TF_VAR_KSM_CONFIG }}
+      TF_VAR_ANSIBLE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_TOWER_USERNAME }}
+      TF_VAR_ANSIBLE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_TOWER_PASSWORD }}
+      TF_VAR_USER_USERNAME1: ${{ secrets.TF_VAR_USER_USERNAME1 }}
+      TF_VAR_USER_PASSWORD1: ${{ secrets.TF_VAR_USER_PASSWORD1 }}
+      TF_VAR_USER_USERNAME2: ${{ secrets.TF_VAR_USER_USERNAME2 }}
+      TF_VAR_USER_PASSWORD2: ${{ secrets.TF_VAR_USER_PASSWORD2 }}
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
