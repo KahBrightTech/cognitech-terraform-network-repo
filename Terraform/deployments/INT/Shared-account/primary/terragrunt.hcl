@@ -394,6 +394,12 @@ inputs = {
       description = "Ansible Tower Password"
       type        = "SecureString"
       value       = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+    },
+    {
+      name        = "/Standard/ansible/bucketName"
+      description = "Ansible Tower Bucket Name"
+      type        = "String"
+      value       = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-software-bucket"
     }
   ]
   backups = [
