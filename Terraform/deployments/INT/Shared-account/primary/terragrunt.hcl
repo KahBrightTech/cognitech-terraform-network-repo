@@ -381,7 +381,7 @@ inputs = {
         username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
         password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
       }
-    }
+    },
     {
       name        = "user-credentials"
       description = "User credentials"
