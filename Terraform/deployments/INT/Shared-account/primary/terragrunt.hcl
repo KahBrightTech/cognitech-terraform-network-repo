@@ -303,7 +303,7 @@ inputs = {
       enable_versioning = true
       objects = [
         {
-          key = "Ansible-Tower/"
+          key = "Ansible_Tower/"
         }
       ]
     }
