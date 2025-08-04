@@ -389,8 +389,8 @@ inputs = {
       value = {
         username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
         password1 = "${get_env("TF_VAR_USER_PASSWORD1")}"
-        username2 = "${get_env("TF_VAR_USER2_USERNAME2")}"
-        password2 = "${get_env("TF_VAR_USER2_PASSWORD2")}"
+        username2 = "${get_env("TF_VAR_USER_USERNAME2")}"
+        password2 = "${get_env("TF_VAR_USER_PASSWORD2")}"
       }
     }
   ]
