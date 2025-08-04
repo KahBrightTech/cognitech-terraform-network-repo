@@ -16,7 +16,7 @@ parameters:
   AnsibleS3BucketName:
     type: String
     description: "S3 Bucket Name for Ansible Tower installer"
-    default: s3://effulgencesoftwareinstall/Nessus/Windows/Nessus-10.8.3-x64.msi
+    default: int-preproduction-use1-shared-services-software-bucket
 
 
 mainSteps:
