@@ -29,9 +29,9 @@ parameters:
 
 mainSteps:
   - action: aws:runShellScript
-    name: InstallAnd ConfigureAnsibleTower
+    name: InstallAndConfigureAnsibleTower
     description: |
-      Installs Nessus agent on Linux servers
+      Installs and configures Ansible Tower on Linux servers
     inputs:
       runCommand:
         - |
@@ -122,7 +122,7 @@ mainSteps:
               fi
               
               echo "Ansible Tower setup completed successfully!"
-                  precondition:
-                    StringEquals:
-                      - platformType
-                      - Linux
+    precondition:
+      StringEquals:
+        - platformType
+        - Linux
