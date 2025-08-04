@@ -467,8 +467,8 @@ inputs = {
       document_format    = "YAML"
       create_association = true
       targets = {
-        key    = "tag:Environment"
-        values = ["production"]
+        key    = "tag:AnsibleInstall"
+        values = ["True"]
       }
       schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
     }
