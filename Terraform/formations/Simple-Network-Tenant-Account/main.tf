@@ -27,6 +27,7 @@ module "s3_app_bucket" {
     description       = each.value.description
     enable_versioning = each.value.enable_versioning
     policy            = each.value.policy
+    objects           = each.value.objects != null ? each.value.objects : null
   }
 }
 
