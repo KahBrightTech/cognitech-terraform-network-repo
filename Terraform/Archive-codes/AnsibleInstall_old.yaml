@@ -1,0 +1,128 @@
+schemaVersion: '2.2'
+description: "Document to install and configure Ansible Tower on Linux servers using AWS Systems Manager (SSM)."
+parameters:
+  AnsibleTowerUsername:
+    type: String
+    description: "SSM Parameter Name for Ansible Tower admin username"
+    default: "{{ssm:/Standard/ansible/username}}"
+  AnsibleTowerPassword:
+    type: String
+    description: "SSM Parameter Name for Ansible Tower admin password"
+    default: "{{ssm:/Standard/ansible/password}}"
+  AnsibleTowerArchiveS3URI:
+    type: String
+    description: "S3 URI for Ansible Tower installer"
+    default: "s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}"
+  AnsibleTowerArchiveName:
+    type: String
+    description: "Ansible Tower archive filename"
+    default: "ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
+  AnsibleS3BucketName:
+    type: String
+    description: "S3 Bucket Name for Ansible Tower installer"
+    default: "{{ssm:/Standard/ansible/bucketName}}"
+  AnsibleS3BucketPrefix:
+    type: String
+    description: "S3 Bucket Prefix for Ansible Tower installer"
+    default: "Ansible_Tower"
+
+
+mainSteps:
+  - action: aws:runShellScript
+    name: InstallAndConfigureAnsibleTower
+    description: |
+      Installs and configures Ansible Tower on Linux servers
+    inputs:
+      runCommand:
+        - |
+            #!/bin/bash -xe
+            ##############################################################
+                  #  INSTALLING AND CONFIGURING ANSIBLE TOWER  #
+            ##############################################################              
+              # All variables now use SSM parameters - no hardcoded values
+              
+              # Ensure AWS CLI is in the PATH
+              export PATH=/usr/local/bin:$PATH              
+              # Install AWS CLI if not installed
+              if ! command -v aws &> /dev/null; then
+                echo "Installing AWS CLI..."
+                sudo yum install unzip -y
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                sudo rm -rf aws
+                unzip -o awscliv2.zip
+                sudo ./aws/install
+                /usr/local/bin/aws --version  # Directly added here to verify installation
+                export PATH=/usr/local/bin:$PATH
+                if ! command -v aws &> /dev/null; then
+                  echo "Error: AWS CLI installation failed!"
+                  exit 1
+                fi
+              else
+                echo "AWS CLI already installed. Skipping..."
+              fi
+              
+              # Register with Red Hat Subscription Manager
+              if sudo subscription-manager register --username "{{ AnsibleTowerUsername }}" --password "{{ AnsibleTowerPassword }}"; then
+                echo "Red Hat registration successful."
+              else
+                echo "Instance already registered or failed to register."
+              fi
+              
+              # Update system packages
+              echo "Updating system packages..."
+              sudo yum update -y
+              
+              # Set hostname
+              echo "Setting hostname..."
+              sudo hostnamectl set-hostname ansible
+              echo "127.0.0.1 ansible.local localhost.localdomain" | sudo tee -a /etc/hosts
+              
+              # **Download Ansible Tower installer from S3 (Using Parameter)**
+              echo "Downloading Ansible Tower installer from S3..."
+              aws s3 cp "{{ AnsibleTowerArchiveS3URI }}" /root/
+              if [ ! -f "/root/{{ AnsibleTowerArchiveName }}" ]; then
+                echo "Error: Failed to download Ansible Tower archive from S3!"
+                exit 1
+              fi
+              
+              # Extract Ansible Tower installer
+              echo "Extracting Ansible Tower archive..."
+              tar -xzf "/root/{{ AnsibleTowerArchiveName }}" -C /root/
+              
+              # Auto-detect the extracted folder name
+              EXTRACTED_FOLDER=$(find /root -maxdepth 1 -type d -name "*ansible*" | grep -v "^/root$" | head -1)
+              if [ -z "$EXTRACTED_FOLDER" ]; then
+                echo "Error: Could not find extracted Ansible Tower folder!"
+                exit 1
+              fi
+              echo "Found extracted folder: $EXTRACTED_FOLDER"
+              
+              # Modify inventory file (using auto-detected folder)
+              if [ -f "$EXTRACTED_FOLDER/inventory" ]; then
+                echo "Configuring inventory file..."
+                sudo sed -i "s|admin_password=.*|admin_password='{{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
+                sudo sed -i "s|pg_password=.*|pg_password='{{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
+                sudo sed -i "s|register_username=.*|register_username='{{ AnsibleTowerUsername }}'|" "$EXTRACTED_FOLDER/inventory"
+                sudo sed -i "s|register_password=.*|register_password='{{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
+              
+                echo "[automationcontroller]" | sudo tee -a "$EXTRACTED_FOLDER/inventory"
+                echo "ansible ansible_connection=local" | sudo tee -a "$EXTRACTED_FOLDER/inventory"
+              else
+                echo "Error: Inventory file not found in $EXTRACTED_FOLDER!"
+                exit 1
+              fi
+              
+              # Run Ansible Tower setup
+              echo "Starting Ansible Tower setup..."
+              if [ -f "$EXTRACTED_FOLDER/setup.sh" ]; then
+                sudo bash "$EXTRACTED_FOLDER/setup.sh" -e required_ram=2048
+              else
+                echo "Error: Ansible Tower setup script not found in $EXTRACTED_FOLDER!"
+                exit 1
+              fi
+              
+              echo "Ansible Tower setup completed successfully!"
+    precondition:
+      StringEquals:
+        - platformType
+        - Linux
