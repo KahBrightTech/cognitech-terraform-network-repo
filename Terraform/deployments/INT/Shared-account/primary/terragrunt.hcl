@@ -316,7 +316,8 @@ inputs = {
       managed_policy_arns = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
         "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+        "arn:aws:iam::aws:policy/AdministratorAccess"
       ]
       policy = {
         name        = "${local.vpc_name}-ec2-instance-profile"
