@@ -1,0 +1,191 @@
+schemaVersion: '2.2'
+description: "Document to create 2 Linux users and add them to sudo and ssh groups using credentials from Secrets Manager."
+parameters:
+  SecretName:
+    type: String
+    description: "Secrets Manager secret name containing user credentials"
+    default: "int-preproduction-use1-Bastion-credentials"
+  SecretRegion:
+    type: String
+    description: "AWS Region where the secret is stored"
+    default: "us-east-1"
+
+mainSteps:
+  - action: aws:runShellScript
+    name: CreateLinuxUsers
+    description: |
+      Creates 2 Linux users and adds them to sudo and ssh groups
+    inputs:
+      runCommand:
+        - |
+            #!/bin/bash -xe
+            ##############################################################
+            #       CREATING LINUX USERS FROM SECRETS MANAGER          #
+            ##############################################################
+            
+            # Function to log messages with timestamp
+            log() {
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+            }
+            
+            log "Starting Linux user creation process..."
+            
+            # Install required packages
+            log "Installing required packages..."
+            if command -v yum >/dev/null 2>&1; then
+                # Amazon Linux/RHEL/CentOS
+                yum update -y
+                yum install -y awscli jq
+            elif command -v apt-get >/dev/null 2>&1; then
+                # Ubuntu/Debian
+                apt-get update -y
+                apt-get install -y awscli jq
+            else
+                log "ERROR: Unsupported Linux distribution"
+                exit 1
+            fi
+            
+            # Set variables
+            SECRET_NAME="{{ SecretName }}"
+            SECRET_REGION="{{ SecretRegion }}"
+            
+            log "Retrieving credentials from Secrets Manager..."
+            
+            # Get credentials from Secrets Manager
+            SECRET_VALUE=$(aws secretsmanager get-secret-value \
+                --secret-id "$SECRET_NAME" \
+                --region "$SECRET_REGION" \
+                --query SecretString \
+                --output text 2>/dev/null)
+            
+            if [ $? -ne 0 ] || [ -z "$SECRET_VALUE" ]; then
+                log "ERROR: Failed to retrieve secret from Secrets Manager"
+                exit 1
+            fi
+            
+            # Parse JSON and extract credentials
+            USERNAME1=$(echo "$SECRET_VALUE" | jq -r '.username1')
+            PASSWORD1=$(echo "$SECRET_VALUE" | jq -r '.password1')
+            USERNAME2=$(echo "$SECRET_VALUE" | jq -r '.username2')
+            PASSWORD2=$(echo "$SECRET_VALUE" | jq -r '.password2')
+            
+            # Validate that we got the credentials
+            if [ -z "$USERNAME1" ] || [ "$USERNAME1" = "null" ] || [ -z "$PASSWORD1" ] || [ "$PASSWORD1" = "null" ] || \
+               [ -z "$USERNAME2" ] || [ "$USERNAME2" = "null" ] || [ -z "$PASSWORD2" ] || [ "$PASSWORD2" = "null" ]; then
+                log "ERROR: Failed to parse credentials from Secrets Manager"
+                exit 1
+            fi
+            
+            log "Successfully retrieved credentials from Secrets Manager"
+            
+            # Function to create user and configure groups
+            create_user_and_configure() {
+                local username=$1
+                local password=$2
+                local user_number=$3
+                
+                log "Processing user: $username"
+                
+                # Check if user already exists
+                if id "$username" >/dev/null 2>&1; then
+                    log "User $username already exists, updating password..."
+                    echo "$username:$password" | chpasswd
+                else
+                    log "Creating user: $username"
+                    useradd -m -c "Bastion User $user_number" -s /bin/bash "$username"
+                    echo "$username:$password" | chpasswd
+                fi
+                
+                # Ensure sudo group exists and add user to it
+                if ! getent group sudo >/dev/null 2>&1; then
+                    log "Creating sudo group..."
+                    groupadd sudo
+                fi
+                
+                log "Adding $username to sudo group..."
+                usermod -a -G sudo "$username"
+                
+                # Add user to wheel group (common on RHEL/CentOS/Amazon Linux)
+                if getent group wheel >/dev/null 2>&1; then
+                    log "Adding $username to wheel group..."
+                    usermod -a -G wheel "$username"
+                fi
+                
+                # Ensure the user can SSH (add to ssh group if it exists)
+                if getent group ssh >/dev/null 2>&1; then
+                    log "Adding $username to ssh group..."
+                    usermod -a -G ssh "$username"
+                fi
+                
+                # Configure sudoers entry for the user
+                log "Configuring sudo access for $username..."
+                echo "$username ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$username"
+                chmod 440 "/etc/sudoers.d/$username"
+                
+                # Set password expiration policy (optional - password never expires)
+                chage -M -1 "$username"
+                
+                log "Successfully configured user: $username"
+            }
+            
+            # Create User 1
+            log "Creating first user..."
+            create_user_and_configure "$USERNAME1" "$PASSWORD1" "1"
+            
+            # Create User 2  
+            log "Creating second user..."
+            create_user_and_configure "$USERNAME2" "$PASSWORD2" "2"
+            
+            # Configure SSH settings to allow password authentication (if needed)
+            log "Checking SSH configuration..."
+            if [ -f /etc/ssh/sshd_config ]; then
+                # Backup original sshd_config
+                cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup.$(date +%Y%m%d_%H%M%S)
+                
+                # Ensure password authentication is enabled
+                if ! grep -q "^PasswordAuthentication yes" /etc/ssh/sshd_config; then
+                    log "Enabling SSH password authentication..."
+                    sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+                    
+                    # Restart SSH service
+                    if command -v systemctl >/dev/null 2>&1; then
+                        systemctl restart sshd
+                    elif command -v service >/dev/null 2>&1; then
+                        service ssh restart || service sshd restart
+                    fi
+                    log "SSH service restarted"
+                fi
+            fi
+            
+            # Verify user creation and group membership
+            log "Verifying user creation and group membership..."
+            
+            for username in "$USERNAME1" "$USERNAME2"; do
+                if id "$username" >/dev/null 2>&1; then
+                    log "✓ User $username exists"
+                    
+                    # Check group memberships
+                    user_groups=$(groups "$username" 2>/dev/null || echo "")
+                    
+                    if echo "$user_groups" | grep -q "sudo\|wheel"; then
+                        log "✓ User $username has sudo privileges"
+                    else
+                        log "✗ User $username does NOT have sudo privileges"
+                    fi
+                    
+                    # Check if sudoers file exists
+                    if [ -f "/etc/sudoers.d/$username" ]; then
+                        log "✓ Sudoers configuration exists for $username"
+                    else
+                        log "✗ Sudoers configuration missing for $username"
+                    fi
+                    
+                else
+                    log "✗ User $username was not created successfully"
+                fi
+            done
+            
+            log "Linux user creation process completed successfully!"
+            
+            # Clean up sensitive variables
+            unset USERNAME1 PASSWORD1 USERNAME2 PASSWORD2 SECRET_VALUE

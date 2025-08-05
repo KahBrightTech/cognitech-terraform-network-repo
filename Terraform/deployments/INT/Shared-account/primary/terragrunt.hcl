@@ -383,8 +383,8 @@ inputs = {
       }
     },
     {
-      name        = "Bastion-credentials"
-      description = "Bastion credentials"
+      name        = "${local.aws_account_name}-${local.region_prefix}-User-credentials"
+      description = "User credentials for ${local.aws_account_name}environment"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
@@ -412,6 +412,12 @@ inputs = {
       description = "Ansible Tower Bucket Name"
       type        = "String"
       value       = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-software-bucket"
+    },
+    {
+      name        = "/Standard/ansible/UserCredentials"
+      description = "Ansible Tower User Credentials"
+      type        = "String"
+      value       = "${local.aws_account_name}-${local.region_prefix}-User-credentials"
     }
   ]
   backups = [
@@ -474,7 +480,7 @@ inputs = {
   ssm_documents = [
     {
       name               = "ansible-install"
-      content            = file("${include.cloud.locals.repo.root}/documents/AnsibleInstall.yaml")
+      content            = file("${get_terragrunt_dir()}/../../../documents/AnsibleInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true
@@ -483,9 +489,20 @@ inputs = {
         values = ["True"]
       }
       schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
+    },
+    {
+      name               = "universal-user-credentials"
+      content            = file("${get_terragrunt_dir()}/../../../documents/UniversalUserCreation.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:BastionUserCreation"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
     }
   ]
-
   load_balancers = [
     {
       key             = "acct"

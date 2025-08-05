@@ -1,0 +1,137 @@
+schemaVersion: '2.2'
+description: "Document to create 2 Windows users and add them to Administrator and Remote Desktop Users groups using credentials from Secrets Manager."
+parameters:
+  SecretName:
+    type: String
+    description: "Secrets Manager secret name containing user credentials"
+    default: "int-preproduction-use1-Bastion-credentials"
+  SecretRegion:
+    type: String
+    description: "AWS Region where the secret is stored"
+    default: "us-east-1"
+
+mainSteps:
+  - action: aws:runPowerShellScript
+    name: CreateWindowsUsers
+    description: |
+      Creates 2 Windows users and adds them to Administrator and Remote Desktop Users groups
+    inputs:
+      runCommand:
+        - |
+            # PowerShell script to create Windows users from Secrets Manager
+            try {
+                Write-Output "[$(Get-Date)] Starting Windows user creation process..."
+                
+                # Function to log messages with timestamp
+                function Write-Log {
+                    param([string]$Message)
+                    Write-Output "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $Message"
+                }
+                
+                # Import AWS PowerShell module
+                Write-Log "Importing AWS PowerShell module..."
+                Import-Module AWSPowerShell.NetCore -Force
+                
+                # Get credentials from Secrets Manager
+                Write-Log "Retrieving credentials from Secrets Manager..."
+                $SecretName = "{{ SecretName }}"
+                $Region = "{{ SecretRegion }}"
+                
+                try {
+                    $SecretValue = Get-SECSecretValue -SecretId $SecretName -Region $Region
+                    $SecretData = $SecretValue.SecretString | ConvertFrom-Json
+                    
+                    $Username1 = $SecretData.username1
+                    $Password1 = $SecretData.password1
+                    $Username2 = $SecretData.username2
+                    $Password2 = $SecretData.password2
+                    
+                    Write-Log "Successfully retrieved credentials from Secrets Manager"
+                } catch {
+                    Write-Log "ERROR: Failed to retrieve credentials from Secrets Manager: $($_.Exception.Message)"
+                    exit 1
+                }
+                
+                # Function to create user and add to groups
+                function Create-UserAndAddToGroups {
+                    param(
+                        [string]$Username,
+                        [string]$Password,
+                        [string]$UserNumber
+                    )
+                    
+                    try {
+                        # Check if user already exists
+                        $existingUser = Get-LocalUser -Name $Username -ErrorAction SilentlyContinue
+                        if ($existingUser) {
+                            Write-Log "User $Username already exists, updating password..."
+                            $SecurePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+                            Set-LocalUser -Name $Username -Password $SecurePassword
+                        } else {
+                            Write-Log "Creating user: $Username"
+                            $SecurePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+                            New-LocalUser -Name $Username -Password $SecurePassword -FullName "Bastion User $UserNumber" -Description "Bastion access user $UserNumber created via SSM" -PasswordNeverExpires
+                        }
+                        
+                        # Add user to Administrators group
+                        Write-Log "Adding $Username to Administrators group..."
+                        Add-LocalGroupMember -Group "Administrators" -Member $Username -ErrorAction SilentlyContinue
+                        
+                        # Add user to Remote Desktop Users group
+                        Write-Log "Adding $Username to Remote Desktop Users group..."
+                        Add-LocalGroupMember -Group "Remote Desktop Users" -Member $Username -ErrorAction SilentlyContinue
+                        
+                        # Enable the user account
+                        Enable-LocalUser -Name $Username
+                        
+                        Write-Log "Successfully configured user: $Username"
+                        
+                    } catch {
+                        Write-Log "ERROR: Failed to configure user $Username : $($_.Exception.Message)"
+                        throw
+                    }
+                }
+                
+                # Create User 1
+                Write-Log "Creating first user..."
+                Create-UserAndAddToGroups -Username $Username1 -Password $Password1 -UserNumber "1"
+                
+                # Create User 2
+                Write-Log "Creating second user..."
+                Create-UserAndAddToGroups -Username $Username2 -Password $Password2 -UserNumber "2"
+                
+                # Verify users were created and added to groups
+                Write-Log "Verifying user creation and group membership..."
+                
+                foreach ($user in @($Username1, $Username2)) {
+                    $userObj = Get-LocalUser -Name $user -ErrorAction SilentlyContinue
+                    if ($userObj) {
+                        Write-Log "✓ User $user exists and is enabled: $($userObj.Enabled)"
+                        
+                        # Check Administrator group membership
+                        $adminMembers = Get-LocalGroupMember -Group "Administrators" | Where-Object {$_.Name -like "*$user"}
+                        if ($adminMembers) {
+                            Write-Log "✓ User $user is member of Administrators group"
+                        } else {
+                            Write-Log "✗ User $user is NOT member of Administrators group"
+                        }
+                        
+                        # Check Remote Desktop Users group membership
+                        $rdpMembers = Get-LocalGroupMember -Group "Remote Desktop Users" | Where-Object {$_.Name -like "*$user"}
+                        if ($rdpMembers) {
+                            Write-Log "✓ User $user is member of Remote Desktop Users group"
+                        } else {
+                            Write-Log "✗ User $user is NOT member of Remote Desktop Users group"
+                        }
+                    } else {
+                        Write-Log "✗ User $user was not created successfully"
+                    }
+                }
+                
+                Write-Log "Windows user creation process completed successfully!"
+                
+            } catch {
+                Write-Log "FATAL ERROR: $($_.Exception.Message)"
+                Write-Log "Stack Trace: $($_.Exception.StackTrace)"
+                exit 1
+            }
