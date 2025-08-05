@@ -4,15 +4,23 @@ parameters:
   AnsibleS3BucketName:
     type: String
     description: "S3 Bucket Name for Ansible Tower installer"
-    default: "ansibleautomationbucket"
+    default: "{{ssm:/standard/ansible/s3bucketname}}"
   AnsibleS3BucketPrefix:
     type: String
     description: "S3 Bucket Prefix for Ansible Tower installer"
-    default: "Ansible_Tower"
+    default: "{{ssm:/standard/ansible/s3bucketprefix}}"
   AnsibleTowerArchiveName:
     type: String
     description: "Ansible Tower archive filename"
-    default: "ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
+    default: "{{ssm:/standard/ansible/archivename}}"
+  AnsibleTowerUsername:
+    type: String
+    description: "Red Hat subscription username"
+    default: "{{ssm:/standard/ansible/username}}"
+  AnsibleTowerPassword:
+    type: String
+    description: "Red Hat subscription password"
+    default: "{{ssm:/standard/ansible/password}}"
 mainSteps:
   - action: aws:runShellScript
     name: InstallAndConfigureAnsibleTower
@@ -22,8 +30,7 @@ mainSteps:
         - |
           #!/bin/bash -xe
           
-          # Set variables from SSM parameters and document parameters
-          # Using manual resolution because SSM document parameter resolution is unreliable
+          # Set variables from SSM parameters through document parameters
           log() {
               echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
           }
@@ -33,35 +40,13 @@ mainSteps:
               exit 1
           }
 
-          log "Resolving SSM parameters manually..."
-          
-          # Manual SSM parameter resolution (more reliable than document resolution)
-          ANSIBLE_TOWER_USERNAME=$(aws ssm get-parameter --name "/Standard/ansible/username" --query "Parameter.Value" --output text 2>/dev/null)
-          if [ $? -ne 0 ] || [ -z "$ANSIBLE_TOWER_USERNAME" ]; then
-              error_exit "Failed to retrieve username from SSM parameter /Standard/ansible/username"
-          fi
-          
-          ANSIBLE_TOWER_PASSWORD=$(aws ssm get-parameter --name "/Standard/ansible/password" --with-decryption --query "Parameter.Value" --output text 2>/dev/null)
-          if [ $? -ne 0 ] || [ -z "$ANSIBLE_TOWER_PASSWORD" ]; then
-              error_exit "Failed to retrieve password from SSM parameter /Standard/ansible/password"
-          fi
-          
-          # Set other variables from document parameters
-          ANSIBLE_S3_BUCKET_NAME="{{ AnsibleS3BucketName }}"
-          ANSIBLE_S3_BUCKET_PREFIX="{{ AnsibleS3BucketPrefix }}"
-          ANSIBLE_TOWER_ARCHIVE_NAME="{{ AnsibleTowerArchiveName }}"
-          
-          # Debug: Check what the variables contain
-          log "DEBUG: Username resolved to: $ANSIBLE_TOWER_USERNAME"
-          log "DEBUG: Password resolved successfully (length: ${#ANSIBLE_TOWER_PASSWORD} characters)"
-
           log "Starting Ansible Tower installation..."
           log "Configuration:"
-          log "  Username: $ANSIBLE_TOWER_USERNAME"
-          log "  S3 Bucket: $ANSIBLE_S3_BUCKET_NAME"
-          log "  S3 Prefix: $ANSIBLE_S3_BUCKET_PREFIX"
-          log "  Archive Name: $ANSIBLE_TOWER_ARCHIVE_NAME"
-          log "  Full S3 URI: s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/$ANSIBLE_TOWER_ARCHIVE_NAME"
+          log "  Username: {{ AnsibleTowerUsername }}"
+          log "  S3 Bucket: {{ AnsibleS3BucketName }}"
+          log "  S3 Prefix: {{ AnsibleS3BucketPrefix }}"
+          log "  Archive Name: {{ AnsibleTowerArchiveName }}"
+          log "  Full S3 URI: s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}"
 
           export PATH=/usr/local/bin:$PATH
 
@@ -89,17 +74,17 @@ mainSteps:
 
           # Validate S3 file exists before proceeding
           log "Validating S3 file exists..."
-          S3_URI="s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/$ANSIBLE_TOWER_ARCHIVE_NAME"
+          S3_URI="s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}"
           if ! aws s3 ls "$S3_URI" &> /dev/null; then
             log "ERROR: File does not exist at $S3_URI"
-            log "Available files in s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/:"
-            aws s3 ls "s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/" || log "Failed to list bucket contents"
+            log "Available files in s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/:"
+            aws s3 ls "s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/" || log "Failed to list bucket contents"
             error_exit "Ansible Tower archive not found in S3"
           fi
           log "S3 file validation successful"
 
           log "Attempting to register with Red Hat Subscription Manager..."
-          if subscription-manager register --username "$ANSIBLE_TOWER_USERNAME" --password "$ANSIBLE_TOWER_PASSWORD"; then
+          if subscription-manager register --username "{{ AnsibleTowerUsername }}" --password "{{ AnsibleTowerPassword }}"; then
             log "Red Hat registration successful."
           else
             log "Instance already registered or failed to register. Continuing..."
@@ -113,25 +98,25 @@ mainSteps:
           echo "127.0.0.1 ansible.local localhost.localdomain" >> /etc/hosts
 
           log "Downloading Ansible Tower installer from S3..."
-          log "Source: s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/$ANSIBLE_TOWER_ARCHIVE_NAME"
-          log "Destination: /root/$ANSIBLE_TOWER_ARCHIVE_NAME"
+          log "Source: s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}"
+          log "Destination: /root/{{ AnsibleTowerArchiveName }}"
 
           mkdir -p /root
-          if aws s3 cp "s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/$ANSIBLE_TOWER_ARCHIVE_NAME" "/root/" --no-progress; then
+          if aws s3 cp "s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}" "/root/" --no-progress; then
             log "Download completed successfully"
           else
             error_exit "Failed to download Ansible Tower archive from S3"
           fi
 
-          if [ ! -f "/root/$ANSIBLE_TOWER_ARCHIVE_NAME" ]; then
+          if [ ! -f "/root/{{ AnsibleTowerArchiveName }}" ]; then
             error_exit "Ansible Tower archive not found after download"
           fi
 
-          FILE_SIZE=$(stat -c%s "/root/$ANSIBLE_TOWER_ARCHIVE_NAME" 2>/dev/null || echo "unknown")
+          FILE_SIZE=$(stat -c%s "/root/{{ AnsibleTowerArchiveName }}" 2>/dev/null || echo "unknown")
           log "Downloaded file size: $FILE_SIZE bytes"
 
           log "Extracting Ansible Tower archive..."
-          if tar -xzf "/root/$ANSIBLE_TOWER_ARCHIVE_NAME" -C /root/; then
+          if tar -xzf "/root/{{ AnsibleTowerArchiveName }}" -C /root/; then
             log "Archive extracted successfully"
           else
             error_exit "Failed to extract Ansible Tower archive"
@@ -160,10 +145,10 @@ mainSteps:
           cat "$EXTRACTED_FOLDER/inventory"
 
           log "Configuring inventory file..."
-          sed -i "s|admin_password=.*|admin_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
-          sed -i "s|pg_password=.*|pg_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
-          sed -i "s|register_username=.*|register_username='$ANSIBLE_TOWER_USERNAME'|" "$EXTRACTED_FOLDER/inventory"
-          sed -i "s|register_password=.*|register_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
+          sed -i "s|admin_password=.*|admin_password='{{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
+          sed -i "s|pg_password=.*|pg_password='{{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
+          sed -i "s|register_username=.*|register_username='{{ AnsibleTowerUsername }}'|" "$EXTRACTED_FOLDER/inventory"
+          sed -i "s|register_password=.*|register_password='{{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
 
           echo "" >> "$EXTRACTED_FOLDER/inventory"
           echo "[automationcontroller]" >> "$EXTRACTED_FOLDER/inventory"
@@ -191,7 +176,7 @@ mainSteps:
           log "Installation script completed!"
           log "You can now access Ansible Tower at: https://$(hostname)/api/"
           log "Username: admin"
-          log "Password: $ANSIBLE_TOWER_PASSWORD"
+          log "Password: {{ AnsibleTowerPassword }}"
     precondition:
       StringEquals:
         - platformType
