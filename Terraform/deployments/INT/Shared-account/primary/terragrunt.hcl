@@ -383,8 +383,8 @@ inputs = {
       }
     },
     {
-      name        = "${local.aws_account_name}-${local.region_prefix}-User-credentials"
-      description = "User credentials for ${local.aws_account_name}environment"
+      name        = "User-credentials"
+      description = "User credentials for ${local.aws_account_name} environment"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
@@ -497,7 +497,7 @@ inputs = {
       document_format    = "YAML"
       create_association = true
       targets = {
-        key    = "tag:BastionUserCreation"
+        key    = "tag:CreateUser"
         values = ["True"]
       }
       schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
