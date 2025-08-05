@@ -4,11 +4,11 @@ parameters:
   AnsibleTowerUsername:
     type: String
     description: "SSM Parameter Name for Ansible Tower admin username"
-    default: "{{ssm:/Standard/ansible/username}}"
+    default: "${{ssm:/Standard/ansible/username}}"
   AnsibleTowerPassword:
     type: String
     description: "SSM Parameter Name for Ansible Tower admin password"
-    default: "{{ssm:/Standard/ansible/password}}"
+    default: "${{ssm:/Standard/ansible/password}}"
   AnsibleS3BucketName:
     type: String
     description: "S3 Bucket Name for Ansible Tower installer"
@@ -21,7 +21,6 @@ parameters:
     type: String
     description: "Ansible Tower archive filename"
     default: "ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
-
 mainSteps:
   - action: aws:runShellScript
     name: InstallAndConfigureAnsibleTower
@@ -36,11 +35,11 @@ mainSteps:
             ##############################################################              
               
               # Set variables from SSM parameters
-              ANSIBLE_TOWER_USERNAME="{{ AnsibleTowerUsername }}"
-              ANSIBLE_TOWER_PASSWORD="{{ AnsibleTowerPassword }}"
-              ANSIBLE_S3_BUCKET_NAME="{{ AnsibleS3BucketName }}"
-              ANSIBLE_S3_BUCKET_PREFIX="{{ AnsibleS3BucketPrefix }}"
-              ANSIBLE_TOWER_ARCHIVE_NAME="{{ AnsibleTowerArchiveName }}"
+              ANSIBLE_TOWER_USERNAME="${{ AnsibleTowerUsername }}"
+              ANSIBLE_TOWER_PASSWORD="${{ AnsibleTowerPassword }}"
+              ANSIBLE_S3_BUCKET_NAME="${{ AnsibleS3BucketName }}"
+              ANSIBLE_S3_BUCKET_PREFIX="${{ AnsibleS3BucketPrefix }}"
+              ANSIBLE_TOWER_ARCHIVE_NAME="${{ AnsibleTowerArchiveName }}"
               
               # Logging function
               log() {
