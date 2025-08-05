@@ -34,13 +34,6 @@ mainSteps:
                   #  INSTALLING AND CONFIGURING ANSIBLE TOWER  #
             ##############################################################              
               
-              # Set variables from SSM parameters
-              ANSIBLE_TOWER_USERNAME="${{ AnsibleTowerUsername }}"
-              ANSIBLE_TOWER_PASSWORD="${{ AnsibleTowerPassword }}"
-              ANSIBLE_S3_BUCKET_NAME="${{ AnsibleS3BucketName }}"
-              ANSIBLE_S3_BUCKET_PREFIX="${{ AnsibleS3BucketPrefix }}"
-              ANSIBLE_TOWER_ARCHIVE_NAME="${{ AnsibleTowerArchiveName }}"
-              
               # Logging function
               log() {
                   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
@@ -54,11 +47,11 @@ mainSteps:
               
               log "Starting Ansible Tower installation..."
               log "Configuration:"
-              log "  Username: $ANSIBLE_TOWER_USERNAME"
-              log "  S3 Bucket: $ANSIBLE_S3_BUCKET_NAME"
-              log "  S3 Prefix: $ANSIBLE_S3_BUCKET_PREFIX"
-              log "  Archive Name: $ANSIBLE_TOWER_ARCHIVE_NAME"
-              log "  Full S3 URI: s3://${ANSIBLE_S3_BUCKET_NAME}/${ANSIBLE_S3_BUCKET_PREFIX}/${ANSIBLE_TOWER_ARCHIVE_NAME}"
+              log "  Username: ${{ AnsibleTowerUsername }}"
+              log "  S3 Bucket: ${{ AnsibleS3BucketName }}"
+              log "  S3 Prefix: ${{ AnsibleS3BucketPrefix }}"
+              log "  Archive Name: ${{ AnsibleTowerArchiveName }}"
+              log "  Full S3 URI: s3://${{ AnsibleS3BucketName }}/${{ AnsibleS3BucketPrefix }}/${{ AnsibleTowerArchiveName }}"
               
               # Ensure AWS CLI is in the PATH
               export PATH=/usr/local/bin:$PATH              
@@ -99,7 +92,7 @@ mainSteps:
               
               # Register with Red Hat Subscription Manager
               log "Attempting to register with Red Hat Subscription Manager..."
-              if subscription-manager register --username "$ANSIBLE_TOWER_USERNAME" --password "$ANSIBLE_TOWER_PASSWORD"; then
+              if subscription-manager register --username "${{ AnsibleTowerUsername }}" --password "${{ AnsibleTowerPassword }}"; then
                 log "Red Hat registration successful."
               else
                 log "Instance already registered or failed to register. Continuing..."
@@ -116,31 +109,31 @@ mainSteps:
               
               # Download Ansible Tower installer from S3
               log "Downloading Ansible Tower installer from S3..."
-              log "Source: s3://${ANSIBLE_S3_BUCKET_NAME}/${ANSIBLE_S3_BUCKET_PREFIX}/${ANSIBLE_TOWER_ARCHIVE_NAME}"
-              log "Destination: /root/$ANSIBLE_TOWER_ARCHIVE_NAME"
+              log "Source: s3://${{ AnsibleS3BucketName }}/${{ AnsibleS3BucketPrefix }}/${{ AnsibleTowerArchiveName }}"
+              log "Destination: /root/${{ AnsibleTowerArchiveName }}"
               
               # Create download directory if it doesn't exist
               mkdir -p /root
               
               # Download the file
-              if aws s3 cp "s3://${ANSIBLE_S3_BUCKET_NAME}/${ANSIBLE_S3_BUCKET_PREFIX}/${ANSIBLE_TOWER_ARCHIVE_NAME}" "/root/" --no-progress; then
+              if aws s3 cp "s3://${{ AnsibleS3BucketName }}/${{ AnsibleS3BucketPrefix }}/${{ AnsibleTowerArchiveName }}" "/root/" --no-progress; then
                 log "Download completed successfully"
               else
-                error_exit "Failed to download Ansible Tower archive from S3: s3://${ANSIBLE_S3_BUCKET_NAME}/${ANSIBLE_S3_BUCKET_PREFIX}/${ANSIBLE_TOWER_ARCHIVE_NAME}"
+                error_exit "Failed to download Ansible Tower archive from S3: s3://${{ AnsibleS3BucketName }}/${{ AnsibleS3BucketPrefix }}/${{ AnsibleTowerArchiveName }}"
               fi
               
               # Verify the file was downloaded
-              if [ ! -f "/root/$ANSIBLE_TOWER_ARCHIVE_NAME" ]; then
-                error_exit "Ansible Tower archive not found after download: /root/$ANSIBLE_TOWER_ARCHIVE_NAME"
+              if [ ! -f "/root/${{ AnsibleTowerArchiveName }}" ]; then
+                error_exit "Ansible Tower archive not found after download: /root/${{ AnsibleTowerArchiveName }}"
               fi
               
               # Check file size
-              FILE_SIZE=$(stat -c%s "/root/$ANSIBLE_TOWER_ARCHIVE_NAME" 2>/dev/null || echo "unknown")
+              FILE_SIZE=$(stat -c%s "/root/${{ AnsibleTowerArchiveName }}" 2>/dev/null || echo "unknown")
               log "Downloaded file size: $FILE_SIZE bytes"
               
               # Extract Ansible Tower installer
               log "Extracting Ansible Tower archive..."
-              if tar -xzf "/root/$ANSIBLE_TOWER_ARCHIVE_NAME" -C /root/; then
+              if tar -xzf "/root/${{ AnsibleTowerArchiveName }}" -C /root/; then
                 log "Archive extracted successfully"
               else
                 error_exit "Failed to extract Ansible Tower archive"
@@ -175,10 +168,10 @@ mainSteps:
               
               # Modify inventory file
               log "Configuring inventory file..."
-              sed -i "s|admin_password=.*|admin_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
-              sed -i "s|pg_password=.*|pg_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
-              sed -i "s|register_username=.*|register_username='$ANSIBLE_TOWER_USERNAME'|" "$EXTRACTED_FOLDER/inventory"
-              sed -i "s|register_password=.*|register_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
+              sed -i "s|admin_password=.*|admin_password='${{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
+              sed -i "s|pg_password=.*|pg_password='${{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
+              sed -i "s|register_username=.*|register_username='${{ AnsibleTowerUsername }}'|" "$EXTRACTED_FOLDER/inventory"
+              sed -i "s|register_password=.*|register_password='${{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
               
               # Add automation controller section
               echo "" >> "$EXTRACTED_FOLDER/inventory"
@@ -214,7 +207,7 @@ mainSteps:
               log "Installation script completed!"
               log "You can now access Ansible Tower at: https://$(hostname)/api/"
               log "Username: admin"
-              log "Password: $ANSIBLE_TOWER_PASSWORD"
+              log "Password: ${{ AnsibleTowerPassword }}"
               
     precondition:
       StringEquals:

@@ -503,7 +503,6 @@ inputs = {
       schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
     }
   ]
-
   load_balancers = [
     {
       key             = "acct"
