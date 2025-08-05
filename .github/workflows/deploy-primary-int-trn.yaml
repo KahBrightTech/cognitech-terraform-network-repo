@@ -26,8 +26,6 @@ env:
   IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
   REGION: us-east-1
   DEPLOYMENT_PATH: Terraform/deployments/INT/Tenant-account/Trn/primary
-
-  TF_VAR_KSM_CONFIG: ${{ secrets.TF_VAR_KSM_CONFIG }}
   TF_VAR_ANSIBLE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_USERNAME }}
   TF_VAR_ANSIBLE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_PASSWORD }}
 
