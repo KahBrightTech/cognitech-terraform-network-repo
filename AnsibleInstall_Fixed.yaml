@@ -1,6 +1,14 @@
 schemaVersion: '2.2'
 description: "Document to install and configure Ansible Tower on Linux servers using AWS Systems Manager (SSM)."
 parameters:
+  AnsibleTowerUsername:
+    type: String
+    description: "Ansible Tower admin username"
+    default: "admin"
+  AnsibleTowerPassword:
+    type: String
+    description: "Ansible Tower admin password"
+    default: "changeme123"
   AnsibleS3BucketName:
     type: String
     description: "S3 Bucket Name for Ansible Tower installer"
@@ -13,17 +21,24 @@ parameters:
     type: String
     description: "Ansible Tower archive filename"
     default: "ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
+
 mainSteps:
   - action: aws:runShellScript
     name: InstallAndConfigureAnsibleTower
     description: Installs and configures Ansible Tower on Linux servers
     inputs:
+      timeoutSeconds: 7200
       runCommand:
         - |
           #!/bin/bash -xe
           
-          # Set variables from SSM parameters and document parameters
-          # Using manual resolution because SSM document parameter resolution is unreliable
+          # Set variables from parameters
+          ANSIBLE_TOWER_USERNAME="{{ AnsibleTowerUsername }}"
+          ANSIBLE_TOWER_PASSWORD="{{ AnsibleTowerPassword }}"
+          ANSIBLE_S3_BUCKET_NAME="{{ AnsibleS3BucketName }}"
+          ANSIBLE_S3_BUCKET_PREFIX="{{ AnsibleS3BucketPrefix }}"
+          ANSIBLE_TOWER_ARCHIVE_NAME="{{ AnsibleTowerArchiveName }}"
+          
           log() {
               echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
           }
@@ -33,28 +48,6 @@ mainSteps:
               exit 1
           }
 
-          log "Resolving SSM parameters manually..."
-          
-          # Manual SSM parameter resolution (more reliable than document resolution)
-          ANSIBLE_TOWER_USERNAME=$(aws ssm get-parameter --name "/Standard/ansible/username" --query "Parameter.Value" --output text 2>/dev/null)
-          if [ $? -ne 0 ] || [ -z "$ANSIBLE_TOWER_USERNAME" ]; then
-              error_exit "Failed to retrieve username from SSM parameter /Standard/ansible/username"
-          fi
-          
-          ANSIBLE_TOWER_PASSWORD=$(aws ssm get-parameter --name "/Standard/ansible/password" --with-decryption --query "Parameter.Value" --output text 2>/dev/null)
-          if [ $? -ne 0 ] || [ -z "$ANSIBLE_TOWER_PASSWORD" ]; then
-              error_exit "Failed to retrieve password from SSM parameter /Standard/ansible/password"
-          fi
-          
-          # Set other variables from document parameters
-          ANSIBLE_S3_BUCKET_NAME="{{ AnsibleS3BucketName }}"
-          ANSIBLE_S3_BUCKET_PREFIX="{{ AnsibleS3BucketPrefix }}"
-          ANSIBLE_TOWER_ARCHIVE_NAME="{{ AnsibleTowerArchiveName }}"
-          
-          # Debug: Check what the variables contain
-          log "DEBUG: Username resolved to: $ANSIBLE_TOWER_USERNAME"
-          log "DEBUG: Password resolved successfully (length: ${#ANSIBLE_TOWER_PASSWORD} characters)"
-
           log "Starting Ansible Tower installation..."
           log "Configuration:"
           log "  Username: $ANSIBLE_TOWER_USERNAME"
@@ -63,7 +56,22 @@ mainSteps:
           log "  Archive Name: $ANSIBLE_TOWER_ARCHIVE_NAME"
           log "  Full S3 URI: s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/$ANSIBLE_TOWER_ARCHIVE_NAME"
 
+          # Ensure we're in a known working directory
+          cd /tmp || error_exit "Failed to change to /tmp directory"
+          
           export PATH=/usr/local/bin:$PATH
+
+          # Check if running as root
+          if [[ $EUID -ne 0 ]]; then
+             error_exit "This script must be run as root"
+          fi
+
+          # Test AWS credentials first
+          log "Testing AWS credentials..."
+          if ! aws sts get-caller-identity &> /dev/null; then
+              error_exit "AWS credentials not configured properly. Ensure the EC2 instance has an IAM role with S3 access permissions"
+          fi
+          log "AWS credentials verified successfully"
 
           if ! command -v aws &> /dev/null; then
             log "Installing AWS CLI..."
@@ -82,21 +90,12 @@ mainSteps:
             log "AWS CLI already installed. Version: $(aws --version)"
           fi
 
-          if ! aws sts get-caller-identity &> /dev/null; then
-            log "WARNING: AWS credentials not configured properly"
-            log "Ensure the EC2 instance has an IAM role with S3 access permissions"
+          # Test S3 access before proceeding
+          log "Testing S3 access..."
+          if ! aws s3 ls "s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/" &> /dev/null; then
+              error_exit "Cannot access S3 bucket: s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/"
           fi
-
-          # Validate S3 file exists before proceeding
-          log "Validating S3 file exists..."
-          S3_URI="s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/$ANSIBLE_TOWER_ARCHIVE_NAME"
-          if ! aws s3 ls "$S3_URI" &> /dev/null; then
-            log "ERROR: File does not exist at $S3_URI"
-            log "Available files in s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/:"
-            aws s3 ls "s3://$ANSIBLE_S3_BUCKET_NAME/$ANSIBLE_S3_BUCKET_PREFIX/" || log "Failed to list bucket contents"
-            error_exit "Ansible Tower archive not found in S3"
-          fi
-          log "S3 file validation successful"
+          log "S3 access verified successfully"
 
           log "Attempting to register with Red Hat Subscription Manager..."
           if subscription-manager register --username "$ANSIBLE_TOWER_USERNAME" --password "$ANSIBLE_TOWER_PASSWORD"; then

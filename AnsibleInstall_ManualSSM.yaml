@@ -1,5 +1,5 @@
 schemaVersion: '2.2'
-description: "Document to install and configure Ansible Tower on Linux servers using AWS Systems Manager (SSM)."
+description: "Document to install and configure Ansible Tower on Linux servers using AWS Systems Manager (SSM) - Manual Parameter Resolution"
 parameters:
   AnsibleS3BucketName:
     type: String
@@ -13,17 +13,18 @@ parameters:
     type: String
     description: "Ansible Tower archive filename"
     default: "ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
+
 mainSteps:
   - action: aws:runShellScript
     name: InstallAndConfigureAnsibleTower
     description: Installs and configures Ansible Tower on Linux servers
     inputs:
+      timeoutSeconds: 7200
       runCommand:
         - |
           #!/bin/bash -xe
           
-          # Set variables from SSM parameters and document parameters
-          # Using manual resolution because SSM document parameter resolution is unreliable
+          # Manual SSM parameter resolution using AWS CLI
           log() {
               echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
           }
@@ -33,9 +34,9 @@ mainSteps:
               exit 1
           }
 
-          log "Resolving SSM parameters manually..."
+          log "Manually resolving SSM parameters..."
           
-          # Manual SSM parameter resolution (more reliable than document resolution)
+          # Try to get parameters manually
           ANSIBLE_TOWER_USERNAME=$(aws ssm get-parameter --name "/Standard/ansible/username" --query "Parameter.Value" --output text 2>/dev/null)
           if [ $? -ne 0 ] || [ -z "$ANSIBLE_TOWER_USERNAME" ]; then
               error_exit "Failed to retrieve username from SSM parameter /Standard/ansible/username"
@@ -51,9 +52,9 @@ mainSteps:
           ANSIBLE_S3_BUCKET_PREFIX="{{ AnsibleS3BucketPrefix }}"
           ANSIBLE_TOWER_ARCHIVE_NAME="{{ AnsibleTowerArchiveName }}"
           
-          # Debug: Check what the variables contain
-          log "DEBUG: Username resolved to: $ANSIBLE_TOWER_USERNAME"
-          log "DEBUG: Password resolved successfully (length: ${#ANSIBLE_TOWER_PASSWORD} characters)"
+          log "SSM parameters resolved successfully"
+          log "Username: $ANSIBLE_TOWER_USERNAME"
+          log "Password: [REDACTED]"
 
           log "Starting Ansible Tower installation..."
           log "Configuration:"
@@ -105,6 +106,7 @@ mainSteps:
             log "Instance already registered or failed to register. Continuing..."
           fi
 
+          # Rest of the installation continues...
           log "Updating system packages..."
           yum update -y || error_exit "Failed to update system packages"
 

@@ -201,7 +201,7 @@ inputs = {
                 from_port   = 3389
                 to_port     = 3389
                 ip_protocol = "tcp"
-              },
+              }
             ]
           )
           egress = concat(
@@ -404,7 +404,7 @@ inputs = {
     {
       name        = "/Standard/ansible/password"
       description = "Ansible Tower Password"
-      type        = "SecureString"
+      type        = "String"
       value       = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
     },
     {
