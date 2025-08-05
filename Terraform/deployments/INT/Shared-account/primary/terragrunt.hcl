@@ -480,7 +480,7 @@ inputs = {
   ssm_documents = [
     {
       name               = "ansible-install"
-      content            = file("${get_terragrunt_dir()}/../../../documents/AnsibleInstall.yaml")
+      content            = file("${include.cloud.locals.repo.root}/documents/NessusInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true
@@ -492,7 +492,7 @@ inputs = {
     },
     {
       name               = "universal-user-credentials"
-      content            = file("${get_terragrunt_dir()}/../../../documents/UniversalUserCreation.yaml")
+      content            = file("${include.cloud.locals.repo.root}/documents/UniversalUserCreation.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true

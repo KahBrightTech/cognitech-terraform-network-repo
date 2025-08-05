@@ -1,0 +1,124 @@
+schemaVersion: '2.2'
+description: "Document to install Nessus agent on different operating systems"
+parameters:
+  NessusLinuxAmazonURI:
+    type: String
+    description: "S3 URI for Nessus agent on Amazon Linux"
+    default: s3://effulgencesoftwareinstall/Nessus/Linux/Amazon-Linux-2/Nessus-10.8.3-amzn2.x86_64.rpm
+  NessusLinuxRHELCentOSURI:
+    type: String
+    description: "S3 URI for Nessus agent on RHEL/CentOS"
+    default: s3://effulgencesoftwareinstall/Nessus/Linux/Rhel9/Nessus-10.8.3-el9.x86_64.rpm
+  NessusLinuxUbuntuURI:
+    type: String
+    description: "S3 URI for Nessus agent on Ubuntu"
+    default: s3://effulgencesoftwareinstall/Nessus/Linux/Ubuntu/Nessus-10.8.3-ubuntu1604_amd64.deb
+  NessusWindowsURI:
+    type: String
+    description: "S3 URI for Nessus agent on Windows"
+    default: s3://effulgencesoftwareinstall/Nessus/Windows/Nessus-10.8.3-x64.msi
+  NessusAmznLnxLinuxRPM:
+    type: String
+    description: Filename for Nessus RPM package for amazon linux 2
+    default: Nessus-10.8.3-amzn2.x86_64.rpm
+  NessusRhel9LinuxRPM:
+    type: String
+    description: "Filename for Nessus RPM package for Rhel 9"
+    default: Nessus-10.8.3-el9.x86_64.rpm
+  NessusUbuntuLinuxRPM:
+    type: String
+    description: "Filename for Nessus RPM package for Ubuntu"
+    default: Nessus-10.8.3-ubuntu1604_amd64.deb
+  NessusWindowsMSI:
+    type: String
+    description: "Filename for Nessus RPM package for Windows"
+    default: Nessus-10.8.3-x64.msi
+
+
+mainSteps:
+  - action: aws:runShellScript
+    name: InstallNessusAgentLinux
+    description: |
+      Installs Nessus agent on Linux servers
+    inputs:
+      runCommand:
+        - |
+          #!/bin/bash -xe
+          ##############################################################
+          #  INSTALLING AND CONFIGURING NESSUS AGENT  #
+          ##############################################################
+          OS_TYPE=$(cat /etc/os-release | grep ^ID= | cut -d '=' -f 2 | tr -d '"')
+          
+          case "$OS_TYPE" in
+            "amzn")
+              echo "Detected Amazon Linux 2"
+              if rpm -q Nessus; then
+                echo "Nessus is already installed. Skipping installation."
+              else
+                aws s3 cp {{ NessusLinuxAmazonURI }} .
+                rpm -ivh {{ NessusAmznLnxLinuxRPM }}
+              fi
+              ;;
+            "rhel"|"centos")
+              echo "Detected RHEL/CentOS"
+              if rpm -q Nessus; then
+                echo "Nessus is already installed. Skipping installation."
+              else
+                aws s3 cp {{ NessusLinuxRHELCentOSURI }} .
+                rpm -ivh {{ NessusRhel9LinuxRPM }}
+              fi
+              ;;
+            "ubuntu")
+              echo "Detected Ubuntu"
+              if dpkg -l | grep -q nessus; then
+                echo "Nessus is already installed. Skipping installation."
+              else
+                snap install aws-cli --classic
+                aws s3 cp {{ NessusLinuxUbuntuURI }} .
+                dpkg -i {{ NessusUbuntuLinuxRPM }}
+              fi
+              ;;
+            *)
+              echo "Unsupported Linux distribution"
+              exit 1
+              ;;
+          esac
+          
+          /bin/systemctl start nessusd.service
+          /bin/systemctl enable nessusd.service
+    precondition:
+      StringEquals:
+        - platformType
+        - Linux
+
+  - action: aws:runPowerShellScript
+    name: InstallNessusAgentWindows
+    description: |
+      Installs Nessus agent on Windows servers
+    inputs:
+      runCommand:
+        - |
+          # PowerShell Script to Install Nessus Agent on Windows
+           if (-not (Get-Command aws -ErrorAction SilentlyContinue)) {
+              Write-Host "AWS CLI is not installed. Exiting..."
+              exit 1
+            }    
+          $S3Path = "{{ NessusWindowsURI }}"
+          $DestPath = "C:\{{ NessusWindowsMSI }}"
+
+          if (Get-Service -Name "Tenable Nessus" -ErrorAction SilentlyContinue) {
+              Write-Host "Nessus is already installed. Skipping installation."
+          } else {
+              Write-Host "Downloading Nessus from S3..."
+              aws s3 cp $S3Path $DestPath
+
+              Write-Host "Installing Nessus..."
+              Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $DestPath /quiet /norestart" -Wait
+          }
+          
+          Start-Service -Name "Tenable Nessus"
+          Set-Service -Name "Tenable Nessus" -StartupType Automatic
+    precondition:
+      StringEquals:
+        - platformType
+        - Windows
