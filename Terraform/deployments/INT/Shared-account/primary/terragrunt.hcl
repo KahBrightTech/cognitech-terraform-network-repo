@@ -480,7 +480,7 @@ inputs = {
   ssm_documents = [
     {
       name               = "ansible-install"
-      content            = file("${include.cloud.locals.repo.root}/documents/NessusInstall.yaml")
+      content            = file("${include.cloud.locals.repo.root}/documents/AnsibleInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true

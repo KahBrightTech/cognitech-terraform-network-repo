@@ -12,7 +12,7 @@ parameters:
   AnsibleS3BucketName:
     type: String
     description: "S3 Bucket Name for Ansible Tower installer"
-    default: "{{ssm:/Standard/ansible/bucketName}}"
+    default: "ansibleautomationbucket"
   AnsibleS3BucketPrefix:
     type: String
     description: "S3 Bucket Prefix for Ansible Tower installer"
@@ -42,9 +42,6 @@ mainSteps:
               ANSIBLE_S3_BUCKET_PREFIX="{{ AnsibleS3BucketPrefix }}"
               ANSIBLE_TOWER_ARCHIVE_NAME="{{ AnsibleTowerArchiveName }}"
               
-              # Construct S3 URI from components
-              ANSIBLE_TOWER_ARCHIVE_S3_URI="s3://${ANSIBLE_S3_BUCKET_NAME}/${ANSIBLE_S3_BUCKET_PREFIX}/${ANSIBLE_TOWER_ARCHIVE_NAME}"
-              
               # Logging function
               log() {
                   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
@@ -62,7 +59,7 @@ mainSteps:
               log "  S3 Bucket: $ANSIBLE_S3_BUCKET_NAME"
               log "  S3 Prefix: $ANSIBLE_S3_BUCKET_PREFIX"
               log "  Archive Name: $ANSIBLE_TOWER_ARCHIVE_NAME"
-              log "  Full S3 URI: $ANSIBLE_TOWER_ARCHIVE_S3_URI"
+              log "  Full S3 URI: s3://${ANSIBLE_S3_BUCKET_NAME}/${ANSIBLE_S3_BUCKET_PREFIX}/${ANSIBLE_TOWER_ARCHIVE_NAME}"
               
               # Ensure AWS CLI is in the PATH
               export PATH=/usr/local/bin:$PATH              
@@ -120,17 +117,17 @@ mainSteps:
               
               # Download Ansible Tower installer from S3
               log "Downloading Ansible Tower installer from S3..."
-              log "Source: $ANSIBLE_TOWER_ARCHIVE_S3_URI"
+              log "Source: s3://${ANSIBLE_S3_BUCKET_NAME}/${ANSIBLE_S3_BUCKET_PREFIX}/${ANSIBLE_TOWER_ARCHIVE_NAME}"
               log "Destination: /root/$ANSIBLE_TOWER_ARCHIVE_NAME"
               
               # Create download directory if it doesn't exist
               mkdir -p /root
               
               # Download the file
-              if aws s3 cp "$ANSIBLE_TOWER_ARCHIVE_S3_URI" "/root/" --no-progress; then
+              if aws s3 cp "s3://${ANSIBLE_S3_BUCKET_NAME}/${ANSIBLE_S3_BUCKET_PREFIX}/${ANSIBLE_TOWER_ARCHIVE_NAME}" "/root/" --no-progress; then
                 log "Download completed successfully"
               else
-                error_exit "Failed to download Ansible Tower archive from S3: $ANSIBLE_TOWER_ARCHIVE_S3_URI"
+                error_exit "Failed to download Ansible Tower archive from S3: s3://${ANSIBLE_S3_BUCKET_NAME}/${ANSIBLE_S3_BUCKET_PREFIX}/${ANSIBLE_TOWER_ARCHIVE_NAME}"
               fi
               
               # Verify the file was downloaded
