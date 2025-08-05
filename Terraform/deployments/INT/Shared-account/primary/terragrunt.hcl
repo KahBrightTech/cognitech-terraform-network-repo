@@ -383,8 +383,8 @@ inputs = {
       }
     },
     {
-      name        = "user-credentials"
-      description = "User credentials"
+      name        = "Bastion-credentials"
+      description = "Bastion credentials"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
