@@ -1,36 +1,37 @@
 schemaVersion: '2.2'
 description: "Document to install and configure Ansible Tower on Linux servers using AWS Systems Manager (SSM)."
 parameters:
+  AnsibleUsernameParameterName:
+    type: String
+    description: "SSM Parameter name for Ansible Tower username"
+    default: "/standard/ansible/username"
+  AnsiblePasswordParameterName:
+    type: String
+    description: "SSM Parameter name for Ansible Tower password"
+    default: "/standard/ansible/password"
   AnsibleS3BucketName:
     type: String
     description: "S3 Bucket Name for Ansible Tower installer"
-    default: "{{ssm:/standard/ansible/s3bucketname}}"
+    default: "ansibleautomationbucket"
   AnsibleS3BucketPrefix:
     type: String
     description: "S3 Bucket Prefix for Ansible Tower installer"
-    default: "{{ssm:/standard/ansible/s3bucketprefix}}"
+    default: "Ansible_Tower"
   AnsibleTowerArchiveName:
     type: String
     description: "Ansible Tower archive filename"
-    default: "{{ssm:/standard/ansible/archivename}}"
-  AnsibleTowerUsername:
-    type: String
-    description: "Red Hat subscription username"
-    default: "{{ssm:/standard/ansible/username}}"
-  AnsibleTowerPassword:
-    type: String
-    description: "Red Hat subscription password"
-    default: "{{ssm:/standard/ansible/password}}"
+    default: "ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
 mainSteps:
   - action: aws:runShellScript
     name: InstallAndConfigureAnsibleTower
     description: Installs and configures Ansible Tower on Linux servers
     inputs:
+      timeoutSeconds: 7200
       runCommand:
         - |
           #!/bin/bash -xe
           
-          # Set variables from SSM parameters through document parameters
+          # Logging and error handling functions
           log() {
               echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
           }
@@ -41,8 +42,22 @@ mainSteps:
           }
 
           log "Starting Ansible Tower installation..."
+
+          # Manual SSM parameter resolution
+          log "Resolving SSM parameters..."
+          
+          ANSIBLE_TOWER_USERNAME=$(aws ssm get-parameter --name "{{ AnsibleUsernameParameterName }}" --query "Parameter.Value" --output text 2>/dev/null)
+          if [ $? -ne 0 ] || [ -z "$ANSIBLE_TOWER_USERNAME" ]; then
+              error_exit "Failed to retrieve username from SSM parameter {{ AnsibleUsernameParameterName }}"
+          fi
+          
+          ANSIBLE_TOWER_PASSWORD=$(aws ssm get-parameter --name "{{ AnsiblePasswordParameterName }}" --with-decryption --query "Parameter.Value" --output text 2>/dev/null)
+          if [ $? -ne 0 ] || [ -z "$ANSIBLE_TOWER_PASSWORD" ]; then
+              error_exit "Failed to retrieve password from SSM parameter {{ AnsiblePasswordParameterName }}"
+          fi
+
           log "Configuration:"
-          log "  Username: {{ AnsibleTowerUsername }}"
+          log "  Username: $ANSIBLE_TOWER_USERNAME"
           log "  S3 Bucket: {{ AnsibleS3BucketName }}"
           log "  S3 Prefix: {{ AnsibleS3BucketPrefix }}"
           log "  Archive Name: {{ AnsibleTowerArchiveName }}"
@@ -84,7 +99,7 @@ mainSteps:
           log "S3 file validation successful"
 
           log "Attempting to register with Red Hat Subscription Manager..."
-          if subscription-manager register --username "{{ AnsibleTowerUsername }}" --password "{{ AnsibleTowerPassword }}"; then
+          if subscription-manager register --username "$ANSIBLE_TOWER_USERNAME" --password "$ANSIBLE_TOWER_PASSWORD"; then
             log "Red Hat registration successful."
           else
             log "Instance already registered or failed to register. Continuing..."
@@ -145,10 +160,10 @@ mainSteps:
           cat "$EXTRACTED_FOLDER/inventory"
 
           log "Configuring inventory file..."
-          sed -i "s|admin_password=.*|admin_password='{{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
-          sed -i "s|pg_password=.*|pg_password='{{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
-          sed -i "s|register_username=.*|register_username='{{ AnsibleTowerUsername }}'|" "$EXTRACTED_FOLDER/inventory"
-          sed -i "s|register_password=.*|register_password='{{ AnsibleTowerPassword }}'|" "$EXTRACTED_FOLDER/inventory"
+          sed -i "s|admin_password=.*|admin_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
+          sed -i "s|pg_password=.*|pg_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
+          sed -i "s|register_username=.*|register_username='$ANSIBLE_TOWER_USERNAME'|" "$EXTRACTED_FOLDER/inventory"
+          sed -i "s|register_password=.*|register_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
 
           echo "" >> "$EXTRACTED_FOLDER/inventory"
           echo "[automationcontroller]" >> "$EXTRACTED_FOLDER/inventory"
@@ -176,7 +191,7 @@ mainSteps:
           log "Installation script completed!"
           log "You can now access Ansible Tower at: https://$(hostname)/api/"
           log "Username: admin"
-          log "Password: {{ AnsibleTowerPassword }}"
+          log "Password: $ANSIBLE_TOWER_PASSWORD"
     precondition:
       StringEquals:
         - platformType

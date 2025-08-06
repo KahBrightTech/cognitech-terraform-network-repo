@@ -479,7 +479,7 @@ inputs = {
   ]
   ssm_documents = [
     {
-      name               = "ansible-install"
+      name               = "ansible-tower-install"
       content            = file("${include.cloud.locals.repo.root}/documents/AnsibleInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
