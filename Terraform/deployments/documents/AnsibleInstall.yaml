@@ -1,14 +1,14 @@
 schemaVersion: '2.2'
 description: "Document to install and configure Ansible Tower on Linux servers using AWS Systems Manager (SSM)."
 parameters:
-  AnsibleUsernameParameterName:
+  AnsibleTowerUsername:
     type: String
-    description: "SSM Parameter name for Ansible Tower username"
-    default: "/standard/ansible/username"
-  AnsiblePasswordParameterName:
+    description: "Red Hat subscription username"
+    default: "{{ssm:/Standard/ansible/username}}"
+  AnsibleTowerPassword:
     type: String
-    description: "SSM Parameter name for Ansible Tower password"
-    default: "/standard/ansible/password"
+    description: "Red Hat subscription password"
+    default: "{{ssm:/Standard/ansible/password}}"
   AnsibleS3BucketName:
     type: String
     description: "S3 Bucket Name for Ansible Tower installer"
@@ -30,7 +30,6 @@ mainSteps:
       runCommand:
         - |
           #!/bin/bash -xe
-          
           # Logging and error handling functions
           log() {
               echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
@@ -43,18 +42,9 @@ mainSteps:
 
           log "Starting Ansible Tower installation..."
 
-          # Manual SSM parameter resolution
-          log "Resolving SSM parameters..."
-          
-          ANSIBLE_TOWER_USERNAME=$(aws ssm get-parameter --name "{{ AnsibleUsernameParameterName }}" --query "Parameter.Value" --output text 2>/dev/null)
-          if [ $? -ne 0 ] || [ -z "$ANSIBLE_TOWER_USERNAME" ]; then
-              error_exit "Failed to retrieve username from SSM parameter {{ AnsibleUsernameParameterName }}"
-          fi
-          
-          ANSIBLE_TOWER_PASSWORD=$(aws ssm get-parameter --name "{{ AnsiblePasswordParameterName }}" --with-decryption --query "Parameter.Value" --output text 2>/dev/null)
-          if [ $? -ne 0 ] || [ -z "$ANSIBLE_TOWER_PASSWORD" ]; then
-              error_exit "Failed to retrieve password from SSM parameter {{ AnsiblePasswordParameterName }}"
-          fi
+          # Use SSM-resolved parameters directly
+          ANSIBLE_TOWER_USERNAME="{{ AnsibleTowerUsername }}"
+          ANSIBLE_TOWER_PASSWORD="{{ AnsibleTowerPassword }}"
 
           log "Configuration:"
           log "  Username: $ANSIBLE_TOWER_USERNAME"
