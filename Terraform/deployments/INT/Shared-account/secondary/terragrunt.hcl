@@ -15,22 +15,23 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context   = "secondary"
-  deploy_globally  = "true"
-  internal         = "private"
-  external         = "public"
-  region           = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
-  region_prefix    = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
-  region_blk       = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
-  deployment_name  = "terraform/${include.env.locals.name_abr}-${local.vpc_name}-${local.region_context}"
-  cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
-  state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
-  state_lock_table = include.env.locals.remote_dynamodb_table
-  vpc_name         = "shared-services"
-  vpc_name_abr     = "shared"
-  internet_cidr    = "0.0.0.0/0"
-  account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
-  aws_account_name = include.cloud.locals.account_info[include.env.locals.name_abr].name
+  region_context     = "secondary"
+  deploy_globally    = "true"
+  internal           = "private"
+  external           = "public"
+  region             = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
+  region_prefix      = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
+  region_blk         = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
+  deployment_name    = "terraform/${include.env.locals.name_abr}-${local.vpc_name}-${local.region_context}"
+  cidr_blocks        = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
+  state_bucket       = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
+  state_lock_table   = include.env.locals.remote_dynamodb_table
+  vpc_name           = "shared-services"
+  vpc_name_abr       = "shared"
+  internet_cidr      = "0.0.0.0/0"
+  account_id         = include.cloud.locals.account_info[include.env.locals.name_abr].number
+  aws_account_name   = include.cloud.locals.account_info[include.env.locals.name_abr].name
+  public_hosted_zone = "${local.vpc_name_abr}.${include.env.locals.public_domain}"
 
   # Composite variables 
   tags = merge(
@@ -200,7 +201,7 @@ inputs = {
                 from_port   = 3389
                 to_port     = 3389
                 ip_protocol = "tcp"
-              },
+              }
             ]
           )
           egress = concat(
@@ -231,134 +232,146 @@ inputs = {
     }
   ]
   s3_private_buckets = [
-    # {
-    #   name              = "${local.vpc_name}-app-bucket"
-    #   description       = "The application bucket for different apps"
-    #   enable_versioning = true
-    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
-    # },
-    # {
-    #   name              = "${local.vpc_name}-config-bucket"
-    #   description       = "The configuration bucket for different apps"
-    #   enable_versioning = true
-    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
-    # },
-    # {
-    #   name                 = "${local.vpc_name}-src-replication-bucket"
-    #   description          = "The source replication bucket"
-    #   enable_versioning    = true
-    #   enable_bucket_policy = false
-    #   encryption = {
-    #     enabled            = true
-    #     sse_algorithm      = "aws:kms"
-    #     kms_master_key_id  = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
-    #     bucket_key_enabled = false
-    #   }
-    #   replication = {
-    #     role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
-    #     rules = [
-    #       {
-    #         id     = "replication-rule-1"
-    #         status = "Enabled"
-    #         destination = {
-    #           bucket_arn    = "arn:aws:s3:::mdproduction-use1-shared-services-dest-replication-bucket"
-    #           storage_class = "STANDARD"
-    #           access_control_translation = {
-    #             owner = "Destination"
-    #           }
-    #           account_id = "485147667400"
-    #           replication_time = {
-    #             minutes = "15"
-    #           }
-    #           encryption_configuration = {
-    #             replica_kms_key_id = "arn:aws:kms:${local.region}:485147667400:key/mrk-587301af90c9440c813284f882515d18"
-    #           }
-    #           replica_modification = {
-    #             enabled = true
-    #           }
-    #         }
-    #       }
-    #     ]
-    #   }
-    # },
-    # {
-    #   key               = "audit-bucket"
-    #   name              = "${local.vpc_name}-audit-bucket"
-    #   description       = "The audit bucket for different apps"
-    #   enable_versioning = true
-    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
-    # },
-    # {
-    #   key               = "report-bucket"
-    #   name              = "${local.vpc_name}-report-bucket"
-    #   description       = "The report bucket for different apps"
-    #   enable_versioning = true
-    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
-    # },
+    {
+      name              = "${local.vpc_name}-app-bucket"
+      description       = "The application bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
+    },
+    {
+      name              = "${local.vpc_name}-config-bucket"
+      description       = "The configuration bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
+    },
+    {
+      name                 = "${local.vpc_name}-src-replication-bucket"
+      description          = "The source replication bucket"
+      enable_versioning    = true
+      enable_bucket_policy = false
+      # encryption = {
+      #   enabled            = true
+      #   sse_algorithm      = "aws:kms"
+      #   kms_master_key_id  = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
+      #   bucket_key_enabled = false
+      # }
+      # replication = {
+      #   role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
+      #   rules = [
+      #     {
+      #       id     = "replication-rule-1"
+      #       status = "Enabled"
+      #       destination = {
+      #         bucket_arn    = "arn:aws:s3:::mdproduction-use1-shared-services-dest-replication-bucket"
+      #         storage_class = "STANDARD"
+      #         access_control_translation = {
+      #           owner = "Destination"
+      #         }
+      #         account_id = "485147667400"
+      #         replication_time = {
+      #           minutes = "15"
+      #         }
+      #         encryption_configuration = {
+      #           replica_kms_key_id = "arn:aws:kms:${local.region}:485147667400:key/mrk-587301af90c9440c813284f882515d18"
+      #         }
+      #         replica_modification = {
+      #           enabled = true
+      #         }
+      #       }
+      #     }
+      #   ]
+      # }
+    },
+    {
+      key               = "audit-bucket"
+      name              = "${local.vpc_name}-audit-bucket"
+      description       = "The audit bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
+    },
+    {
+      key               = "report-bucket"
+      name              = "${local.vpc_name}-report-bucket"
+      description       = "The report bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
+    },
+    {
+      key               = "software-bucket"
+      name              = "${local.vpc_name}-software-bucket"
+      description       = "The software bucket for different apps"
+      enable_versioning = true
+      objects = [
+        {
+          key = "Ansible_Tower/"
+        }
+      ]
+    }
   ]
-  # ec2_profiles = [
-  #   {
-  #     name               = "${local.vpc_name}"
-  #     description        = "EC2 Instance Profile for Shared Services"
-  #     assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
-  #     managed_policy_arns = [
-  #       "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
-  #       "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
-  #       "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  #     ]
-  #     policy = {
-  #       name        = "${local.vpc_name}-ec2-instance-profile"
-  #       description = "EC2 Instance Permission for S3"
-  #       policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
-  #     }
-  #   }
-  # ]
-  # iam_roles = [
-  #   {
-  #     name               = "${local.vpc_name}-instance"
-  #     description        = "IAM Role for Shared Services"
-  #     path               = "/"
-  #     assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
-  #     managed_policy_arns = [
-  #       "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
-  #       "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
-  #       "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  #     ]
-  #     policy = {
-  #       name        = "${local.vpc_name}-instance"
-  #       description = "Test IAM policy"
-  #       policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
-  #     }
-  #   },
-  #   {
-  #     name               = "${local.vpc_name}-source-replication"
-  #     description        = "IAM Role for Shared Services replication rule"
-  #     path               = "/"
-  #     assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/s3_trust_policy.json"
-  #     policy = {
-  #       name        = "${local.vpc_name}-source-replication"
-  #       description = "IAM policy for source replication"
-  #       policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
-  #     }
-  #   }
-  # ]
-  # key_pairs = [
-  #   {
-  #     name               = "${local.vpc_name}-key-pair"
-  #     secret_name        = "${local.vpc_name}-ec2-private-key"
-  #     secret_description = "Private key for ${local.vpc_name} VPC"
-  #     policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-  #     create_secret      = true
-  #   }
-  # ]
-  # certificates = [
-  #   {
-  #     name              = "${local.vpc_name}"
-  #     domain_name       = "*.${local.vpc_name_abr}.${include.env.locals.public_domain}"
-  #     validation_method = "DNS"
-  #     zone_name         = include.env.locals.public_domain
-  #   }
-  # ]
+  ec2_profiles = [
+    {
+      name               = "${local.vpc_name}"
+      description        = "EC2 Instance Profile for Shared Services"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+        "arn:aws:iam::aws:policy/AdministratorAccess"
+      ]
+      policy = {
+        name        = "${local.vpc_name}-ec2-instance-profile"
+        description = "EC2 Instance Permission for S3"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
+      }
+    }
+  ]
+  iam_roles = [
+    {
+      name               = "${local.vpc_name}-instance"
+      description        = "IAM Role for Shared Services"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      ]
+      policy = {
+        name        = "${local.vpc_name}-instance"
+        description = "Test IAM policy"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
+      }
+    },
+    {
+      name               = "${local.vpc_name}-source-replication"
+      description        = "IAM Role for Shared Services replication rule"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/s3_trust_policy.json"
+      policy = {
+        name        = "${local.vpc_name}-source-replication"
+        description = "IAM policy for source replication"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
+      }
+    }
+  ]
+  key_pairs = [
+    {
+      name               = "${local.vpc_name}-key-pair"
+      secret_name        = "${local.vpc_name}-ec2-private-key"
+      secret_description = "Private key for ${local.vpc_name} VPC"
+      policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      create_secret      = true
+    }
+  ]
+  certificates = [
+    {
+      name              = "${local.vpc_name}"
+      domain_name       = "*.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+      validation_method = "DNS"
+      zone_name         = include.env.locals.public_domain
+    }
+  ]
   secrets = [
     {
       name        = "ansible-credentials"
@@ -367,6 +380,17 @@ inputs = {
       value = {
         username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
         password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+      }
+    },
+    {
+      name        = "User-credentials"
+      description = "User credentials for ${local.aws_account_name} environment"
+      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
+        password1 = "${get_env("TF_VAR_USER_PASSWORD1")}"
+        username2 = "${get_env("TF_VAR_USER_USERNAME2")}"
+        password2 = "${get_env("TF_VAR_USER_PASSWORD2")}"
       }
     }
   ]
@@ -380,14 +404,26 @@ inputs = {
     {
       name        = "/Standard/ansible/password"
       description = "Ansible Tower Password"
-      type        = "SecureString"
+      type        = "String"
       value       = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+    },
+    {
+      name        = "/Standard/ansible/bucketName"
+      description = "Ansible Tower Bucket Name"
+      type        = "String"
+      value       = "ansibleautomationbucket"
+    },
+    {
+      name        = "/Standard/account/UserCredentials"
+      description = "Ansible Tower User Credentials"
+      type        = "String"
+      value       = "${local.aws_account_name}-${local.region_prefix}-User-credentials"
     }
   ]
   backups = [
     {
       name       = "${local.aws_account_name}-${local.region_prefix}-backup-vault"
-      kms_key_id = include.env.locals.kms_key_id.secondary
+      kms_key_id = include.env.locals.kms_key_id.primary
       plan = {
         name = "${local.aws_account_name}-${local.region_prefix}-backup-plan"
         rules = [
@@ -443,63 +479,86 @@ inputs = {
   ]
   ssm_documents = [
     {
-      name               = "nessus-install"
-      content            = file("${include.cloud.locals.repo.root}/documents/nessusinstall.yaml")
+      name               = "ansible-tower-install"
+      content            = file("${include.cloud.locals.repo.root}/documents/AnsibleInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true
       targets = {
-        key    = "tag:Environment"
-        values = ["production"]
+        key    = "tag:AnsibleInstall"
+        values = ["True"]
       }
       schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
+    },
+    {
+      name               = "universal-user-credentials"
+      content            = file("${include.cloud.locals.repo.root}/documents/UniversalUserCreation.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:CreateUser"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
+    },
+    {
+      name               = "iis-install"
+      content            = file("${include.cloud.locals.repo.root}/documents/IISInstall.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:IISInstall"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 4 ? * SUN *)" # Every Sunday at 4 AM
     }
   ]
-
   load_balancers = [
-    # {
-    #   key             = "acct"
-    #   name            = "acct"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    #   create_default_listener    = true
-    # },
-    # {
-    #   key             = "etl"
-    #   name            = "etl"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    # },
-    # {
-    #   key             = "ssrs"
-    #   name            = "ssrs"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "network"
-    #   security_groups = ["nlb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    # }
+    {
+      key             = "acct"
+      name            = "acct"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+      create_default_listener    = true
+    },
+    {
+      key             = "etl"
+      name            = "etl"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+    },
+    {
+      key             = "ssrs"
+      name            = "ssrs"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "network"
+      security_groups = ["nlb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+    }
   ]
   alb_listeners = [
     # {
@@ -607,9 +666,6 @@ generate "aws-providers" {
   contents  = <<-EOF
   provider "aws" {
     region = "${local.region}"
-  }
-  provider "secretsmanager" {
-    credential = "${get_env("TF_VAR_KSM_CONFIG")}" 
   }
   EOF
 }

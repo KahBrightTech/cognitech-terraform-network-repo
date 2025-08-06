@@ -79,7 +79,7 @@ mainSteps:
                         } else {
                             Write-Log "Creating user: $Username"
                             $SecurePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-                            New-LocalUser -Name $Username -Password $SecurePassword -FullName "Bastion User $UserNumber" -Description "Bastion access user $UserNumber created via SSM" -PasswordNeverExpires
+                            New-LocalUser -Name $Username -Password $SecurePassword -FullName "Admin User $UserNumber" -Description "Admin access user $UserNumber created via SSM" -PasswordNeverExpires
                         }
                         
                         # Add user to Administrators group
@@ -243,7 +243,7 @@ mainSteps:
                     echo "$username:$password" | chpasswd
                 else
                     log "Creating user: $username"
-                    useradd -m -c "Bastion User $user_number" -s /bin/bash "$username"
+                    useradd -m -c "Admin User $user_number" -s /bin/bash "$username"
                     echo "$username:$password" | chpasswd
                 fi
                 

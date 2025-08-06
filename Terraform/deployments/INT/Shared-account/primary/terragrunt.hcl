@@ -501,52 +501,64 @@ inputs = {
         values = ["True"]
       }
       schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
+    },
+    {
+      name               = "iis-install"
+      content            = file("${include.cloud.locals.repo.root}/documents/PackageInstall.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:PackageInstall"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 4 ? * SUN *)" # Every Sunday at 4 AM
     }
   ]
   load_balancers = [
-    # {
-    #   key             = "acct"
-    #   name            = "acct"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    #   create_default_listener    = true
-    # },
-    # {
-    #   key             = "etl"
-    #   name            = "etl"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    # },
-    # {
-    #   key             = "ssrs"
-    #   name            = "ssrs"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "network"
-    #   security_groups = ["nlb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    # }
+    {
+      key             = "acct"
+      name            = "acct"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+      create_default_listener    = true
+    },
+    {
+      key             = "etl"
+      name            = "etl"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+    },
+    {
+      key             = "ssrs"
+      name            = "ssrs"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "network"
+      security_groups = ["nlb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = true
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+    }
   ]
   alb_listeners = [
     # {

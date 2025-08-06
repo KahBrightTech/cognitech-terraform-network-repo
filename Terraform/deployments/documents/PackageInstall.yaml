@@ -1,0 +1,216 @@
+---
+schemaVersion: '2.2'
+description: Install IIS with SSL certificate and Google Chrome on Windows Server
+parameters:
+  certificateSubject:
+    type: String
+    description: Subject name for the self-signed certificate
+    default: "CN={{local-hostname}}"
+  siteName:
+    type: String
+    description: IIS site name
+    default: "Default Web Site"
+mainSteps:
+  - action: aws:runPowerShellScript
+    name: InstallIIS
+    description: Install IIS with required features
+    inputs:
+      runCommand:
+        - |
+          Write-Output "Starting IIS installation..."
+          
+          # Install IIS with common features
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServerRole -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServer -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-CommonHttpFeatures -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-HttpErrors -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-HttpLogging -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-HttpRedirect -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-ApplicationDevelopment -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-NetFx45 -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-HealthAndDiagnostics -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-HttpCompressionStatic -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-HttpCompressionDynamic -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-Security -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-RequestFiltering -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-IPSecurity -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-URLAuthorization -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-WindowsAuthentication -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-ASPNET45 -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-NetFxExtensibility45 -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-ISAPIExtensions -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-ISAPIFilter -All
+          Enable-WindowsOptionalFeature -Online -FeatureName IIS-ManagementConsole -All
+          
+          Write-Output "IIS installation completed."
+
+  - action: aws:runPowerShellScript
+    name: CreateSelfSignedCertificate
+    description: Create and configure self-signed SSL certificate
+    inputs:
+      runCommand:
+        - |
+          Write-Output "Creating self-signed certificate..."
+          
+          # Import WebAdministration module
+          Import-Module WebAdministration
+          
+          # Get the computer name for certificate subject
+          $computerName = $env:COMPUTERNAME
+          $certSubject = "{{certificateSubject}}".Replace("{{local-hostname}}", $computerName)
+          
+          # Create self-signed certificate
+          $cert = New-SelfSignedCertificate -DnsName $computerName -CertStoreLocation "cert:\LocalMachine\My" -Subject $certSubject -KeyUsage DigitalSignature,KeyEncipherment -KeyAlgorithm RSA -KeyLength 2048 -NotAfter (Get-Date).AddYears(2)
+          
+          # Export certificate to Trusted Root Certification Authorities
+          $certPath = "cert:\LocalMachine\My\$($cert.Thumbprint)"
+          Export-Certificate -Cert $certPath -FilePath "C:\temp_cert.cer"
+          Import-Certificate -FilePath "C:\temp_cert.cer" -CertStoreLocation "cert:\LocalMachine\Root"
+          Remove-Item "C:\temp_cert.cer" -Force
+          
+          Write-Output "Certificate created with thumbprint: $($cert.Thumbprint)"
+          Write-Output "Certificate subject: $certSubject"
+          
+          # Store thumbprint for next step
+          $cert.Thumbprint | Out-File -FilePath "C:\cert_thumbprint.txt" -Encoding UTF8
+          
+          Write-Output "Self-signed certificate creation completed."
+
+  - action: aws:runPowerShellScript
+    name: ConfigureIISSSL
+    description: Configure IIS with SSL binding
+    inputs:
+      runCommand:
+        - |
+          Write-Output "Configuring IIS SSL binding..."
+          
+          # Import WebAdministration module
+          Import-Module WebAdministration
+          
+          # Read certificate thumbprint
+          $thumbprint = Get-Content "C:\cert_thumbprint.txt" -Raw
+          $thumbprint = $thumbprint.Trim()
+          
+          $siteName = "{{siteName}}"
+          
+          # Remove existing HTTPS binding if it exists
+          try {
+              Get-WebBinding -Name $siteName -Protocol "https" -Port 443 | Remove-WebBinding
+              Write-Output "Removed existing HTTPS binding."
+          } catch {
+              Write-Output "No existing HTTPS binding found."
+          }
+          
+          # Add HTTPS binding with the certificate
+          New-WebBinding -Name $siteName -IP "*" -Port 443 -Protocol "https"
+          
+          # Bind the certificate to the HTTPS binding
+          $binding = Get-WebBinding -Name $siteName -Protocol "https" -Port 443
+          $binding.AddSslCertificate($thumbprint, "my")
+          
+          # Clean up temporary file
+          Remove-Item "C:\cert_thumbprint.txt" -Force
+          
+          # Start the website if it's not running
+          Start-Website -Name $siteName
+          
+          Write-Output "SSL binding configured successfully for site: $siteName"
+          Write-Output "HTTPS is now available on port 443"
+
+  - action: aws:runPowerShellScript
+    name: InstallGoogleChrome
+    description: Download and install Google Chrome
+    inputs:
+      runCommand:
+        - |
+          Write-Output "Starting Google Chrome installation..."
+          
+          # Create temp directory
+          $tempDir = "C:\temp"
+          if (!(Test-Path $tempDir)) {
+              New-Item -ItemType Directory -Path $tempDir -Force
+          }
+          
+          # Download Google Chrome installer
+          $chromeUrl = "https://dl.google.com/chrome/install/ChromeStandaloneSetup64.exe"
+          $chromeInstaller = "$tempDir\ChromeStandaloneSetup64.exe"
+          
+          try {
+              Write-Output "Downloading Google Chrome..."
+              Invoke-WebRequest -Uri $chromeUrl -OutFile $chromeInstaller -UseBasicParsing
+              
+              # Install Chrome silently
+              Write-Output "Installing Google Chrome..."
+              Start-Process -FilePath $chromeInstaller -ArgumentList "/silent", "/install" -Wait
+              
+              # Clean up installer
+              Remove-Item $chromeInstaller -Force
+              
+              Write-Output "Google Chrome installation completed successfully."
+          } catch {
+              Write-Output "Error downloading or installing Google Chrome: $($_.Exception.Message)"
+              Write-Output "Attempting alternative installation method..."
+              
+              # Alternative method using chocolatey if available, or manual registry check
+              try {
+                  # Check if Chrome is already installed
+                  $chromeInstalled = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "*Google Chrome*" }
+                  if ($chromeInstalled) {
+                      Write-Output "Google Chrome appears to be already installed."
+                  } else {
+                      Write-Output "Unable to install Google Chrome automatically. Please install manually."
+                  }
+              } catch {
+                  Write-Output "Chrome installation verification failed."
+              }
+          }
+
+  - action: aws:runPowerShellScript
+    name: VerifyInstallation
+    description: Verify all installations and configurations
+    inputs:
+      runCommand:
+        - |
+          Write-Output "Verifying installations..."
+          
+          # Check IIS status
+          $iisStatus = Get-Service -Name "W3SVC" -ErrorAction SilentlyContinue
+          if ($iisStatus -and $iisStatus.Status -eq "Running") {
+              Write-Output "✓ IIS is installed and running"
+          } else {
+              Write-Output "✗ IIS is not running properly"
+          }
+          
+          # Check SSL binding
+          Import-Module WebAdministration
+          $sslBinding = Get-WebBinding -Name "{{siteName}}" -Protocol "https" -Port 443 -ErrorAction SilentlyContinue
+          if ($sslBinding) {
+              Write-Output "✓ SSL binding configured on port 443"
+          } else {
+              Write-Output "✗ SSL binding not found"
+          }
+          
+          # Check certificate
+          $certs = Get-ChildItem -Path "cert:\LocalMachine\My" | Where-Object { $_.Subject -like "*$($env:COMPUTERNAME)*" }
+          if ($certs) {
+              Write-Output "✓ Self-signed certificate found: $($certs[0].Subject)"
+              Write-Output "  Thumbprint: $($certs[0].Thumbprint)"
+              Write-Output "  Expires: $($certs[0].NotAfter)"
+          } else {
+              Write-Output "✗ Self-signed certificate not found"
+          }
+          
+          # Check Chrome installation
+          $chromeInstalled = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "*Google Chrome*" }
+          if ($chromeInstalled) {
+              Write-Output "✓ Google Chrome is installed: $($chromeInstalled.DisplayVersion)"
+          } else {
+              Write-Output "✗ Google Chrome installation not verified"
+          }
+          
+          Write-Output "Installation verification completed."
+          Write-Output ""
+          Write-Output "Next steps:"
+          Write-Output "1. Access your website via HTTPS://$($env:COMPUTERNAME) or HTTPS://localhost"
+          Write-Output "2. You may see a certificate warning in browsers - this is normal for self-signed certificates"
+          Write-Output "3. Chrome is available in the Start Menu or desktop"
