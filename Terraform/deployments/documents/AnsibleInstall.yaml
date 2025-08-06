@@ -96,7 +96,12 @@ mainSteps:
           fi
 
           log "Updating system packages..."
-          yum update -y || error_exit "Failed to update system packages"
+          yum update -y --skip-broken || {
+            log "WARNING: yum update failed, trying alternative approach..."
+            yum clean all
+            yum makecache
+            yum update -y --skip-broken || log "WARNING: Package update failed but continuing with installation..."
+          }
 
           log "Setting hostname..."
           hostnamectl set-hostname ansible || error_exit "Failed to set hostname"
