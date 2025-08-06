@@ -414,7 +414,7 @@ inputs = {
       value       = "ansibleautomationbucket"
     },
     {
-      name        = "/Standard/ansible/UserCredentials"
+      name        = "/Standard/account/UserCredentials"
       description = "Ansible Tower User Credentials"
       type        = "String"
       value       = "${local.aws_account_name}-${local.region_prefix}-User-credentials"

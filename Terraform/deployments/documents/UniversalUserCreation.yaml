@@ -4,7 +4,7 @@ parameters:
   SecretName:
     type: String
     description: "Secrets Manager secret name containing user credentials"
-    default: "{{ssm:/Standard/credentials/UserCredentials}}"
+    default: "{{ssm:/Standard/account/UserCredentials}}"
   SecretRegion:
     type: String
     description: "AWS Region where the secret is stored"
@@ -20,11 +20,16 @@ mainSteps:
         - platformType
         - Windows
     inputs:
+      timeoutSeconds: 3600
       runCommand:
         - |
             # PowerShell script to create Windows users from Secrets Manager
             try {
                 Write-Output "[$(Get-Date)] Starting Windows user creation process..."
+                
+                # Debug: Show what parameters were received
+                Write-Output "[$(Get-Date)] DEBUG: SecretName parameter: {{ SecretName }}"
+                Write-Output "[$(Get-Date)] DEBUG: SecretRegion parameter: {{ SecretRegion }}"
                 
                 # Function to log messages with timestamp
                 function Write-Log {
@@ -149,6 +154,7 @@ mainSteps:
         - platformType
         - Linux
     inputs:
+      timeoutSeconds: 3600
       runCommand:
         - |
             #!/bin/bash -xe
@@ -163,12 +169,24 @@ mainSteps:
             
             log "Starting Linux user creation process..."
             
+            # Debug: Show what parameters were received
+            log "DEBUG: SecretName parameter: {{ SecretName }}"
+            log "DEBUG: SecretRegion parameter: {{ SecretRegion }}"
+            
             # Install required packages
             log "Installing required packages..."
             if command -v yum >/dev/null 2>&1; then
                 # Amazon Linux/RHEL/CentOS
-                yum update -y
-                yum install -y awscli jq
+                yum update -y --skip-broken || {
+                    log "WARNING: yum update failed, trying alternative approach..."
+                    yum clean all
+                    yum makecache
+                    yum update -y --skip-broken || log "WARNING: Package update failed but continuing..."
+                }
+                yum install -y awscli jq || {
+                    log "WARNING: Failed to install some packages, trying alternatives..."
+                    yum install -y aws-cli jq || log "WARNING: Some packages may not be available"
+                }
             elif command -v apt-get >/dev/null 2>&1; then
                 # Ubuntu/Debian
                 apt-get update -y
