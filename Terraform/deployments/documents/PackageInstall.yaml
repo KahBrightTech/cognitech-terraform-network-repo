@@ -139,29 +139,85 @@ mainSteps:
               Write-Output "Downloading Google Chrome..."
               Invoke-WebRequest -Uri $chromeUrl -OutFile $chromeInstaller -UseBasicParsing
               
-              # Install Chrome silently
+              # Verify download was successful
+              if (!(Test-Path $chromeInstaller)) {
+                  throw "Chrome installer download failed"
+              }
+              
+              Write-Output "Download completed. File size: $((Get-Item $chromeInstaller).Length) bytes"
+              
+              # Install Chrome silently with correct arguments
               Write-Output "Installing Google Chrome..."
-              Start-Process -FilePath $chromeInstaller -ArgumentList "/silent", "/install" -Wait
+              $installProcess = Start-Process -FilePath $chromeInstaller -ArgumentList "/silent" -Wait -PassThru
+              
+              # Check installation exit code
+              if ($installProcess.ExitCode -eq 0) {
+                  Write-Output "Chrome installer completed with exit code: $($installProcess.ExitCode)"
+              } else {
+                  Write-Output "Chrome installer completed with exit code: $($installProcess.ExitCode)"
+                  Write-Output "Note: Exit code may not indicate failure for Chrome installer"
+              }
+              
+              # Wait a moment for installation to complete
+              Start-Sleep -Seconds 10
+              
+              # Verify installation by checking for Chrome executable
+              $chromeExe = "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe"
+              $chromeExe86 = "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
+              
+              if ((Test-Path $chromeExe) -or (Test-Path $chromeExe86)) {
+                  Write-Output "Google Chrome installation verified successfully."
+                  if (Test-Path $chromeExe) {
+                      Write-Output "Chrome installed at: $chromeExe"
+                  } else {
+                      Write-Output "Chrome installed at: $chromeExe86"
+                  }
+              } else {
+                  Write-Output "Chrome installation could not be verified - executable not found"
+                  # Additional verification using registry
+                  $chromeInstalled = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "*Google Chrome*" }
+                  if ($chromeInstalled) {
+                      Write-Output "Chrome found in registry: $($chromeInstalled.DisplayName) $($chromeInstalled.DisplayVersion)"
+                  }
+              }
               
               # Clean up installer
               Remove-Item $chromeInstaller -Force
               
-              Write-Output "Google Chrome installation completed successfully."
           } catch {
               Write-Output "Error downloading or installing Google Chrome: $($_.Exception.Message)"
               Write-Output "Attempting alternative installation method..."
               
-              # Alternative method using chocolatey if available, or manual registry check
+              # Alternative method - try using msiexec if the installer is MSI-based
               try {
                   # Check if Chrome is already installed
                   $chromeInstalled = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "*Google Chrome*" }
                   if ($chromeInstalled) {
-                      Write-Output "Google Chrome appears to be already installed."
+                      Write-Output "Google Chrome appears to be already installed: $($chromeInstalled.DisplayName)"
                   } else {
-                      Write-Output "Unable to install Google Chrome automatically. Please install manually."
+                      Write-Output "Trying alternative Chrome installation URL..."
+                      $altChromeUrl = "https://dl.google.com/chrome/install/googlechromestandaloneenterprise64.msi"
+                      $altChromeInstaller = "$tempDir\ChromeStandaloneEnterprise64.msi"
+                      
+                      Invoke-WebRequest -Uri $altChromeUrl -OutFile $altChromeInstaller -UseBasicParsing
+                      
+                      if (Test-Path $altChromeInstaller) {
+                          Write-Output "Attempting MSI installation..."
+                          Start-Process -FilePath "msiexec.exe" -ArgumentList "/i", $altChromeInstaller, "/quiet", "/norestart" -Wait
+                          Start-Sleep -Seconds 10
+                          Remove-Item $altChromeInstaller -Force
+                          
+                          # Verify alternative installation
+                          $chromeExe = "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe"
+                          if (Test-Path $chromeExe) {
+                              Write-Output "Chrome successfully installed via MSI method"
+                          } else {
+                              Write-Output "Alternative installation method also failed"
+                          }
+                      }
                   }
               } catch {
-                  Write-Output "Chrome installation verification failed."
+                  Write-Output "Alternative Chrome installation failed: $($_.Exception.Message)"
               }
           }
 
@@ -201,11 +257,28 @@ mainSteps:
           }
           
           # Check Chrome installation
+          $chromeExe = "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe"
+          $chromeExe86 = "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
           $chromeInstalled = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "*Google Chrome*" }
-          if ($chromeInstalled) {
-              Write-Output "✓ Google Chrome is installed: $($chromeInstalled.DisplayVersion)"
+          
+          if ((Test-Path $chromeExe) -or (Test-Path $chromeExe86)) {
+              if (Test-Path $chromeExe) {
+                  $chromeVersion = (Get-Item $chromeExe).VersionInfo.ProductVersion
+                  Write-Output "✓ Google Chrome is installed: Version $chromeVersion"
+                  Write-Output "  Location: $chromeExe"
+              } else {
+                  $chromeVersion = (Get-Item $chromeExe86).VersionInfo.ProductVersion
+                  Write-Output "✓ Google Chrome is installed: Version $chromeVersion"
+                  Write-Output "  Location: $chromeExe86"
+              }
+          } elseif ($chromeInstalled) {
+              Write-Output "✓ Google Chrome found in registry: $($chromeInstalled.DisplayName) $($chromeInstalled.DisplayVersion)"
+              Write-Output "  Warning: Chrome executable not found in expected location"
           } else {
               Write-Output "✗ Google Chrome installation not verified"
+              Write-Output "  Expected locations:"
+              Write-Output "    $chromeExe"
+              Write-Output "    $chromeExe86"
           }
           
           Write-Output "Installation verification completed."

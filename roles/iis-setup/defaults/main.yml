@@ -1,0 +1,12 @@
+---
+# defaults file for iis-setup
+
+# Certificate configuration
+certificate_subject: "CN={{local-hostname}}"
+
+# IIS site configuration
+site_name: "Default Web Site"
+
+# SSL configuration
+ssl_port: 443
+certificate_store: "my"

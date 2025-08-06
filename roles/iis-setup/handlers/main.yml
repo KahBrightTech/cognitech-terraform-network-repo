@@ -1,0 +1,13 @@
+---
+# handlers file for iis-setup
+
+- name: restart iis
+  win_service:
+    name: W3SVC
+    state: restarted
+
+- name: restart website
+  win_shell: |
+    Import-Module WebAdministration
+    Stop-Website -Name "{{ site_name }}"
+    Start-Website -Name "{{ site_name }}"

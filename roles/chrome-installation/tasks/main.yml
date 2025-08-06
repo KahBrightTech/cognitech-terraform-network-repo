@@ -1,0 +1,56 @@
+---
+# tasks file for chrome-installation
+
+- name: Create temporary directory
+  win_file:
+    path: "{{ temp_dir }}"
+    state: directory
+
+- name: Download Google Chrome installer
+  win_get_url:
+    url: "{{ chrome_download_url }}"
+    dest: "{{ chrome_installer_path }}"
+    timeout: 30
+  register: download_result
+
+- name: Install Google Chrome
+  win_shell: |
+    $chromeInstaller = "{{ chrome_installer_path }}"
+    if (Test-Path $chromeInstaller) {
+        $installProcess = Start-Process -FilePath $chromeInstaller -ArgumentList "/silent" -Wait -PassThru
+        Write-Output "Chrome installer completed with exit code: $($installProcess.ExitCode)"
+        Start-Sleep -Seconds 10
+    } else {
+        throw "Chrome installer not found"
+    }
+  register: install_result
+
+- name: Verify Chrome installation
+  win_shell: |
+    $chromeExe = "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe"
+    $chromeExe86 = "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
+    
+    if ((Test-Path $chromeExe) -or (Test-Path $chromeExe86)) {
+        if (Test-Path $chromeExe) {
+            $chromeVersion = (Get-Item $chromeExe).VersionInfo.ProductVersion
+            Write-Output "Chrome installed at: $chromeExe (Version: $chromeVersion)"
+        } else {
+            $chromeVersion = (Get-Item $chromeExe86).VersionInfo.ProductVersion
+            Write-Output "Chrome installed at: $chromeExe86 (Version: $chromeVersion)"
+        }
+        exit 0
+    } else {
+        Write-Output "Chrome executable not found"
+        exit 1
+    }
+  register: verification_result
+  failed_when: verification_result.rc != 0
+
+- name: Clean up installer
+  win_file:
+    path: "{{ chrome_installer_path }}"
+    state: absent
+
+- name: Display installation result
+  debug:
+    msg: "Google Chrome installation completed successfully"

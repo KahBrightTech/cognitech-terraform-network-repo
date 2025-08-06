@@ -1,0 +1,15 @@
+---
+# defaults file for chrome-installation
+
+# Chrome download configuration
+chrome_download_url: "https://dl.google.com/chrome/install/ChromeStandaloneSetup64.exe"
+chrome_alt_url: "https://dl.google.com/chrome/install/googlechromestandaloneenterprise64.msi"
+
+# Installation paths
+temp_dir: "C:\\temp"
+chrome_installer_path: "{{ temp_dir }}\\ChromeStandaloneSetup64.exe"
+chrome_alt_installer_path: "{{ temp_dir }}\\ChromeStandaloneEnterprise64.msi"
+
+# Installation options
+silent_install: true
+verify_installation: true

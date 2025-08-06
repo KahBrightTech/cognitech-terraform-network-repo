@@ -1,0 +1,19 @@
+---
+# Example playbook using the example-role
+
+- name: Example playbook
+  hosts: all
+  gather_facts: true
+  become: true
+  
+  vars:
+    # Override role defaults here
+    example_variable: "production_value"
+  
+  roles:
+    - example-role
+  
+  tasks:
+    - name: Additional task after role
+      debug:
+        msg: "Role execution completed"

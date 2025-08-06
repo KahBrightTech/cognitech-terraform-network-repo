@@ -1,0 +1,12 @@
+---
+# handlers file for example-role
+
+- name: restart service
+  service:
+    name: "{{ service_name }}"
+    state: restarted
+  listen: "restart application"
+
+- name: reload configuration
+  command: /usr/bin/reload-config
+  listen: "reload config"

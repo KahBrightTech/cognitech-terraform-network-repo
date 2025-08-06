@@ -3,7 +3,7 @@
 import argparse
 from delete_dns_record import delete_dns_record
 
-DEFAULT_ZONE_ID = 'Z0334718LG87PKPVYABM'
+DEFAULT_ZONE_ID = 'Z04956893LRVROGR7SL4U'
 
 def main():
     parser = argparse.ArgumentParser(description="Delete one or more DNS records from Route 53")

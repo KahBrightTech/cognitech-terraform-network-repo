@@ -1,0 +1,15 @@
+---
+# tasks file for example-role
+
+- name: Example task
+  debug:
+    msg: "This is an example task in the role"
+
+- name: Include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+  when: ansible_os_family is defined
+
+- name: Example conditional task
+  debug:
+    msg: "Running on {{ ansible_os_family }}"
+  when: ansible_os_family is defined

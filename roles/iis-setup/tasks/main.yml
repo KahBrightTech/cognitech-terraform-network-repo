@@ -1,0 +1,70 @@
+---
+# tasks file for iis-setup
+
+- name: Install IIS with required features
+  win_optional_feature:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - IIS-WebServerRole
+    - IIS-WebServer
+    - IIS-CommonHttpFeatures
+    - IIS-HttpErrors
+    - IIS-HttpLogging
+    - IIS-HttpRedirect
+    - IIS-ApplicationDevelopment
+    - IIS-NetFx45
+    - IIS-HealthAndDiagnostics
+    - IIS-HttpCompressionStatic
+    - IIS-HttpCompressionDynamic
+    - IIS-Security
+    - IIS-RequestFiltering
+    - IIS-IPSecurity
+    - IIS-URLAuthorization
+    - IIS-WindowsAuthentication
+    - IIS-ASPNET45
+    - IIS-NetFxExtensibility45
+    - IIS-ISAPIExtensions
+    - IIS-ISAPIFilter
+    - IIS-ManagementConsole
+
+- name: Create self-signed certificate
+  win_shell: |
+    $computerName = $env:COMPUTERNAME
+    $certSubject = "{{ certificate_subject }}".Replace("{{local-hostname}}", $computerName)
+    $cert = New-SelfSignedCertificate -DnsName $computerName -CertStoreLocation "cert:\LocalMachine\My" -Subject $certSubject -KeyUsage DigitalSignature,KeyEncipherment -KeyAlgorithm RSA -KeyLength 2048 -NotAfter (Get-Date).AddYears(2)
+    Export-Certificate -Cert "cert:\LocalMachine\My\$($cert.Thumbprint)" -FilePath "C:\temp_cert.cer"
+    Import-Certificate -FilePath "C:\temp_cert.cer" -CertStoreLocation "cert:\LocalMachine\Root"
+    Remove-Item "C:\temp_cert.cer" -Force
+    $cert.Thumbprint | Out-File -FilePath "C:\cert_thumbprint.txt" -Encoding UTF8
+  register: cert_creation
+
+- name: Configure IIS SSL binding
+  win_shell: |
+    Import-Module WebAdministration
+    $thumbprint = Get-Content "C:\cert_thumbprint.txt" -Raw
+    $thumbprint = $thumbprint.Trim()
+    $siteName = "{{ site_name }}"
+    
+    try {
+        Get-WebBinding -Name $siteName -Protocol "https" -Port 443 | Remove-WebBinding
+    } catch {
+        Write-Output "No existing HTTPS binding found."
+    }
+    
+    New-WebBinding -Name $siteName -IP "*" -Port 443 -Protocol "https"
+    $binding = Get-WebBinding -Name $siteName -Protocol "https" -Port 443
+    $binding.AddSslCertificate($thumbprint, "my")
+    Remove-Item "C:\cert_thumbprint.txt" -Force
+    Start-Website -Name $siteName
+  notify: restart iis
+
+- name: Verify IIS installation
+  win_service:
+    name: W3SVC
+    state: started
+  register: iis_service
+
+- name: Display IIS status
+  debug:
+    msg: "IIS is {{ 'running' if iis_service.state == 'started' else 'not running' }}"

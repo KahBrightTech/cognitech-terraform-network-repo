@@ -503,7 +503,7 @@ inputs = {
       schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
     },
     {
-      name               = "iis-install"
+      name               = "PackageInstall"
       content            = file("${include.cloud.locals.repo.root}/documents/PackageInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"

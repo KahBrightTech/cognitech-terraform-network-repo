@@ -3,7 +3,7 @@
 import argparse
 from create_dns_records import create_dns_record
 
-DEFAULT_ZONE_ID = 'Z0334718LG87PKPVYABM'
+DEFAULT_ZONE_ID = 'Z04956893LRVROGR7SL4U'
 
 def main():
     parser = argparse.ArgumentParser(description="Create one or more DNS records in Route 53")

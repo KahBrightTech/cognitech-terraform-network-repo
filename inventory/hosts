@@ -1,0 +1,17 @@
+[windows_servers]
+# Add your Windows servers here
+# Example:
+# windows-server-01 ansible_host=10.0.1.10
+# windows-server-02 ansible_host=10.0.1.11
+
+[windows_servers:vars]
+ansible_user=Administrator
+ansible_password={{ vault_windows_password }}
+ansible_connection=winrm
+ansible_winrm_transport=ntlm
+ansible_winrm_server_cert_validation=ignore
+ansible_port=5986
+
+[all:vars]
+# Global variables for all hosts
+ansible_python_interpreter=auto

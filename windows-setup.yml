@@ -1,0 +1,27 @@
+---
+# Main playbook using root-level roles
+- name: Configure Windows Server with IIS and Chrome
+  hosts: windows_servers
+  gather_facts: true
+  
+  vars:
+    # Override default variables here
+    site_name: "Default Web Site"
+    certificate_subject: "CN={{ ansible_hostname }}"
+  
+  roles:
+    - iis-setup
+    - chrome-installation
+  
+  post_tasks:
+    - name: Final verification message
+      debug:
+        msg: "Server configuration completed successfully"
+    
+    - name: Display access information
+      debug:
+        msg: 
+          - "IIS is now available at:"
+          - "  HTTP:  http://{{ ansible_hostname }}"
+          - "  HTTPS: https://{{ ansible_hostname }}"
+          - "Google Chrome has been installed"
