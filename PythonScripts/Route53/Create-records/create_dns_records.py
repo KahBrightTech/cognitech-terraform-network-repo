@@ -121,9 +121,12 @@ def validate_excel_data(df: pd.DataFrame, zone_name: str = None) -> Tuple[bool, 
         errors.append(f"Missing required columns: {', '.join(missing_columns)}")
         return False, errors, df
     
-    # Add TTL column if missing
+    # Add TTL column if missing and ensure it's integer
     if 'ttl' not in df.columns:
         df['ttl'] = 300
+    else:
+        # Convert TTL column to integer to avoid float issues
+        df['ttl'] = df['ttl'].fillna(300).astype(int)
     
     # Clean zone name for comparison
     clean_zone = zone_name.rstrip('.') if zone_name else None
