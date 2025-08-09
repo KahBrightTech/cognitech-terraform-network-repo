@@ -1,0 +1,9 @@
+@echo off
+echo Starting DNS Record Manager...
+echo.
+echo Installing dependencies...
+pip install -r requirements.txt
+echo.
+echo Starting Streamlit application...
+streamlit run create_dns_records.py
+pause
