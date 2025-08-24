@@ -418,6 +418,7 @@ inputs = {
       name        = "/Standard/account/UserCredentials"
       description = "Ansible Tower User Credentials"
       type        = "String"
+      overwrite   = true
       value       = "${local.aws_account_name}-${local.region_prefix}-User-credential"
     }
   ]
