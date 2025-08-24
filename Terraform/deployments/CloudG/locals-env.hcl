@@ -10,8 +10,8 @@ locals {
   owner       = "emeldinelimbu@gmial.com"
 
   remote_state_bucket = {
-    primary   = "cloudguru-us-east-1-state-lock"
-    secondary = "cloudguru-us-west-2-state-lock"
+    primary   = "cloudguru-us-east-1-network-config-state"
+    secondary = "cloudguru-us-west-2-network-config-state"
   }
 
   subnet_prefix = {
@@ -25,7 +25,7 @@ locals {
     primary   = "arn:aws:kms:us-east-1:586794444719:key/ec6a9f42-22a4-4d0b-ab07-acef099bb747"
     secondary = "arn:aws:kms:us-west-2:586794444719:key/ec9fd8ad-e65e-4223-83e3-c2c5bc7e511f"
   }
-  remote_dynamodb_table = "Terragrunt"
+  remote_dynamodb_table = "cloudguru-us-east-1-state-lock"
   tags = {
     Environment  = local.environment
     Owner        = local.owner
