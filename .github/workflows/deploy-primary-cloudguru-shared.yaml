@@ -25,7 +25,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::586794444719:role/cloudguru-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/INT/Shared-account/primary
+  DEPLOYMENT_PATH: Terraform/deployments/CloudG/Shared-account/primary
   TF_VAR_ANSIBLE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_USERNAME }}
   TF_VAR_ANSIBLE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_PASSWORD }}
   TF_VAR_USER_USERNAME1: ${{ secrets.TF_VAR_USER_USERNAME1 }}

@@ -74,6 +74,7 @@ inputs = {
           subnet_type                 = local.external
           vpc_name                    = local.vpc_name
         },
+      
         {
           key                         = include.env.locals.subnet_prefix.secondary
           name                        = include.env.locals.subnet_prefix.secondary
