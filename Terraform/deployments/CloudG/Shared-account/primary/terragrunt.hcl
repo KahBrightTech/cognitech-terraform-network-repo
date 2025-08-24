@@ -381,7 +381,6 @@ inputs = {
         password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
       }
     },
-    
     {
       name        = "User-credentials"
       description = "User credentials for ${local.aws_account_name} environment"
