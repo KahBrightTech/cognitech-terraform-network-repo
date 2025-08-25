@@ -89,8 +89,8 @@ variable "vpc" {
       })))
     })))
     s3 = optional(object({
-      name                     = string
-      description              = string
+      name                     = optional(string)
+      description              = optional(string)
       name_override            = optional(string)
       policy                   = optional(string)
       enable_versioning        = optional(bool, true)
