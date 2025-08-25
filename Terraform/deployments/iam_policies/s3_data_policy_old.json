@@ -1,0 +1,27 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Allow s3 access to admin role only",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": ["[[bucket_arn]]", "[[bucket_arn]]/*"],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": ["us-east-1", "us-west-2"],
+          "aws:PrncipalArn": [
+            "arn:aws:iam::[[account_number]]:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_ReadOnlyAccess_9a4a560bae2c526d"
+          ]
+        }
+      }
+    }
+  ]
+}
