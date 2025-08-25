@@ -15,7 +15,9 @@
         "s3:PutObjectAcl",
         "s3:GetObjectAcl",
         "s3:PutObjectVersionAcl",
-        "s3:GetObjectVersionAcl"
+        "s3:GetObjectVersionAcl",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketVersioning"
       ],
       "Resource": [
         "arn:aws:s3:::[[resource_name]]",
