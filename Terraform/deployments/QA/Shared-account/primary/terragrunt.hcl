@@ -217,11 +217,11 @@ inputs = {
           )
         }
       ]
-      # s3 = {
-      #   name        = "${local.vpc_name}-data-xfer"
-      #   description = "The bucket used for data transfers"
-      #   policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
-      # }
+      s3 = {
+        name        = "${local.vpc_name}-data-xfer"
+        description = "The bucket used for data transfers"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
+      }
       route53_zones = [
         {
           key  = local.vpc_name_abr
@@ -231,37 +231,36 @@ inputs = {
     }
   ]
   s3_private_buckets = [
-    # {
-    #   name              = "${local.vpc_name}-app-bucket"
-    #   description       = "The application bucket for different apps"
-    #   enable_versioning = true
-    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
-    # },
-    # {
-    #   name              = "${local.vpc_name}-config-bucket"
-    #   description       = "The configuration bucket for different apps"
-    #   enable_versioning = true
-    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
-    # },
-    # {
-    #   key               = "audit-bucket"
-    #   name              = "${local.vpc_name}-audit-bucket"
-    #   description       = "The audit bucket for different apps"
-    #   enable_versioning = true
-    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
-    # },
-    # {
-    #   key               = "software-bucket"
-    #   name              = "${local.vpc_name}-software-bucket"
-    #   description       = "The software bucket for different apps"
-    #   enable_versioning = true
-    #   objects = [
-    #     {
-    #       key = "Ansible_Tower/"
-    #     }
-    #   ]
-    # }
-    
+    {
+      name              = "${local.vpc_name}-app-bucket"
+      description       = "The application bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
+    },
+    {
+      name              = "${local.vpc_name}-config-bucket"
+      description       = "The configuration bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
+    },
+    {
+      key               = "audit-bucket"
+      name              = "${local.vpc_name}-audit-bucket"
+      description       = "The audit bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
+    },
+    {
+      key               = "software-bucket"
+      name              = "${local.vpc_name}-software-bucket"
+      description       = "The software bucket for different apps"
+      enable_versioning = true
+      objects = [
+        {
+          key = "Ansible_Tower/"
+        }
+      ]
+    }
   ]
   ec2_profiles = [
     {

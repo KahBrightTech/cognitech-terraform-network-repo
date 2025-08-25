@@ -2,7 +2,7 @@ locals {
   cloud = read_terragrunt_config(find_in_parent_folders("locals-cloud.hcl"))
 
   # Simple variables 
-  name_abr = "intpp"
+  name_abr = "qapp"
   # Environment tags 
   build       = "terraform"
   compliance  = "hippaa"
@@ -25,7 +25,7 @@ locals {
     primary   = "arn:aws:kms:us-east-1:271457809232:key/0c98cbf8-e93c-4b18-9075-c5b936808096"
     secondary = "arn:aws:kms:us-west-2:271457809232:key/afe7eb34-1410-44bf-8b65-d27d19e63dad"
   }
-  remote_dynamodb_table = "Terragrunt"
+  remote_dynamodb_table = "terragrunt-lock-table"
   tags = {
     Environment  = local.environment
     Owner        = local.owner
