@@ -221,7 +221,6 @@ inputs = {
       #   name        = "${local.vpc_name}-data-xfer"
       #   description = "The bucket used for data transfers"
       #   policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
-
       # }
       route53_zones = [
         {
