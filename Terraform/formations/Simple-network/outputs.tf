@@ -29,13 +29,12 @@ output "security_group" {
 #-------------------------------------------------------
 output "s3_data_bucket_arn" {
   description = "The ARN of the S3 bucket"
-  value       = module.s3_data_bucket != null ? module.s3_data_bucket.arn : null
+  value       = length(module.s3_data_bucket) > 0 ? module.s3_data_bucket[0].arn : null
 }
 
 output "s3_data_bucket_id" {
   description = "The ID of the S3 bucket"
-  value       = module.s3_data_bucket != null ? module.s3_data_bucket.id : null
-
+  value       = length(module.s3_data_bucket) > 0 ? module.s3_data_bucket[0].id : null
 }
 
 #-------------------------------------------------------
