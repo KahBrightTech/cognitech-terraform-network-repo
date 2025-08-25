@@ -217,12 +217,12 @@ inputs = {
           )
         }
       ]
-      s3 = {
-        name        = "${local.vpc_name}-data-xfer"
-        description = "The bucket used for data transfers"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
+      # s3 = {
+      #   name        = "${local.vpc_name}-data-xfer"
+      #   description = "The bucket used for data transfers"
+      #   policy      = "${include.cloud.locals.repo.root}/iam_policies/s3_data_policy.json"
 
-      }
+      # }
       route53_zones = [
         {
           key  = local.vpc_name_abr
