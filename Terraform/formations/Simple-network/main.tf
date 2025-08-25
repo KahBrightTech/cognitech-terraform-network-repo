@@ -121,10 +121,11 @@ module "zones" {
 }
 
 module "s3_data_bucket" {
+  count  = var.vpc != null && var.vpc.s3 != null ? 1 : 0
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.3.7"
   common = var.common
   s3 = {
-    name        = "${var.vpc.s3.name}"
+    name        = var.vpc.s3.name
     description = var.vpc.s3.description
     policy      = var.vpc.s3.policy
   }
