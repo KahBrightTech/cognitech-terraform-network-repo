@@ -318,14 +318,14 @@ inputs = {
       create_secret      = true
     }
   ]
-  # certificates = [
-  #   {
-  #     name              = "${local.vpc_name}"
-  #     domain_name       = "*.${local.vpc_name_abr}.${include.env.locals.public_domain}"
-  #     validation_method = "DNS"
-  #     zone_name         = include.env.locals.public_domain
-  #   }
-  # ]
+  certificates = [
+    {
+      name              = "${local.vpc_name}"
+      domain_name       = "*.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+      validation_method = "DNS"
+      zone_name         = include.env.locals.public_domain
+    }
+  ]
   secrets = [
     {
       name        = "ansible-credential"
