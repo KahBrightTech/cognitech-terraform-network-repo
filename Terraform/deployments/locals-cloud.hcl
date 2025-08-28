@@ -96,9 +96,6 @@ locals {
       secondary = ["snata", "snatb"]
     }
   }
-  repo = {
-    root = get_parent_terragrunt_dir()
-  }
 
   lambda = {
     start_instance = {
