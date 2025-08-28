@@ -8,9 +8,8 @@ locals {
   cidr_block_use1      = local.cidr_block_imp_use1.locals.cidr_blocks
   cidr_block_usw2      = local.cidr_block_imp_usw2.locals.cidr_blocks
 
-  # Repository root path for referencing files
   repo = {
-    root = "${get_repo_root()}"
+    root = get_parent_terragrunt_dir()
   }
 
   account_info = {
@@ -52,7 +51,7 @@ locals {
     kah = "90471"
     int = "TBD"
     dev = "TBD"
-    qa  = "TBD"`
+    qa  = "TBD" `
   }
   region_prefix = {
     primary   = "use1"
