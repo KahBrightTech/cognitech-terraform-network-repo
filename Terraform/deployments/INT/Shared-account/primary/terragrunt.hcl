@@ -554,7 +554,7 @@ inputs = {
       schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
     },
     {
-      name               = "DockerInstall.yaml"
+      name               = "Docker-Install"
       content            = file("${include.cloud.locals.repo.root}/documents/DockerInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
