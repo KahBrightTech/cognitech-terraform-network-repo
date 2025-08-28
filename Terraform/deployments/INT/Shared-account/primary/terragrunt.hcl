@@ -563,7 +563,7 @@ inputs = {
         key    = "tag:DockerInstall"
         values = ["True"]
       }
-      schedule_expression = "cron(0 4 ? * SUN *)" # Every Sunday at 4 AM
+      schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
     }
   ]
   load_balancers = [
