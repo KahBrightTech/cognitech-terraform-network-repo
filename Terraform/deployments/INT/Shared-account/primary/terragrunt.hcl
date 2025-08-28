@@ -553,18 +553,18 @@ inputs = {
       }
       schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
     }
-    # {
-    #   name               = "PackageInstall"
-    #   content            = file("${include.cloud.locals.repo.root}/documents/PackageInstall.yaml")
-    #   document_type      = "Command"
-    #   document_format    = "YAML"
-    #   create_association = true
-    #   targets = {
-    #     key    = "tag:PackageInstall"
-    #     values = ["True"]
-    #   }
-    #   schedule_expression = "cron(0 4 ? * SUN *)" # Every Sunday at 4 AM
-    # }
+    {
+      name               = "DockerInstall.yaml"
+      content            = file("${include.cloud.locals.repo.root}/documents/DockerInstall.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:DockerInstall"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
+    }
   ]
   load_balancers = [
     # {

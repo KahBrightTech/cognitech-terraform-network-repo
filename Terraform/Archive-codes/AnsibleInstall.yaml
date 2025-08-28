@@ -40,51 +40,7 @@ mainSteps:
           exit 1
       }
 
-      # Function to wait for package manager to be available
-      wait_for_package_manager() {
-          local max_attempts=30
-          local attempt=1
-          local wait_time=10
-          
-          log "Checking package manager availability..."
-          
-          while [ $attempt -le $max_attempts ]; do
-              log "Attempt $attempt/$max_attempts: Checking package manager locks..."
-              
-              # Check for yum/dnf locks
-              if command -v yum &> /dev/null; then
-                  if ! pgrep -x "yum" > /dev/null && ! pgrep -x "dnf" > /dev/null; then
-                      if yum check-update &> /dev/null || [ $? -eq 100 ]; then
-                          log "YUM package manager is available"
-                          return 0
-                      fi
-                  fi
-              # Check for apt locks
-              elif command -v apt-get &> /dev/null; then
-                  if ! pgrep -x "apt" > /dev/null && ! pgrep -x "apt-get" > /dev/null && ! pgrep -x "dpkg" > /dev/null; then
-                      if ! fuser /var/lib/dpkg/lock-frontend &> /dev/null && ! fuser /var/lib/apt/lists/lock &> /dev/null; then
-                          log "APT package manager is available"
-                          return 0
-                      fi
-                  fi
-              else
-                  log "No recognized package manager found (yum/apt), proceeding..."
-                  return 0
-              fi
-              
-              log "Package manager is busy or locked. Waiting ${wait_time} seconds before retry..."
-              sleep $wait_time
-              attempt=$((attempt + 1))
-          done
-          
-          log "WARNING: Package manager may still be busy after $max_attempts attempts. Proceeding anyway..."
-          return 0
-      }
-
       log "Starting Ansible Tower installation..."
-
-      # Wait for package manager to be available
-      wait_for_package_manager
 
       # Use SSM-resolved parameters directly
       ANSIBLE_TOWER_USERNAME="{{ AnsibleTowerUsername }}"
@@ -140,9 +96,6 @@ mainSteps:
       fi
 
       log "Updating system packages..."
-      # Ensure package manager is available before updating
-      wait_for_package_manager
-
       yum update -y --skip-broken || {
         log "WARNING: yum update failed, trying alternative approach..."
         yum clean all
