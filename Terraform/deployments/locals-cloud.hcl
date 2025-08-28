@@ -8,6 +8,11 @@ locals {
   cidr_block_use1      = local.cidr_block_imp_use1.locals.cidr_blocks
   cidr_block_usw2      = local.cidr_block_imp_usw2.locals.cidr_blocks
 
+  # Repository root path for referencing files
+  repo = {
+    root = "${get_repo_root()}"
+  }
+
   account_info = {
     mdpp = {
       name   = "mdpreproduction"
