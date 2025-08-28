@@ -167,7 +167,24 @@ inputs = {
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.alb_base,
-            []
+            [
+              {
+                key           = "egress-8080-app-sg"
+                target_sg_key = "app"
+                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8080"
+                from_port     = 8080
+                to_port       = 8080
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "egress-8081-app-sg"
+                target_sg_key = "app"
+                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8081"
+                from_port     = 8081
+                to_port       = 8081
+                ip_protocol   = "tcp"
+              }
+            ]
           )
         },
         {
@@ -201,6 +218,22 @@ inputs = {
                 from_port   = 3389
                 to_port     = 3389
                 ip_protocol = "tcp"
+              },
+              {
+                key           = "ingress-8080-alb-sg"
+                source_sg_key = "alb"
+                description   = "BASE - Inbound traffic from ALB SG to Internet on tcp port 8080"
+                from_port     = 8080
+                to_port       = 8080
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "ingress-8081-alb-sg"
+                source_sg_key = "alb"
+                description   = "BASE - Inbound traffic from ALB SG to Internet on tcp port 8081"
+                from_port     = 8081
+                to_port       = 8081
+                ip_protocol   = "tcp"
               }
             ]
           )
