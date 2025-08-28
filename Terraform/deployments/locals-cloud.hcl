@@ -52,7 +52,7 @@ locals {
     kah = "90471"
     int = "TBD"
     dev = "TBD"
-    qa  = "TBD"
+    qa  = "TBD"`
   }
   region_prefix = {
     primary   = "use1"
