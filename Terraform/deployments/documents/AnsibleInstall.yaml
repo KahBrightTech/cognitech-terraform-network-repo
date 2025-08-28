@@ -72,7 +72,7 @@ mainSteps:
                   return 0
               fi
               
-              log "Package manager is busy or locked. Waiting ${wait_time} seconds before retry..."
+              log "Package manager is busy or locked. Waiting $${wait_time} seconds before retry..."
               sleep $wait_time
               attempt=$((attempt + 1))
           done
