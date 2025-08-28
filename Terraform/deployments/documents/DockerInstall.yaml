@@ -1,377 +1,392 @@
 schemaVersion: '2.2'
 description: "Document to install/uninstall Docker and Docker Compose on Linux servers using AWS Systems Manager (SSM)."
 parameters:
-  Operation:
-    type: String
-    description: "Operation to perform: install or uninstall"
-    default: "install"
-    allowedValues:
-    - "install"
-    - "uninstall"
-  InstallDocker:
-    type: String
-    description: "Whether to install Docker (true/false)"
-    default: "true"
-  InstallDockerCompose:
-    type: String
-    description: "Whether to install Docker Compose (true/false)"
-    default: "true"
-  UninstallDocker:
-    type: String
-    description: "Whether to uninstall Docker (true/false)"
-    default: "true"
-  UninstallDockerCompose:
-    type: String
-    description: "Whether to uninstall Docker Compose (true/false)"
-    default: "true"
-  RemoveDockerData:
-    type: String
-    description: "Whether to remove Docker data (images, containers, volumes) during uninstall (true/false)"
-    default: "false"
+    Operation:
+        type: String
+        description: "Operation to perform: install or uninstall"
+        default: "install"
+        allowedValues:
+          - "install"
+          - "uninstall"
+    InstallDocker:
+        type: String
+        description: "Whether to install Docker (true/false)"
+        default: "true"
+        allowedValues:
+          - "true"
+          - "false"
+    InstallDockerCompose:
+        type: String
+        description: "Whether to install Docker Compose (true/false)"
+        default: "true"
+        allowedValues:
+          - "true"
+          - "false"
+    UninstallDocker:
+        type: String
+        description: "Whether to uninstall Docker (true/false)"
+        default: "true"
+        allowedValues:
+          - "true"
+          - "false"
+    UninstallDockerCompose:
+        type: String
+        description: "Whether to uninstall Docker Compose (true/false)"
+        default: "true"
+        allowedValues:
+          - "true"
+          - "false"
+    RemoveDockerData:
+        type: String
+        description: "Whether to remove Docker data (images, containers, volumes) during uninstall (true/false)"
+        default: "false"
+        allowedValues:
+          - "true"
+          - "false"
 mainSteps:
-- action: aws:runShellScript
-  name: ManageDockerAndDockerCompose
-  description: Installs or uninstalls Docker and Docker Compose on Linux servers
-  inputs:
-    timeoutSeconds: 7200
-    runCommand:
-    - |
-      #!/bin/bash -xe
-      # Logging and error handling functions
-      log() {
-          echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
-      }
+  - action: aws:runShellScript
+    name: ManageDockerAndDockerCompose
+    description: Installs or uninstalls Docker and Docker Compose on Linux servers
+    inputs:
+        timeoutSeconds: 7200
+        runCommand:
+          - |
+            #!/bin/bash -xe
+            # Logging and error handling functions
+            log() {
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+            }
 
-      error_exit() {
-          log "ERROR: $1"
-          exit 1
-      }
+            error_exit() {
+                log "ERROR: $1"
+                exit 1
+            }
 
-      log "Starting Docker and Docker Compose management..."
+            log "Starting Docker and Docker Compose management..."
 
-      # Get operation parameter
-      OPERATION="{{ Operation }}"
-      log "Operation requested: $OPERATION"
+            # Get operation parameter
+            OPERATION="{{ Operation }}"
+            log "Operation requested: $OPERATION"
 
-      # Detect the operating system
-      detect_os() {
-          if [ -f /etc/os-release ]; then
-              . /etc/os-release
-              OS=$NAME
-              VER=$VERSION_ID
-          elif type lsb_release >/dev/null 2>&1; then
-              OS=$(lsb_release -si)
-              VER=$(lsb_release -sr)
-          elif [ -f /etc/lsb-release ]; then
-              . /etc/lsb-release
-              OS=$DISTRIB_ID
-              VER=$DISTRIB_RELEASE
-          elif [ -f /etc/debian_version ]; then
-              OS=Debian
-              VER=$(cat /etc/debian_version)
-          else
-              OS=$(uname -s)
-              VER=$(uname -r)
-          fi
-          
-          log "Detected OS: $OS, Version: $VER"
-      }
+            # Detect the operating system
+            detect_os() {
+                if [ -f /etc/os-release ]; then
+                    . /etc/os-release
+                    OS=$NAME
+                    VER=$VERSION_ID
+                elif type lsb_release >/dev/null 2>&1; then
+                    OS=$(lsb_release -si)
+                    VER=$(lsb_release -sr)
+                elif [ -f /etc/lsb-release ]; then
+                    . /etc/lsb-release
+                    OS=$DISTRIB_ID
+                    VER=$DISTRIB_RELEASE
+                elif [ -f /etc/debian_version ]; then
+                    OS=Debian
+                    VER=$(cat /etc/debian_version)
+                else
+                    OS=$(uname -s)
+                    VER=$(uname -r)
+                fi
+                
+                log "Detected OS: $OS, Version: $VER"
+            }
 
-      # Install Docker based on OS
-      install_docker() {
-          log "Installing Docker..."
-          
-          case "$OS" in
-              *"Amazon Linux"*)
-                  if [[ "$VER" == "2023" ]]; then
-                      log "Installing Docker on Amazon Linux 2023..."
-                      yum update -y || error_exit "Failed to update system packages"
-                      yum install -y docker || error_exit "Failed to install Docker"
-                  elif [[ "$VER" == "2" ]]; then
-                      log "Installing Docker on Amazon Linux 2..."
-                      yum update -y || error_exit "Failed to update system packages"
-                      amazon-linux-extras install docker -y || error_exit "Failed to install Docker"
-                  else
-                      log "Installing Docker on Amazon Linux (generic)..."
-                      yum update -y || error_exit "Failed to update system packages"
-                      yum install -y docker || error_exit "Failed to install Docker"
-                  fi
-                  ;;
-              *"Ubuntu"*)
-                  log "Installing Docker on Ubuntu..."
-                  apt-get update || error_exit "Failed to update package index"
-                  apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release || error_exit "Failed to install prerequisites"
-                  
-                  # Add Docker's official GPG key
-                  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg || error_exit "Failed to add Docker GPG key"
-                  
-                  # Set up the stable repository
-                  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null || error_exit "Failed to add Docker repository"
-                  
-                  apt-get update || error_exit "Failed to update package index after adding Docker repo"
-                  apt-get install -y docker-ce docker-ce-cli containerd.io || error_exit "Failed to install Docker"
-                  ;;
-              *)
-                  log "Attempting generic Docker installation for: $OS"
-                  if command -v yum &> /dev/null; then
-                      yum update -y || error_exit "Failed to update system packages"
-                      yum install -y docker || error_exit "Failed to install Docker"
-                  elif command -v apt-get &> /dev/null; then
-                      apt-get update || error_exit "Failed to update package index"
-                      apt-get install -y docker.io || error_exit "Failed to install Docker"
-                  else
-                      error_exit "Unsupported operating system for Docker installation"
-                  fi
-                  ;;
-          esac
-          
-          # Start and enable Docker service
-          systemctl start docker || error_exit "Failed to start Docker service"
-          systemctl enable docker || error_exit "Failed to enable Docker service"
-          
-          # Add current user to docker group (if not root)
-          if [ "$EUID" -ne 0 ] && [ -n "$USER" ]; then
-              usermod -aG docker $USER || log "Warning: Failed to add user to docker group"
-          fi
-          
-          log "Docker installation completed successfully"
-          docker --version || error_exit "Docker installation verification failed"
-      }
+            # Install Docker based on OS
+            install_docker() {
+                log "Installing Docker..."
+                
+                case "$OS" in
+                    *"Amazon Linux"*)
+                        if [[ "$VER" == "2023" ]]; then
+                            log "Installing Docker on Amazon Linux 2023..."
+                            yum update -y || error_exit "Failed to update system packages"
+                            yum install -y docker || error_exit "Failed to install Docker"
+                        elif [[ "$VER" == "2" ]]; then
+                            log "Installing Docker on Amazon Linux 2..."
+                            yum update -y || error_exit "Failed to update system packages"
+                            amazon-linux-extras install docker -y || error_exit "Failed to install Docker"
+                        else
+                            log "Installing Docker on Amazon Linux (generic)..."
+                            yum update -y || error_exit "Failed to update system packages"
+                            yum install -y docker || error_exit "Failed to install Docker"
+                        fi
+                        ;;
+                    *"Ubuntu"*)
+                        log "Installing Docker on Ubuntu..."
+                        apt-get update || error_exit "Failed to update package index"
+                        apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release || error_exit "Failed to install prerequisites"
+                        
+                        # Add Docker's official GPG key
+                        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg || error_exit "Failed to add Docker GPG key"
+                        
+                        # Set up the stable repository
+                        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null || error_exit "Failed to add Docker repository"
+                        
+                        apt-get update || error_exit "Failed to update package index after adding Docker repo"
+                        apt-get install -y docker-ce docker-ce-cli containerd.io || error_exit "Failed to install Docker"
+                        ;;
+                    *)
+                        log "Attempting generic Docker installation for: $OS"
+                        if command -v yum &> /dev/null; then
+                            yum update -y || error_exit "Failed to update system packages"
+                            yum install -y docker || error_exit "Failed to install Docker"
+                        elif command -v apt-get &> /dev/null; then
+                            apt-get update || error_exit "Failed to update package index"
+                            apt-get install -y docker.io || error_exit "Failed to install Docker"
+                        else
+                            error_exit "Unsupported operating system for Docker installation"
+                        fi
+                        ;;
+                esac
+                
+                # Start and enable Docker service
+                systemctl start docker || error_exit "Failed to start Docker service"
+                systemctl enable docker || error_exit "Failed to enable Docker service"
+                
+                # Add current user to docker group (if not root)
+                if [ "$EUID" -ne 0 ] && [ -n "$USER" ]; then
+                    usermod -aG docker $USER || log "Warning: Failed to add user to docker group"
+                fi
+                
+                log "Docker installation completed successfully"
+                docker --version || error_exit "Docker installation verification failed"
+            }
 
-      # Install Docker Compose
-      install_docker_compose() {
-          log "Installing Docker Compose..."
-          
-          # Get the latest version of Docker Compose
-          DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
-          
-          if [ -z "$DOCKER_COMPOSE_VERSION" ]; then
-              log "Warning: Could not fetch latest Docker Compose version, using fallback version v2.21.0"
-              DOCKER_COMPOSE_VERSION="v2.21.0"
-          fi
-          
-          log "Installing Docker Compose version: $DOCKER_COMPOSE_VERSION"
-          
-          # Download and install Docker Compose
-          curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose || error_exit "Failed to download Docker Compose"
-          
-          chmod +x /usr/local/bin/docker-compose || error_exit "Failed to make Docker Compose executable"
-          
-          # Create symlink for easier access
-          ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose 2>/dev/null || log "Warning: Could not create symlink for docker-compose"
-          
-          log "Docker Compose installation completed successfully"
-          docker-compose --version || error_exit "Docker Compose installation verification failed"
-      }
+            # Install Docker Compose
+            install_docker_compose() {
+                log "Installing Docker Compose..."
+                
+                # Get the latest version of Docker Compose
+                DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
+                
+                if [ -z "$DOCKER_COMPOSE_VERSION" ]; then
+                    log "Warning: Could not fetch latest Docker Compose version, using fallback version v2.21.0"
+                    DOCKER_COMPOSE_VERSION="v2.21.0"
+                fi
+                
+                log "Installing Docker Compose version: $DOCKER_COMPOSE_VERSION"
+                
+                # Download and install Docker Compose
+                curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose || error_exit "Failed to download Docker Compose"
+                
+                chmod +x /usr/local/bin/docker-compose || error_exit "Failed to make Docker Compose executable"
+                
+                # Create symlink for easier access
+                ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose 2>/dev/null || log "Warning: Could not create symlink for docker-compose"
+                
+                log "Docker Compose installation completed successfully"
+                docker-compose --version || error_exit "Docker Compose installation verification failed"
+            }
 
-      # Uninstall Docker Compose
-      uninstall_docker_compose() {
-          log "Uninstalling Docker Compose..."
-          
-          # Stop any running docker-compose services
-          if command -v docker-compose &> /dev/null; then
-              log "Stopping any running Docker Compose services..."
-              # Find and stop compose services in common locations
-              find /opt /home -name "docker-compose.yml" -o -name "docker-compose.yaml" 2>/dev/null | while read compose_file; do
-                  compose_dir=$(dirname "$compose_file")
-                  log "Found compose file at: $compose_file"
-                  cd "$compose_dir" && docker-compose down 2>/dev/null || log "Warning: Could not stop compose services in $compose_dir"
-              done
-          fi
-          
-          # Remove Docker Compose binary
-          if [ -f /usr/local/bin/docker-compose ]; then
-              rm -f /usr/local/bin/docker-compose || log "Warning: Failed to remove /usr/local/bin/docker-compose"
-              log "Removed /usr/local/bin/docker-compose"
-          fi
-          
-          # Remove symlink
-          if [ -L /usr/bin/docker-compose ]; then
-              rm -f /usr/bin/docker-compose || log "Warning: Failed to remove /usr/bin/docker-compose symlink"
-              log "Removed /usr/bin/docker-compose symlink"
-          fi
-          
-          log "Docker Compose uninstallation completed"
-      }
+            # Uninstall Docker Compose
+            uninstall_docker_compose() {
+                log "Uninstalling Docker Compose..."
+                
+                # Stop any running docker-compose services
+                if command -v docker-compose &> /dev/null; then
+                    log "Stopping any running Docker Compose services..."
+                    # Find and stop compose services in common locations
+                    find /opt /home -name "docker-compose.yml" -o -name "docker-compose.yaml" 2>/dev/null | while read compose_file; do
+                        compose_dir=$(dirname "$compose_file")
+                        log "Found compose file at: $compose_file"
+                        cd "$compose_dir" && docker-compose down 2>/dev/null || log "Warning: Could not stop compose services in $compose_dir"
+                    done
+                fi
+                
+                # Remove Docker Compose binary
+                if [ -f /usr/local/bin/docker-compose ]; then
+                    rm -f /usr/local/bin/docker-compose || log "Warning: Failed to remove /usr/local/bin/docker-compose"
+                    log "Removed /usr/local/bin/docker-compose"
+                fi
+                
+                # Remove symlink
+                if [ -L /usr/bin/docker-compose ]; then
+                    rm -f /usr/bin/docker-compose || log "Warning: Failed to remove /usr/bin/docker-compose symlink"
+                    log "Removed /usr/bin/docker-compose symlink"
+                fi
+                
+                log "Docker Compose uninstallation completed"
+            }
 
-      # Uninstall Docker
-      uninstall_docker() {
-          log "Uninstalling Docker..."
-          
-          REMOVE_DATA="{{ RemoveDockerData }}"
-          
-          # Stop all running containers
-          if command -v docker &> /dev/null; then
-              log "Stopping all running containers..."
-              docker stop $(docker ps -aq) 2>/dev/null || log "No running containers to stop"
-              
-              if [[ "$REMOVE_DATA" == "true" ]]; then
-                  log "Removing all containers, images, volumes, and networks..."
-                  docker system prune -af --volumes 2>/dev/null || log "Warning: Failed to prune Docker system"
-                  docker volume prune -f 2>/dev/null || log "Warning: Failed to prune Docker volumes"
-                  docker network prune -f 2>/dev/null || log "Warning: Failed to prune Docker networks"
-              else
-                  log "Preserving Docker data (containers, images, volumes)"
-              fi
-          fi
-          
-          # Stop and disable Docker service
-          log "Stopping Docker service..."
-          systemctl stop docker 2>/dev/null || log "Warning: Failed to stop Docker service"
-          systemctl disable docker 2>/dev/null || log "Warning: Failed to disable Docker service"
-          
-          # Remove Docker packages based on OS
-          case "$OS" in
-              *"Amazon Linux"*)
-                  if [[ "$VER" == "2" ]]; then
-                      log "Removing Docker from Amazon Linux 2..."
-                      amazon-linux-extras disable docker 2>/dev/null || log "Warning: Failed to disable docker extras"
-                      yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine 2>/dev/null || log "Warning: Some Docker packages could not be removed"
-                  else
-                      log "Removing Docker from Amazon Linux..."
-                      yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine 2>/dev/null || log "Warning: Some Docker packages could not be removed"
-                  fi
-                  ;;
-              *"Ubuntu"*)
-                  log "Removing Docker from Ubuntu..."
-                  apt-get remove -y docker-ce docker-ce-cli containerd.io docker-compose-plugin 2>/dev/null || log "Warning: Some Docker packages could not be removed"
-                  apt-get autoremove -y 2>/dev/null || log "Warning: Failed to autoremove packages"
-                  
-                  # Remove Docker repository
-                  rm -f /etc/apt/sources.list.d/docker.list 2>/dev/null || log "Warning: Could not remove Docker repository file"
-                  rm -f /usr/share/keyrings/docker-archive-keyring.gpg 2>/dev/null || log "Warning: Could not remove Docker GPG key"
-                  
-                  apt-get update 2>/dev/null || log "Warning: Failed to update package index"
-                  ;;
-              *)
-                  log "Attempting generic Docker removal for: $OS"
-                  if command -v yum &> /dev/null; then
-                      yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine docker.io 2>/dev/null || log "Warning: Some Docker packages could not be removed"
-                  elif command -v apt-get &> /dev/null; then
-                      apt-get remove -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io 2>/dev/null || log "Warning: Some Docker packages could not be removed"
-                      apt-get autoremove -y 2>/dev/null || log "Warning: Failed to autoremove packages"
-                  fi
-                  ;;
-          esac
-          
-          # Remove Docker files and directories
-          if [[ "$REMOVE_DATA" == "true" ]]; then
-              log "Removing Docker data directories..."
-              rm -rf /var/lib/docker 2>/dev/null || log "Warning: Failed to remove /var/lib/docker"
-              rm -rf /var/lib/containerd 2>/dev/null || log "Warning: Failed to remove /var/lib/containerd"
-          else
-              log "Preserving Docker data directories"
-          fi
-          
-          # Remove Docker configuration
-          rm -rf /etc/docker 2>/dev/null || log "Warning: Failed to remove /etc/docker"
-          
-          # Remove user from docker group
-          if [ -n "$USER" ] && id -nG "$USER" 2>/dev/null | grep -qw docker; then
-              gpasswd -d "$USER" docker 2>/dev/null || log "Warning: Failed to remove user from docker group"
-              log "Removed user from docker group"
-          fi
-          
-          log "Docker uninstallation completed"
-      }
+            # Uninstall Docker
+            uninstall_docker() {
+                log "Uninstalling Docker..."
+                
+                REMOVE_DATA="{{ RemoveDockerData }}"
+                
+                # Stop all running containers
+                if command -v docker &> /dev/null; then
+                    log "Stopping all running containers..."
+                    docker stop $(docker ps -aq) 2>/dev/null || log "No running containers to stop"
+                    
+                    if [[ "$REMOVE_DATA" == "true" ]]; then
+                        log "Removing all containers, images, volumes, and networks..."
+                        docker system prune -af --volumes 2>/dev/null || log "Warning: Failed to prune Docker system"
+                        docker volume prune -f 2>/dev/null || log "Warning: Failed to prune Docker volumes"
+                        docker network prune -f 2>/dev/null || log "Warning: Failed to prune Docker networks"
+                    else
+                        log "Preserving Docker data (containers, images, volumes)"
+                    fi
+                fi
+                
+                # Stop and disable Docker service
+                log "Stopping Docker service..."
+                systemctl stop docker 2>/dev/null || log "Warning: Failed to stop Docker service"
+                systemctl disable docker 2>/dev/null || log "Warning: Failed to disable Docker service"
+                
+                # Remove Docker packages based on OS
+                case "$OS" in
+                    *"Amazon Linux"*)
+                        if [[ "$VER" == "2" ]]; then
+                            log "Removing Docker from Amazon Linux 2..."
+                            amazon-linux-extras disable docker 2>/dev/null || log "Warning: Failed to disable docker extras"
+                            yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine 2>/dev/null || log "Warning: Some Docker packages could not be removed"
+                        else
+                            log "Removing Docker from Amazon Linux..."
+                            yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine 2>/dev/null || log "Warning: Some Docker packages could not be removed"
+                        fi
+                        ;;
+                    *"Ubuntu"*)
+                        log "Removing Docker from Ubuntu..."
+                        apt-get remove -y docker-ce docker-ce-cli containerd.io docker-compose-plugin 2>/dev/null || log "Warning: Some Docker packages could not be removed"
+                        apt-get autoremove -y 2>/dev/null || log "Warning: Failed to autoremove packages"
+                        
+                        # Remove Docker repository
+                        rm -f /etc/apt/sources.list.d/docker.list 2>/dev/null || log "Warning: Could not remove Docker repository file"
+                        rm -f /usr/share/keyrings/docker-archive-keyring.gpg 2>/dev/null || log "Warning: Could not remove Docker GPG key"
+                        
+                        apt-get update 2>/dev/null || log "Warning: Failed to update package index"
+                        ;;
+                    *)
+                        log "Attempting generic Docker removal for: $OS"
+                        if command -v yum &> /dev/null; then
+                            yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine docker.io 2>/dev/null || log "Warning: Some Docker packages could not be removed"
+                        elif command -v apt-get &> /dev/null; then
+                            apt-get remove -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io 2>/dev/null || log "Warning: Some Docker packages could not be removed"
+                            apt-get autoremove -y 2>/dev/null || log "Warning: Failed to autoremove packages"
+                        fi
+                        ;;
+                esac
+                
+                # Remove Docker files and directories
+                if [[ "$REMOVE_DATA" == "true" ]]; then
+                    log "Removing Docker data directories..."
+                    rm -rf /var/lib/docker 2>/dev/null || log "Warning: Failed to remove /var/lib/docker"
+                    rm -rf /var/lib/containerd 2>/dev/null || log "Warning: Failed to remove /var/lib/containerd"
+                else
+                    log "Preserving Docker data directories"
+                fi
+                
+                # Remove Docker configuration
+                rm -rf /etc/docker 2>/dev/null || log "Warning: Failed to remove /etc/docker"
+                
+                # Remove user from docker group
+                if [ -n "$USER" ] && id -nG "$USER" 2>/dev/null | grep -qw docker; then
+                    gpasswd -d "$USER" docker 2>/dev/null || log "Warning: Failed to remove user from docker group"
+                    log "Removed user from docker group"
+                fi
+                
+                log "Docker uninstallation completed"
+            }
 
-      # Detect OS
-      detect_os
+            # Detect OS
+            detect_os
 
-      # Execute based on operation
-      if [[ "$OPERATION" == "install" ]]; then
-          log "Performing installation operations..."
-          
-          # Check if Docker installation is requested
-          INSTALL_DOCKER="{{ InstallDocker }}"
-          INSTALL_DOCKER_COMPOSE="{{ InstallDockerCompose }}"
+            # Execute based on operation
+            if [[ "$OPERATION" == "install" ]]; then
+                log "Performing installation operations..."
+                
+                # Check if Docker installation is requested
+                INSTALL_DOCKER="{{ InstallDocker }}"
+                INSTALL_DOCKER_COMPOSE="{{ InstallDockerCompose }}"
 
-          if [[ "$INSTALL_DOCKER" == "true" ]]; then
-              install_docker
-          else
-              log "Skipping Docker installation (InstallDocker=false)"
-          fi
+                if [[ "$INSTALL_DOCKER" == "true" ]]; then
+                    install_docker
+                else
+                    log "Skipping Docker installation (InstallDocker=false)"
+                fi
 
-          if [[ "$INSTALL_DOCKER_COMPOSE" == "true" ]]; then
-              install_docker_compose
-          else
-              log "Skipping Docker Compose installation (InstallDockerCompose=false)"
-          fi
+                if [[ "$INSTALL_DOCKER_COMPOSE" == "true" ]]; then
+                    install_docker_compose
+                else
+                    log "Skipping Docker Compose installation (InstallDockerCompose=false)"
+                fi
 
-          log "Docker and Docker Compose installation completed successfully!"
-          
-      elif [[ "$OPERATION" == "uninstall" ]]; then
-          log "Performing uninstall operations..."
-          
-          # Check if Docker uninstall is requested
-          UNINSTALL_DOCKER="{{ UninstallDocker }}"
-          UNINSTALL_DOCKER_COMPOSE="{{ UninstallDockerCompose }}"
+                log "Docker and Docker Compose installation completed successfully!"
+                
+            elif [[ "$OPERATION" == "uninstall" ]]; then
+                log "Performing uninstall operations..."
+                
+                # Check if Docker uninstall is requested
+                UNINSTALL_DOCKER="{{ UninstallDocker }}"
+                UNINSTALL_DOCKER_COMPOSE="{{ UninstallDockerCompose }}"
 
-          # Uninstall Docker Compose first (if requested)
-          if [[ "$UNINSTALL_DOCKER_COMPOSE" == "true" ]]; then
-              uninstall_docker_compose
-          else
-              log "Skipping Docker Compose uninstall (UninstallDockerCompose=false)"
-          fi
+                # Uninstall Docker Compose first (if requested)
+                if [[ "$UNINSTALL_DOCKER_COMPOSE" == "true" ]]; then
+                    uninstall_docker_compose
+                else
+                    log "Skipping Docker Compose uninstall (UninstallDockerCompose=false)"
+                fi
 
-          # Uninstall Docker (if requested)
-          if [[ "$UNINSTALL_DOCKER" == "true" ]]; then
-              uninstall_docker
-          else
-              log "Skipping Docker uninstall (UninstallDocker=false)"
-          fi
+                # Uninstall Docker (if requested)
+                if [[ "$UNINSTALL_DOCKER" == "true" ]]; then
+                    uninstall_docker
+                else
+                    log "Skipping Docker uninstall (UninstallDocker=false)"
+                fi
 
-          log "Docker and Docker Compose uninstallation completed successfully!"
-          
-      else
-          error_exit "Invalid operation: $OPERATION. Must be 'install' or 'uninstall'"
-      fi
+                log "Docker and Docker Compose uninstallation completed successfully!"
+                
+            else
+                error_exit "Invalid operation: $OPERATION. Must be 'install' or 'uninstall'"
+            fi
 
-      log "Operation completed successfully!"
-      log "=========================================="
-      log "SYSTEM STATUS SUMMARY:"
-      log "=========================================="
-      log "Operation Performed: $OPERATION"
-      log "Operating System: $OS $VER"
+            log "Operation completed successfully!"
+            log "=========================================="
+            log "SYSTEM STATUS SUMMARY:"
+            log "=========================================="
+            log "Operation Performed: $OPERATION"
+            log "Operating System: $OS $VER"
 
-      if command -v docker &> /dev/null; then
-          log "Docker Status: INSTALLED"
-          log "Docker Version: $(docker --version)"
-          log "Docker Service Status: $(systemctl is-active docker 2>/dev/null || echo 'unknown')"
-      else
-          log "Docker Status: NOT INSTALLED"
-      fi
+            if command -v docker &> /dev/null; then
+                log "Docker Status: INSTALLED"
+                log "Docker Version: $(docker --version)"
+                log "Docker Service Status: $(systemctl is-active docker 2>/dev/null || echo 'unknown')"
+            else
+                log "Docker Status: NOT INSTALLED"
+            fi
 
-      if command -v docker-compose &> /dev/null; then
-          log "Docker Compose Status: INSTALLED"
-          log "Docker Compose Version: $(docker-compose --version)"
-      else
-          log "Docker Compose Status: NOT INSTALLED"
-      fi
+            if command -v docker-compose &> /dev/null; then
+                log "Docker Compose Status: INSTALLED"
+                log "Docker Compose Version: $(docker-compose --version)"
+            else
+                log "Docker Compose Status: NOT INSTALLED"
+            fi
 
-      log "=========================================="
+            log "=========================================="
 
-      if command -v docker &> /dev/null; then
-          log "Available Docker Commands:"
-          log "- docker ps              (list running containers)"
-          log "- docker images          (list Docker images)"
-          log "- docker system df       (show disk usage)"
-          log "- docker system prune    (cleanup unused data)"
-          if command -v docker-compose &> /dev/null; then
-              log "- docker-compose up      (start services with compose)"
-              log "- docker-compose down    (stop services with compose)"
-              log "- docker-compose ps      (list compose services)"
-          fi
-          log "=========================================="
-      elif [[ "$OPERATION" == "install" ]]; then
-          log "Docker is not available. Installation may have failed."
-          log "Check the logs above for any error messages."
-          log "=========================================="
-      else
-          log "Docker has been successfully removed from the system."
-          log "=========================================="
-      fi
-  precondition:
-    StringEquals:
-    - platformType
-    - Linux
+            if command -v docker &> /dev/null; then
+                log "Available Docker Commands:"
+                log "- docker ps              (list running containers)"
+                log "- docker images          (list Docker images)"
+                log "- docker system df       (show disk usage)"
+                log "- docker system prune    (cleanup unused data)"
+                if command -v docker-compose &> /dev/null; then
+                    log "- docker-compose up      (start services with compose)"
+                    log "- docker-compose down    (stop services with compose)"
+                    log "- docker-compose ps      (list compose services)"
+                fi
+                log "=========================================="
+            elif [[ "$OPERATION" == "install" ]]; then
+                log "Docker is not available. Installation may have failed."
+                log "Check the logs above for any error messages."
+                log "=========================================="
+            else
+                log "Docker has been successfully removed from the system."
+                log "=========================================="
+            fi
+    precondition:
+        StringEquals:
+          - platformType
+          - Linux
