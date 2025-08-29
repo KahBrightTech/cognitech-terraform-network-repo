@@ -167,7 +167,40 @@ inputs = {
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.alb_base,
-            []
+            [
+              {
+                key           = "egress-8080-app-sg"
+                target_sg_key = "app"
+                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8080"
+                from_port     = 8080
+                to_port       = 8080
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "egress-8081-app-sg"
+                target_sg_key = "app"
+                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8081"
+                from_port     = 8081
+                to_port       = 8081
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "egress-8082-app-sg"
+                target_sg_key = "app"
+                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8082"
+                from_port     = 8082
+                to_port       = 8082
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "egress-8083-app-sg"
+                target_sg_key = "app"
+                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8083"
+                from_port     = 8083
+                to_port       = 8083
+                ip_protocol   = "tcp"
+              }
+            ]
           )
         },
         {
@@ -201,6 +234,38 @@ inputs = {
                 from_port   = 3389
                 to_port     = 3389
                 ip_protocol = "tcp"
+              },
+              {
+                key           = "ingress-8080-alb-sg"
+                source_sg_key = "alb"
+                description   = "BASE - Inbound traffic from ALB SG to Internet on tcp port 8080"
+                from_port     = 8080
+                to_port       = 8080
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "ingress-8081-alb-sg"
+                source_sg_key = "alb"
+                description   = "BASE - Inbound traffic from ALB SG to Internet on tcp port 8081"
+                from_port     = 8081
+                to_port       = 8081
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "ingress-8082-alb-sg"
+                source_sg_key = "alb"
+                description   = "BASE - Inbound traffic from ALB SG to Internet on tcp port 8082"
+                from_port     = 8082
+                to_port       = 8082
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "ingress-8083-alb-sg"
+                source_sg_key = "alb"
+                description   = "BASE - Inbound traffic from ALB SG to Internet on tcp port 8083"
+                from_port     = 8083
+                to_port       = 8083
+                ip_protocol   = "tcp"
               }
             ]
           )
@@ -358,7 +423,7 @@ inputs = {
   key_pairs = [
     {
       name               = "${local.vpc_name}-key-pair"
-      secret_name        = "${local.vpc_name}-ec2-private-key"
+      secret_name        = "${local.vpc_name}-ec2-private-keys"
       secret_description = "Private key for ${local.vpc_name} VPC"
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
@@ -374,7 +439,7 @@ inputs = {
   ]
   secrets = [
     {
-      name        = "ansible-credentials"
+      name        = "ansible-credential"
       description = "Ansible tower credentials"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
@@ -383,7 +448,7 @@ inputs = {
       }
     },
     {
-      name        = "User-credentials"
+      name        = "User-credential"
       description = "User credentials for ${local.aws_account_name} environment"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
@@ -394,6 +459,7 @@ inputs = {
       }
     }
   ]
+
   ssm_parameters = [
     {
       name        = "/Standard/ansible/username"
@@ -417,7 +483,8 @@ inputs = {
       name        = "/Standard/account/UserCredentials"
       description = "Ansible Tower User Credentials"
       type        = "String"
-      value       = "${local.aws_account_name}-${local.region_prefix}-User-credentials"
+      overwrite   = true
+      value       = "${local.aws_account_name}-${local.region_prefix}-User-credential"
     }
   ]
   backups = [
@@ -503,29 +570,29 @@ inputs = {
       schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
     },
     {
-      name               = "iis-install"
-      content            = file("${include.cloud.locals.repo.root}/documents/IISInstall.yaml")
+      name               = "Docker-Install"
+      content            = file("${include.cloud.locals.repo.root}/documents/DockerInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true
       targets = {
-        key    = "tag:IISInstall"
+        key    = "tag:DockerInstall"
         values = ["True"]
       }
-      schedule_expression = "cron(0 4 ? * SUN *)" # Every Sunday at 4 AM
+      schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
     }
   ]
   load_balancers = [
     {
-      key             = "acct"
-      name            = "acct"
+      key             = "docker"
+      name            = "docker"
       vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "application"
       security_groups = ["alb"]
       subnets = [
         include.env.locals.subnet_prefix.primary
       ]
-      enable_deletion_protection = true
+      enable_deletion_protection = false
       enable_access_logs         = true
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
