@@ -21,6 +21,7 @@ parameters:
     type: String
     description: "Ansible Tower archive filename"
     default: "ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
+
 mainSteps:
 - action: aws:runShellScript
   name: InstallAndConfigureAnsibleTower
@@ -29,7 +30,7 @@ mainSteps:
     timeoutSeconds: 7200
     runCommand:
     - |
-      #!/bin/bash -xe
+      #!/bin/bash -e
       # Logging and error handling functions
       log() {
           echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
@@ -40,200 +41,87 @@ mainSteps:
           exit 1
       }
 
-      # Function to wait for package manager to be available
-      wait_for_package_manager() {
-          local max_attempts=30
-          local attempt=1
-          local wait_time=10
-          
-          log "Checking package manager availability..."
-          
-          while [ $attempt -le $max_attempts ]; do
-              log "Attempt $attempt/$max_attempts: Checking package manager locks..."
-              
-              # Check for yum/dnf locks
-              if command -v yum &> /dev/null; then
-                  if ! pgrep -x "yum" > /dev/null && ! pgrep -x "dnf" > /dev/null; then
-                      if yum check-update &> /dev/null || [ $? -eq 100 ]; then
-                          log "YUM package manager is available"
-                          return 0
-                      fi
-                  fi
-              # Check for apt locks
-              elif command -v apt-get &> /dev/null; then
-                  if ! pgrep -x "apt" > /dev/null && ! pgrep -x "apt-get" > /dev/null && ! pgrep -x "dpkg" > /dev/null; then
-                      if ! fuser /var/lib/dpkg/lock-frontend &> /dev/null && ! fuser /var/lib/apt/lists/lock &> /dev/null; then
-                          log "APT package manager is available"
-                          return 0
-                      fi
-                  fi
-              else
-                  log "No recognized package manager found (yum/apt), proceeding..."
-                  return 0
-              fi
-              
-              log "Package manager is busy or locked. Waiting $${wait_time} seconds before retry..."
-              sleep $wait_time
-              attempt=$((attempt + 1))
-          done
-          
-          log "WARNING: Package manager may still be busy after $max_attempts attempts. Proceeding anyway..."
-          return 0
-      }
-
       log "Starting Ansible Tower installation..."
 
-      # Wait for package manager to be available
-      wait_for_package_manager
-
-      # Use SSM-resolved parameters directly
+      # Use SSM-resolved parameters (do not log them)
       ANSIBLE_TOWER_USERNAME="{{ AnsibleTowerUsername }}"
       ANSIBLE_TOWER_PASSWORD="{{ AnsibleTowerPassword }}"
 
       log "Configuration:"
-      log "  Username: $ANSIBLE_TOWER_USERNAME"
       log "  S3 Bucket: {{ AnsibleS3BucketName }}"
       log "  S3 Prefix: {{ AnsibleS3BucketPrefix }}"
       log "  Archive Name: {{ AnsibleTowerArchiveName }}"
-      log "  Full S3 URI: s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}"
 
       export PATH=/usr/local/bin:$PATH
 
+      # Install AWS CLI if missing
       if ! command -v aws &> /dev/null; then
         log "Installing AWS CLI..."
         yum install unzip -y || error_exit "Failed to install unzip"
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" || error_exit "Failed to download AWS CLI"
+        curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" || error_exit "Failed to download AWS CLI"
         rm -rf aws
         unzip -o awscliv2.zip || error_exit "Failed to extract AWS CLI"
         ./aws/install || error_exit "Failed to install AWS CLI"
-        /usr/local/bin/aws --version || error_exit "AWS CLI installation verification failed"
-        export PATH=/usr/local/bin:$PATH
-        if ! command -v aws &> /dev/null; then
-          error_exit "AWS CLI installation failed - command not found in PATH"
-        fi
         log "AWS CLI installed successfully"
-      else
-        log "AWS CLI already installed. Version: $(aws --version)"
       fi
 
-      if ! aws sts get-caller-identity &> /dev/null; then
-        log "WARNING: AWS credentials not configured properly"
-        log "Ensure the EC2 instance has an IAM role with S3 access permissions"
-      fi
-
-      # Validate S3 file exists before proceeding
-      log "Validating S3 file exists..."
+      # Validate S3 file exists
       S3_URI="s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}"
-      if ! aws s3 ls "$S3_URI" &> /dev/null; then
-        log "ERROR: File does not exist at $S3_URI"
-        log "Available files in s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/:"
-        aws s3 ls "s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/" || log "Failed to list bucket contents"
-        error_exit "Ansible Tower archive not found in S3"
-      fi
-      log "S3 file validation successful"
+      log "Validating S3 file exists at $S3_URI..."
+      aws s3 ls "$S3_URI" &> /dev/null || error_exit "Ansible Tower archive not found in S3"
 
-      log "Attempting to register with Red Hat Subscription Manager..."
+      log "Registering with Red Hat Subscription Manager..."
+      set +x   # disable debug logging to prevent password leakage
       if subscription-manager register --username "$ANSIBLE_TOWER_USERNAME" --password "$ANSIBLE_TOWER_PASSWORD"; then
         log "Red Hat registration successful."
       else
         log "Instance already registered or failed to register. Continuing..."
       fi
+      set -x   # re-enable debug logging
 
       log "Updating system packages..."
-      # Ensure package manager is available before updating
-      wait_for_package_manager
+      yum update -y --skip-broken || log "WARNING: Package update failed but continuing..."
 
-      yum update -y --skip-broken || {
-        log "WARNING: yum update failed, trying alternative approach..."
-        yum clean all
-        yum makecache
-        yum update -y --skip-broken || log "WARNING: Package update failed but continuing with installation..."
-      }
-
-      log "Setting hostname..."
-      hostnamectl set-hostname ansible || error_exit "Failed to set hostname"
-      echo "127.0.0.1 ansible.local localhost.localdomain" >> /etc/hosts
-
-      log "Downloading Ansible Tower installer from S3..."
-      log "Source: s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}"
-      log "Destination: /root/{{ AnsibleTowerArchiveName }}"
-
+      log "Downloading Ansible Tower installer..."
       mkdir -p /root
-      if aws s3 cp "s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}" "/root/" --no-progress; then
-        log "Download completed successfully"
-      else
-        error_exit "Failed to download Ansible Tower archive from S3"
-      fi
-
-      if [ ! -f "/root/{{ AnsibleTowerArchiveName }}" ]; then
-        error_exit "Ansible Tower archive not found after download"
-      fi
+      aws s3 cp "$S3_URI" "/root/" --no-progress || error_exit "Failed to download archive"
 
       FILE_SIZE=$(stat -c%s "/root/{{ AnsibleTowerArchiveName }}" 2>/dev/null || echo "unknown")
       log "Downloaded file size: $FILE_SIZE bytes"
 
       log "Extracting Ansible Tower archive..."
-      if tar -xzf "/root/{{ AnsibleTowerArchiveName }}" -C /root/; then
-        log "Archive extracted successfully"
-      else
-        error_exit "Failed to extract Ansible Tower archive"
-      fi
+      tar -xzf "/root/{{ AnsibleTowerArchiveName }}" -C /root/ || error_exit "Failed to extract archive"
 
-      log "Looking for extracted Ansible folder..."
       EXTRACTED_FOLDER=$(find /root -maxdepth 1 -type d -name "*ansible*" | grep -v "^/root$" | head -1)
-
-      if [ -z "$EXTRACTED_FOLDER" ]; then
-        log "Available directories in /root:"
-        ls -la /root/
-        error_exit "Could not find extracted Ansible Tower folder!"
-      fi
+      [ -z "$EXTRACTED_FOLDER" ] && error_exit "Could not find extracted Ansible Tower folder!"
 
       log "Found extracted folder: $EXTRACTED_FOLDER"
 
-      if [ ! -f "$EXTRACTED_FOLDER/inventory" ]; then
-        log "Contents of $EXTRACTED_FOLDER:"
-        ls -la "$EXTRACTED_FOLDER/"
-        error_exit "Inventory file not found!"
-      fi
-
+      [ ! -f "$EXTRACTED_FOLDER/inventory" ] && error_exit "Inventory file not found!"
       cp "$EXTRACTED_FOLDER/inventory" "$EXTRACTED_FOLDER/inventory.backup"
-      log "Created backup of inventory file"
-      log "Original inventory file content:"
-      cat "$EXTRACTED_FOLDER/inventory"
+      log "Backup of inventory file created"
 
       log "Configuring inventory file..."
+      set +x  # prevent logging secrets
       sed -i "s|admin_password=.*|admin_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
       sed -i "s|pg_password=.*|pg_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
       sed -i "s|register_username=.*|register_username='$ANSIBLE_TOWER_USERNAME'|" "$EXTRACTED_FOLDER/inventory"
       sed -i "s|register_password=.*|register_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
+      set -x
 
       echo "" >> "$EXTRACTED_FOLDER/inventory"
       echo "[automationcontroller]" >> "$EXTRACTED_FOLDER/inventory"
       echo "ansible ansible_connection=local" >> "$EXTRACTED_FOLDER/inventory"
 
-      log "Modified inventory file content:"
-      cat "$EXTRACTED_FOLDER/inventory"
-
-      if [ ! -f "$EXTRACTED_FOLDER/setup.sh" ]; then
-        log "Contents of $EXTRACTED_FOLDER:"
-        ls -la "$EXTRACTED_FOLDER/"
-        error_exit "Ansible Tower setup script not found!"
-      fi
-
+      log "Running Ansible Tower setup..."
       chmod +x "$EXTRACTED_FOLDER/setup.sh"
-      log "Starting Ansible Tower setup..."
-      cd "$EXTRACTED_FOLDER" || error_exit "Failed to change to extracted folder"
+      cd "$EXTRACTED_FOLDER"
+      bash setup.sh -e required_ram=2048 || error_exit "Ansible Tower setup failed!"
 
-      if bash setup.sh -e required_ram=2048; then
-        log "Ansible Tower setup completed successfully!"
-      else
-        error_exit "Ansible Tower setup failed!"
-      fi
-
-      log "Installation script completed!"
+      log "Installation completed successfully!"
       log "You can now access Ansible Tower at: https://$(hostname)/api/"
-      log "Username: admin"
-      log "Password: $ANSIBLE_TOWER_PASSWORD"
+      log "Default admin username: admin"
+      log "Admin password is stored securely and not logged."
   precondition:
     StringEquals:
     - platformType
