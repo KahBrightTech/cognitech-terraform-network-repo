@@ -115,3 +115,4 @@ output "ssm_documents" {
   description = "Output for SSM Documents"
   value       = module.ssm_documents
 }
+

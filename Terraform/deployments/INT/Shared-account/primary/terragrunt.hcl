@@ -457,6 +457,15 @@ inputs = {
         username2 = "${get_env("TF_VAR_USER_USERNAME2")}"
         password2 = "${get_env("TF_VAR_USER_PASSWORD2")}"
       }
+    },
+        {
+      name        = "docker-credential"
+      description = "Docker credentials for ${local.aws_account_name} environment"
+      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
+        password = "${get_env("TF_VAR_DOCKER_PASSWORD")}"
+      }
     }
   ]
 
