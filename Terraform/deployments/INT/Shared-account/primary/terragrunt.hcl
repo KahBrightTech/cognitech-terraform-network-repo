@@ -439,7 +439,7 @@ inputs = {
   ]
   secrets = [
     {
-      name        = "ansible-credential"
+      name        = "ansible-credentials"
       description = "Ansible tower credentials"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
@@ -448,7 +448,7 @@ inputs = {
       }
     },
     {
-      name        = "User-credential"
+      name        = "User-credentials"
       description = "User credentials for ${local.aws_account_name} environment"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
@@ -459,7 +459,7 @@ inputs = {
       }
     },
         {
-      name        = "docker-credential"
+      name        = "docker-credentials"
       description = "Docker credentials for ${local.aws_account_name} environment"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {

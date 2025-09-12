@@ -439,7 +439,7 @@ inputs = {
   ]
   secrets = [
     {
-      name        = "ansible-credential"
+      name        = "ansible-credentials"
       description = "Ansible tower credentials"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
@@ -448,7 +448,7 @@ inputs = {
       }
     },
     {
-      name        = "User-credential"
+      name        = "User-credentials"
       description = "User credentials for ${local.aws_account_name} environment"
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
@@ -456,6 +456,15 @@ inputs = {
         password1 = "${get_env("TF_VAR_USER_PASSWORD1")}"
         username2 = "${get_env("TF_VAR_USER_USERNAME2")}"
         password2 = "${get_env("TF_VAR_USER_PASSWORD2")}"
+      }
+    },
+        {
+      name        = "docker-credentials"
+      description = "Docker credentials for ${local.aws_account_name} environment"
+      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
+        password = "${get_env("TF_VAR_DOCKER_PASSWORD")}"
       }
     }
   ]
@@ -583,49 +592,49 @@ inputs = {
     }
   ]
   load_balancers = [
-    {
-      key             = "docker"
-      name            = "docker"
-      vpc_name_abr    = "${local.vpc_name_abr}"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = false
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-      vpc_name                   = local.vpc_name
-      create_default_listener    = true
-    },
-    {
-      key             = "etl"
-      name            = "etl"
-      vpc_name_abr    = "${local.vpc_name_abr}"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = true
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-      vpc_name                   = local.vpc_name
-    },
-    {
-      key             = "ssrs"
-      name            = "ssrs"
-      vpc_name_abr    = "${local.vpc_name_abr}"
-      type            = "network"
-      security_groups = ["nlb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = true
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-      vpc_name                   = local.vpc_name
-    }
+    # {
+    #   key             = "docker"
+    #   name            = "docker"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = false
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    #   create_default_listener    = true
+    # }
+    # {
+    #   key             = "etl"
+    #   name            = "etl"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    # },
+    # {
+    #   key             = "ssrs"
+    #   name            = "ssrs"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "network"
+    #   security_groups = ["nlb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = true
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   vpc_name                   = local.vpc_name
+    # }
   ]
   alb_listeners = [
     # {
