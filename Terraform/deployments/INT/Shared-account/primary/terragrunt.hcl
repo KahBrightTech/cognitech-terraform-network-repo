@@ -423,7 +423,7 @@ inputs = {
   key_pairs = [
     {
       name               = "${local.vpc_name}-key-pair"
-      secret_name        = "${local.vpc_name}-ec2-private-keys"
+      secret_name        = "${local.vpc_name}-ec2-private-key"
       secret_description = "Private key for ${local.vpc_name} VPC"
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
@@ -495,7 +495,7 @@ inputs = {
       description = "Ansible Tower User Credentials"
       type        = "String"
       overwrite   = true
-      value       = "${local.aws_account_name}-${local.region_prefix}-User-credential"
+      value       = "${local.aws_account_name}-${local.region_prefix}-User-Credentials"
     }
   ]
   backups = [
