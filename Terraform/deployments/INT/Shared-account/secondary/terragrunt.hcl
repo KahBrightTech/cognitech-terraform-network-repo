@@ -439,8 +439,9 @@ inputs = {
   ]
   secrets = [
     {
-      name        = "ansible-credentials"
+      name        = "Ansible-Credentials"
       description = "Ansible tower credentials"
+      recovery_window_in_days = 0
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
@@ -448,8 +449,9 @@ inputs = {
       }
     },
     {
-      name        = "User-credentials"
+      name        = "User-Credentials"
       description = "User credentials for ${local.aws_account_name} environment"
+      recovery_window_in_days = 0
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
@@ -459,8 +461,9 @@ inputs = {
       }
     },
         {
-      name        = "docker-credentials"
+      name        = "Docker-Credentials"
       description = "Docker credentials for ${local.aws_account_name} environment"
+      recovery_window_in_days = 0
       policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
@@ -468,7 +471,6 @@ inputs = {
       }
     }
   ]
-
   ssm_parameters = [
     {
       name        = "/Standard/ansible/username"
