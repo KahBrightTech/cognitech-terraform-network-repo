@@ -439,20 +439,20 @@ inputs = {
   ]
   secrets = [
     {
-      name        = "Ansible-Credentials"
-      description = "Ansible tower credentials"
+      name                    = "Ansible-Credentials"
+      description             = "Ansible tower credentials"
       recovery_window_in_days = 0
-      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
         password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
       }
     },
     {
-      name        = "User-Credentials"
-      description = "User credentials for ${local.aws_account_name} environment"
+      name                    = "User-Credentials"
+      description             = "User credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 0
-      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
         password1 = "${get_env("TF_VAR_USER_PASSWORD1")}"
@@ -461,10 +461,10 @@ inputs = {
       }
     },
     {
-      name        = "Docker-Credentials"
-      description = "Docker credentials for ${local.aws_account_name} environment"
+      name                    = "Docker-Credentials"
+      description             = "Docker credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 0
-      policy      = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
         password = "${get_env("TF_VAR_DOCKER_PASSWORD")}"
@@ -594,21 +594,21 @@ inputs = {
     }
   ]
   load_balancers = [
-    # {
-    #   key             = "app"
-    #   name            = "app"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = false
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    #   create_default_listener    = true
-    # },
+    {
+      key             = "app"
+      name            = "app"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = false
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+      create_default_listener    = true
+    },
     # {
     #   key             = "etl"
     #   name            = "etl"
