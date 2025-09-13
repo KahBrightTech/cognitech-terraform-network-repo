@@ -608,7 +608,7 @@ inputs = {
       access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
       vpc_name                   = local.vpc_name
       create_default_listener    = true
-    }
+    },
     {
       key             = "etl"
       name            = "etl"
@@ -640,19 +640,19 @@ inputs = {
   ]
 
   alb_listeners = [
-    # {
-    #   key      = "etl"
-    #   alb_key  = "etl"
-    #   protocol = "HTTPS"
-    #   port     = 443
-    #   action   = "fixed-response"
-    #   vpc_name = local.vpc_name
-    #   fixed_response = {
-    #     content_type = "text/plain"
-    #     message_body = "This is a default response from the ETL ALB listener."
-    #     status_code  = "200"
-    #   }
-    # }
+    {
+      key      = "etl"
+      alb_key  = "etl"
+      protocol = "HTTPS"
+      port     = 443
+      action   = "fixed-response"
+      vpc_name = local.vpc_name
+      fixed_response = {
+        content_type = "text/plain"
+        message_body = "This is a default response from the ETL ALB listener."
+        status_code  = "200"
+      }
+    }
   ]
   alb_listener_rules = [
     # {
