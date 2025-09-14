@@ -583,7 +583,7 @@ variable "ssm_documents" {
 
 variable "iam_users" {
   description = "IAM User configuration"
-  type = object({
+  type = list(object({
     name                 = string
     description          = optional(string)
     path                 = optional(string)
@@ -604,7 +604,7 @@ variable "iam_users" {
       description = optional(string)
       policy      = string
     }))
-  })
+  }))
   default = null
 }
 
