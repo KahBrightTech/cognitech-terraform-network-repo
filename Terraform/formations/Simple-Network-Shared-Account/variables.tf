@@ -581,4 +581,30 @@ variable "ssm_documents" {
   default = null
 }
 
+variable "iam_users" {
+  description = "IAM User configuration"
+  type = object({
+    name                 = string
+    description          = optional(string)
+    path                 = optional(string)
+    permissions_boundary = optional(string)
+    force_destroy        = optional(bool, false)
+    groups               = optional(list(string))
+    regions              = optional(list(string))
+    notifications_email  = string
+    user_type            = optional(string, "standard")
+    create_access_key    = optional(bool, true)
+    secrets_manager = optional(object({
+      recovery_window_in_days = optional(number, 30)
+      description             = optional(string, null)
+      policy                  = optional(string)
+    }), {})
+    policy = optional(object({
+      name        = string
+      description = optional(string)
+      policy      = string
+    }))
+  })
+  default = null
+}
 

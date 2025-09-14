@@ -116,3 +116,12 @@ output "ssm_documents" {
   value       = module.ssm_documents
 }
 
+
+
+#-------------------------------------------------------
+# IAM User outputs
+#-------------------------------------------------------
+output "iam_users" {
+  description = "Output for IAM Users"
+  value       = module.iam_users
+}

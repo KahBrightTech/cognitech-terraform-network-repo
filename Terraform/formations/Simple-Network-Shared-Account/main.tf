@@ -288,4 +288,12 @@ module "ssm_documents" {
   ssm_document = each.value
 }
 
-
+#--------------------------------------------------------------------
+# Creates lIAM users
+#--------------------------------------------------------------------
+module "iam_users" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-User?ref=v1.3.27"
+  for_each = (var.iam_users != null) ? { for item in var.iam_users : item.name => item } : {}
+  common   = var.common
+  iam_user = each.value
+}

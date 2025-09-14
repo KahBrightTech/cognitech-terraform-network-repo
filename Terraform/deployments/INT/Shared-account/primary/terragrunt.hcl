@@ -593,86 +593,103 @@ inputs = {
       schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
     }
   ]
+  iam_users = [
+    {
+      name                = "ansible-service-account"
+      description         = "Ansible Service Account"
+      path                = "/"
+      force_destroy       = true
+      groups              = ["Admins"]
+      regions             = null
+      notifications_email = "kbrigthain@gmail.com"
+      create_access_key   = true
+      secrets_manage = {
+        recovery_window_in_days = 0
+        description             = "Access and Secret key for Ansible Service Account"
+        policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      }
+    }
+  ]
   load_balancers = [
     {
-      key             = "app"
-      name            = "app"
-      vpc_name_abr    = "${local.vpc_name_abr}"
-      type            = "application"
-      security_groups = ["alb"]
+      key             = " app "
+      name            = " app "
+      vpc_name_abr    = " $ { local.vpc_name_abr } "
+      type            = " application "
+      security_groups = [" alb "]
       subnets = [
         include.env.locals.subnet_prefix.primary
       ]
       enable_deletion_protection = false
       enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
       vpc_name                   = local.vpc_name
       create_default_listener    = true
     },
     # {
-    #   key             = "etl"
-    #   name            = "etl"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
+    #   key             = " etl "
+    #   name            = " etl "
+    #   vpc_name_abr    = " $ { local.vpc_name_abr } "
+    #   type            = " application "
+    #   security_groups = [" alb "]
     #   subnets = [
     #     include.env.locals.subnet_prefix.primary
     #   ]
     #   enable_deletion_protection = true
     #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
     #   vpc_name                   = local.vpc_name
     # },
     # {
-    #   key             = "ssrs"
-    #   name            = "ssrs"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "network"
-    #   security_groups = ["nlb"]
+    #   key             = " ssrs "
+    #   name            = " ssrs "
+    #   vpc_name_abr    = " $ { local.vpc_name_abr } "
+    #   type            = " network "
+    #   security_groups = [" nlb "]
     #   subnets = [
     #     include.env.locals.subnet_prefix.primary
     #   ]
     #   enable_deletion_protection = false
     #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
     #   vpc_name                   = local.vpc_name
     # }
   ]
 
   alb_listeners = [
     # {
-    #   key      = "etl"
-    #   alb_key  = "etl"
-    #   protocol = "HTTPS"
+    #   key      = " etl "
+    #   alb_key  = " etl "
+    #   protocol = " HTTPS "
     #   port     = 443
-    #   action   = "fixed-response"
+    #   action   = " fixed-response "
     #   vpc_name = local.vpc_name
     #   fixed_response = {
-    #     content_type = "text/plain"
-    #     message_body = "This is a default response from the ETL ALB listener."
-    #     status_code  = "200"
+    #     content_type = " text / plain "
+    #     message_body = " This is a default response from the ETL ALB listener."
+    #     status_code  = " 200 "
     #   }
     # }
   ]
   alb_listener_rules = [
     # {
-    #   index_key    = "etl"
-    #   listener_key = "etl"
+    #   index_key    = " etl "
+    #   listener_key = " etl "
     #   rules = [
     #     {
-    #       key      = "etl"
+    #       key      = " etl "
     #       priority = 10
-    #       type     = "forward"
+    #       type     = " forward "
     #       target_groups = [
     #         {
-    #           tg_name = "etl"
+    #           tg_name = " etl "
     #           weight  = 99
     #         }
     #       ]
     #       conditions = [
     #         {
     #           host_headers = [
-    #             "etl.${local.public_hosted_zone}",
+    #             " etl.$ { local.public_hosted_zone } ",
     #           ]
     #         }
     #       ]
@@ -682,39 +699,39 @@ inputs = {
   ]
   nlb_listeners = [
     # {
-    #   key        = "ssrs"
-    #   nlb_key    = "ssrs"
-    #   protocol   = "TLS"
+    #   key        = " ssrs "
+    #   nlb_key    = " ssrs "
+    #   protocol   = " TLS "
     #   port       = 443
-    #   ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
-    #   action     = "forward"
+    #   ssl_policy = " ELBSecurityPolicy-TLS-1-2-2017-01 "
+    #   action     = " forward "
     #   vpc_name   = local.vpc_name
     #   target_group = {
-    #     name         = "ssrs"
-    #     protocol     = "TLS"
+    #     name         = " ssrs "
+    #     protocol     = " TLS "
     #     port         = 443
     #     vpc_name_abr = local.vpc_name_abr
     #     health_check = {
-    #       protocol = "HTTPS"
-    #       port     = "443"
-    #       path     = "/"
+    #       protocol = " HTTPS "
+    #       port     = " 443 "
+    #       path     = " / "
     #     }
     #   }
     # }
   ]
   target_groups = [
     # {
-    #   key      = "etl"
-    #   name     = "etl"
-    #   protocol = "HTTPS"
+    #   key      = " etl "
+    #   name     = " etl "
+    #   protocol = " HTTPS "
     #   port     = 443
     #   health_check = {
-    #     protocol = "HTTPS"
-    #     port     = "443"
-    #     path     = "/"
+    #     protocol = " HTTPS "
+    #     port     = " 443 "
+    #     path     = " / "
     #   }
     #   vpc_name     = local.vpc_name
-    #   vpc_name_abr = "${local.vpc_name_abr}"
+    #   vpc_name_abr = " $ { local.vpc_name_abr } "
     # }
   ]
 }
@@ -722,29 +739,29 @@ inputs = {
 # State Configuration
 #-------------------------------------------------------
 remote_state {
-  backend = "s3"
+  backend = " s3 "
   generate = {
-    path      = "backend.tf"
-    if_exists = "overwrite"
+    path      = " backend.tf "
+    if_exists = " overwrite "
   }
   config = {
     bucket               = local.state_bucket
-    bucket_sse_algorithm = "AES256"
+    bucket_sse_algorithm = " AES256 "
     dynamodb_table       = local.state_lock_table
     encrypt              = true
-    key                  = "${local.deployment_name}/terraform.tfstate"
+    key                  = " $ { local.deployment_name } / terraform.tfstate "
     region               = local.region
   }
 }
 #-------------------------------------------------------
 # Providers 
 #-------------------------------------------------------
-generate "aws-providers" {
-  path      = "aws-provider.tf"
-  if_exists = "overwrite"
+generate " aws-providers " {
+  path      = " aws-provider.tf "
+  if_exists = " overwrite "
   contents  = <<-EOF
-  provider "aws" {
-    region = "${local.region}"
+  provider " aws " {
+    region = " $ { local.region } "
   }
   EOF
 }
