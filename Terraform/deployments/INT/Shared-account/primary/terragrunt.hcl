@@ -422,16 +422,16 @@ inputs = {
   ]
   iam_users = [
     {
-      name                = "ansible-service-account"
-      description         = "Ansible Service Account"
+      name                = "ansible-user"
+      description         = "Ansible user credentials"
       path                = "/"
       force_destroy       = true
       groups              = ["Admins"]
       regions             = null
       notifications_email = include.env.locals.owner
       create_access_key   = true
-      secrets_manage = {
-        recovery_window_in_days = 0
+      secrets_manager = {
+        recovery_window_in_days = 7
         description             = "Access and Secret key for Ansible Service Account"
         policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       }
