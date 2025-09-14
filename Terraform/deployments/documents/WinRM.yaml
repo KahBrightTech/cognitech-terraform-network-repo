@@ -1,0 +1,90 @@
+schemaVersion: '2.2'
+description: "Document to configure WinRM on Windows servers for Ansible Tower connectivity using AWS Systems Manager (SSM)."
+parameters:
+  WinRMPort:
+    type: String
+    description: "WinRM HTTPS port for Windows server connections"
+    default: "5986"
+  WinRMAuthMethod:
+    type: String
+    description: "WinRM authentication method (kerberos, ntlm, basic)"
+    default: "ntlm"
+  WinRMTransport:
+    type: String
+    description: "WinRM transport protocol (ssl, plaintext)"
+    default: "ssl"
+
+mainSteps:
+- action: aws:runPowerShellScript
+  name: ConfigureWinRMForAnsible
+  description: Configures WinRM on Windows servers for Ansible Tower connectivity
+  inputs:
+    timeoutSeconds: 3600
+    runCommand:
+    - |
+      # PowerShell script to configure WinRM for Ansible Tower
+      Write-Host "[$(Get-Date)] Starting WinRM configuration for Ansible Tower..."
+
+      try {
+          # Enable WinRM service
+          Write-Host "Enabling WinRM service..."
+          Enable-PSRemoting -Force -SkipNetworkProfileCheck
+          
+          # Configure WinRM for HTTPS
+          Write-Host "Configuring WinRM for HTTPS..."
+          winrm quickconfig -q
+          winrm set winrm/config/service '@{AllowUnencrypted="false"}'
+          winrm set winrm/config/service/auth '@{Basic="true";Kerberos="true";Negotiate="true";Certificate="false";CredSSP="true"}'
+          winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="1024"}'
+          
+          # Create self-signed certificate for HTTPS if one doesn't exist
+          $cert = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object {$_.Subject -like "*$env:COMPUTERNAME*"}
+          if (-not $cert) {
+              Write-Host "Creating self-signed certificate for HTTPS..."
+              $cert = New-SelfSignedCertificate -DnsName $env:COMPUTERNAME -CertStoreLocation Cert:\LocalMachine\My
+          }
+          
+          # Configure HTTPS listener
+          Write-Host "Configuring HTTPS listener on port {{ WinRMPort }}..."
+          $httpsListener = Get-WSManInstance -ResourceURI winrm/config/listener -SelectorSet @{Address="*";Transport="HTTPS"} -ErrorAction SilentlyContinue
+          if (-not $httpsListener) {
+              New-WSManInstance -ResourceURI winrm/config/listener -SelectorSet @{Address="*";Transport="HTTPS"} -ValueSet @{Hostname=$env:COMPUTERNAME;CertificateThumbprint=$cert.Thumbprint;Port="{{ WinRMPort }}"}
+          }
+          
+          # Configure firewall rules
+          Write-Host "Configuring Windows Firewall for WinRM..."
+          netsh advfirewall firewall add rule name="WinRM HTTPS" dir=in action=allow protocol=TCP localport={{ WinRMPort }}
+          
+          # Set execution policy for PowerShell scripts
+          Write-Host "Setting PowerShell execution policy..."
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force
+          
+          # Configure additional WinRM settings for Ansible compatibility
+          Write-Host "Configuring additional WinRM settings..."
+          winrm set winrm/config '@{MaxTimeoutms="1800000"}'
+          winrm set winrm/config/service '@{MaxConcurrentOperations="4294967295"}'
+          winrm set winrm/config/service '@{MaxConcurrentOperationsPerUser="1500"}'
+          winrm set winrm/config/service '@{EnumerationTimeoutms="240000"}'
+          winrm set winrm/config/service '@{MaxConnections="300"}'
+          winrm set winrm/config/service '@{MaxPacketRetrievalTimeSeconds="120"}'
+          
+          # Test WinRM configuration
+          Write-Host "Testing WinRM configuration..."
+          $testResult = Test-WSMan -ComputerName localhost -Port {{ WinRMPort }} -UseSSL
+          if ($testResult) {
+              Write-Host "WinRM HTTPS configuration successful!"
+          } else {
+              throw "WinRM HTTPS test failed"
+          }
+          
+          Write-Host "WinRM configuration completed successfully!"
+          Write-Host "WinRM HTTPS endpoint: https://$($env:COMPUTERNAME):{{ WinRMPort }}/wsman"
+          
+      } catch {
+          Write-Error "Failed to configure WinRM: $($_.Exception.Message)"
+          exit 1
+      }
+  precondition:
+    StringEquals:
+    - platformType
+    - Windows

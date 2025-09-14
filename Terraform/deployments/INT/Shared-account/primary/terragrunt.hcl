@@ -437,8 +437,8 @@ inputs = {
       }
       group_policies = [
         {
-          group_name        = "Admins"
-          policy_name       = "Admin-group-policy"
+          group_name  = "Admins"
+          policy_name = "Admin-group-policy"
           description = "Admin group policy"
           policy      = file("${include.cloud.locals.repo.root}/iam_policies/Admin_group_policy.json")
         }
@@ -616,6 +616,18 @@ inputs = {
         values = ["True"]
       }
       schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
+    },
+    {
+      name               = "WinRM-Config"
+      content            = file("${include.cloud.locals.repo.root}/documents/WinRM.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:WinRMInstall"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 7 ? * SUN *)" # Every Sunday at 7 AM
     }
   ]
   load_balancers = [
