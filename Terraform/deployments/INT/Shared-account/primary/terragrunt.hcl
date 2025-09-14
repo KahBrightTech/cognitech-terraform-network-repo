@@ -435,6 +435,13 @@ inputs = {
         description             = "Access and Secret key for Ansible Service Account"
         policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       }
+      group_policies = [
+        {
+          name        = "Ansible-Service-Account"
+          description = "Ansible Service Account Policy"
+          policy      = file("${include.cloud.locals.repo.root}/iam_policies/Admin_group_policy.json")
+        }
+      ]
     }
   ]
   key_pairs = [

@@ -595,7 +595,7 @@ variable "iam_users" {
     user_type            = optional(string, "standard")
     create_access_key    = optional(bool, true)
     secrets_manager = optional(object({
-      recovery_window_in_days = optional(number)
+      recovery_window_in_days = optional(number, 30)
       description             = optional(string, null)
       policy                  = optional(string)
     }), {})
@@ -604,7 +604,14 @@ variable "iam_users" {
       description = optional(string)
       policy      = string
     }))
+    group_policies = optional(list(object({
+      group_name  = string
+      policy_name = string
+      description = optional(string)
+      policy      = string
+    })), [])
   }))
   default = null
 }
+
 
