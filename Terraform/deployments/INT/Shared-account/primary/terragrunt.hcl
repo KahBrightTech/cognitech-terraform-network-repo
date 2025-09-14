@@ -437,8 +437,8 @@ inputs = {
       }
       group_policies = [
         {
-          name        = "Ansible-Service-Account"
-          description = "Ansible Service Account Policy"
+          group_name        = "Admins"
+          description = "Admin group policy"
           policy      = file("${include.cloud.locals.repo.root}/iam_policies/Admin_group_policy.json")
         }
       ]
