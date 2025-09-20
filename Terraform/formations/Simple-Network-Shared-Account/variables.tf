@@ -619,17 +619,17 @@ variable "datasync_locations" {
   type = list(object({
     key = optional(string)
     # S3 Location Configuration
-    s3_location = optional(list(object({
+    s3_location = optional(object({
       key                    = optional(string)
       location_type          = string
       s3_bucket_arn          = string
       subdirectory           = optional(string)
       bucket_access_role_arn = string
       s3_storage_class       = optional(string)
-    })))
+    }))
 
     # EFS Location Configuration
-    efs_location = optional(list(object({
+    efs_location = optional(object({
       key                 = optional(string)
       location_type       = string
       efs_file_system_arn = string
@@ -640,10 +640,10 @@ variable "datasync_locations" {
         subnet_arn          = string
       })
       in_transit_encryption = optional(string)
-    })))
+    }))
 
     # FSx for Windows File System Location Configuration
-    fsx_windows_location = optional(list(object({
+    fsx_windows_location = optional(object({
       key                 = optional(string)
       location_type       = string
       fsx_filesystem_arn  = string
@@ -652,19 +652,19 @@ variable "datasync_locations" {
       domain              = optional(string)
       password            = string
       security_group_arns = list(string)
-    })))
+    }))
 
     # FSx for Lustre Location Configuration
-    fsx_lustre_location = optional(list(object({
+    fsx_lustre_location = optional(object({
       key                 = optional(string)
       location_type       = string
       fsx_filesystem_arn  = string
       subdirectory        = optional(string)
       security_group_arns = list(string)
-    })))
+    }))
 
     # FSx for NetApp ONTAP Location Configuration
-    fsx_ontap_location = optional(list(object({
+    fsx_ontap_location = optional(object({
       location_type      = string
       fsx_filesystem_arn = string
       subdirectory       = optional(string)
@@ -685,10 +685,10 @@ variable "datasync_locations" {
       })
       security_group_arns         = list(string)
       storage_virtual_machine_arn = string
-    })))
+    }))
 
     # FSx for OpenZFS Location Configuration
-    fsx_openzfs_location = optional(list(object({
+    fsx_openzfs_location = optional(object({
       key                = optional(string)
       location_type      = string
       fsx_filesystem_arn = string
@@ -701,10 +701,10 @@ variable "datasync_locations" {
         })
       })
       security_group_arns = list(string)
-    })))
+    }))
 
     # NFS Location Configuration
-    nfs_location = optional(list(object({
+    nfs_location = optional(object({
       key             = optional(string)
       location_type   = string
       server_hostname = string
@@ -715,10 +715,10 @@ variable "datasync_locations" {
       mount_options = optional(object({
         version = optional(string)
       }))
-    })))
+    }))
 
     # SMB Location Configuration
-    smb_location = optional(list(object({
+    smb_location = optional(object({
       key             = optional(string)
       location_type   = string
       agent_arns      = list(string)
@@ -730,10 +730,10 @@ variable "datasync_locations" {
       mount_options = optional(object({
         version = optional(string)
       }))
-    })))
+    }))
 
     # HDFS Location Configuration
-    hdfs_location = optional(list(object({
+    hdfs_location = optional(object({
       key                  = optional(string)
       location_type        = string
       cluster_type         = string
@@ -755,10 +755,10 @@ variable "datasync_locations" {
       replication_factor = optional(number)
       simple_user        = optional(string)
       subdirectory       = string
-    })))
+    }))
 
     # Object Storage Location Configuration
-    object_storage_location = optional(list(object({
+    object_storage_location = optional(object({
       key                = optional(string)
       location_type      = string
       agent_arns         = list(string)
@@ -770,10 +770,10 @@ variable "datasync_locations" {
       server_port        = optional(number)
       server_protocol    = optional(string)
       server_certificate = optional(string)
-    })))
+    }))
 
     # Azure Blob Storage Location Configuration
-    azure_blob_location = optional(list(object({
+    azure_blob_location = optional(object({
       key                 = optional(string)
       location_type       = string
       agent_arns          = list(string)
@@ -785,7 +785,7 @@ variable "datasync_locations" {
       }))
       blob_type   = optional(string)
       access_tier = optional(string)
-    })))
+    }))
   }))
   default = null
 }

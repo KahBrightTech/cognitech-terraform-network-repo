@@ -780,26 +780,22 @@ inputs = {
   datasync_locations = [
     {
       key = "nfs-to-s3"
-      s3_location = [
-        {
-          key                    = "dts"
-          location_type          = "S3"
-          s3_bucket_arn          = "arn:aws:s3:::${local.vpc_name}-datasync-bucket"
-          subdirectory           = include.env.locals.datasync.s3.subdirectory.datasync_bucket
-          bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
+      s3_location = {
+        key                    = "dts"
+        location_type          = "S3"
+        s3_bucket_arn          = "arn:aws:s3:::${local.vpc_name}-datasync-bucket"
+        subdirectory           = include.env.locals.datasync.s3.subdirectory.datasync_bucket
+        bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
+      }
+      nfs_location = {
+        key             = "wsl"
+        location_type   = "NFS"
+        server_hostname = include.env.locals.datasync.nfs.server_hostname.wsl
+        subdirectory    = include.env.locals.datasync.nfs.subdirectory.wsl
+        on_prem_config = {
+          agent_arns = [include.env.locals.datasync.agent_arns.int]
         }
-      ]
-      nfs_location = [
-        {
-          key             = "wsl"
-          location_type   = "NFS"
-          server_hostname = include.env.locals.datasync.nfs.server_hostname.wsl
-          subdirectory    = include.env.locals.datasync.nfs.subdirectory.wsl
-          on_prem_config = {
-            agent_arns = [include.env.locals.datasync.agent_arns.int]
-          }
-        }
-      ]
+      }
     }
   ]
   datasync_tasks = [
