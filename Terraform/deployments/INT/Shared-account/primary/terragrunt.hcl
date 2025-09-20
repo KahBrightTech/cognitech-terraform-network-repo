@@ -799,13 +799,11 @@ inputs = {
       }
     }
   ]
-
   datasync_tasks = [
     {
       key                         = "nfs-to-s3"
       create_cloudwatch_log_group = true
       cloudwatch_log_group_name   = "nfstos3"
-      create_iam_resources        = false
       task = {
         name            = "${local.vpc_name}-nfs-to-s3"
         source_key      = "wsl"
