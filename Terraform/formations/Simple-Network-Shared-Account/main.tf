@@ -320,8 +320,32 @@ module "datasync_tasks" {
   datasync = merge(
     each.value,
     {
-      source_location_arn      = each.value.task.source_key != null ? module.datasync_locations[each.value.task.source_key].location_arn : each.value.task.source_location_arn
-      destination_location_arn = each.value.task.destination_key != null ? module.datasync_locations[each.value.task.destination_key].location_arn : each.value.task.destination_location_arn
+      source_location_arn = each.value.task.source_key != null ? coalesce(
+        module.datasync_locations[each.value.task.source_key].s3_location_arn,
+        module.datasync_locations[each.value.task.source_key].efs_location_arn,
+        module.datasync_locations[each.value.task.source_key].fsx_windows_location_arn,
+        module.datasync_locations[each.value.task.source_key].fsx_lustre_location_arn,
+        module.datasync_locations[each.value.task.source_key].fsx_ontap_location_arn,
+        module.datasync_locations[each.value.task.source_key].fsx_openzfs_location_arn,
+        module.datasync_locations[each.value.task.source_key].nfs_location_arn,
+        module.datasync_locations[each.value.task.source_key].smb_location_arn,
+        module.datasync_locations[each.value.task.source_key].hdfs_location_arn,
+        module.datasync_locations[each.value.task.source_key].object_storage_location_arn,
+        module.datasync_locations[each.value.task.source_key].azure_blob_location_arn
+      ) : each.value.task.source_location_arn
+      destination_location_arn = each.value.task.destination_key != null ? coalesce(
+        module.datasync_locations[each.value.task.destination_key].s3_location_arn,
+        module.datasync_locations[each.value.task.destination_key].efs_location_arn,
+        module.datasync_locations[each.value.task.destination_key].fsx_windows_location_arn,
+        module.datasync_locations[each.value.task.destination_key].fsx_lustre_location_arn,
+        module.datasync_locations[each.value.task.destination_key].fsx_ontap_location_arn,
+        module.datasync_locations[each.value.task.destination_key].fsx_openzfs_location_arn,
+        module.datasync_locations[each.value.task.destination_key].nfs_location_arn,
+        module.datasync_locations[each.value.task.destination_key].smb_location_arn,
+        module.datasync_locations[each.value.task.destination_key].hdfs_location_arn,
+        module.datasync_locations[each.value.task.destination_key].object_storage_location_arn,
+        module.datasync_locations[each.value.task.destination_key].azure_blob_location_arn
+      ) : each.value.task.destination_location_arn
     }
   )
   depends_on = [
