@@ -620,7 +620,6 @@ variable "datasync_locations" {
     key = optional(string)
     # S3 Location Configuration
     s3_location = optional(object({
-      key                    = optional(string)
       location_type          = string
       s3_bucket_arn          = string
       subdirectory           = optional(string)
@@ -630,7 +629,6 @@ variable "datasync_locations" {
 
     # EFS Location Configuration
     efs_location = optional(object({
-      key                 = optional(string)
       location_type       = string
       efs_file_system_arn = string
       access_point_arn    = optional(string)
@@ -644,7 +642,6 @@ variable "datasync_locations" {
 
     # FSx for Windows File System Location Configuration
     fsx_windows_location = optional(object({
-      key                 = optional(string)
       location_type       = string
       fsx_filesystem_arn  = string
       subdirectory        = optional(string)
@@ -656,7 +653,6 @@ variable "datasync_locations" {
 
     # FSx for Lustre Location Configuration
     fsx_lustre_location = optional(object({
-      key                 = optional(string)
       location_type       = string
       fsx_filesystem_arn  = string
       subdirectory        = optional(string)
@@ -689,7 +685,6 @@ variable "datasync_locations" {
 
     # FSx for OpenZFS Location Configuration
     fsx_openzfs_location = optional(object({
-      key                = optional(string)
       location_type      = string
       fsx_filesystem_arn = string
       subdirectory       = optional(string)
@@ -705,7 +700,6 @@ variable "datasync_locations" {
 
     # NFS Location Configuration
     nfs_location = optional(object({
-      key             = optional(string)
       location_type   = string
       server_hostname = string
       subdirectory    = string
@@ -719,7 +713,6 @@ variable "datasync_locations" {
 
     # SMB Location Configuration
     smb_location = optional(object({
-      key             = optional(string)
       location_type   = string
       agent_arns      = list(string)
       domain          = optional(string)
@@ -734,7 +727,6 @@ variable "datasync_locations" {
 
     # HDFS Location Configuration
     hdfs_location = optional(object({
-      key                  = optional(string)
       location_type        = string
       cluster_type         = string
       agent_arns           = list(string)
@@ -759,7 +751,6 @@ variable "datasync_locations" {
 
     # Object Storage Location Configuration
     object_storage_location = optional(object({
-      key                = optional(string)
       location_type      = string
       agent_arns         = list(string)
       bucket_name        = string
@@ -774,7 +765,6 @@ variable "datasync_locations" {
 
     # Azure Blob Storage Location Configuration
     azure_blob_location = optional(object({
-      key                 = optional(string)
       location_type       = string
       agent_arns          = list(string)
       container_url       = string
