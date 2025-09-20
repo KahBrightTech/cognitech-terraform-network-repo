@@ -433,7 +433,7 @@ inputs = {
       }
     },
     {
-      name               = "${local.vpc_name}-datasync-role"
+      name               = "${local.vpc_name}-datasync"
       description        = "IAM Role for Shared Services DataSync"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/datasync_trust_policy.json"
