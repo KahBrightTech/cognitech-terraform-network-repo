@@ -773,7 +773,7 @@ variable "datasync_locations" {
       access_tier = optional(string)
     }))
   }))
-  default = {}
+  default = null
 }
 
 variable "datasync_tasks" {
@@ -839,5 +839,5 @@ variable "datasync_tasks" {
       }))
     }))
   })
-  default = {}
+  default = null
 }
