@@ -41,12 +41,12 @@ locals {
         wsl = "172.31.65.62"
       }
       subdirectory = {
-        wsl = "/home/owner/websites"
+        wsl = "/home/owner"
       }
     }
     s3 = {
       subdirectory = {
-        datasync = "/Data"
+        datasync_bucket = "/Data"
       }
     }
   }
