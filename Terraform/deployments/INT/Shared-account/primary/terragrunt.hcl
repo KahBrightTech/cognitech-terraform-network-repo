@@ -781,13 +781,13 @@ inputs = {
     {
       key                    = "s3"
       s3_bucket_arn          = "arn:aws:s3:::${local.vpc_name}-datasync-bucket"
-      subdirectory           = include.env.datasync.s3.subdirectory.wsl
+      subdirectory           = include.env.locals.datasync.s3.subdirectory.wsl
       bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
     },
     {
       key             = "nfs"
-      server_hostname = include.env.datasync.nfs.server_hostname.wsl
-      subdirectory    = include.env.datasync.nfs.subdirectory.wsl
+      server_hostname = include.env.locals.datasync.nfs.server_hostname.wsl
+      subdirectory    = include.env.locals.datasync.nfs.subdirectory.wsl
       on_prem_config = {
         agent_arns = include.env.locals.datasync.agent_arns.int
       }
