@@ -617,7 +617,6 @@ variable "iam_users" {
 variable "datasync_locations" {
   description = "DataSync configuration with all location types and task settings"
   type = list(object({
-    key = string
     # S3 Location Configuration
     s3_location = optional(object({
       key                    = optional(string)
