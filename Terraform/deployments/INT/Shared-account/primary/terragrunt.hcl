@@ -800,6 +800,7 @@ inputs = {
   ]
   datasync_tasks = [
     {
+      key                        = "wsl-to-s3"
       create_cloudwatch_log_group = true
       cloudwatch_log_group_name   = "nfstos3"
       task = {

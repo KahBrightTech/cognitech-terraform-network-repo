@@ -793,6 +793,7 @@ variable "datasync_locations" {
 variable "datasync_tasks" {
   description = "DataSync configuration with all location types and task settings"
   type = list(object({
+    key = optional(string)
     # Common Configuration
     # CloudWatch Log Group Configuration
     create_cloudwatch_log_group   = optional(bool, false)
