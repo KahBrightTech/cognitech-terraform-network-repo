@@ -309,6 +309,7 @@ inputs = {
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
+
     {
       name                 = "${local.vpc_name}-src-replication-bucket"
       description          = "The source replication bucket"
@@ -371,6 +372,17 @@ inputs = {
           key = "Ansible_Tower/"
         }
       ]
+    },
+    {
+      key               = "datasync-bucket"
+      name              = "${local.vpc_name}-datasync-bucket"
+      description       = "The data sync bucket for different apps"
+      enable_versioning = true
+      objects = [
+        {
+          key = "Data/"
+        }
+      ]
     }
   ]
   ec2_profiles = [
@@ -417,6 +429,17 @@ inputs = {
         name        = "${local.vpc_name}-source-replication"
         description = "IAM policy for source replication"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
+      }
+    },
+    {
+      name               = "${local.vpc_name}-datasync-role"
+      description        = "IAM Role for Shared Services DataSync"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/datasync_trust_policy.json"
+      policy = {
+        name        = "${local.vpc_name}-datasync-role"
+        description = "IAM policy for DataSync"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_datasync.json"
       }
     }
   ]
@@ -753,6 +776,47 @@ inputs = {
     #   vpc_name     = local.vpc_name
     #   vpc_name_abr = " $ { local.vpc_name_abr } "
     # }
+  ]
+  datasync_locations = [
+    {
+      key                    = "s3"
+      s3_bucket_arn          = "arn:aws:s3:::${local.vpc_name}-datasync-bucket"
+      subdirectory           = include.env.datasync.s3.subdirectory.wsl
+      bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
+    },
+    {
+      key             = "nfs"
+      server_hostname = include.env.datasync.nfs.server_hostname.wsl
+      subdirectory    = include.env.datasync.nfs.subdirectory.wsl
+      on_prem_config = {
+        agent_arns = include.env.locals.datasync.agent_arns.int
+      }
+    }
+  ]
+  datasync_tasks = [
+    {
+      create_cloudwatch_log_group = true
+      cloudwatch_log_group_name   = "nfstos3"
+      task = {
+        name            = "${local.vpc_name}-nfs-to-s3"
+        source_key      = "nfs"
+        destination_key = "s3"
+        options = {
+          verify_mode            = "POINT_IN_TIME_CONSISTENT"
+          overwrite_mode         = "ALWAYS"
+          atime                  = "BEST_EFFORT"
+          mtime                  = "PRESERVE"
+          uid                    = "INT_VALUE"
+          gid                    = "INT_VALUE"
+          preserve_deleted_files = "PRESERVE"
+          preserve_devices       = "NONE"
+          posix_permissions      = "PRESERVE"
+        }
+      }
+      schedule = {
+        schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
+      }
+    }
   ]
 }
 #-------------------------------------------------------

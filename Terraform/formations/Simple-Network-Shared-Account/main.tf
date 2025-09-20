@@ -297,3 +297,35 @@ module "iam_users" {
   common   = var.common
   iam_user = each.value
 }
+
+
+#--------------------------------------------------------------------
+# DataSync Locations (Source and Destination)
+#--------------------------------------------------------------------
+module "datasync_locations" {
+  source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Datasync-locations?ref=v1.3.49"
+  for_each   = (var.datasync_locations != null) ? { for item in var.datasync_locations : item.key => item } : {}
+  common     = var.common
+  datasync   = each.value
+  depends_on = [module.iam_roles]
+}
+
+#--------------------------------------------------------------------
+# DataSync Tasks
+#--------------------------------------------------------------------
+module "datasync_tasks" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Datasync-Tasks?ref=v1.3.49"
+  for_each = (var.datasync_tasks != null) ? { for item in var.datasync_tasks : item.name => item if item.task != null } : {}
+  common   = var.common
+  datasync = merge(
+    each.value,
+    {
+      source_location_arn      = each.value.source_key != null ? module.datasync_locations[each.value.source_key].location_arn : each.value.task.source_location_arn
+      destination_location_arn = each.value.destination_key != null ? module.datasync_locations[each.value.destination_key].location_arn : each.value.task.destination_location_arn
+    }
+  )
+  depends_on = [
+    module.datasync_locations,
+    module.iam_roles
+  ]
+}

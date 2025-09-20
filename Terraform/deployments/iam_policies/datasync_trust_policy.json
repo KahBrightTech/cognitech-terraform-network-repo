@@ -4,7 +4,7 @@
     {
       "Effect": "Allow",
       "Principal": {
-        "Service": ["s3.amazonaws.com", "batchoperations.s3.amazonaws.com"]
+        "Service": ["datasync.amazonaws.com"]
       },
       "Action": "sts:AssumeRole",
       "Condition": {

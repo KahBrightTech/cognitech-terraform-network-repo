@@ -32,4 +32,22 @@ locals {
     Build-method = local.build
     Compliance   = local.compliance
   }
+  datasync = {
+    agent_arns = {
+      int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-0dc802a3236dc5e99"
+    }
+    nfs = {
+      server_hostname = {
+        wsl = "172.31.65.62"
+      }
+      subdirectory = {
+        wsl = "/home/owner/websites"
+      }
+    }
+    s3 = {
+      subdirectory = {
+        datasync = "/Data"
+      }
+    }
+  }
 }
