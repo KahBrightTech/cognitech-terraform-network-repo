@@ -619,7 +619,7 @@ variable "datasync_locations" {
   type = list(object({
     key = optional(string)
     # S3 Location Configuration
-    s3_location = list(optional(object({
+    s3_location = optional(list(object({
       key                    = optional(string)
       location_type          = string
       s3_bucket_arn          = string
@@ -629,7 +629,7 @@ variable "datasync_locations" {
     })))
 
     # EFS Location Configuration
-    efs_location = list(optional(object({
+    efs_location = optional(list(object({
       key                 = optional(string)
       location_type       = string
       efs_file_system_arn = string
@@ -643,7 +643,7 @@ variable "datasync_locations" {
     })))
 
     # FSx for Windows File System Location Configuration
-    fsx_windows_location = list(optional(object({
+    fsx_windows_location = optional(list(object({
       key                 = optional(string)
       location_type       = string
       fsx_filesystem_arn  = string
@@ -655,7 +655,7 @@ variable "datasync_locations" {
     })))
 
     # FSx for Lustre Location Configuration
-    fsx_lustre_location = list(optional(object({
+    fsx_lustre_location = optional(list(object({
       key                 = optional(string)
       location_type       = string
       fsx_filesystem_arn  = string
@@ -664,7 +664,7 @@ variable "datasync_locations" {
     })))
 
     # FSx for NetApp ONTAP Location Configuration
-    fsx_ontap_location = list(optional(object({
+    fsx_ontap_location = optional(list(object({
       location_type      = string
       fsx_filesystem_arn = string
       subdirectory       = optional(string)
@@ -688,7 +688,7 @@ variable "datasync_locations" {
     })))
 
     # FSx for OpenZFS Location Configuration
-    fsx_openzfs_location = list(optional(object({
+    fsx_openzfs_location = optional(list(object({
       key                = optional(string)
       location_type      = string
       fsx_filesystem_arn = string
@@ -704,7 +704,7 @@ variable "datasync_locations" {
     })))
 
     # NFS Location Configuration
-    nfs_location = list(optional(object({
+    nfs_location = optional(list(object({
       key             = optional(string)
       location_type   = string
       server_hostname = string
@@ -718,7 +718,7 @@ variable "datasync_locations" {
     })))
 
     # SMB Location Configuration
-    smb_location = list(optional(object({
+    smb_location = optional(list(object({
       key             = optional(string)
       location_type   = string
       agent_arns      = list(string)
@@ -733,7 +733,7 @@ variable "datasync_locations" {
     })))
 
     # HDFS Location Configuration
-    hdfs_location = list(optional(object({
+    hdfs_location = optional(list(object({
       key                  = optional(string)
       location_type        = string
       cluster_type         = string
@@ -758,7 +758,7 @@ variable "datasync_locations" {
     })))
 
     # Object Storage Location Configuration
-    object_storage_location = list(optional(object({
+    object_storage_location = optional(list(object({
       key                = optional(string)
       location_type      = string
       agent_arns         = list(string)
@@ -773,7 +773,7 @@ variable "datasync_locations" {
     })))
 
     # Azure Blob Storage Location Configuration
-    azure_blob_location = list(optional(object({
+    azure_blob_location = optional(list(object({
       key                 = optional(string)
       location_type       = string
       agent_arns          = list(string)
