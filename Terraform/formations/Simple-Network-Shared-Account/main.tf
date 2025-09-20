@@ -303,11 +303,14 @@ module "iam_users" {
 # DataSync Locations (Source and Destination)
 #--------------------------------------------------------------------
 module "datasync_locations" {
-  source     = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Datasync-locations?ref=v1.3.55"
-  for_each   = (var.datasync_locations != null) ? { for item in var.datasync_locations : item.key => item } : {}
-  common     = var.common
-  datasync   = each.value
-  depends_on = [module.iam_roles]
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Datasync-locations?ref=v1.3.55"
+  for_each = (var.datasync_locations != null) ? { for item in var.datasync_locations : item.key => item } : {}
+  common   = var.common
+  datasync = each.value
+  depends_on = [
+    module.iam_roles,
+    module.s3_app_bucket
+  ]
 }
 
 #--------------------------------------------------------------------
@@ -355,6 +358,7 @@ module "datasync_tasks" {
   )
   depends_on = [
     module.datasync_locations,
-    module.iam_roles
+    module.iam_roles,
+    module.s3_app_bucket
   ]
 }

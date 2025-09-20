@@ -377,6 +377,7 @@ inputs = {
       key                  = "datasync-bucket"
       name                 = "${local.vpc_name}-datasync-bucket"
       description          = "The data sync bucket for different apps"
+      enable_versioning    = false
       enable_bucket_policy = false
       objects = [
         {
