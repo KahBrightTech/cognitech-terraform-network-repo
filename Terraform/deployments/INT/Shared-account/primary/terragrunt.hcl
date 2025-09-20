@@ -778,8 +778,8 @@ inputs = {
     # }
   ]
   datasync_locations = [
-    key = "nfs-to-s3"
     {
+      key = "nfs-to-s3"
       s3_location = [
         {
           key                    = "s3"
