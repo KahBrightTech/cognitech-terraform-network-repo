@@ -320,8 +320,8 @@ module "datasync_tasks" {
   datasync = merge(
     each.value,
     {
-      source_location_arn      = each.value.source_key != null ? module.datasync_locations[each.value.source_key].location_arn : each.value.task.source_location_arn
-      destination_location_arn = each.value.destination_key != null ? module.datasync_locations[each.value.destination_key].location_arn : each.value.task.destination_location_arn
+      source_location_arn      = each.value.task.source_key != null ? module.datasync_locations[each.value.task.source_key].location_arn : each.value.task.source_location_arn
+      destination_location_arn = each.value.task.destination_key != null ? module.datasync_locations[each.value.task.destination_key].location_arn : each.value.task.destination_location_arn
     }
   )
   depends_on = [
