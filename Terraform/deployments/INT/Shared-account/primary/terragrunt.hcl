@@ -802,7 +802,6 @@ inputs = {
       ]
     }
   ]
-
   datasync_tasks = [
     {
       create_cloudwatch_log_group = true
