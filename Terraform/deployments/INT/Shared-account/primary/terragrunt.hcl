@@ -868,7 +868,7 @@ inputs = {
           gid                    = "INT_VALUE"
           preserve_deleted_files = "PRESERVE"
         }
-        schedule_expression = "cron(0 7 ? * * *)" # Every day at 7 AM
+        schedule_expression = "cron(0 8 ? * * *)" # Every day at 8 AM
       }
     }
   ]
