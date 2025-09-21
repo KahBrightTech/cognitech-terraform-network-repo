@@ -49,7 +49,7 @@ locals {
         laptop = "10.0.0.88"
       }
       subdirectory = {
-        smb = "\\10.0.0.88\DownloadsShare"
+        smb = "\\\\10.0.0.88\\DownloadsShare"
       }
       user = {
         first = "DataSyncUser"
