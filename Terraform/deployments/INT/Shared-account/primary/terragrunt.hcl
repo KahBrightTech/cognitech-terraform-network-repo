@@ -652,6 +652,12 @@ inputs = {
         values = ["True"]
       }
       schedule_expression = "cron(0 7 ? * SUN *)" # Every Sunday at 7 AM
+    },
+    {
+      name               = "NFS-Install"
+      content            = file("${include.cloud.locals.repo.root}/documents/NFSInstall.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
     }
   ]
   load_balancers = [
@@ -699,7 +705,6 @@ inputs = {
     #   vpc_name                   = local.vpc_name
     # }
   ]
-
   alb_listeners = [
     # {
     #   key      = " etl "

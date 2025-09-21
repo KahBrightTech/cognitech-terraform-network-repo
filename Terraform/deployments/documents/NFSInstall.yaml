@@ -1,0 +1,325 @@
+schemaVersion: '2.2'
+description: "Document to install and configure NFS server on a Linux server with customizable mount point and client access."
+parameters:
+    Operation:
+        type: String
+        description: "Operation to perform: install or uninstall"
+        default: "install"
+        allowedValues:
+          - "install"
+          - "uninstall"
+    MountPoint:
+        type: String
+        description: "Directory path to share via NFS (e.g., /shared/data)"
+        default: "/shared/nfs"
+    ClientIP:
+        type: String
+        description: "IP address or network that can access the NFS share (e.g., 192.168.1.0/24 or 10.0.0.100)"
+        default: "*"
+    RemoveNFSData:
+        type: String
+        description: "Whether to remove NFS shared directories during uninstall (true/false)"
+        default: "false"
+        allowedValues:
+          - "true"
+          - "false"
+mainSteps:
+  - action: aws:runShellScript
+    name: ManageNFSServer
+    description: Installs or uninstalls NFS server on Linux servers with custom mount point and client access configuration
+    inputs:
+        timeoutSeconds: 7200
+        runCommand:
+          - |
+            #!/bin/bash -xe
+            # Logging and error handling functions
+            log() {
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+            }
+
+            error_exit() {
+                log "ERROR: $1"
+                exit 1
+            }
+
+            log "Starting NFS server management..."
+
+            # Get operation parameters
+            OPERATION="{{ Operation }}"
+            MOUNT_POINT="{{ MountPoint }}"
+            CLIENT_IP="{{ ClientIP }}"
+            REMOVE_DATA="{{ RemoveNFSData }}"
+
+            log "Operation requested: $OPERATION"
+            log "Mount point: $MOUNT_POINT"
+            log "Client IP/Network: $CLIENT_IP"
+
+            # Detect the operating system
+            detect_os() {
+                if [ -f /etc/os-release ]; then
+                    . /etc/os-release
+                    OS=$NAME
+                    VER=$VERSION_ID
+                elif type lsb_release >/dev/null 2>&1; then
+                    OS=$(lsb_release -si)
+                    VER=$(lsb_release -sr)
+                elif [ -f /etc/lsb-release ]; then
+                    . /etc/lsb-release
+                    OS=$DISTRIB_ID
+                    VER=$DISTRIB_RELEASE
+                elif [ -f /etc/debian_version ]; then
+                    OS=Debian
+                    VER=$(cat /etc/debian_version)
+                else
+                    OS=$(uname -s)
+                    VER=$(uname -r)
+                fi
+                
+                log "Detected OS: $OS, Version: $VER"
+            }
+
+            # Validate mount point format
+            validate_mount_point() {
+                if [[ ! "$MOUNT_POINT" =~ ^/.+ ]]; then
+                    error_exit "Mount point must be an absolute path starting with /"
+                fi
+                log "Mount point validation passed: $MOUNT_POINT"
+            }
+
+            # Install NFS server based on OS
+            install_nfs() {
+                log "Installing NFS server..."
+                
+                case "$OS" in
+                    *"Amazon Linux"*)
+                        log "Installing NFS server on Amazon Linux..."
+                        yum update -y || error_exit "Failed to update system packages"
+                        yum install -y nfs-utils || error_exit "Failed to install NFS utilities"
+                        ;;
+                    *"Ubuntu"*|*"Debian"*)
+                        log "Installing NFS server on Ubuntu/Debian..."
+                        apt-get update || error_exit "Failed to update package index"
+                        apt-get install -y nfs-kernel-server nfs-common || error_exit "Failed to install NFS server"
+                        ;;
+                    *"CentOS"*|*"Red Hat"*|*"Rocky"*|*"AlmaLinux"*)
+                        log "Installing NFS server on RHEL-based system..."
+                        yum update -y || error_exit "Failed to update system packages"
+                        yum install -y nfs-utils || error_exit "Failed to install NFS utilities"
+                        ;;
+                    *)
+                        log "Attempting generic NFS installation for: $OS"
+                        if command -v yum &> /dev/null; then
+                            yum update -y || error_exit "Failed to update system packages"
+                            yum install -y nfs-utils || error_exit "Failed to install NFS utilities"
+                        elif command -v apt-get &> /dev/null; then
+                            apt-get update || error_exit "Failed to update package index"
+                            apt-get install -y nfs-kernel-server nfs-common || error_exit "Failed to install NFS server"
+                        else
+                            error_exit "Unsupported operating system for NFS installation"
+                        fi
+                        ;;
+                esac
+                
+                log "NFS server packages installed successfully"
+            }
+
+            # Configure NFS server
+            configure_nfs() {
+                log "Configuring NFS server..."
+                
+                # Create mount point directory if it doesn't exist
+                if [ ! -d "$MOUNT_POINT" ]; then
+                    log "Creating mount point directory: $MOUNT_POINT"
+                    mkdir -p "$MOUNT_POINT" || error_exit "Failed to create mount point directory"
+                    
+                    # Set appropriate permissions
+                    chmod 755 "$MOUNT_POINT" || error_exit "Failed to set permissions on mount point"
+                    chown nobody:nobody "$MOUNT_POINT" 2>/dev/null || log "Warning: Failed to set ownership to nobody:nobody"
+                else
+                    log "Mount point directory already exists: $MOUNT_POINT"
+                fi
+
+                # Backup existing exports file
+                if [ -f /etc/exports ]; then
+                    cp /etc/exports /etc/exports.backup.$(date +%Y%m%d_%H%M%S) || log "Warning: Failed to backup existing exports file"
+                fi
+
+                # Configure exports
+                log "Configuring /etc/exports..."
+                EXPORT_LINE="$MOUNT_POINT $CLIENT_IP(rw,sync,no_subtree_check,no_root_squash)"
+                
+                # Remove any existing entry for this mount point
+                sed -i "\|^$MOUNT_POINT |d" /etc/exports 2>/dev/null || touch /etc/exports
+                
+                # Add new export line
+                echo "$EXPORT_LINE" >> /etc/exports || error_exit "Failed to update /etc/exports"
+                log "Added export: $EXPORT_LINE"
+
+                # Export the NFS shares
+                exportfs -a || error_exit "Failed to export NFS shares"
+                log "NFS shares exported successfully"
+
+                # Start and enable NFS services based on OS
+                start_nfs_services
+                
+                log "NFS server configuration completed successfully"
+            }
+
+            # Start NFS services
+            start_nfs_services() {
+                log "Starting NFS services..."
+                
+                case "$OS" in
+                    *"Ubuntu"*|*"Debian"*)
+                        systemctl start nfs-kernel-server || error_exit "Failed to start nfs-kernel-server"
+                        systemctl enable nfs-kernel-server || error_exit "Failed to enable nfs-kernel-server"
+                        systemctl start rpcbind || log "Warning: Failed to start rpcbind (may already be running)"
+                        systemctl enable rpcbind || log "Warning: Failed to enable rpcbind"
+                        ;;
+                    *)
+                        # Amazon Linux, CentOS, RHEL, etc.
+                        systemctl start nfs-server || error_exit "Failed to start nfs-server"
+                        systemctl enable nfs-server || error_exit "Failed to enable nfs-server"
+                        systemctl start rpcbind || log "Warning: Failed to start rpcbind (may already be running)"
+                        systemctl enable rpcbind || log "Warning: Failed to enable rpcbind"
+                        ;;
+                esac
+                
+                log "NFS services started and enabled successfully"
+            }
+
+            # Stop NFS services
+            stop_nfs_services() {
+                log "Stopping NFS services..."
+                
+                case "$OS" in
+                    *"Ubuntu"*|*"Debian"*)
+                        systemctl stop nfs-kernel-server 2>/dev/null || log "Warning: Failed to stop nfs-kernel-server"
+                        systemctl disable nfs-kernel-server 2>/dev/null || log "Warning: Failed to disable nfs-kernel-server"
+                        ;;
+                    *)
+                        # Amazon Linux, CentOS, RHEL, etc.
+                        systemctl stop nfs-server 2>/dev/null || log "Warning: Failed to stop nfs-server"
+                        systemctl disable nfs-server 2>/dev/null || log "Warning: Failed to disable nfs-server"
+                        ;;
+                esac
+                
+                log "NFS services stopped"
+            }
+
+            # Uninstall NFS server
+            uninstall_nfs() {
+                log "Uninstalling NFS server..."
+                
+                # Stop NFS services first
+                stop_nfs_services
+                
+                # Unexport all NFS shares
+                exportfs -ua 2>/dev/null || log "Warning: Failed to unexport NFS shares"
+                
+                # Remove exports configuration
+                if [ -f /etc/exports ]; then
+                    log "Removing NFS export for $MOUNT_POINT from /etc/exports..."
+                    sed -i "\|^$MOUNT_POINT |d" /etc/exports 2>/dev/null || log "Warning: Failed to remove export from /etc/exports"
+                fi
+                
+                # Remove mount point directory if requested
+                if [[ "$REMOVE_DATA" == "true" ]] && [ -d "$MOUNT_POINT" ]; then
+                    log "Removing mount point directory: $MOUNT_POINT"
+                    rm -rf "$MOUNT_POINT" || log "Warning: Failed to remove mount point directory"
+                else
+                    log "Preserving mount point directory: $MOUNT_POINT"
+                fi
+                
+                # Remove NFS packages based on OS
+                case "$OS" in
+                    *"Amazon Linux"*|*"CentOS"*|*"Red Hat"*|*"Rocky"*|*"AlmaLinux"*)
+                        log "Removing NFS packages from RHEL-based system..."
+                        yum remove -y nfs-utils 2>/dev/null || log "Warning: Failed to remove NFS packages"
+                        ;;
+                    *"Ubuntu"*|*"Debian"*)
+                        log "Removing NFS packages from Ubuntu/Debian..."
+                        apt-get remove -y nfs-kernel-server nfs-common 2>/dev/null || log "Warning: Failed to remove NFS packages"
+                        apt-get autoremove -y 2>/dev/null || log "Warning: Failed to autoremove packages"
+                        ;;
+                    *)
+                        log "Attempting generic NFS removal for: $OS"
+                        if command -v yum &> /dev/null; then
+                            yum remove -y nfs-utils 2>/dev/null || log "Warning: Failed to remove NFS packages"
+                        elif command -v apt-get &> /dev/null; then
+                            apt-get remove -y nfs-kernel-server nfs-common 2>/dev/null || log "Warning: Failed to remove NFS packages"
+                            apt-get autoremove -y 2>/dev/null || log "Warning: Failed to autoremove packages"
+                        fi
+                        ;;
+                esac
+                
+                log "NFS server uninstallation completed"
+            }
+
+            # Check NFS service status
+            check_nfs_status() {
+                case "$OS" in
+                    *"Ubuntu"*|*"Debian"*)
+                        systemctl is-active nfs-kernel-server 2>/dev/null || echo "inactive"
+                        ;;
+                    *)
+                        systemctl is-active nfs-server 2>/dev/null || echo "inactive"
+                        ;;
+                esac
+            }
+
+            # Main execution logic
+            detect_os
+            validate_mount_point
+
+            if [[ "$OPERATION" == "install" ]]; then
+                log "Performing NFS server installation..."
+                install_nfs
+                configure_nfs
+                log "NFS server installation and configuration completed successfully!"
+                
+            elif [[ "$OPERATION" == "uninstall" ]]; then
+                log "Performing NFS server uninstallation..."
+                uninstall_nfs
+                log "NFS server uninstallation completed successfully!"
+                
+            else
+                error_exit "Invalid operation: $OPERATION. Must be 'install' or 'uninstall'"
+            fi
+
+            # Final status report
+            log "Operation completed successfully!"
+            log "=========================================="
+            log "NFS SERVER STATUS SUMMARY:"
+            log "=========================================="
+            log "Operation Performed: $OPERATION"
+            log "Operating System: $OS $VER"
+            log "Mount Point: $MOUNT_POINT"
+            log "Client Access: $CLIENT_IP"
+
+            NFS_STATUS=$(check_nfs_status)
+            log "NFS Service Status: $NFS_STATUS"
+
+            if [[ "$NFS_STATUS" == "active" ]]; then
+                log "NFS Server Status: RUNNING"
+                log "Available NFS exports:"
+                showmount -e localhost 2>/dev/null || log "No exports available or showmount command not found"
+                log "=========================================="
+                log "NFS Client Mount Commands:"
+                log "- showmount -e <server_ip>     (list available exports)"
+                log "- mount -t nfs <server_ip>:$MOUNT_POINT /local/mount/point"
+                log "- umount /local/mount/point    (unmount the share)"
+            else
+                if [[ "$OPERATION" == "install" ]]; then
+                    log "NFS Server Status: NOT RUNNING (installation may have failed)"
+                    log "Check the logs above for any error messages."
+                else
+                    log "NFS Server Status: STOPPED (successfully uninstalled)"
+                fi
+            fi
+
+            log "=========================================="
+    precondition:
+        StringEquals:
+          - platformType
+          - Linux
