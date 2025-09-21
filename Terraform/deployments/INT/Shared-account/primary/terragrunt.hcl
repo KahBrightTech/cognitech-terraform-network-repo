@@ -820,8 +820,8 @@ inputs = {
           preserve_devices       = "NONE"
           posix_permissions      = "PRESERVE"
         }
+        schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
       }
-      schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
     }
   ]
 }
