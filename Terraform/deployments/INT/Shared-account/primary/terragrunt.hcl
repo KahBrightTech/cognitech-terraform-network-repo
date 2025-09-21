@@ -854,7 +854,7 @@ inputs = {
     {
       key                         = "smb-to-s3"
       create_cloudwatch_log_group = true
-      cloudwatch_log_group_name   = "nfstos3"
+      cloudwatch_log_group_name   = "smbtos3"
       task = {
         name            = "${local.vpc_name}-smb-to-s3"
         source_key      = "smb-laptop"
