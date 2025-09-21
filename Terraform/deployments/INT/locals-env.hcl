@@ -44,9 +44,18 @@ locals {
         wsl = "/home/owner"
       }
     }
+    smb = {
+      server_hostname = {
+        laptop = "10.0.0.88"
+      }
+      subdirectory = {
+        smb = "/SMB"
+      }
+    }
     s3 = {
       subdirectory = {
         datasync_bucket = "/Data"
+        smb = "/SMB"
       }
     }
   }
