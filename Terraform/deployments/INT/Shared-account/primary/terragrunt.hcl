@@ -788,7 +788,7 @@ inputs = {
   ]
   datasync_locations = [
     {
-      key = "s3-app"
+      key = "s3-nfs"
       s3_location = {
         location_type          = "S3"
         s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
@@ -808,10 +808,12 @@ inputs = {
       }
     },
     {
-      key = "s3-smb"
+      key = "smb-laptop"
       smb_location = {
         location_type   = "smb"
         server_hostname = include.env.locals.datasync.smb.server_hostname.laptop
+        user            = include.env.locals.datasync.smb.user.first
+        password        = include.env.locals.datasync.smb.password.first
         subdirectory    = include.env.locals.datasync.smb.subdirectory.smb
         agent_arns      = [include.env.locals.datasync.agent_arns.int]
       }
@@ -834,7 +836,7 @@ inputs = {
       task = {
         name            = "${local.vpc_name}-nfs-to-s3"
         source_key      = "nfs-wsl"
-        destination_key = "s3-app"
+        destination_key = "s3-nfs"
         options = {
           verify_mode            = "POINT_IN_TIME_CONSISTENT"
           overwrite_mode         = "ALWAYS"
@@ -847,6 +849,28 @@ inputs = {
           posix_permissions      = "PRESERVE"
         }
         schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
+      }
+    },
+    {
+      key                         = "smb-to-s3"
+      create_cloudwatch_log_group = true
+      cloudwatch_log_group_name   = "nfstos3"
+      task = {
+        name            = "${local.vpc_name}-smb-to-s3"
+        source_key      = "smb-laptop"
+        destination_key = "s3-smb"
+        options = {
+          verify_mode            = "POINT_IN_TIME_CONSISTENT"
+          overwrite_mode         = "ALWAYS"
+          atime                  = "BEST_EFFORT"
+          mtime                  = "PRESERVE"
+          uid                    = "INT_VALUE"
+          gid                    = "INT_VALUE"
+          preserve_deleted_files = "PRESERVE"
+          preserve_devices       = "NONE"
+          posix_permissions      = "PRESERVE"
+        }
+        schedule_expression = "cron(0 6 ? * * *)" # Every day at 6 AM
       }
     }
   ]

@@ -51,11 +51,17 @@ locals {
       subdirectory = {
         smb = "/SMB"
       }
+      user = {
+        first = "kbrigthain"
+      }
+      password = {
+        first = "Sbo~<Mr$4RfHr-.Oi8`"
+      }
     }
     s3 = {
       subdirectory = {
         datasync_bucket = "/Data"
-        smb = "/SMB"
+        smb             = "/SMB"
       }
     }
   }
