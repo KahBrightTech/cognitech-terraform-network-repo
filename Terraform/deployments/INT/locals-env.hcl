@@ -49,13 +49,13 @@ locals {
         laptop = "10.0.0.88"
       }
       subdirectory = {
-        smb = "/SMB"
+        smb = "\\10.0.0.88\DownloadsShare"
       }
       user = {
-        first = "kbrigthain"
+        first = "DataSyncUser"
       }
       password = {
-        first = "Sbo~<Mr$4RfHr-.Oi8`"
+        first = "Shilohangel@2025"
       }
     }
     s3 = {
