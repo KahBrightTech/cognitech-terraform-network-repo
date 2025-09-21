@@ -34,7 +34,7 @@ locals {
   }
   datasync = {
     agent_arns = {
-      int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-0dc802a3236dc5e99"
+      int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-07047a25d8994edc8"
     }
     nfs = {
       server_hostname = {

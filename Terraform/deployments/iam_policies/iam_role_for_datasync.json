@@ -5,7 +5,8 @@
       "Action": [
         "s3:GetBucketLocation",
         "s3:ListBucket",
-        "s3:ListBucketMultipartUploads"
+        "s3:ListBucketMultipartUploads",
+        "s3:ListObjectsV2"
       ],
       "Effect": "Allow",
       "Resource": "arn:aws:s3:::[[resource_name]]",
