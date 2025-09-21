@@ -845,8 +845,6 @@ inputs = {
           uid                    = "INT_VALUE"
           gid                    = "INT_VALUE"
           preserve_deleted_files = "PRESERVE"
-          preserve_devices       = "NONE"
-          posix_permissions      = "PRESERVE"
         }
         schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
       }
