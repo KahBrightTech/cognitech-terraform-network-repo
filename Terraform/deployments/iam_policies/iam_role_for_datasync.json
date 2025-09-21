@@ -9,7 +9,7 @@
         "s3:ListObjectsV2"
       ],
       "Effect": "Allow",
-      "Resource": "arn:aws:s3:::[[resource_name]]",
+      "Resource": "arn:aws:s3:::int-preproduction-use1-shared-services-datasync-bucket",
       "Condition": {
         "StringEquals": {
           "aws:ResourceAccount": "[[account_number]]"
@@ -35,8 +35,8 @@
         }
       },
       "Resource": [
-        "arn:aws:s3:::[[resource_name]]",
-        "arn:aws:s3:::[[resource_name]]/*"
+        "arn:aws:s3:::int-preproduction-use1-shared-services-datasync-bucket",
+        "arn:aws:s3:::int-preproduction-use1-shared-services-datasync-bucket/*"
       ]
     }
   ]
