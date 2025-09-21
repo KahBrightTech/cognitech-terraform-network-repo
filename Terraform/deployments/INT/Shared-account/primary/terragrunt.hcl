@@ -780,7 +780,7 @@ inputs = {
   ]
   datasync_locations = [
     {
-      key = "dts"
+      key = "s3-app"
       s3_location = {
         location_type          = "S3"
         s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
@@ -789,7 +789,7 @@ inputs = {
       }
     },
     {
-      key = "wsl"
+      key = "nfs-wsl"
       nfs_location = {
         location_type   = "NFS"
         server_hostname = include.env.locals.datasync.nfs.server_hostname.wsl
@@ -807,8 +807,8 @@ inputs = {
       cloudwatch_log_group_name   = "nfstos3"
       task = {
         name            = "${local.vpc_name}-nfs-to-s3"
-        source_key      = "wsl"
-        destination_key = "dts"
+        source_key      = "nfs-wsl"
+        destination_key = "s3-app"
         options = {
           verify_mode            = "POINT_IN_TIME_CONSISTENT"
           overwrite_mode         = "ALWAYS"
@@ -857,6 +857,7 @@ generate "aws-providers" {
   }
   EOF
 }
+
 
 
 
