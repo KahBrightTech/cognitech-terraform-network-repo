@@ -317,7 +317,7 @@ module "datasync_locations" {
 # DataSync Tasks
 #--------------------------------------------------------------------
 module "datasync_tasks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Datasync-Tasks?ref=v1.3.55"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Datasync-Tasks?ref=v1.3.56"
   for_each = (var.datasync_tasks != null) ? { for item in var.datasync_tasks : item.key => item if item.task != null } : {}
   common   = var.common
   datasync = merge(
