@@ -38,10 +38,10 @@ locals {
     }
     nfs = {
       server_hostname = {
-        wsl = "172.31.65.62"
+        nfs = "54.92.154.199"
       }
       subdirectory = {
-        wsl = "/home/owner"
+        nfs = "/shared/nfs"
       }
     }
     smb = {

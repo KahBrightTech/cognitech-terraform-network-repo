@@ -800,8 +800,8 @@ inputs = {
       key = "nfs-wsl"
       nfs_location = {
         location_type   = "NFS"
-        server_hostname = include.env.locals.datasync.nfs.server_hostname.wsl
-        subdirectory    = include.env.locals.datasync.nfs.subdirectory.wsl
+        server_hostname = include.env.locals.datasync.nfs.server_hostname.nfs
+        subdirectory    = include.env.locals.datasync.nfs.subdirectory.nfs
         on_prem_config = {
           agent_arns = [include.env.locals.datasync.agent_arns.int]
         }
