@@ -266,6 +266,14 @@ inputs = {
                 from_port     = 8083
                 to_port       = 8083
                 ip_protocol   = "tcp"
+              },
+              {
+                key         = "ingress-2049-internet"
+                cidr_ipv4   = local.internet_cidr
+                description = "BASE - Inbound NFS traffic from the internet on tcp port 2049"
+                from_port   = 2049
+                to_port     = 2049
+                ip_protocol = "tcp"
               }
             ]
           )
@@ -845,7 +853,7 @@ inputs = {
           uid                    = "INT_VALUE"
           gid                    = "INT_VALUE"
           preserve_deleted_files = "PRESERVE"
-          posix_permissions       = "NONE" # You have to set this if not datasync automatically selects PRESERVE
+          posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
         }
         schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
       }
@@ -863,10 +871,10 @@ inputs = {
           overwrite_mode         = "ALWAYS"
           atime                  = "BEST_EFFORT"
           mtime                  = "PRESERVE"
-          uid                    = "NONE"  
+          uid                    = "NONE"
           gid                    = "NONE"
-          preserve_deleted_files = "PRESERVE" 
-          posix_permissions       = "NONE" # You have to set this if not datasync automatically selects PRESERVE
+          preserve_deleted_files = "PRESERVE"
+          posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
         }
         schedule_expression = "cron(0 8 ? * * *)" # Every day at 8 AM
       }
