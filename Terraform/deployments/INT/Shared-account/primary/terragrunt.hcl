@@ -862,8 +862,6 @@ inputs = {
           overwrite_mode         = "ALWAYS"
           atime                  = "BEST_EFFORT"
           mtime                  = "PRESERVE"
-          uid                    = "INT_VALUE"
-          gid                    = "INT_VALUE"
           preserve_deleted_files = "PRESERVE"
         }
         schedule_expression = "cron(0 8 ? * * *)" # Every day at 8 AM
