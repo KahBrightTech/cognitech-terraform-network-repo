@@ -845,6 +845,7 @@ inputs = {
           uid                    = "INT_VALUE"
           gid                    = "INT_VALUE"
           preserve_deleted_files = "PRESERVE"
+          PosixPermissions       = "NONE"
         }
         schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
       }
@@ -862,7 +863,10 @@ inputs = {
           overwrite_mode         = "ALWAYS"
           atime                  = "BEST_EFFORT"
           mtime                  = "PRESERVE"
+          uid                    = "NONE"  
+          gid                    = "NONE"
           preserve_deleted_files = "PRESERVE"
+          PosixPermissions       = "NONE"
         }
         schedule_expression = "cron(0 8 ? * * *)" # Every day at 8 AM
       }
