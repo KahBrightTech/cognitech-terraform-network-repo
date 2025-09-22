@@ -794,92 +794,92 @@ inputs = {
     #   vpc_name_abr = " $ { local.vpc_name_abr } "
     # }
   ]
-  datasync_locations = [
-    {
-      key = "s3-nfs"
-      s3_location = {
-        location_type          = "S3"
-        s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
-        subdirectory           = include.env.locals.datasync.s3.subdirectory.datasync_bucket
-        bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
-      }
-    },
-    {
-      key = "nfs-wsl"
-      nfs_location = {
-        location_type   = "NFS"
-        server_hostname = include.env.locals.datasync.nfs.server_hostname.nfs
-        subdirectory    = include.env.locals.datasync.nfs.subdirectory.nfs
-        on_prem_config = {
-          agent_arns = [include.env.locals.datasync.agent_arns.int]
-        }
-      }
-    },
-    {
-      key = "smb-laptop"
-      smb_location = {
-        location_type   = "smb"
-        server_hostname = include.env.locals.datasync.smb.server_hostname.laptop
-        user            = include.env.locals.datasync.smb.user.first
-        password        = include.env.locals.datasync.smb.password.first
-        subdirectory    = include.env.locals.datasync.smb.subdirectory.smb
-        agent_arns      = [include.env.locals.datasync.agent_arns.int]
-      }
-    },
-    {
-      key = "s3-smb"
-      s3_location = {
-        location_type          = "S3"
-        s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
-        subdirectory           = include.env.locals.datasync.s3.subdirectory.smb
-        bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
-      }
-    }
-  ]
-  datasync_tasks = [
-    {
-      key                         = "nfs-to-s3"
-      create_cloudwatch_log_group = true
-      cloudwatch_log_group_name   = "nfstos3"
-      task = {
-        name            = "${local.vpc_name}-nfs-to-s3"
-        source_key      = "nfs-wsl"
-        destination_key = "s3-nfs"
-        options = {
-          verify_mode            = "POINT_IN_TIME_CONSISTENT"
-          overwrite_mode         = "ALWAYS"
-          atime                  = "BEST_EFFORT"
-          mtime                  = "PRESERVE"
-          uid                    = "INT_VALUE"
-          gid                    = "INT_VALUE"
-          preserve_deleted_files = "PRESERVE"
-          posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
-        }
-        schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
-      }
-    },
-    {
-      key                         = "smb-to-s3"
-      create_cloudwatch_log_group = true
-      cloudwatch_log_group_name   = "smbtos3"
-      task = {
-        name            = "${local.vpc_name}-smb-to-s3"
-        source_key      = "smb-laptop"
-        destination_key = "s3-smb"
-        options = {
-          verify_mode            = "POINT_IN_TIME_CONSISTENT"
-          overwrite_mode         = "ALWAYS"
-          atime                  = "BEST_EFFORT"
-          mtime                  = "PRESERVE"
-          uid                    = "NONE"
-          gid                    = "NONE"
-          preserve_deleted_files = "PRESERVE"
-          posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
-        }
-        schedule_expression = "cron(0 8 ? * * *)" # Every day at 8 AM
-      }
-    }
-  ]
+  # datasync_locations = [
+  #   {
+  #     key = "s3-nfs"
+  #     s3_location = {
+  #       location_type          = "S3"
+  #       s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
+  #       subdirectory           = include.env.locals.datasync.s3.subdirectory.datasync_bucket
+  #       bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
+  #     }
+  #   },
+  #   {
+  #     key = "nfs-wsl"
+  #     nfs_location = {
+  #       location_type   = "NFS"
+  #       server_hostname = include.env.locals.datasync.nfs.server_hostname.nfs
+  #       subdirectory    = include.env.locals.datasync.nfs.subdirectory.nfs
+  #       on_prem_config = {
+  #         agent_arns = [include.env.locals.datasync.agent_arns.int]
+  #       }
+  #     }
+  #   },
+  #   {
+  #     key = "smb-laptop"
+  #     smb_location = {
+  #       location_type   = "smb"
+  #       server_hostname = include.env.locals.datasync.smb.server_hostname.laptop
+  #       user            = include.env.locals.datasync.smb.user.first
+  #       password        = include.env.locals.datasync.smb.password.first
+  #       subdirectory    = include.env.locals.datasync.smb.subdirectory.smb
+  #       agent_arns      = [include.env.locals.datasync.agent_arns.int]
+  #     }
+  #   },
+  #   {
+  #     key = "s3-smb"
+  #     s3_location = {
+  #       location_type          = "S3"
+  #       s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
+  #       subdirectory           = include.env.locals.datasync.s3.subdirectory.smb
+  #       bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
+  #     }
+  #   }
+  # # ]
+  # datasync_tasks = [
+  #   {
+  #     key                         = "nfs-to-s3"
+  #     create_cloudwatch_log_group = true
+  #     cloudwatch_log_group_name   = "nfstos3"
+  #     task = {
+  #       name            = "${local.vpc_name}-nfs-to-s3"
+  #       source_key      = "nfs-wsl"
+  #       destination_key = "s3-nfs"
+  #       options = {
+  #         verify_mode            = "POINT_IN_TIME_CONSISTENT"
+  #         overwrite_mode         = "ALWAYS"
+  #         atime                  = "BEST_EFFORT"
+  #         mtime                  = "PRESERVE"
+  #         uid                    = "INT_VALUE"
+  #         gid                    = "INT_VALUE"
+  #         preserve_deleted_files = "PRESERVE"
+  #         posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
+  #       }
+  #       schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
+  #     }
+  #   },
+  #   {
+  #     key                         = "smb-to-s3"
+  #     create_cloudwatch_log_group = true
+  #     cloudwatch_log_group_name   = "smbtos3"
+  #     task = {
+  #       name            = "${local.vpc_name}-smb-to-s3"
+  #       source_key      = "smb-laptop"
+  #       destination_key = "s3-smb"
+  #       options = {
+  #         verify_mode            = "POINT_IN_TIME_CONSISTENT"
+  #         overwrite_mode         = "ALWAYS"
+  #         atime                  = "BEST_EFFORT"
+  #         mtime                  = "PRESERVE"
+  #         uid                    = "NONE"
+  #         gid                    = "NONE"
+  #         preserve_deleted_files = "PRESERVE"
+  #         posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
+  #       }
+  #       schedule_expression = "cron(0 8 ? * * *)" # Every day at 8 AM
+  #     }
+  #   }
+  # ]
 }
 #-------------------------------------------------------
 # State Configuration
