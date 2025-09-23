@@ -34,7 +34,6 @@ locals {
   vpc_name        = "shared-services"
   vpc_name_abr    = "shared"
   deployment_path = "Shared-account"
-  
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
