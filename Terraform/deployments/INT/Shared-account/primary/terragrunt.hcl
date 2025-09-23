@@ -682,7 +682,7 @@ inputs = {
         key    = "tag:WinRMInstall"
         values = ["True"]
       }
-      schedule_expression = "cron(0 7 ? * SUN *)" # Every Sunday at 7 AM
+      schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
     },
     {
       name            = "NFS-Install"

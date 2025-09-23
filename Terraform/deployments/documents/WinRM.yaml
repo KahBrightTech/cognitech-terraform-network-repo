@@ -26,6 +26,27 @@ mainSteps:
       Write-Host "[$(Get-Date)] Starting WinRM configuration for Ansible Tower..."
 
       try {
+          # Install RSAT Tools
+          Write-Host "Installing Remote Server Administration Tools (RSAT)..."
+          try {
+              # Get available RSAT features
+              $rsatFeatures = Get-WindowsCapability -Online | Where-Object {$_.Name -like "Rsat*" -and $_.State -eq "NotPresent"}
+              
+              if ($rsatFeatures) {
+                  Write-Host "Found $($rsatFeatures.Count) RSAT features to install..."
+                  foreach ($feature in $rsatFeatures) {
+                      Write-Host "Installing $($feature.Name)..."
+                      Add-WindowsCapability -Online -Name $feature.Name -ErrorAction SilentlyContinue
+                  }
+                  Write-Host "RSAT installation completed."
+              } else {
+                  Write-Host "All RSAT features are already installed or not available."
+              }
+          } catch {
+              Write-Warning "Failed to install some RSAT features: $($_.Exception.Message)"
+              Write-Host "Continuing with WinRM configuration..."
+          }
+          
           # Enable WinRM service
           Write-Host "Enabling WinRM service..."
           Enable-PSRemoting -Force -SkipNetworkProfileCheck
