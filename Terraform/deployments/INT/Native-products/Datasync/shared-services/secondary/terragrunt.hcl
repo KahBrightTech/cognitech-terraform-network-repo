@@ -15,7 +15,7 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context     = "primary"
+  region_context     = "secondary"
   deploy_globally    = "true"
   internal           = "private"
   external           = "public"
@@ -26,12 +26,14 @@ locals {
   cidr_blocks        = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket       = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table   = include.env.locals.remote_dynamodb_table
-  vpc_name           = "shared-services"
-  vpc_name_abr       = "Datasync"
   internet_cidr      = "0.0.0.0/0"
   account_id         = include.cloud.locals.account_info[include.env.locals.name_abr].number
   aws_account_name   = include.cloud.locals.account_info[include.env.locals.name_abr].name
   public_hosted_zone = "${local.vpc_name_abr}.${include.env.locals.public_domain}"
+  ## Updates these variables as per the product/service
+  vpc_name     = "shared-services"
+  vpc_name_abr = "shared"
+  deployment_path = "Native-products"
 
   # Composite variables 
   tags = merge(
@@ -46,14 +48,14 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Simple-Native-Products"
+  source = "../../../../../..//formations/Simple-Native-Products"
 }
 
 #-------------------------------------------------------
 # Dependencies 
 #-------------------------------------------------------
 dependency "shared_services" {
-  config_path = "../../../Shared-account/${local.region_context}"
+  config_path = "../../../../Shared-account/${local.region_context}"
 }
 #-------------------------------------------------------
 # Inputs 
