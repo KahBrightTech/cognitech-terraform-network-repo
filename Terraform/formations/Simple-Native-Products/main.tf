@@ -43,6 +43,52 @@ module "s3_app_bucket" {
   )
 }
 
+
+#--------------------------------------------------------------------
+# Target groups 
+#--------------------------------------------------------------------
+module "target_groups" {
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Target-groups?ref=v1.3.9"
+  #for_each     = (var.target_groups != null) ? { for item in var.target_groups : (item.key != null ? item.key : item.name) => item } : {}
+  for_each     = (var.target_groups != null) ? { for item in var.target_groups : item.name => item } : {}
+  common       = var.common
+  target_group = each.value
+}
+
+#--------------------------------------------------------------------
+# EC2 - Creates ec2 instances
+#--------------------------------------------------------------------
+module "ec2_instance" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-instance?ref=v1.3.34"
+  for_each = (var.ec2_instances != null) ? { for item in var.ec2_instances : item.index => item } : {}
+  common   = var.common
+  ec2 = merge(
+    each.value,
+    {
+      target_group_arns = (each.value.attach_tg != null) ? [
+        for item in each.value.attach_tg :
+        module.target_groups[item].target_group_arn
+      ] : null
+    }
+  )
+}
+
+
+#--------------------------------------------------------------------
+# Route 53 - Creates  DNS records 
+#--------------------------------------------------------------------
+module "hosted_zones" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Route-53-records?ref=v1.1.81"
+  for_each = (var.ec2_instances != null) ? { for item in var.ec2_instances : item.index => item if item.hosted_zones != null } : {}
+  common   = var.common
+  dns_record = merge(
+    each.value.hosted_zones,
+    {
+      records = [module.ec2_instance[each.key].private_ip]
+    }
+  )
+}
+
 #--------------------------------------------------------------------
 # DataSync Locations (Source and Destination)
 #--------------------------------------------------------------------

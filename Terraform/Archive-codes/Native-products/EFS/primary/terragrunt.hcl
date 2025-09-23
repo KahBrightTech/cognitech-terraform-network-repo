@@ -27,7 +27,7 @@ locals {
   state_bucket       = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table   = include.env.locals.remote_dynamodb_table
   vpc_name           = "shared-services"
-  vpc_name_abr       = "shared"
+  native_name_abr       = "datasync"
   internet_cidr      = "0.0.0.0/0"
   account_id         = include.cloud.locals.account_info[include.env.locals.name_abr].number
   aws_account_name   = include.cloud.locals.account_info[include.env.locals.name_abr].name
@@ -37,7 +37,7 @@ locals {
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "shared-services"
+      Environment = "native-services"
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
