@@ -52,7 +52,7 @@ locals {
         smb = "/Datasync-folder/"
       }
       user = {
-        first = "DESKTOP-KGBORH3\\kah"
+        first = ".\\kah"
       }
       password = {
         first = "Shilohangel@2025"
