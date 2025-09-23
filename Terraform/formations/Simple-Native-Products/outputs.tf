@@ -7,6 +7,14 @@ output "IAM_roles" {
 }
 
 #-------------------------------------------------------
+# S3 outputs
+#-------------------------------------------------------
+output "S3_buckets" {
+  description = "S3 buckets details"
+  value       = module.s3_app_bucket
+}
+
+#-------------------------------------------------------
 # DataSync Locations outputs
 #-------------------------------------------------------
 output "datasync_locations" {

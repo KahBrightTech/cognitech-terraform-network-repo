@@ -34,6 +34,75 @@ variable "iam_roles" {
   default = null
 }
 
+variable "s3_private_buckets" {
+  description = "S3 bucket variables"
+  type = list(object({
+    name                     = string
+    description              = string
+    name_override            = optional(string)
+    policy                   = optional(string)
+    enable_versioning        = optional(bool, true)
+    enable_bucket_policy     = optional(bool, true)
+    override_policy_document = optional(string)
+    encryption = optional(object({
+      enabled            = optional(bool, true)
+      sse_algorithm      = optional(string, "AES256")
+      kms_master_key_id  = optional(string, null)
+      bucket_key_enabled = optional(bool, false)
+      }), {
+      enabled            = true
+      sse_algorithm      = "AES256"
+      kms_master_key_id  = null
+      bucket_key_enabled = false
+    })
+    iam_role_arn_pattern = optional(map(string), null)
+    lifecycle = optional(object({
+      standard_expiration_days          = number
+      infrequent_access_expiration_days = number
+      glacier_expiration_days           = number
+      delete_expiration_days            = number
+    }))
+    lifecycle_noncurrent = optional(object({
+      standard_expiration_days          = number
+      infrequent_access_expiration_days = number
+      glacier_expiration_days           = number
+      delete_expiration_days            = number
+    }))
+    objects = optional(list(object({
+      key = string
+    })))
+    replication = optional(object({
+      role_arn = string
+      rules = list(object({
+        status                    = string
+        delete_marker_replication = optional(bool, false)
+        prefix                    = optional(string, "")
+        filter = optional(object({
+          prefix = string
+        }))
+        destination = object({
+          bucket_arn    = string
+          storage_class = optional(string, "STANDARD")
+          access_control_translation = optional(object({
+            owner = string
+          }))
+          account_id = optional(number)
+          encryption_configuration = optional(object({
+            replica_kms_key_id = string
+          }))
+          replication_time = optional(object({
+            minutes = optional(number, 15)
+          }))
+          replica_modification = optional(object({
+            enabled                         = optional(bool, false)
+            metrics_event_threshold_minutes = optional(number, 15)
+          }))
+        })
+      }))
+    }))
+  }))
+  default = null
+}
 variable "datasync_locations" {
   description = "DataSync configuration with all location types and task settings"
   type = list(object({
