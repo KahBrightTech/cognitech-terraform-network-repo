@@ -115,6 +115,12 @@ inputs = {
           vpc_name    = local.vpc_name
         },
         {
+          key         = "efs"
+          name        = "shared-efs"
+          description = "standard shared efs security group"
+          vpc_name    = local.vpc_name
+        },
+        {
           key         = "nlb"
           name        = "shared-nlb"
           description = "standard shared nlb security group"
@@ -288,6 +294,20 @@ inputs = {
               }
             ]
           )
+        },
+        {
+          sg_key = "efs"
+          ingress = [
+            {
+              key           = "ingress-2049-app-sg"
+              source_sg_key = "app"
+              description   = "BASE - Inbound traffic from App SG to EFS on tcp port 2049"
+              from_port     = 2049
+              to_port       = 2049
+              ip_protocol   = "tcp"
+            }
+          ]
+          egress = []
         }
       ]
       s3 = {
