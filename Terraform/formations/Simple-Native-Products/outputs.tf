@@ -1,4 +1,12 @@
 #-------------------------------------------------------
+# IAM outputs
+#-------------------------------------------------------
+output "IAM_roles" {
+  description = "IAM roles and policies details"
+  value       = module.iam_roles
+}
+
+#-------------------------------------------------------
 # DataSync Locations outputs
 #-------------------------------------------------------
 output "datasync_locations" {
