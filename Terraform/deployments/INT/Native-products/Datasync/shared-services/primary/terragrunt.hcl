@@ -30,10 +30,15 @@ locals {
   account_id         = include.cloud.locals.account_info[include.env.locals.name_abr].number
   aws_account_name   = include.cloud.locals.account_info[include.env.locals.name_abr].name
   public_hosted_zone = "${local.vpc_name_abr}.${include.env.locals.public_domain}"
+  Misc_tags = {
+    "PrivateHostedZone" = "shared.cognitech.com"
+    "PublicHostedZone"  = "cognitech.com"
+  }
   ## Updates these variables as per the product/service
-  vpc_name     = "shared-services"
-  vpc_name_abr = "shared"
+  vpc_name        = "shared-services"
+  vpc_name_abr    = "shared"
   deployment_path = "Native-products"
+  native_products = "datasync"
 
   # Composite variables 
   tags = merge(
@@ -70,7 +75,7 @@ inputs = {
     account_name_abr = include.env.locals.name_abr
   }
 
- ec2_instances = [
+  ec2_instances = [
     {
       index            = "nfs"
       name             = "nfs-server"
