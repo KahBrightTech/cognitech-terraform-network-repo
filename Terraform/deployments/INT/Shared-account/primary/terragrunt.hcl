@@ -877,7 +877,7 @@ inputs = {
           preserve_deleted_files = "PRESERVE"
           posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
         }
-        schedule_expression = "cron(0 8 ? * * *)" # Every day at 8 AM
+        schedule_expression = "cron(0 8 ? * * *)" # Every day at 8AM
       }
     }
   ]
