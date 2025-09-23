@@ -14,6 +14,15 @@ output "IAM_roles" {
   value       = module.iam_roles
 }
 
+#-------------------------------------------------------
+# S3 outputs
+#-------------------------------------------------------
+output "S3_buckets" {
+  description = "S3 buckets details"
+  value       = module.s3_app_bucket
+}
+
+
 output "ec2_profiles" {
   description = "EC2 instance profiles details"
   value       = module.ec2_profiles

@@ -46,7 +46,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../..//formations/Simple-Network-Shared-Account"
+  source = "../../../..//formations/Simple-Native-Products"
 }
 
 #-------------------------------------------------------
@@ -106,7 +106,7 @@ inputs = {
         location_type          = "S3"
         s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
         subdirectory           = include.env.locals.datasync.s3.subdirectory.smb
-        bucket_access_role_arn = dependency.shared_services.outputs.
+        bucket_access_role_arn = dependency.shared_services.outputs.IAM_roles.shared-services-datasync.iam_role_arn
       }
     }
   ]
