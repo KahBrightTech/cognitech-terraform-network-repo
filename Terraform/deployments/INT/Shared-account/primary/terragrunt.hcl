@@ -871,6 +871,7 @@ inputs = {
           overwrite_mode         = "ALWAYS"
           atime                  = "BEST_EFFORT"
           mtime                  = "PRESERVE"
+          log_level              = "TRANSFER"
           uid                    = "NONE"
           gid                    = "NONE"
           preserve_deleted_files = "PRESERVE"
