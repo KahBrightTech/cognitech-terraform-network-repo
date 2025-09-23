@@ -70,6 +70,87 @@ inputs = {
     account_name_abr = include.env.locals.name_abr
   }
 
+ ec2_instances = [
+    {
+      index            = "nfs"
+      name             = "nfs-server"
+      backup_plan_name = "${local.aws_account_name}-${local.region_context}-continous-backup"
+      name_override    = "INTPP-SHR-L-NFS-01"
+      ami_config = {
+        os_release_date = "AL2023"
+      }
+      associate_public_ip_address = true
+      instance_type               = "t3.large"
+      iam_instance_profile        = dependency.shared_services.outputs.ec2_profiles[local.vpc_name].iam_profiles.name
+      associate_public_ip_address = true
+      key_name                    = dependency.shared_services.outputs.ec2_key_pairs["${local.vpc_name}-key-pair"].name
+      custom_tags = merge(
+        local.Misc_tags,
+        {
+          "Name"       = "INTPP-SHR-L-NFS-01"
+          "DNS_Prefix" = "nfs01"
+          "CreateUser" = "True"
+        }
+      )
+      ebs_device_volume = []
+      ebs_root_volume = {
+        volume_size           = 30
+        volume_type           = "gp3"
+        delete_on_termination = true
+      }
+      subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet[include.env.locals.subnet_prefix.primary].primary_subnet_id
+      Schedule_name = "nfs-server-schedule"
+      security_group_ids = [
+        dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
+      ]
+      hosted_zones = {
+        name    = "nfs01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones[local.vpc_name_abr].zone_name}"
+        zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones[local.vpc_name_abr].zone_id
+        type    = "A"
+      }
+    },
+    {
+      index            = "smb"
+      name             = "ssrs-server"
+      backup_plan_name = "${local.aws_account_name}-${local.region_context}-continous-backup"
+      name_override    = "INTPP-SHR-W-SMB-01"
+      ami_config = {
+        os_release_date  = "W22"
+        os_base_packages = "BASE"
+      }
+      associate_public_ip_address = true
+      instance_type               = "t3.large"
+      iam_instance_profile        = dependency.shared_services.outputs.ec2_profiles[local.vpc_name].iam_profiles.name
+      associate_public_ip_address = true
+      key_name                    = dependency.shared_services.outputs.ec2_key_pairs["${local.vpc_name}-key-pair"].name
+      custom_tags = merge(
+        local.Misc_tags,
+        {
+          "Name"         = "INTPP-SHR-W-SMB-01"
+          "DNS_Prefix"   = "smb01"
+          "CreateUser"   = "True"
+          "WinRMInstall" = "True"
+        }
+      )
+      ebs_device_volume = []
+      ebs_root_volume = {
+        volume_size           = 20
+        volume_type           = "gp3"
+        delete_on_termination = true
+      }
+      subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet[include.env.locals.subnet_prefix.primary].primary_subnet_id
+      Schedule_name = "ansible-server-schedule"
+      security_group_ids = [
+        dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
+      ]
+      hosted_zones = {
+        name    = "smb01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones[local.vpc_name_abr].zone_name}"
+        zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones[local.vpc_name_abr].zone_id
+        type    = "A"
+      }
+    }
+  ]
+
   datasync_locations = [
     # {
     #   key = "s3-nfs"
