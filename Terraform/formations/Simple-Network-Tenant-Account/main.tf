@@ -9,7 +9,7 @@ data "aws_caller_identity" "current" {}
 #--------------------------------------------------------------------
 module "customer_vpc" {
   source   = "../Simple-network"
-  for_each = { for vpc in var.vpcs : vpc.name => vpc }
+  for_each = var.vpcs != null ? { for vpc in var.vpcs : vpc.name => vpc } : {}
   vpc      = each.value
   common   = var.common
 }

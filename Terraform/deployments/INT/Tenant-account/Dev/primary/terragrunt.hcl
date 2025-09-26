@@ -65,6 +65,7 @@ inputs = {
     region           = local.region
     account_name_abr = include.env.locals.name_abr
   }
+  
   # vpcs = [
   #   {
   #     name       = local.vpc_name
