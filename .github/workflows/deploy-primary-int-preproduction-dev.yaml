@@ -21,7 +21,6 @@ on:
         description: "Apply even if no change is reported in the plan"
         required: false
         type: boolean
-
 env:
   IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
   REGION: us-east-1
