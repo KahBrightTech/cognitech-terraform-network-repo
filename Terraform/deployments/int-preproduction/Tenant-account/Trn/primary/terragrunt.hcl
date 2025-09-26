@@ -405,8 +405,8 @@ inputs = {
   ]
   iam_users = [
     {
-      name                = "ansible-user"
-      description         = "Ansible user credentials"
+      name                = "${local.vpc_name_abr}-ansible-iam-user"
+      description         = "${local.vpc_name_abr} Ansible user credentials"
       path                = "/"
       force_destroy       = true
       groups              = ["Admins"]
