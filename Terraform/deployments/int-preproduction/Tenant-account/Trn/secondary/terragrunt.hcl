@@ -403,31 +403,7 @@ inputs = {
       }
     }
   ]
-  iam_users = [
-    {
-      name                = "${local.vpc_name_abr}-ansible-iam-user"
-      description         = "${local.vpc_name_abr} Ansible user credentials"
-      path                = "/"
-      force_destroy       = true
-      groups              = ["Admins"]
-      regions             = null
-      notifications_email = include.env.locals.owner
-      create_access_key   = true
-      secrets_manager = {
-        recovery_window_in_days = 7
-        description             = "Access and Secret key for Ansible Service Account"
-        policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      }
-      group_policies = [
-        {
-          group_name  = "${local.vpc_name_abr}-Admins"
-          policy_name = "${local.vpc_name_abr}-Admin-group-policy"
-          description = "${local.vpc_name_abr} Admin group policy"
-          policy      = file("${include.cloud.locals.repo.root}/iam_policies/Admin_group_policy.json")
-        }
-      ]
-    }
-  ]
+  iam_users = []
   key_pairs = [
     {
       name               = "${local.vpc_name}-key-pair"
