@@ -814,7 +814,6 @@ inputs = {
     #   vpc_name_abr = " $ { local.vpc_name_abr } "
     # }
   ]
-  
   # datasync_locations = [
   #   # {
   #   #   key = "s3-nfs"

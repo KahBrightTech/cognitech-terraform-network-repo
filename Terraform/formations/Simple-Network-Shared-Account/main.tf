@@ -16,7 +16,7 @@ data "aws_iam_roles" "network_role" {
 
 module "shared_vpc" {
   source   = "../Simple-network"
-  for_each = { for vpc in var.vpcs : vpc.name => vpc }
+  for_each = var.vpcs != null ? { for vpc in var.vpcs : vpc.name => vpc } : {}
   vpc      = each.value
   common   = var.common
 }
