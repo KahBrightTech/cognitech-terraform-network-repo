@@ -1,7 +1,6 @@
 #-------------------------------------------------------
 # Includes Block 
 #-------------------------------------------------------
-
 include "cloud" {
   path   = find_in_parent_folders("locals-cloud.hcl")
   expose = true
@@ -33,7 +32,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name     = "development"
   vpc_name_abr = "dev"
-  
+
   # Composite variables 
   tags = merge(
     include.env.locals.tags,

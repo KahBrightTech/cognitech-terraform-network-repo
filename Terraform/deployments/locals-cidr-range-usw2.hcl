@@ -331,7 +331,7 @@ locals {
           }
         }
         app_vpc = {
-          dev = {
+          development = {
             vpc = "10.2.1.0/24"
             public_subnets = {
               sbnt1 = {
@@ -354,7 +354,7 @@ locals {
               }
             }
           }
-          trn = {
+          training = {
             vpc = "10.2.4.0/24"
             public_subnets = {
               sbnt1 = {
@@ -377,7 +377,7 @@ locals {
               }
             }
           }
-          sit = {
+          system-integration = {
             vpc = "10.2.5.0/24"
             public_subnets = {
               sbnt1 = {
