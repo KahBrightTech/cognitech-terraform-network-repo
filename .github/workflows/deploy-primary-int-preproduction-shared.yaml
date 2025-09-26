@@ -1,4 +1,4 @@
-name: Deploy-primary-int-shared-Network(INT)
+name: Deploy-primary-int-preproduction-shared
 on:
   push:
     branches:

@@ -1,4 +1,4 @@
-name: Deploy-primary-int-preproduction-DEV
+name: Deploy-primary-int-preproduction-dev
 on:
   push:
     branches:
