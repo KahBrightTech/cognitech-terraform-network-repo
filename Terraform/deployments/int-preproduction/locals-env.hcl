@@ -35,11 +35,11 @@ locals {
   }
 
   secret_names = {
-    ansible = "ansible-credentials"
-    user    = "user-credentials"
-    docker  = "docker-credentials"
+    ansible = "ansible-creds"
+    user    = "user-creds"
+    docker  = "docker-creds"
   }
-  
+
   datasync = {
     agent_arns = {
       int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-07047a25d8994edc8"
