@@ -9,7 +9,6 @@ locals {
   environment = "sit"
   owner       = "kbrigthain@gmail.com"
   repo_name   = "cognitech-terraform-network-repo"
-  account_name
 
   remote_state_bucket = {
     primary   = "terragruntint"
