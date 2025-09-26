@@ -38,10 +38,16 @@ locals {
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "shared-services"
+      Environment = local.vpc_name
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
+}
+#-------------------------------------------------------
+# Dependencies 
+#-------------------------------------------------------
+dependency "shared_services" {
+  config_path = "../../../Shared-account/${local.region_context}"
 }
 #-------------------------------------------------------
 # Source  
@@ -333,63 +339,11 @@ inputs = {
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     },
     {
-      name              = "${local.vpc_name}-config-bucket"
-      description       = "The configuration bucket for different apps"
-      enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
-    },
-
-    {
-      name                 = "${local.vpc_name}-src-replication-bucket"
-      description          = "The source replication bucket"
-      enable_versioning    = true
-      enable_bucket_policy = false
-      # encryption = {
-      #   enabled            = true
-      #   sse_algorithm      = "aws:kms"
-      #   kms_master_key_id  = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
-      #   bucket_key_enabled = false
-      # }
-      # replication = {
-      #   role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
-      #   rules = [
-      #     {
-      #       id     = "replication-rule-1"
-      #       status = "Enabled"
-      #       destination = {
-      #         bucket_arn    = "arn:aws:s3:::mdproduction-use1-shared-services-dest-replication-bucket"
-      #         storage_class = "STANDARD"
-      #         access_control_translation = {
-      #           owner = "Destination"
-      #         }
-      #         account_id = "485147667400"
-      #         replication_time = {
-      #           minutes = "15"
-      #         }
-      #         encryption_configuration = {
-      #           replica_kms_key_id = "arn:aws:kms:${local.region}:485147667400:key/mrk-587301af90c9440c813284f882515d18"
-      #         }
-      #         replica_modification = {
-      #           enabled = true
-      #         }
-      #       }
-      #     }
-      #   ]
-      # }
-    },
-    {
       key               = "audit-bucket"
       name              = "${local.vpc_name}-audit-bucket"
       description       = "The audit bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
-    },
-    {
-      key               = "report-bucket"
-      name              = "${local.vpc_name}-report-bucket"
-      description       = "The report bucket for different apps"
-      enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
     },
     {
       key               = "software-bucket"
@@ -401,27 +355,12 @@ inputs = {
           key = "Ansible_Tower/"
         }
       ]
-    },
-    {
-      key                  = "datasync-bucket"
-      name                 = "${local.vpc_name}-datasync-bucket"
-      description          = "The data sync bucket for different apps"
-      enable_versioning    = false
-      enable_bucket_policy = false
-      objects = [
-        {
-          key = "Data/"
-        },
-        {
-          key = "SMB/"
-        }
-      ]
     }
   ]
   ec2_profiles = [
     {
       name               = "${local.vpc_name}"
-      description        = "EC2 Instance Profile for Shared Services"
+      description        = "EC2 Instance Profile for ${local.vpc_name}"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
@@ -462,17 +401,6 @@ inputs = {
         name        = "${local.vpc_name}-source-replication"
         description = "IAM policy for ${local.vpc_name} source replication"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
-      }
-    },
-    {
-      name               = "${local.vpc_name}-datasync"
-      description        = "IAM Role for ${local.vpc_name} DataSync"
-      path               = "/"
-      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/datasync_trust_policy.json"
-      policy = {
-        name        = "${local.vpc_name}-datasync"
-        description = "IAM policy for ${local.vpc_name} DataSync"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_datasync.json"
       }
     }
   ]
@@ -518,390 +446,109 @@ inputs = {
       zone_name         = include.env.locals.public_domain
     }
   ]
-  secrets = [
-    {
-      name                    = include.env.locals.secret_names.ansible
-      description             = "Ansible tower credentials"
-      recovery_window_in_days = 7
-      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      value = {
-        username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
-        password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
-      }
-    },
-    {
-      name                    = include.env.locals.secret_names.user
-      description             = "User credentials for ${local.aws_account_name} environment"
-      recovery_window_in_days = 0
-      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      value = {
-        username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
-        password1 = "${get_env("TF_VAR_USER_PASSWORD1")}"
-        username2 = "${get_env("TF_VAR_USER_USERNAME2")}"
-        password2 = "${get_env("TF_VAR_USER_PASSWORD2")}"
-      }
-    },
-    {
-      name                    = include.env.locals.secret_names.docker
-      description             = "Docker credentials for ${local.aws_account_name} environment"
-      recovery_window_in_days = 0
-      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      value = {
-        username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
-        password = "${get_env("TF_VAR_DOCKER_PASSWORD")}"
-      }
-    }
-  ]
-  ssm_parameters = [
-    {
-      name        = "/Standard/ansible/username"
-      description = "Ansible Tower Username"
-      type        = "String"
-      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
-    },
-    {
-      name        = "/Standard/ansible/password"
-      description = "Ansible Tower Password"
-      type        = "String"
-      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
-    },
-    {
-      name        = "/Standard/ansible/bucketName"
-      description = "Ansible Tower Bucket Name"
-      type        = "String"
-      value       = "ansibleautomationbucket"
-    },
-    {
-      name        = "/Standard/account/UserCredentials"
-      description = "Ansible Tower User Credentials"
-      type        = "String"
-      overwrite   = true
-      value       = "${local.aws_account_name}-${local.region_prefix}-${include.env.locals.secret_names.user}"
-    }
-  ]
-  backups = [
-    {
-      name       = "${local.aws_account_name}-${local.region_prefix}-backup-vault"
-      kms_key_id = include.env.locals.kms_key_id.primary
-      plan = {
-        name = "${local.aws_account_name}-${local.region_prefix}-backup-plan"
-        rules = [
-          {
-            rule_name         = "DailyBackup"
-            schedule          = "cron(0 15 ? * * *)"
-            start_window      = 60
-            completion_window = 120
-            lifecycle = {
-              delete_after_days = 30
-            }
-            copy_actions = [
-              {
-                destination_vault_arn = "arn:aws:backup:us-west-2:${local.account_id}:backup-vault:${local.aws_account_name}-usw2-backup-vault"
-                lifecycle = {
-                  cold_storage_after_days = 30
-                }
-              }
-            ]
-          },
-          {
-            rule_name         = "WeeklyBackup"
-            schedule          = "cron(0 15 ? * 1 *)"
-            start_window      = 120
-            completion_window = 360
-            lifecycle = {
-              cold_storage_after_days = 60
-              delete_after_days       = 180
-            }
-            copy_actions = [
-              {
-                destination_vault_arn = "arn:aws:backup:us-west-2:${local.account_id}:backup-vault:${local.aws_account_name}-usw2-backup-vault"
-                lifecycle = {
-                  cold_storage_after_days = 60
-                  delete_after_days       = 180
-                }
-              }
-            ]
-          }
-        ]
-        selection = {
-          selection_name = "${local.aws_account_name}-${local.region_prefix}-backup-selection"
-          selection_tags = [
-            {
-              type  = "STRINGEQUALS"
-              key   = "Backup"
-              value = "${local.aws_account_name}-${local.region_prefix}-continous-backup"
-            }
-          ]
-        }
-      }
-    }
-  ]
-  ssm_documents = [
-    {
-      name               = "ansible-tower-install"
-      content            = file("${include.cloud.locals.repo.root}/documents/AnsibleInstall.yaml")
-      document_type      = "Command"
-      document_format    = "YAML"
-      create_association = true
-      targets = {
-        key    = "tag:AnsibleInstall"
-        values = ["True"]
-      }
-      schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
-    },
-    {
-      name               = "universal-user-credentials"
-      content            = file("${include.cloud.locals.repo.root}/documents/UniversalUserCreation.yaml")
-      document_type      = "Command"
-      document_format    = "YAML"
-      create_association = true
-      targets = {
-        key    = "tag:CreateUser"
-        values = ["True"]
-      }
-      schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
-    },
-    {
-      name               = "Docker-Install"
-      content            = file("${include.cloud.locals.repo.root}/documents/DockerInstall.yaml")
-      document_type      = "Command"
-      document_format    = "YAML"
-      create_association = true
-      targets = {
-        key    = "tag:DockerInstall"
-        values = ["True"]
-      }
-      schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
-    },
-    {
-      name               = "WinRM-Config"
-      content            = file("${include.cloud.locals.repo.root}/documents/WinRM.yaml")
-      document_type      = "Command"
-      document_format    = "YAML"
-      create_association = true
-      targets = {
-        key    = "tag:WinRMInstall"
-        values = ["True"]
-      }
-      schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
-    },
-    {
-      name            = "NFS-Install"
-      content         = file("${include.cloud.locals.repo.root}/documents/NFSInstall.yaml")
-      document_type   = "Command"
-      document_format = "YAML"
-    }
-  ]
-  load_balancers = [
-    # {
-    #   key             = "app"
-    #   name            = "app"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = false
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    #   create_default_listener    = true
-    # },
-    # {
-    #   key             = " etl "
-    #   name            = " etl "
-    #   vpc_name_abr    = " $ { local.vpc_name_abr } "
-    #   type            = " application "
-    #   security_groups = [" alb "]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
-    #   vpc_name                   = local.vpc_name
-    # },
-    # {
-    #   key             = " ssrs "
-    #   name            = " ssrs "
-    #   vpc_name_abr    = " $ { local.vpc_name_abr } "
-    #   type            = " network "
-    #   security_groups = [" nlb "]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = false
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
-    #   vpc_name                   = local.vpc_name
-    # }
-  ]
-  alb_listeners = [
-    # {
-    #   key      = " etl "
-    #   alb_key  = " etl "
-    #   protocol = " HTTPS "
-    #   port     = 443
-    #   action   = " fixed-response "
-    #   vpc_name = local.vpc_name
-    #   fixed_response = {
-    #     content_type = " text / plain "
-    #     message_body = " This is a default response from the ETL ALB listener."
-    #     status_code  = " 200 "
-    #   }
-    # }
-  ]
-  alb_listener_rules = [
-    # {
-    #   index_key    = " etl "
-    #   listener_key = " etl "
-    #   rules = [
-    #     {
-    #       key      = " etl "
-    #       priority = 10
-    #       type     = " forward "
-    #       target_groups = [
-    #         {
-    #           tg_name = " etl "
-    #           weight  = 99
-    #         }
-    #       ]
-    #       conditions = [
-    #         {
-    #           host_headers = [
-    #             " etl.$ { local.public_hosted_zone } ",
-    #           ]
-    #         }
-    #       ]
-    #     }
-    #   ]
-    # }
-  ]
-  nlb_listeners = [
-    # {
-    #   key        = " ssrs "
-    #   nlb_key    = " ssrs "
-    #   protocol   = " TLS "
-    #   port       = 443
-    #   ssl_policy = " ELBSecurityPolicy-TLS-1-2-2017-01 "
-    #   action     = " forward "
-    #   vpc_name   = local.vpc_name
-    #   target_group = {
-    #     name         = " ssrs "
-    #     protocol     = " TLS "
-    #     port         = 443
-    #     vpc_name_abr = local.vpc_name_abr
-    #     health_check = {
-    #       protocol = " HTTPS "
-    #       port     = " 443 "
-    #       path     = " / "
-    #     }
-    #   }
-    # }
-  ]
-  target_groups = [
-    # {
-    #   key      = " etl "
-    #   name     = " etl "
-    #   protocol = " HTTPS "
-    #   port     = 443
-    #   health_check = {
-    #     protocol = " HTTPS "
-    #     port     = " 443 "
-    #     path     = " / "
-    #   }
-    #   vpc_name     = local.vpc_name
-    #   vpc_name_abr = " $ { local.vpc_name_abr } "
-    # }
-  ]
-  # datasync_locations = [
-  #   # {
-  #   #   key = "s3-nfs"
-  #   #   s3_location = {
-  #   #     location_type          = "S3"
-  #   #     s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
-  #   #     subdirectory           = include.env.locals.datasync.s3.subdirectory.datasync_bucket
-  #   #     bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
-  #   #   }
-  #   # },
-  #   # {
-  #   #   key = "nfs-wsl"
-  #   #   nfs_location = {
-  #   #     location_type   = "NFS"
-  #   #     server_hostname = include.env.locals.datasync.nfs.server_hostname.nfs
-  #   #     subdirectory    = include.env.locals.datasync.nfs.subdirectory.nfs
-  #   #     on_prem_config = {
-  #   #       agent_arns = [include.env.locals.datasync.agent_arns.int]
-  #   #     }
-  #   #   }
-  #   # },
-  #   {
-  #     key = "smb-laptop"
-  #     smb_location = {
-  #       location_type   = "smb"
-  #       server_hostname = include.env.locals.datasync.smb.server_hostname.laptop
-  #       user            = include.env.locals.datasync.smb.user.first
-  #       password        = include.env.locals.datasync.smb.password.first
-  #       subdirectory    = include.env.locals.datasync.smb.subdirectory.smb
-  #       agent_arns      = [include.env.locals.datasync.agent_arns.int]
-  #     }
-  #   },
-  #   {
-  #     key = "s3-smb"
-  #     s3_location = {
-  #       location_type          = "S3"
-  #       s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
-  #       subdirectory           = include.env.locals.datasync.s3.subdirectory.smb
-  #       bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
-  #     }
-  #   }
-  # ]
-  # datasync_tasks = [
-  #   # {
-  #   #   key                         = "nfs-to-s3"
-  #   #   create_cloudwatch_log_group = true
-  #   #   cloudwatch_log_group_name   = "nfstos3"
-  #   #   task = {
-  #   #     name            = "${local.vpc_name}-nfs-to-s3"
-  #   #     source_key      = "nfs-wsl"
-  #   #     destination_key = "s3-nfs"
-  #   #     options = {
-  #   #       verify_mode            = "POINT_IN_TIME_CONSISTENT"
-  #   #       overwrite_mode         = "ALWAYS"
-  #   #       atime                  = "BEST_EFFORT"
-  #   #       mtime                  = "PRESERVE"
-  #   #       uid                    = "INT_VALUE"
-  #   #       gid                    = "INT_VALUE"
-  #   #       preserve_deleted_files = "PRESERVE"
-  #   #       posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
-  #   #     }
-  #   #     schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
-  #   #   }
-  #   # },
-  #   {
-  #     key                         = "smb-to-s3"
-  #     create_cloudwatch_log_group = true
-  #     cloudwatch_log_group_name   = "smbtos3"
-  #     task = {
-  #       name            = "${local.vpc_name}-smb-to-s3"
-  #       source_key      = "smb-laptop"
-  #       destination_key = "s3-smb"
-  #       options = {
-  #         verify_mode            = "POINT_IN_TIME_CONSISTENT"
-  #         overwrite_mode         = "ALWAYS"
-  #         atime                  = "BEST_EFFORT"
-  #         mtime                  = "PRESERVE"
-  #         log_level              = "TRANSFER"
-  #         uid                    = "NONE"
-  #         gid                    = "NONE"
-  #         preserve_deleted_files = "PRESERVE"
-  #         posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
-  #       }
-  #       schedule_expression = "cron(0 8 ? * * *)" # Every day at 8AM
-  #     }
-  #   }
-  # ]
+  secrets        = []
+  ssm_parameters = []
+  ssm_documents  = []
+  #   load_balancers = [
+  #     # {
+  #     #   key             = "${local.vpc_name}"
+  #     #   name            = "${local.vpc_name}"
+  #     #   vpc_name_abr    = "${local.vpc_name_abr}"
+  #     #   type            = "application"
+  #     #   security_groups = ["alb"]
+  #     #   subnets = [
+  #     #     include.env.locals.subnet_prefix.primary
+  #     #   ]
+  #     #   enable_deletion_protection = true
+  #     #   enable_access_logs         = true
+  #     #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+  #     #   vpc_name                   = local.vpc_name
+  #     #   create_default_listener    = true
+  #     # },
+  #     # {
+  #     #   key             = "etl"
+  #     #   name            = "etl"
+  #     #   vpc_name_abr    = "${local.vpc_name_abr}"
+  #     #   type            = "application"
+  #     #   security_groups = ["alb"]
+  #     #   subnets = [
+  #     #     include.env.locals.subnet_prefix.primary
+  #     #   ]
+  #     #   enable_deletion_protection = true
+  #     #   enable_access_logs         = true
+  #     #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+  #     #   vpc_name                   = local.vpc_name
+  #     #   # create_default_listener    = false
+  #     # },
+  #     # {
+  #     #   key             = "ssrs"
+  #     #   name            = "ssrs"
+  #     #   vpc_name_abr    = "${local.vpc_name_abr}"
+  #     #   type            = "network"
+  #     #   security_groups = ["nlb"]
+  #     #   subnets = [
+  #     #     include.env.locals.subnet_prefix.primary
+  #     #   ]
+  #     #   enable_deletion_protection = true
+  #     #   enable_access_logs         = true
+  #     #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+  #     #   vpc_name                   = local.vpc_name
+  #     # }
+  #   ]
+  #   alb_listeners = [
+  #     # {
+  #     #   key      = "etl"
+  #     #   alb_key  = "etl"
+  #     #   protocol = "HTTPS"
+  #     #   port     = 443
+  #     #   action   = "fixed-response"
+  #     #   # certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
+  #     #   vpc_name = local.vpc_name
+  #     #   fixed_response = {
+  #     #     content_type = "text/plain"
+  #     #     message_body = "This is a default response from the ETL ALB listener."
+  #     #     status_code  = "200"
+  #     #   }
+  #     # }
+  #   ]
+  #   nlb_listeners = [
+  #     # {
+  #     #   key        = "ssrs"
+  #     #   nlb_key    = "ssrs"
+  #     #   protocol   = "TLS"
+  #     #   port       = 443
+  #     #   ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
+  #     #   # certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
+  #     #   action   = "forward"
+  #     #   vpc_name = local.vpc_name
+  #     #   target_group = {
+  #     #     name         = "ssrs"
+  #     #     protocol     = "TLS"
+  #     #     port         = 443
+  #     #     vpc_name_abr = local.vpc_name_abr
+  #     #     health_check = {
+  #     #       protocol = "HTTPS"
+  #     #       port     = "443"
+  #     #       path     = "/"
+  #     #     }
+  #     #   }
+  #     # }
+  #   ]
+  #   target_groups = [
+  #     # {
+  #     #   key      = "ssrs"
+  #     #   name     = "ssrs"
+  #     #   protocol = "HTTPS"
+  #     #   port     = 443
+  #     #   health_check = {
+  #     #     protocol = "HTTPS"
+  #     #     port     = "443"
+  #     #     path     = "/"
+  #     #   }
+  #     #   vpc_name = local.vpc_name
+  #     # }
+  #   ]
+  # }
 }
 #-------------------------------------------------------
 # State Configuration

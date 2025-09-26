@@ -38,7 +38,7 @@ locals {
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "shared-services"
+      Environment = local.vpc_name
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
@@ -339,7 +339,6 @@ inputs = {
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
-
     {
       name                 = "${local.vpc_name}-src-replication-bucket"
       description          = "The source replication bucket"
