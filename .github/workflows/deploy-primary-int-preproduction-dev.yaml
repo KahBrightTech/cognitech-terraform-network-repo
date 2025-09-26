@@ -6,7 +6,7 @@ on:
       - "*" # Run on push to any feature branch
     paths:
       - ".github/workflows/deploy-primary-int-preproduction-dev.yaml"
-      - "Terraform/deployments/int-preproduction/Tenant-account/dev/primary/**/*"
+      - "Terraform/deployments/int-preproduction/Tenant-account/Dev/primary/**/*"
   workflow_dispatch:
     inputs:
       terragrunt_action:
@@ -24,7 +24,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Tenant-account/dev/primary
+  DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Tenant-account/Dev/primary
   TF_VAR_ANSIBLE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_USERNAME }}
   TF_VAR_ANSIBLE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_PASSWORD }}
   TF_VAR_USER_USERNAME1: ${{ secrets.TF_VAR_USER_USERNAME1 }}
@@ -105,7 +105,7 @@ jobs:
     env:
       IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
       REGION: us-east-1
-      DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Tenant-account/dev/primary
+      DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Tenant-account/Dev/primary
 
     defaults:
       run:
@@ -149,7 +149,7 @@ jobs:
     env:
       IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
       REGION: us-east-1
-      DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Tenant-account/dev/primary
+      DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Tenant-account/Dev/primary
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
