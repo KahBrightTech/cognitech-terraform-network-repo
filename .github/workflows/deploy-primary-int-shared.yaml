@@ -106,7 +106,7 @@ jobs:
     env:
       IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
       REGION: us-east-1
-      DEPLOYMENT_PATH: Terraform/deployments/INT/Shared-account/primary
+      DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Shared-account/primary
 
     defaults:
       run:
