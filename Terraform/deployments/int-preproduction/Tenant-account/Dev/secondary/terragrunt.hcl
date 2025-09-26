@@ -99,38 +99,38 @@ inputs = {
       security_groups = [
         {
           key         = "bastion"
-          name        = "shared-bastion"
-          description = "standrad sharewd bastion security group"
+          name        = "${local.vpc_name}-bastion"
+          description = "standard ${local.vpc_name} bastion security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "alb"
-          name        = "shared-alb"
-          description = "standard shared alb security group"
+          name        = "${local.vpc_name}-alb"
+          description = "standard ${local.vpc_name} alb security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "app"
-          name        = "shared-app"
-          description = "standard shared app security group"
+          name        = "${local.vpc_name}-app"
+          description = "standard ${local.vpc_name} app security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "db"
-          name        = "shared-db"
-          description = "standard shared db security group"
+          name        = "${local.vpc_name}-db"
+          description = "standard ${local.vpc_name} db security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "efs"
-          name        = "shared-efs"
-          description = "standard shared efs security group"
+          name        = "${local.vpc_name}-efs"
+          description = "standard ${local.vpc_name} efs security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "nlb"
-          name        = "shared-nlb"
-          description = "standard shared nlb security group"
+          name        = "${local.vpc_name}-nlb"
+          description = "standard ${local.vpc_name} nlb security group"
           vpc_name    = local.vpc_name
         }
       ]
