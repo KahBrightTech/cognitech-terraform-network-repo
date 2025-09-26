@@ -6,7 +6,7 @@ on:
       - "*" # Run on push to any feature branch
     paths:
       - ".github/workflows/deploy-primary-int-shared.yaml"
-      - "Terraform/deployments/INT/Shared-account/primary/**/*"
+      - "Terraform/deployments/int-preproduction/Shared-account/primary/**/*"
   workflow_dispatch:
     inputs:
       terragrunt_action:
@@ -25,7 +25,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/INT/Shared-account/primary
+  DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Shared-account/primary
   TF_VAR_ANSIBLE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_USERNAME }}
   TF_VAR_ANSIBLE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_PASSWORD }}
   TF_VAR_USER_USERNAME1: ${{ secrets.TF_VAR_USER_USERNAME1 }}

@@ -9,6 +9,7 @@ locals {
   environment = "sit"
   owner       = "kbrigthain@gmail.com"
   repo_name   = "cognitech-terraform-network-repo"
+  account_name
 
   remote_state_bucket = {
     primary   = "terragruntint"
@@ -33,6 +34,13 @@ locals {
     Build-method = local.build
     Compliance   = local.compliance
   }
+
+  secret_names = {
+    ansible = "ansible-credentials"
+    user    = "user-credentials"
+    docker  = "docker-credentials"
+  }
+  
   datasync = {
     agent_arns = {
       int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-07047a25d8994edc8"

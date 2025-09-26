@@ -22,16 +22,18 @@ locals {
   region             = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
   region_prefix      = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
   region_blk         = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
-  deployment_name    = "terraform/${include.env.locals.repo_name}-${local.vpc_name}-${local.region_context}"
+  deployment_name    = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.vpc_name}-${local.region_context}"
   cidr_blocks        = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket       = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table   = include.env.locals.remote_dynamodb_table
-  vpc_name           = "shared-services"
-  vpc_name_abr       = "shared"
-  internet_cidr      = "0.0.0.0/0"
   account_id         = include.cloud.locals.account_info[include.env.locals.name_abr].number
   aws_account_name   = include.cloud.locals.account_info[include.env.locals.name_abr].name
   public_hosted_zone = "${local.vpc_name_abr}.${include.env.locals.public_domain}"
+  internet_cidr      = "0.0.0.0/0"
+  ## Updates these variables as per the product/service
+  vpc_name     = "shared-services"
+  vpc_name_abr = "shared"
+
 
   # Composite variables 
   tags = merge(
@@ -430,15 +432,15 @@ inputs = {
       ]
       policy = {
         name        = "${local.vpc_name}-ec2-instance-profile"
-        description = "EC2 Instance Permission for S3"
+        description = "EC2 Instance Permission for instances"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
     }
   ]
   iam_roles = [
     {
-      name               = "${local.vpc_name}-instance"
-      description        = "IAM Role for Shared Services"
+      name               = "${local.vpc_name}-default"
+      description        = "Default IAM Role for ${local.vpc_name}"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
@@ -447,30 +449,30 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       ]
       policy = {
-        name        = "${local.vpc_name}-instance"
-        description = "Test IAM policy"
+        name        = "${local.vpc_name}-default"
+        description = "${local.vpc_name} default role policy"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
     },
     {
       name               = "${local.vpc_name}-source-replication"
-      description        = "IAM Role for Shared Services replication rule"
+      description        = "IAM Role for ${local.vpc_name} replication rule"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/s3_trust_policy.json"
       policy = {
         name        = "${local.vpc_name}-source-replication"
-        description = "IAM policy for source replication"
+        description = "IAM policy for ${local.vpc_name} source replication"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
       }
     },
     {
       name               = "${local.vpc_name}-datasync"
-      description        = "IAM Role for Shared Services DataSync"
+      description        = "IAM Role for ${local.vpc_name} DataSync"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/datasync_trust_policy.json"
       policy = {
-        name        = "${local.vpc_name}-datasync-role"
-        description = "IAM policy for DataSync"
+        name        = "${local.vpc_name}-datasync"
+        description = "IAM policy for ${local.vpc_name} DataSync"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_datasync.json"
       }
     }
@@ -503,7 +505,7 @@ inputs = {
   key_pairs = [
     {
       name               = "${local.vpc_name}-key-pair"
-      secret_name        = "${local.vpc_name}-ec2-private-key"
+      secret_name        = "${local.vpc_name}-ec2-private-keys"
       secret_description = "Private key for ${local.vpc_name} VPC"
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
@@ -519,9 +521,9 @@ inputs = {
   ]
   secrets = [
     {
-      name                    = "Ansible-Credentials"
+      name                    = include.env.locals.secret_names.ansible
       description             = "Ansible tower credentials"
-      recovery_window_in_days = 0
+      recovery_window_in_days = 7
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
@@ -529,7 +531,7 @@ inputs = {
       }
     },
     {
-      name                    = "User-Credentials"
+      name                    = include.env.locals.secret_names.user
       description             = "User credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 0
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
@@ -541,7 +543,7 @@ inputs = {
       }
     },
     {
-      name                    = "Docker-Credentials"
+      name                    = include.env.locals.secret_names.docker
       description             = "Docker credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 0
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
@@ -575,7 +577,7 @@ inputs = {
       description = "Ansible Tower User Credentials"
       type        = "String"
       overwrite   = true
-      value       = "${local.aws_account_name}-${local.region_prefix}-User-Credentials"
+      value       = "${local.aws_account_name}-${local.region_prefix}-${include.env.locals.secret_names.user}"
     }
   ]
   backups = [
