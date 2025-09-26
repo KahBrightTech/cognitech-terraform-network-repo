@@ -39,7 +39,7 @@ locals {
     include.env.locals.tags,
     {
       Environment = local.vpc_name
-      ManagedBy   = "terraform:${local.deployment_name}"
+      ManagedBy   = "${local.deployment_name}"
     }
   )
 }
@@ -53,7 +53,7 @@ dependency "shared_services" {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../..//formations/Simple-Network-Shared-Account"
+  source = "../../../../..//formations/Simple-Network-Tenant-Account"
 }
 #-------------------------------------------------------
 # Inputs 

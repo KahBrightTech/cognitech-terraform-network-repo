@@ -30,15 +30,15 @@ locals {
   public_hosted_zone = "${local.vpc_name_abr}.${include.env.locals.public_domain}"
   internet_cidr      = "0.0.0.0/0"
   ## Updates these variables as per the product/service
-  vpc_name     = "development"
-  vpc_name_abr = "dev"
+  vpc_name     = "training"
+  vpc_name_abr = "trn"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
       Environment = local.vpc_name
-      ManagedBy   = "terraform:${local.deployment_name}"
+      ManagedBy   = "${local.deployment_name}"
     }
   )
 }

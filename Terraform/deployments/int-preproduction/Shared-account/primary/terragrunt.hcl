@@ -39,7 +39,7 @@ locals {
     include.env.locals.tags,
     {
       Environment = local.vpc_name
-      ManagedBy   = "terraform:${local.deployment_name}"
+      ManagedBy   = "${local.deployment_name}"
     }
   )
 }
