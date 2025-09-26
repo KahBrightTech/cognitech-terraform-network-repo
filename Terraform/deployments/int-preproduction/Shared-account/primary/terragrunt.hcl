@@ -532,7 +532,7 @@ inputs = {
     {
       name                    = include.env.locals.secret_names.user
       description             = "User credentials for ${local.aws_account_name} environment"
-      recovery_window_in_days = 0
+      recovery_window_in_days = 7
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
@@ -544,7 +544,7 @@ inputs = {
     {
       name                    = include.env.locals.secret_names.docker
       description             = "Docker credentials for ${local.aws_account_name} environment"
-      recovery_window_in_days = 0
+      recovery_window_in_days = 7
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
         username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
