@@ -420,9 +420,9 @@ inputs = {
       }
       group_policies = [
         {
-          group_name  = "Admins"
-          policy_name = "Admin-group-policy"
-          description = "Admin group policy"
+          group_name  = "${local.vpc_name_abr}-Admins"
+          policy_name = "${local.vpc_name_abr}-Admin-group-policy"
+          description = "${local.vpc_name_abr} Admin group policy"
           policy      = file("${include.cloud.locals.repo.root}/iam_policies/Admin_group_policy.json")
         }
       ]

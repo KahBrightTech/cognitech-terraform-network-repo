@@ -1,11 +1,11 @@
-name: Deploy-primary-int-shared-Native-Products(INT)
+name: Deploy-primary-int-preproduction-Native-Products(Datasync) 
 on:
   push:
     branches:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
-      - ".github/workflows/deploy-primary-int-native-products.yaml"
+      - ".github/workflows/deploy-primary-int-preproduction-native-products-datasync.yaml"
       - "Terraform/deployments/INT/Native-products/Datasync/shared-services/primary/**/*"
   workflow_dispatch:
     inputs:
