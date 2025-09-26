@@ -33,7 +33,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name     = "development"
   vpc_name_abr = "dev"
-
+  
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
