@@ -35,9 +35,9 @@ locals {
   }
 
   secret_names = {
-    ansible = "ansible-creds"
-    user    = "user-creds"
-    docker  = "docker-creds"
+    ansible = "ansible-access-token"
+    user    = "user-access-token"
+    docker  = "docker-access-token"
   }
 
   datasync = {
