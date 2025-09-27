@@ -437,7 +437,7 @@ variable "security_groups" {
     name_prefix = optional(string)
     vpc_id      = optional(string)
     description = optional(string)
-    vpc_name    = string
+    vpc_name    = optional(string)
     security_group_egress_rules = optional(list(object({
       description     = optional(string)
       from_port       = optional(number)

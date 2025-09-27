@@ -80,7 +80,7 @@ inputs = {
       key         = local.native_resource
       name        = "${local.vpc_name}-${local.native_resource}"
       description = "standard ${local.vpc_name} ${local.native_resource} security group"
-      vpc_name    = local.vpc_name
+      vpc_id      = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
     }
   ]
 

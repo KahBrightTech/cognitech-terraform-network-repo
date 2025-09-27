@@ -179,7 +179,7 @@ module "security_groups" {
   common   = var.common
   security_group = {
     name                         = each.value.name
-    vpc_id                       = module.vpc.vpc_id
+    vpc_id                       = each.value.vpc_id
     name_prefix                  = each.value.name_prefix
     description                  = each.value.description
     security_group_egress_rules  = each.value.egress
