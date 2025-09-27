@@ -111,7 +111,7 @@ inputs = {
         {
           key         = "egress-all-traffic-bastion-sg"
           cidr_ipv4   = "0.0.0.0/0"
-          description = "BASE - Outbound all traffic from Bastion SG to Internet."
+          description = "BASE - Outbound all traffic from Bastion SG to Internet"
           ip_protocol = "-1"
         }
       ]
@@ -133,11 +133,12 @@ inputs = {
 
   vpc_endpoints = [
     {
-      key               = local.native_resource
-      vpc_id            = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
-      service_name      = "com.amazonaws.${local.region}.datasync"
-      endpoint_name     = "${local.vpc_name}-datasync"
-      endpoint_type = "Interface"
+      key                = local.native_resource
+      vpc_id             = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
+      service_name       = "com.amazonaws.${local.region}.datasync"
+      endpoint_name      = "${local.vpc_name}-datasync"
+      endpoint_type      = "Interface"
+      dns_record_ip_type = "ipv4"
       subnet_ids = [
         dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id,
         dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.secondary_subnet_id

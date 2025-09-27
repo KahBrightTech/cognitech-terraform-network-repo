@@ -468,24 +468,26 @@ variable "security_group_rules" {
     sg_key            = string
     security_group_id = optional(string) # This will be the ID of the security group created
     egress = optional(list(object({
-      key          = string
-      cidr_ipv4    = string
-      cidr_ipv6    = optional(string)
-      description  = optional(string)
-      from_port    = optional(string)
-      to_port      = optional(string)
-      ip_protocol  = optional(string)
-      target_sg_id = optional(string)
+      key           = string
+      cidr_ipv4     = string
+      cidr_ipv6     = optional(string)
+      description   = optional(string)
+      from_port     = optional(string)
+      to_port       = optional(string)
+      ip_protocol   = optional(string)
+      target_sg_id  = optional(string)
+      target_sg_key = optional(string)
     })))
     ingress = optional(list(object({
-      key          = string
-      cidr_ipv4    = string
-      cidr_ipv6    = optional(string)
-      description  = optional(string)
-      from_port    = optional(string)
-      to_port      = optional(string)
-      ip_protocol  = optional(string)
-      source_sg_id = optional(string)
+      key           = string
+      cidr_ipv4     = string
+      cidr_ipv6     = optional(string)
+      description   = optional(string)
+      from_port     = optional(string)
+      to_port       = optional(string)
+      ip_protocol   = optional(string)
+      source_sg_id  = optional(string)
+      source_sg_key = optional(string)
     })))
   }))
   default = null
