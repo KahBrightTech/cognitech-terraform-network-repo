@@ -464,6 +464,7 @@ variable "security_groups" {
 variable "security_group_rules" {
   description = "The vpc security group rules"
   type = list(object({
+    sg_key            = string
     security_group_id = optional(string) # This will be the ID of the security group created
     egress_rules = optional(list(object({
       key          = string

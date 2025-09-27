@@ -93,7 +93,7 @@ inputs = {
         {
           key         = "ingress-443-laptop_ip"
           cidr_ipv4   = local.laptop_ip
-          description = "BASE - nbound traffic from laptop IP on tcp port 443"
+          description = "BASE - nbound traffic from laptop IP on tcp port 443."
           from_port   = 443
           to_port     = 443
           ip_protocol = "tcp"
