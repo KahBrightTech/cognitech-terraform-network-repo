@@ -35,14 +35,14 @@ locals {
   vpc_name        = "shared-services"
   vpc_name_abr    = "shared"
   native_resource = "datasync"
-  laptop_ip       = "69.143.134.56/32" "
+  laptop_ip       = "69.143.134.56/32"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = " native-services "
-      ManagedBy   = " terraform : $ { local.deployment_name } "
+      Environment = "native-services"
+      ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
 }

@@ -35,14 +35,14 @@ locals {
   vpc_name        = "shared-services"
   vpc_name_abr    = "shared"
   native_resource = "datasync"
-  laptop_ip       = "69.143.134.56/32" "
+  laptop_ip       = "69.143.134.56/32"
 
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = " native-services "
-      ManagedBy   = " terraform : $ { local.deployment_name } "
+      Environment = "native-services"
+      ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
 }
@@ -114,28 +114,28 @@ inputs = {
   ]
 
   iam_roles = [
-    {
-      name               = "${local.vpc_name}-datasync"
-      description        = "IAM Role for ${local.vpc_name} DataSync"
-      path               = "/"
-      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/datasync_trust_policy.json"
-      policy = {
-        name        = "${local.vpc_name}-datasync"
-        description = "IAM policy for ${local.vpc_name} DataSync"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_datasync.json"
-      }
-    }
+    # {
+    #   name               = "${local.vpc_name}-datasync"
+    #   description        = "IAM Role for ${local.vpc_name} DataSync"
+    #   path               = "/"
+    #   assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/datasync_trust_policy.json"
+    #   policy = {
+    #     name        = "${local.vpc_name}-datasync"
+    #     description = "IAM policy for ${local.vpc_name} DataSync"
+    #     policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_datasync.json"
+    #   }
+    # }
   ]
 
   vpc_endpoints = [
     {
-      vpc_id            = dependency.shared_services.outputs.Account_products.$ { local.vpc_name }.vpc_id
+      vpc_id            = dependency.shared_services.outputs.Account_products.${local.vpc_name}.vpc_id
       service_name      = "com.amazonaws.${local.region}.datasync"
       endpoint_name     = "${local.vpc_name}-datasync"
       vpc_endpoint_type = "Interface"
       subnet_ids = [
-        dependency.shared_services.outputs.Account_products.$ { local.vpc_name }.public_subnet.sbnt1.primary_subnet_id,
-        dependency.shared_services.outputs.Account_products.$ { local.vpc_name }.public_subnet.sbnt1.secondary_subnet_id
+        dependency.shared_services.outputs.Account_products.${local.vpc_name}.public_subnet.sbnt1.primary_subnet_id,
+        dependency.shared_services.outputs.Account_products.${local.vpc_name}.public_subnet.sbnt1.secondary_subnet_id
       ]
       security_group_ids = ["local.native_resource"]
     }
@@ -220,93 +220,93 @@ inputs = {
       }
     }
   ]
-  datasync_locations = [
-    # {
-    #   key = "s3-nfs"
-    #   s3_location = {
-    #     location_type          = "S3"
-    #     s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
-    #     subdirectory           = include.env.locals.datasync.s3.subdirectory.datasync_bucket
-    #     bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
-    #   }
-    # },
-    # {
-    #   key = "nfs-wsl"
-    #   nfs_location = {
-    #     location_type   = "NFS"
-    #     server_hostname = include.env.locals.datasync.nfs.server_hostname.nfs
-    #     subdirectory    = include.env.locals.datasync.nfs.subdirectory.nfs
-    #     on_prem_config = {
-    #       agent_arns = [include.env.locals.datasync.agent_arns.int]
-    #     }
-    #   }
-    # },
-    {
-      key = "smb-laptop"
-      smb_location = {
-        location_type   = "smb"
-        server_hostname = include.env.locals.datasync.smb.server_hostname.laptop
-        user            = include.env.locals.datasync.smb.user.first
-        password        = include.env.locals.datasync.smb.password.first
-        subdirectory    = include.env.locals.datasync.smb.subdirectory.smb
-        agent_arns      = [include.env.locals.datasync.agent_arns.int]
-      }
-    },
-    {
-      key = "s3-smb"
-      s3_location = {
-        location_type          = "S3"
-        s3_bucket_arn          = dependency.shared_services.outputs.S3_buckets.shared-services-datasync-bucket.arn
-        subdirectory           = include.env.locals.datasync.s3.subdirectory.smb
-        bucket_access_role_arn = dependency.shared_services.outputs.IAM_roles.shared-services-datasync.iam_role_arn
-      }
-    }
-  ]
-  datasync_tasks = [
-    # {
-    #   key                         = "nfs-to-s3"
-    #   create_cloudwatch_log_group = true
-    #   cloudwatch_log_group_name   = "nfstos3"
-    #   task = {
-    #     name            = "${local.vpc_name}-nfs-to-s3"
-    #     source_key      = "nfs-wsl"
-    #     destination_key = "s3-nfs"
-    #     options = {
-    #       verify_mode            = "POINT_IN_TIME_CONSISTENT"
-    #       overwrite_mode         = "ALWAYS"
-    #       atime                  = "BEST_EFFORT"
-    #       mtime                  = "PRESERVE"
-    #       uid                    = "INT_VALUE"
-    #       gid                    = "INT_VALUE"
-    #       preserve_deleted_files = "PRESERVE"
-    #       posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
-    #     }
-    #     schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
-    #   }
-    # },
-    {
-      key                         = "smb-to-s3"
-      create_cloudwatch_log_group = true
-      cloudwatch_log_group_name   = "smbtos3"
-      task = {
-        name            = "${local.vpc_name}-smb-to-s3"
-        source_key      = "smb-laptop"
-        destination_key = "s3-smb"
-        options = {
-          verify_mode            = "POINT_IN_TIME_CONSISTENT"
-          overwrite_mode         = "ALWAYS"
-          atime                  = "BEST_EFFORT"
-          mtime                  = "PRESERVE"
-          log_level              = "TRANSFER"
-          uid                    = "NONE"
-          gid                    = "NONE"
-          preserve_deleted_files = "PRESERVE"
-          posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
-        }
-        schedule_expression = "cron(0 8 ? * * *)" # Every day at 8AM
-      }
-    }
-  ]
+  # datasync_locations = [
+  #   # {
+  #   #   key = "s3-nfs"
+  #   #   s3_location = {
+  #   #     location_type          = "S3"
+  #   #     s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
+  #   #     subdirectory           = include.env.locals.datasync.s3.subdirectory.datasync_bucket
+  #   #     bucket_access_role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-role"
+  #   #   }
+  #   # },
+  #   # {
+  #   #   key = "nfs-wsl"
+  #   #   nfs_location = {
+  #   #     location_type   = "NFS"
+  #   #     server_hostname = include.env.locals.datasync.nfs.server_hostname.nfs
+  #   #     subdirectory    = include.env.locals.datasync.nfs.subdirectory.nfs
+  #   #     on_prem_config = {
+  #   #       agent_arns = [include.env.locals.datasync.agent_arns.int]
+  #   #     }
+  #   #   }
+  #   # },
+  #   {
+  #     key = "smb-laptop"
+  #     smb_location = {
+  #       location_type   = "smb"
+  #       server_hostname = include.env.locals.datasync.smb.server_hostname.laptop
+  #       user            = include.env.locals.datasync.smb.user.first
+  #       password        = include.env.locals.datasync.smb.password.first
+  #       subdirectory    = include.env.locals.datasync.smb.subdirectory.smb
+  #       agent_arns      = [include.env.locals.datasync.agent_arns.int]
+  #     }
+  #   },
+  #   {
+  #     key = "s3-smb"
+  #     s3_location = {
+  #       location_type          = "S3"
+  #       s3_bucket_arn          = dependency.shared_services.outputs.S3_buckets.shared-services-datasync-bucket.arn
+  #       subdirectory           = include.env.locals.datasync.s3.subdirectory.smb
+  #       bucket_access_role_arn = dependency.shared_services.outputs.IAM_roles.shared-services-datasync.iam_role_arn
+  #     }
+  #   }
+  # ]
+  # datasync_tasks = [
+  #   # {
+  #   #   key                         = "nfs-to-s3"
+  #   #   create_cloudwatch_log_group = true
+  #   #   cloudwatch_log_group_name   = "nfstos3"
+  #   #   task = {
+  #   #     name            = "${local.vpc_name}-nfs-to-s3"
+  #   #     source_key      = "nfs-wsl"
+  #   #     destination_key = "s3-nfs"
+  #   #     options = {
+  #   #       verify_mode            = "POINT_IN_TIME_CONSISTENT"
+  #   #       overwrite_mode         = "ALWAYS"
+  #   #       atime                  = "BEST_EFFORT"
+  #   #       mtime                  = "PRESERVE"
+  #   #       uid                    = "INT_VALUE"
+  #   #       gid                    = "INT_VALUE"
+  #   #       preserve_deleted_files = "PRESERVE"
+  #   #       posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
+  #   #     }
+  #   #     schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
+  #   #   }
+  #   # },
+  #   {
+  #     key                         = "smb-to-s3"
+  #     create_cloudwatch_log_group = true
+  #     cloudwatch_log_group_name   = "smbtos3"
+  #     task = {
+  #       name            = "${local.vpc_name}-smb-to-s3"
+  #       source_key      = "smb-laptop"
+  #       destination_key = "s3-smb"
+  #       options = {
+  #         verify_mode            = "POINT_IN_TIME_CONSISTENT"
+  #         overwrite_mode         = "ALWAYS"
+  #         atime                  = "BEST_EFFORT"
+  #         mtime                  = "PRESERVE"
+  #         log_level              = "TRANSFER"
+  #         uid                    = "NONE"
+  #         gid                    = "NONE"
+  #         preserve_deleted_files = "PRESERVE"
+  #         posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
+  #       }
+  #       schedule_expression = "cron(0 8 ? * * *)" # Every day at 8AM
+  #     }
+  #   }
+  # ]
 }
 #-------------------------------------------------------
 # State Configuration
