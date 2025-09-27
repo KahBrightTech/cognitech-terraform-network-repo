@@ -54,7 +54,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../..//formations/Simple-Native-Products"
+  source = "../../../../..//formations/Simple-Native-Products"
 }
 
 #-------------------------------------------------------
