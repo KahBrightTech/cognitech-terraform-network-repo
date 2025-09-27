@@ -101,7 +101,7 @@ inputs = {
         {
           key         = "ingress-1024-1064-laptop_ip"
           cidr_ipv4   = local.laptop_ip
-          description = "BASE - Inbound traffic from laptop IP on tcp port 1024-1064"
+          description = "BASE - Inbound traffic from laptop IP on tcp port 1024-1064."
           from_port   = 1024
           to_port     = 1064
           ip_protocol = "tcp"
