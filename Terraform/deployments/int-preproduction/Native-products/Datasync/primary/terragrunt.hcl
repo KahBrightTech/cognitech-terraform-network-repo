@@ -137,7 +137,7 @@ inputs = {
       vpc_id            = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
       service_name      = "com.amazonaws.${local.region}.datasync"
       endpoint_name     = "${local.vpc_name}-datasync"
-      vpc_endpoint_type = "Interface"
+      endpoint_type = "Interface"
       subnet_ids = [
         dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id,
         dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.secondary_subnet_id

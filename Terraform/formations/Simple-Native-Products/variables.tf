@@ -467,7 +467,7 @@ variable "security_group_rules" {
   type = list(object({
     sg_key            = string
     security_group_id = optional(string) # This will be the ID of the security group created
-    egress_rules = optional(list(object({
+    egress = optional(list(object({
       key          = string
       cidr_ipv4    = string
       cidr_ipv6    = optional(string)
@@ -477,7 +477,7 @@ variable "security_group_rules" {
       ip_protocol  = optional(string)
       target_sg_id = optional(string)
     })))
-    ingress_rules = optional(list(object({
+    ingress = optional(list(object({
       key          = string
       cidr_ipv4    = string
       cidr_ipv6    = optional(string)
