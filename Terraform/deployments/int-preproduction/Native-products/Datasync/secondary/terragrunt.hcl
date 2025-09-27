@@ -80,7 +80,7 @@ inputs = {
     {
       key         = local.native_resource
       name        = "${local.vpc_name}-${local.native_resource}"
-      description = "standard ${local.vpc_name} ${local.native_resource} security group"
+      description = "standard ${local.vpc_name} ${local.native_resource} security group."
       vpc_id      = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
       vpc_name    = local.vpc_name
     }
@@ -93,7 +93,7 @@ inputs = {
         {
           key         = "ingress-443-laptop_ip"
           cidr_ipv4   = local.laptop_ip
-          description = "BASE - nbound traffic from laptop IP on tcp port 443"
+          description = "BASE - nbound traffic from laptop IP on tcp port 443."
           from_port   = 443
           to_port     = 443
           ip_protocol = "tcp"
@@ -111,13 +111,12 @@ inputs = {
         {
           key         = "egress-all-traffic-bastion-sg"
           cidr_ipv4   = "0.0.0.0/0"
-          description = "BASE - Outbound all traffic from Bastion SG to Internet"
+          description = "BASE - Outbound all traffic from Bastion SG to Internet."
           ip_protocol = "-1"
         }
       ]
     }
   ]
-
   iam_roles = [
     # {
     #   name               = "${local.vpc_name}-datasync"

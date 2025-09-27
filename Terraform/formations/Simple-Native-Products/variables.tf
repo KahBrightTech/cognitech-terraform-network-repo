@@ -439,7 +439,7 @@ variable "security_groups" {
     vpc_id      = optional(string)
     description = optional(string)
     vpc_name    = optional(string)
-    security_group_egress_rules = optional(list(object({
+    egress = optional(list(object({
       description     = optional(string)
       from_port       = optional(number)
       to_port         = optional(number)
@@ -448,7 +448,7 @@ variable "security_groups" {
       cidr_blocks     = list(string)
       self            = optional(bool, false)
     })))
-    security_group_ingress_rules = optional(list(object({
+    ingress = optional(list(object({
       description     = optional(string)
       from_port       = optional(number)
       to_port         = optional(number)
