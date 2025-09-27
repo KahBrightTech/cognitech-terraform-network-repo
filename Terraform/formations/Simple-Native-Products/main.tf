@@ -157,7 +157,7 @@ module "datasync_tasks" {
 # AWS VPC Endpoints
 #--------------------------------------------------------------------
 module "vpc_endpoints" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/VPCEndpointss?ref=v1.3.61"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/VPCEndpoints?ref=v1.3.61"
   for_each = (var.vpc_endpoints != null) ? { for item in var.vpc_endpoints : item.key => item } : {}
   common   = var.common
   vpc_endpoints = merge(
