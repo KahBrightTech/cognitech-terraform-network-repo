@@ -184,6 +184,7 @@ module "security_groups" {
     description                  = each.value.description
     security_group_egress_rules  = each.value.egress
     security_group_ingress_rules = each.value.ingress
+    vpc_name                     = each.value.vpc_name
   }
 
 }

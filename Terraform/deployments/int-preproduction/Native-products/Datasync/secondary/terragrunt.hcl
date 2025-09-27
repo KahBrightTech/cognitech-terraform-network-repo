@@ -56,6 +56,7 @@ locals {
 terraform {
   source = "../../../../..//formations/Simple-Native-Products"
 }
+
 #-------------------------------------------------------
 # Dependencies 
 #-------------------------------------------------------
@@ -81,6 +82,7 @@ inputs = {
       name        = "${local.vpc_name}-${local.native_resource}"
       description = "standard ${local.vpc_name} ${local.native_resource} security group"
       vpc_id      = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
+      vpc_name    = local.vpc_name
     }
   ]
 
