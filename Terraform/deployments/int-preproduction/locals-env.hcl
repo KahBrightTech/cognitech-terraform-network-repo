@@ -38,6 +38,7 @@ locals {
     ansible = "ansible-authentication"
     user    = "user-authentication"
     docker  = "docker-authentication"
+    keys    = "ec2-private-key-pair"
   }
 
   datasync = {
