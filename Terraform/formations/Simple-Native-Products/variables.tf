@@ -433,6 +433,7 @@ variable "vpc_endpoints" {
 variable "security_groups" {
   description = "The vpc security group"
   type = list(object({
+    key         = string
     name        = optional(string)
     name_prefix = optional(string)
     vpc_id      = optional(string)
