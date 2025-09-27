@@ -143,7 +143,7 @@ inputs = {
         dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id,
         dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.secondary_subnet_id
       ]
-      security_group_ids = ["${local.native_resource}"]
+      security_group_keys = ["${local.native_resource}"]
     }
   ]
   ec2_instances = [
