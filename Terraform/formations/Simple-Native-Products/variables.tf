@@ -432,7 +432,7 @@ variable "vpc_endpoints" {
 
 variable "security_groups" {
   description = "The vpc security group"
-  type = object({
+  type = list(object({
     name        = optional(string)
     name_prefix = optional(string)
     vpc_id      = optional(string)
@@ -456,14 +456,14 @@ variable "security_groups" {
       cidr_blocks     = list(string)
       self            = optional(bool, false)
     })))
-  })
+  }))
   default = null
 }
 
 
 variable "security_group_rules" {
   description = "The vpc security group rules"
-  type = object({
+  type = list(object({
     security_group_id = string # This will be the ID of the security group created
     egress_rules = optional(list(object({
       key          = string
@@ -485,7 +485,7 @@ variable "security_group_rules" {
       ip_protocol  = optional(string)
       source_sg_id = optional(string)
     })))
-  })
+  }))
   default = null
 }
 
