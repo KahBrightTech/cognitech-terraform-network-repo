@@ -53,3 +53,27 @@ output "datasync_tasks" {
   description = "Output for DataSync Tasks"
   value       = module.datasync_tasks
 }
+
+#-------------------------------------------------------
+# VPC Endpoints outputs
+#-------------------------------------------------------
+output "vpc_endpoints" {
+  description = "Output for VPC Endpoints"
+  value       = module.vpc_endpoints
+}
+
+#-------------------------------------------------------
+# Security Group outputs
+#-------------------------------------------------------
+output "security_groups" {
+  description = "Output for Security Groups"
+  value       = module.security_groups
+}
+
+#-------------------------------------------------------
+# Security Group Rules outputs
+#-------------------------------------------------------
+output "security_group_rules" {
+  description = "Output for Security Groups Rules"
+  value       = module.security_group_rules
+}

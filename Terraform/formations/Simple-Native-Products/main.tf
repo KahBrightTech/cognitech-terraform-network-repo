@@ -152,3 +152,76 @@ module "datasync_tasks" {
     module.s3_app_bucket
   ]
 }
+
+#--------------------------------------------------------------------
+# AWS VPC Endpoints
+#--------------------------------------------------------------------
+module "vpc_endpoints" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/VPCEndpointss?ref=v1.3.61"
+  for_each = (var.vpc_endpoints != null) ? { for item in var.vpc_endpoints : item.key => item } : {}
+  common   = var.common
+  vpc_endpoints = merge(
+    each.value,
+    {
+      security_group_ids = each.value.security_group_keys != null ? [
+        for sg_key in each.value.security_group_keys : module.security_groups[sg_key].security_group_id
+      ] : each.value.security_group_ids
+    }
+  )
+}
+
+#----------------------------------------------------------------
+# Security Groups
+#--------------------------------------------------------------------
+module "security_groups" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group?ref=v1.1.28"
+  for_each = var.security_groups != null ? { for item in var.security_groups : item.key => item } : {}
+  common   = var.common
+  security_group = {
+    name                         = each.value.name
+    vpc_id                       = module.vpc.vpc_id
+    name_prefix                  = each.value.name_prefix
+    description                  = each.value.description
+    security_group_egress_rules  = each.value.egress
+    security_group_ingress_rules = each.value.ingress
+    vpc_name                     = var.vpc.name
+  }
+
+}
+
+#--------------------------------------------------------------------
+# Security Group Rules
+#--------------------------------------------------------------------
+module "security_group_rules" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group-rules?ref=v1.1.1"
+  for_each = var.security_group_rules != null ? { for item in var.security_group_rules : item.sg_key => item } : {}
+  common   = var.common
+  security_group = {
+    security_group_id = module.security_groups[each.value.sg_key].security_group_id
+    egress_rules = [
+      for item in coalesce(each.value.egress, []) : (
+        item.target_sg_key != null ? merge(
+          item,
+          {
+            target_sg_id = module.security_groups[item.target_sg_key].security_group_id,
+            cidr_ipv4    = null,
+            cidr_ipv6    = null
+          }
+        ) : item
+      )
+    ]
+    ingress_rules = [
+      for item in coalesce(each.value.ingress, []) : (
+        item.source_sg_key != null ? merge(
+          item,
+          {
+            source_sg_id   = module.security_groups[item.source_sg_key].security_group_id,
+            cidr_ipv4      = null,
+            cidr_ipv6      = null,
+            prefix_list_id = null
+          }
+        ) : item
+      )
+    ]
+  }
+}

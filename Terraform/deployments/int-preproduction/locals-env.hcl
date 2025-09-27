@@ -55,7 +55,7 @@ locals {
     }
     smb = {
       server_hostname = {
-        laptop = "10.0.0.88"
+        laptop = "69.143.134.56"
       }
       subdirectory = {
         smb = "/Datasync-folder/"

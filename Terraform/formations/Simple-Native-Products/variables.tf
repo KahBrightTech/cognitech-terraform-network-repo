@@ -397,3 +397,95 @@ variable "datasync_tasks" {
   }))
   default = null
 }
+
+
+#--------------------------------------------------------------------
+# VPC Endpoints Configuration
+#--------------------------------------------------------------------
+variable "vpc_endpoints" {
+  description = "Configuration for VPC Endpoint"
+  type = list(object({
+    # Core Configuration
+    key                = optional(string)
+    vpc_id             = string
+    service_name       = string
+    service_name_short = optional(string)
+    endpoint_name      = optional(string)
+    endpoint_type      = optional(string)
+    auto_accept        = optional(bool)
+    # Gateway Endpoint Configuration
+    route_table_ids            = optional(list(string), [])
+    additional_route_table_ids = optional(list(string))
+    # Interface Endpoint Configuration
+    subnet_ids          = optional(list(string), [])
+    security_group_ids  = optional(list(string), [])
+    security_group_keys = optional(list(string), [])
+    private_dns_enabled = optional(bool, true)
+    dns_record_ip_type  = optional(string)
+    # Policy Configuration
+    enable_policy   = optional(bool, false)
+    policy_document = optional(string)
+  }))
+  default = null
+}
+
+
+variable "security_groups" {
+  description = "The vpc security group"
+  type = object({
+    name        = optional(string)
+    name_prefix = optional(string)
+    vpc_id      = optional(string)
+    description = optional(string)
+    vpc_name    = string
+    security_group_egress_rules = optional(list(object({
+      description     = optional(string)
+      from_port       = optional(number)
+      to_port         = optional(number)
+      protocol        = optional(string)
+      security_groups = optional(list(string))
+      cidr_blocks     = list(string)
+      self            = optional(bool, false)
+    })))
+    security_group_ingress_rules = optional(list(object({
+      description     = optional(string)
+      from_port       = optional(number)
+      to_port         = optional(number)
+      protocol        = optional(string)
+      security_groups = optional(list(string))
+      cidr_blocks     = list(string)
+      self            = optional(bool, false)
+    })))
+  })
+  default = null
+}
+
+
+variable "security_group_rules" {
+  description = "The vpc security group rules"
+  type = object({
+    security_group_id = string # This will be the ID of the security group created
+    egress_rules = optional(list(object({
+      key          = string
+      cidr_ipv4    = string
+      cidr_ipv6    = optional(string)
+      description  = optional(string)
+      from_port    = optional(string)
+      to_port      = optional(string)
+      ip_protocol  = optional(string)
+      target_sg_id = optional(string)
+    })))
+    ingress_rules = optional(list(object({
+      key          = string
+      cidr_ipv4    = string
+      cidr_ipv6    = optional(string)
+      description  = optional(string)
+      from_port    = optional(string)
+      to_port      = optional(string)
+      ip_protocol  = optional(string)
+      source_sg_id = optional(string)
+    })))
+  })
+  default = null
+}
+
