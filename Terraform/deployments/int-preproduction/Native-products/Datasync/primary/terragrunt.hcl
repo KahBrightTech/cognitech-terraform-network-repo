@@ -129,13 +129,13 @@ inputs = {
 
   vpc_endpoints = [
     {
-      vpc_id            = dependency.shared_services.outputs.Account_products.${local.vpc_name}.vpc_id
+      vpc_id            = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
       service_name      = "com.amazonaws.${local.region}.datasync"
       endpoint_name     = "${local.vpc_name}-datasync"
       vpc_endpoint_type = "Interface"
       subnet_ids = [
-        dependency.shared_services.outputs.Account_products.${local.vpc_name}.public_subnet.sbnt1.primary_subnet_id,
-        dependency.shared_services.outputs.Account_products.${local.vpc_name}.public_subnet.sbnt1.secondary_subnet_id
+        dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id,
+        dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.secondary_subnet_id
       ]
       security_group_ids = ["local.native_resource"]
     }
@@ -168,14 +168,14 @@ inputs = {
         volume_type           = "gp3"
         delete_on_termination = true
       }
-      subnet_id     = dependency.shared_services.outputs.Account_products.${local.vpc_name}.public_subnet.sbnt1.primary_subnet_id
+      subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id
       Schedule_name = "nfs-server-schedule"
       security_group_ids = [
-        dependency.shared_services.outputs.Account_products.${local.vpc_name}.security_group.app.id
+        dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
       ]
       hosted_zones = {
-        name    = "nfs01.${dependency.shared_services.outputs.Account_products.${local.vpc_name}.zones.shared.zone_name}"
-        zone_id = dependency.shared_services.outputs.Account_products.${local.vpc_name}.zones.shared.zone_id
+        name    = "nfs01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
+        zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_id
         type    = "A"
       }
     },
@@ -208,14 +208,14 @@ inputs = {
         volume_type           = "gp3"
         delete_on_termination = true
       }
-      subnet_id     = dependency.shared_services.outputs.Account_products.$ { local.vpc_name }.public_subnet.sbnt1.primary_subnet_id
+      subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id
       Schedule_name = "ansible-server-schedule"
       security_group_ids = [
-        dependency.shared_services.outputs.Account_products.${local.vpc_name}.security_group.app.id
+        dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
       ]
       hosted_zones = {
-        name    = "ssmb01.${dependency.shared_services.outputs.Account_products.${local.vpc_name}.zones.shared.zone_name}"
-        zone_id = dependency.shared_services.outputs.Account_products.${local.vpc_name}.zones.shared.zone_id
+        name    = "ssmb01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
+        zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_id
         type    = "A"
       }
     }
