@@ -33,7 +33,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name     = "shared-services"
   vpc_name_abr = "shared"
-  deployment_path = "Native-products"
+  native_resource = "datasync"
 
   # Composite variables 
   tags = merge(
@@ -48,7 +48,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Simple-Native-Products"
+  source = "../../../..//formations/Simple-Native-Products"
 }
 
 #-------------------------------------------------------

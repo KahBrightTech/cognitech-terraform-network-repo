@@ -4,7 +4,7 @@ parameters:
     SecretName:
         type: String
         description: "Secrets Manager secret name containing user credentials"
-        default: "{{ssm:/Standard/account/user-access-token}}"
+        default: "{{ssm:/Standard/account/ansible-authentication}}"
     SecretRegion:
         type: String
         description: "AWS Region where the secret is stored"
