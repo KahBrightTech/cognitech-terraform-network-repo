@@ -36,6 +36,10 @@ locals {
   vpc_name_abr    = "shared"
   native_resource = "datasync"
   laptop_ip       = "69.143.134.56/32"
+  Misc_tags = {
+    "PrivateHostedZone" = "shared.cognitech.com"
+    "PublicHostedZone"  = "cognitech.com"
+  }
 
   # Composite variables 
   tags = merge(
