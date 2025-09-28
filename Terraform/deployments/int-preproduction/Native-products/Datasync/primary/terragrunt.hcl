@@ -147,214 +147,214 @@ inputs = {
   #     create_vpc_endpoints = false
   #   }
   # ]
-  ec2_instances = [
-    {
-      index            = "nfs"
-      name             = "nfs-server"
-      backup_plan_name = "${local.aws_account_name}-${local.region_context}-continous-backup"
-      name_override    = "INTPP-SHR-L-NFS-01"
-      ami_config = {
-        os_release_date = "AL2023"
-      }
-      associate_public_ip_address = true
-      instance_type               = "t3.large"
-      iam_instance_profile        = dependency.shared_services.outputs.ec2_profiles[local.vpc_name].iam_profiles.name
-      associate_public_ip_address = true
-      key_name                    = dependency.shared_services.outputs.ec2_key_pairs["${local.vpc_name}-key-pair"].name
-      custom_tags = merge(
-        local.Misc_tags,
-        {
-          "Name"       = "INTPP-SHR-L-NFS-01"
-          "DNS_Prefix" = "nfs01"
-          "CreateUser" = "True"
-        }
-      )
-      ebs_device_volume = []
-      ebs_root_volume = {
-        volume_size           = 30
-        volume_type           = "gp3"
-        delete_on_termination = true
-      }
-      subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id
-      Schedule_name = "nfs-server-schedule"
-      security_group_ids = [
-        dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
-      ]
-      hosted_zones = {
-        name    = "nfs01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
-        zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_id
-        type    = "A"
-      }
-    },
-    {
-      index            = "etl"
-      name             = "etl-server"
-      backup_plan_name = "${local.aws_account_name}-${local.region_context}-continous-backup"
-      name_override    = "INTPP-SHR-L-ETL-01"
-      ami_config = {
-        os_release_date = "AL2023"
-      }
-      associate_public_ip_address = true
-      instance_type               = "t3.large"
-      iam_instance_profile        = dependency.shared_services.outputs.ec2_profiles[local.vpc_name].iam_profiles.name
-      associate_public_ip_address = true
-      key_name                    = dependency.shared_services.outputs.ec2_key_pairs["${local.vpc_name}-key-pair"].name
-      custom_tags = merge(
-        local.Misc_tags,
-        {
-          "Name"       = "INTPP-SHR-L-ETL-01"
-          "DNS_Prefix" = "etl01"
-          "CreateUser" = "True"
-          WindowsBannerConfig = "True"
-        }
-      )
-      ebs_device_volume = []
-      ebs_root_volume = {
-        volume_size           = 30
-        volume_type           = "gp3"
-        delete_on_termination = true
-      }
-      subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id
-      Schedule_name = "etl-server-schedule"
-      security_group_ids = [
-        dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
-      ]
-      hosted_zones = {
-        name    = "etl01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
-        zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_id
-        type    = "A"
-      }
-    },
-    {
-      index            = "smb1"
-      name             = "smb1-server"
-      backup_plan_name = "${local.aws_account_name}-${local.region_context}-continous-backup"
-      name_override    = "INTPP-SHR-W-SMB-01"
-      ami_config = {
-        os_release_date  = "W22"
-        os_base_packages = "BASE"
-      }
-      associate_public_ip_address = true
-      instance_type               = "t3.large"
-      iam_instance_profile        = dependency.shared_services.outputs.ec2_profiles[local.vpc_name].iam_profiles.name
-      associate_public_ip_address = true
-      key_name                    = dependency.shared_services.outputs.ec2_key_pairs["${local.vpc_name}-key-pair"].name
-      custom_tags = merge(
-        local.Misc_tags,
-        {
-          "Name"         = "INTPP-SHR-W-SMB-01"
-          "DNS_Prefix"   = "smb01"
-          "CreateUser"   = "True"
-          "WinRMInstall" = "True"
-        }
-      )
-      ebs_device_volume = []
-      ebs_root_volume = {
-        volume_size           = 30
-        volume_type           = "gp3"
-        delete_on_termination = true
-      }
-      subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id
-      Schedule_name = "ansible-server-schedule"
-      security_group_ids = [
-        dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
-      ]
-      hosted_zones = {
-        name    = "smb01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
-        zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_id
-        type    = "A"
-      }
-    }
-  ]
-  
-  datasync_locations = [
-    {
-      key = "nfs-wsl"
-      nfs_location = {
-        location_type   = "NFS"
-        server_hostname = include.env.locals.datasync.nfs.server_hostname.nfs
-        subdirectory    = include.env.locals.datasync.nfs.subdirectory.nfs
-        on_prem_config = {
-          agent_arns = [include.env.locals.datasync.agent_arns.int]
-        }
-      }
-    },
-    {
-      key = "s3-nfs"
-      s3_location = {
-        location_type          = "S3"
-        s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
-        subdirectory           = include.env.locals.datasync.s3.subdirectory.datasync_bucket
-        bucket_access_role_arn = dependency.shared_services.outputs.IAM_roles["${local.vpc_name}-${local.native_resource}"].iam_role_arn
-      }
-    },
-    {
-      key = "smb-ec2"
-      smb_location = {
-        location_type   = "smb"
-        server_hostname = include.env.locals.datasync.smb.server_hostname.ec2
-        user            = include.env.locals.datasync.smb.user.first
-        password        = include.env.locals.datasync.smb.password.first
-        subdirectory    = include.env.locals.datasync.smb.subdirectory.smb
-        agent_arns      = [include.env.locals.datasync.agent_arns.int]
-      }
-    },
-    {
-      key = "s3-smb"
-      s3_location = {
-        location_type          = "S3"
-        s3_bucket_arn          = dependency.shared_services.outputs.S3_buckets.shared-services-datasync-bucket.arn
-        subdirectory           = include.env.locals.datasync.s3.subdirectory.smb
-        bucket_access_role_arn = dependency.shared_services.outputs.IAM_roles["${local.vpc_name}-${local.native_resource}"].iam_role_arn
-      }
-    }
-  ]
+  # ec2_instances = [
+  #   {
+  #     index            = "nfs"
+  #     name             = "nfs-server"
+  #     backup_plan_name = "${local.aws_account_name}-${local.region_context}-continous-backup"
+  #     name_override    = "INTPP-SHR-L-NFS-01"
+  #     ami_config = {
+  #       os_release_date = "AL2023"
+  #     }
+  #     associate_public_ip_address = true
+  #     instance_type               = "t3.large"
+  #     iam_instance_profile        = dependency.shared_services.outputs.ec2_profiles[local.vpc_name].iam_profiles.name
+  #     associate_public_ip_address = true
+  #     key_name                    = dependency.shared_services.outputs.ec2_key_pairs["${local.vpc_name}-key-pair"].name
+  #     custom_tags = merge(
+  #       local.Misc_tags,
+  #       {
+  #         "Name"       = "INTPP-SHR-L-NFS-01"
+  #         "DNS_Prefix" = "nfs01"
+  #         "CreateUser" = "True"
+  #       }
+  #     )
+  #     ebs_device_volume = []
+  #     ebs_root_volume = {
+  #       volume_size           = 30
+  #       volume_type           = "gp3"
+  #       delete_on_termination = true
+  #     }
+  #     subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id
+  #     Schedule_name = "nfs-server-schedule"
+  #     security_group_ids = [
+  #       dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
+  #     ]
+  #     hosted_zones = {
+  #       name    = "nfs01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
+  #       zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_id
+  #       type    = "A"
+  #     }
+  #   },
+  #   {
+  #     index            = "etl"
+  #     name             = "etl-server"
+  #     backup_plan_name = "${local.aws_account_name}-${local.region_context}-continous-backup"
+  #     name_override    = "INTPP-SHR-L-ETL-01"
+  #     ami_config = {
+  #       os_release_date = "AL2023"
+  #     }
+  #     associate_public_ip_address = true
+  #     instance_type               = "t3.large"
+  #     iam_instance_profile        = dependency.shared_services.outputs.ec2_profiles[local.vpc_name].iam_profiles.name
+  #     associate_public_ip_address = true
+  #     key_name                    = dependency.shared_services.outputs.ec2_key_pairs["${local.vpc_name}-key-pair"].name
+  #     custom_tags = merge(
+  #       local.Misc_tags,
+  #       {
+  #         "Name"       = "INTPP-SHR-L-ETL-01"
+  #         "DNS_Prefix" = "etl01"
+  #         "CreateUser" = "True"
+  #         WindowsBannerConfig = "True"
+  #       }
+  #     )
+  #     ebs_device_volume = []
+  #     ebs_root_volume = {
+  #       volume_size           = 30
+  #       volume_type           = "gp3"
+  #       delete_on_termination = true
+  #     }
+  #     subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id
+  #     Schedule_name = "etl-server-schedule"
+  #     security_group_ids = [
+  #       dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
+  #     ]
+  #     hosted_zones = {
+  #       name    = "etl01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
+  #       zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_id
+  #       type    = "A"
+  #     }
+  #   },
+  #   {
+  #     index            = "smb1"
+  #     name             = "smb1-server"
+  #     backup_plan_name = "${local.aws_account_name}-${local.region_context}-continous-backup"
+  #     name_override    = "INTPP-SHR-W-SMB-01"
+  #     ami_config = {
+  #       os_release_date  = "W22"
+  #       os_base_packages = "BASE"
+  #     }
+  #     associate_public_ip_address = true
+  #     instance_type               = "t3.large"
+  #     iam_instance_profile        = dependency.shared_services.outputs.ec2_profiles[local.vpc_name].iam_profiles.name
+  #     associate_public_ip_address = true
+  #     key_name                    = dependency.shared_services.outputs.ec2_key_pairs["${local.vpc_name}-key-pair"].name
+  #     custom_tags = merge(
+  #       local.Misc_tags,
+  #       {
+  #         "Name"         = "INTPP-SHR-W-SMB-01"
+  #         "DNS_Prefix"   = "smb01"
+  #         "CreateUser"   = "True"
+  #         "WinRMInstall" = "True"
+  #       }
+  #     )
+  #     ebs_device_volume = []
+  #     ebs_root_volume = {
+  #       volume_size           = 30
+  #       volume_type           = "gp3"
+  #       delete_on_termination = true
+  #     }
+  #     subnet_id     = dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id
+  #     Schedule_name = "ansible-server-schedule"
+  #     security_group_ids = [
+  #       dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
+  #     ]
+  #     hosted_zones = {
+  #       name    = "smb01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
+  #       zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_id
+  #       type    = "A"
+  #     }
+  #   }
+  # ]
 
-  datasync_tasks = [
-    {
-      key                         = "nfs-to-s3"
-      create_cloudwatch_log_group = true
-      cloudwatch_log_group_name   = "nfstos3"
-      task = {
-        name            = "${local.vpc_name}-nfs-to-s3"
-        source_key      = "nfs-wsl"
-        destination_key = "s3-nfs"
-        options = {
-          verify_mode            = "POINT_IN_TIME_CONSISTENT"
-          overwrite_mode         = "ALWAYS"
-          atime                  = "BEST_EFFORT"
-          mtime                  = "PRESERVE"
-          uid                    = "INT_VALUE"
-          gid                    = "INT_VALUE"
-          preserve_deleted_files = "PRESERVE"
-          posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
-        }
-        schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
-      }
-    },
-    {
-      key                         = "smb-to-s3"
-      create_cloudwatch_log_group = true
-      cloudwatch_log_group_name   = "smbtos3"
-      task = {
-        name            = "${local.vpc_name}-smb-to-s3"
-        source_key      = "smb-ec2"
-        destination_key = "s3-smb"
-        options = {
-          verify_mode            = "POINT_IN_TIME_CONSISTENT"
-          overwrite_mode         = "ALWAYS"
-          atime                  = "BEST_EFFORT"
-          mtime                  = "PRESERVE"
-          log_level              = "TRANSFER"
-          uid                    = "NONE"
-          gid                    = "NONE"
-          preserve_deleted_files = "PRESERVE"
-          posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
-        }
-        schedule_expression = "cron(0 8 ? * * *)" # Every day at 8AM
-      }
-    }
-  ]
+  # datasync_locations = [
+  #   {
+  #     key = "nfs-wsl"
+  #     nfs_location = {
+  #       location_type   = "NFS"
+  #       server_hostname = include.env.locals.datasync.nfs.server_hostname.nfs
+  #       subdirectory    = include.env.locals.datasync.nfs.subdirectory.nfs
+  #       on_prem_config = {
+  #         agent_arns = [include.env.locals.datasync.agent_arns.int]
+  #       }
+  #     }
+  #   },
+  #   {
+  #     key = "s3-nfs"
+  #     s3_location = {
+  #       location_type          = "S3"
+  #       s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
+  #       subdirectory           = include.env.locals.datasync.s3.subdirectory.datasync_bucket
+  #       bucket_access_role_arn = dependency.shared_services.outputs.IAM_roles["${local.vpc_name}-${local.native_resource}"].iam_role_arn
+  #     }
+  #   },
+  #   {
+  #     key = "smb-ec2"
+  #     smb_location = {
+  #       location_type   = "smb"
+  #       server_hostname = include.env.locals.datasync.smb.server_hostname.ec2
+  #       user            = include.env.locals.datasync.smb.user.first
+  #       password        = include.env.locals.datasync.smb.password.first
+  #       subdirectory    = include.env.locals.datasync.smb.subdirectory.smb
+  #       agent_arns      = [include.env.locals.datasync.agent_arns.int]
+  #     }
+  #   },
+  #   {
+  #     key = "s3-smb"
+  #     s3_location = {
+  #       location_type          = "S3"
+  #       s3_bucket_arn          = dependency.shared_services.outputs.S3_buckets.shared-services-datasync-bucket.arn
+  #       subdirectory           = include.env.locals.datasync.s3.subdirectory.smb
+  #       bucket_access_role_arn = dependency.shared_services.outputs.IAM_roles["${local.vpc_name}-${local.native_resource}"].iam_role_arn
+  #     }
+  #   }
+  # ]
+
+  # datasync_tasks = [
+  #   {
+  #     key                         = "nfs-to-s3"
+  #     create_cloudwatch_log_group = true
+  #     cloudwatch_log_group_name   = "nfstos3"
+  #     task = {
+  #       name            = "${local.vpc_name}-nfs-to-s3"
+  #       source_key      = "nfs-wsl"
+  #       destination_key = "s3-nfs"
+  #       options = {
+  #         verify_mode            = "POINT_IN_TIME_CONSISTENT"
+  #         overwrite_mode         = "ALWAYS"
+  #         atime                  = "BEST_EFFORT"
+  #         mtime                  = "PRESERVE"
+  #         uid                    = "INT_VALUE"
+  #         gid                    = "INT_VALUE"
+  #         preserve_deleted_files = "PRESERVE"
+  #         posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
+  #       }
+  #       schedule_expression = "cron(0 5 ? * * *)" # Every day at 5 AM
+  #     }
+  #   },
+  #   {
+  #     key                         = "smb-to-s3"
+  #     create_cloudwatch_log_group = true
+  #     cloudwatch_log_group_name   = "smbtos3"
+  #     task = {
+  #       name            = "${local.vpc_name}-smb-to-s3"
+  #       source_key      = "smb-ec2"
+  #       destination_key = "s3-smb"
+  #       options = {
+  #         verify_mode            = "POINT_IN_TIME_CONSISTENT"
+  #         overwrite_mode         = "ALWAYS"
+  #         atime                  = "BEST_EFFORT"
+  #         mtime                  = "PRESERVE"
+  #         log_level              = "TRANSFER"
+  #         uid                    = "NONE"
+  #         gid                    = "NONE"
+  #         preserve_deleted_files = "PRESERVE"
+  #         posix_permissions      = "NONE" # You have to set this if not datasync automatically selects PRESERVE
+  #       }
+  #       schedule_expression = "cron(0 8 ? * * *)" # Every day at 8AM
+  #     }
+  #   }
+  # ]
 }
 
 #-------------------------------------------------------
