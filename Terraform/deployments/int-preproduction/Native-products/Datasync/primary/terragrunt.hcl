@@ -205,6 +205,7 @@ inputs = {
           "Name"       = "INTPP-SHR-L-ETL-01"
           "DNS_Prefix" = "etl01"
           "CreateUser" = "True"
+          WindowsBannerConfig = "True"
         }
       )
       ebs_device_volume = []
@@ -307,7 +308,7 @@ inputs = {
       }
     }
   ]
-  
+
   datasync_tasks = [
     {
       key                         = "nfs-to-s3"

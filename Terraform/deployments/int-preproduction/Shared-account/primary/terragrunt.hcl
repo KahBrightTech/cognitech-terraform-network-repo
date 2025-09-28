@@ -335,7 +335,7 @@ inputs = {
       ]
     }
   ]
-  
+
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
@@ -695,6 +695,18 @@ inputs = {
         values = ["True"]
       }
       schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
+    },
+    {
+      name               = "Windows-Banner-Config"
+      content            = file("${include.cloud.locals.repo.root}/documents/LogonBanner.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:WindowsBannerConfig"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 9 ? * SUN *)" # Every Sunday at 9 AM
     },
     {
       name            = "NFS-Install"

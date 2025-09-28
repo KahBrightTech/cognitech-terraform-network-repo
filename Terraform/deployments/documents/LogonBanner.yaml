@@ -1,0 +1,38 @@
+schemaVersion: '2.2'
+description: "Document to configure a Windows login banner for Cognitech systems"
+parameters:
+  BannerTitle:
+    type: String
+    description: "Title for Windows login banner"
+    default: "Cognitech Systems - Authorized Access Only"
+  BannerMessage:
+    type: String
+    description: "Message for Windows login banner"
+    default: |
+      This computer system is the property of Cognitech.
+      Access is restricted to authorized users only.
+      Unauthorized use, access, or modification of this system is strictly prohibited and may result in disciplinary action and/or civil and criminal penalties.
+      By continuing, you acknowledge that your activities may be monitored and audited.
+
+mainSteps:
+- action: aws:runPowerShellScript
+  name: ConfigureWindowsBanner
+  description: |
+    Sets the Windows logon banner by updating registry keys
+  inputs:
+    runCommand:
+    - |
+      # PowerShell script to configure Cognitech Windows logon banner
+      $bannerTitle = "{{ BannerTitle }}"
+      $bannerMessage = "{{ BannerMessage }}"
+      $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
+
+      Write-Host "Configuring Windows login banner..."
+      Set-ItemProperty -Path $regPath -Name "legalnoticecaption" -Value $bannerTitle
+      Set-ItemProperty -Path $regPath -Name "legalnoticetext" -Value $bannerMessage
+
+      Write-Host "Banner successfully configured."
+  precondition:
+    StringEquals:
+    - platformType
+    - Windows
