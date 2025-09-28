@@ -58,13 +58,13 @@ locals {
         ec2 = "34.227.98.48"  
       }
       subdirectory = {
-        smb = "/Datasync-folder/"
+        smb = "/Downloads/"
       }
       user = {
-        first = "Admin"
+        first = "datasync"
       }
       password = {
-        first = "sNf&@jx&bwTxPT7"
+        first = "Shilohangel@2025"
       }
     }
     s3 = {

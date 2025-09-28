@@ -266,6 +266,7 @@ inputs = {
       }
     }
   ]
+  
   datasync_locations = [
     {
       key = "nfs-wsl"
