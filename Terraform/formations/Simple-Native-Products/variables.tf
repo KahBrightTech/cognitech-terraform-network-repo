@@ -406,14 +406,13 @@ variable "vpc_endpoints" {
   description = "Configuration for VPC Endpoint"
   type = list(object({
     # Core Configuration
-    key                  = optional(string)
-    vpc_id               = string
-    service_name         = string
-    service_name_short   = optional(string)
-    endpoint_name        = optional(string)
-    endpoint_type        = optional(string)
-    auto_accept          = optional(bool)
-    create_vpc_endpoints = optional(bool, true)
+    key                = optional(string)
+    vpc_id             = string
+    service_name       = string
+    service_name_short = optional(string)
+    endpoint_name      = optional(string)
+    endpoint_type      = optional(string)
+    auto_accept        = optional(bool)
     # Gateway Endpoint Configuration
     route_table_ids            = optional(list(string), [])
     additional_route_table_ids = optional(list(string))

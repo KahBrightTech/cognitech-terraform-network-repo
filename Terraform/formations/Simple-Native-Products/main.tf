@@ -158,7 +158,7 @@ module "datasync_tasks" {
 #--------------------------------------------------------------------
 module "vpc_endpoints" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/VPCEndpoints?ref=v1.3.61"
-  for_each = var.vpc_endpoints != null ? { for item in var.vpc_endpoints : item.key => item if try(item.create_vpc_endpoints, true) } : {}
+  for_each = (var.vpc_endpoints != null) ? { for item in var.vpc_endpoints : item.key => item } : {}
   common   = var.common
   vpc_endpoints = merge(
     each.value,
@@ -175,7 +175,7 @@ module "vpc_endpoints" {
 #--------------------------------------------------------------------
 module "security_groups" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group?ref=v1.1.28"
-  for_each = var.security_groups != null && var.vpc_endpoints != null ? { for item in var.security_groups : item.key => item } : {}
+  for_each = var.security_groups != null ? { for item in var.security_groups : item.key => item } : {}
   common   = var.common
   security_group = {
     name                         = each.value.name
@@ -194,7 +194,7 @@ module "security_groups" {
 #--------------------------------------------------------------------
 module "security_group_rules" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Security-group-rules?ref=v1.1.1"
-  for_each = var.security_group_rules != null && var.vpc_endpoints != null ? { for item in var.security_group_rules : item.sg_key => item } : {}
+  for_each = var.security_group_rules != null ? { for item in var.security_group_rules : item.sg_key => item } : {}
   common   = var.common
   security_group = {
     security_group_id = module.security_groups[each.value.sg_key].security_group_id

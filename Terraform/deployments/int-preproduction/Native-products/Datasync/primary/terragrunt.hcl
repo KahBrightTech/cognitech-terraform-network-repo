@@ -76,47 +76,47 @@ inputs = {
     account_name_abr = include.env.locals.name_abr
   }
 
-  security_groups = [
-    {
-      key         = "${local.native_resource}"
-      name        = "${local.vpc_name}-${local.native_resource}"
-      description = "standard ${local.vpc_name} ${local.native_resource} security group."
-      vpc_id      = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
-      vpc_name    = local.vpc_name
-    }
-  ]
+  # security_groups = [
+  #   {
+  #     key         = "${local.native_resource}"
+  #     name        = "${local.vpc_name}-${local.native_resource}"
+  #     description = "standard ${local.vpc_name} ${local.native_resource} security group."
+  #     vpc_id      = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
+  #     vpc_name    = local.vpc_name
+  #   }
+  # ]
 
-  security_group_rules = [
-    {
-      sg_key = "${local.native_resource}"
-      ingress = [
-        {
-          key         = "ingress-443-laptop_ip"
-          cidr_ipv4   = local.laptop_ip
-          description = "BASE - nbound traffic from laptop IP on tcp port 443."
-          from_port   = 443
-          to_port     = 443
-          ip_protocol = "tcp"
-        },
-        {
-          key         = "ingress-1024-1064-laptop_ip"
-          cidr_ipv4   = local.laptop_ip
-          description = "BASE - Inbound traffic from laptop IP on tcp port 1024-1064"
-          from_port   = 1024
-          to_port     = 1064
-          ip_protocol = "tcp"
-        },
-      ]
-      egress = [
-        {
-          key         = "egress-all-traffic-bastion-sg"
-          cidr_ipv4   = "0.0.0.0/0"
-          description = "BASE - Outbound all traffic from Bastion SG to Internet"
-          ip_protocol = "-1"
-        }
-      ]
-    }
-  ]
+  # security_group_rules = [
+  #   {
+  #     sg_key = "${local.native_resource}"
+  #     ingress = [
+  #       {
+  #         key         = "ingress-443-laptop_ip"
+  #         cidr_ipv4   = local.laptop_ip
+  #         description = "BASE - nbound traffic from laptop IP on tcp port 443."
+  #         from_port   = 443
+  #         to_port     = 443
+  #         ip_protocol = "tcp"
+  #       },
+  #       {
+  #         key         = "ingress-1024-1064-laptop_ip"
+  #         cidr_ipv4   = local.laptop_ip
+  #         description = "BASE - Inbound traffic from laptop IP on tcp port 1024-1064"
+  #         from_port   = 1024
+  #         to_port     = 1064
+  #         ip_protocol = "tcp"
+  #       },
+  #     ]
+  #     egress = [
+  #       {
+  #         key         = "egress-all-traffic-bastion-sg"
+  #         cidr_ipv4   = "0.0.0.0/0"
+  #         description = "BASE - Outbound all traffic from Bastion SG to Internet"
+  #         ip_protocol = "-1"
+  #       }
+  #     ]
+  #   }
+  # ]
   iam_roles = [
     # {
     #   name               = "${local.vpc_name}-datasync"
@@ -131,22 +131,22 @@ inputs = {
     # }
   ]
 
-  vpc_endpoints = [
-    {
-      key                = local.native_resource
-      vpc_id             = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
-      service_name       = "com.amazonaws.${local.region}.datasync"
-      endpoint_name      = "${local.vpc_name}-datasync"
-      endpoint_type      = "Interface"
-      dns_record_ip_type = "ipv4"
-      subnet_ids = [
-        dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id,
-        dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.secondary_subnet_id
-      ]
-      security_group_keys  = ["${local.native_resource}"]
-      create_vpc_endpoints = false
-    }
-  ]
+  # vpc_endpoints = [
+  #   {
+  #     key                = local.native_resource
+  #     vpc_id             = dependency.shared_services.outputs.Account_products[local.vpc_name].vpc_id
+  #     service_name       = "com.amazonaws.${local.region}.datasync"
+  #     endpoint_name      = "${local.vpc_name}-datasync"
+  #     endpoint_type      = "Interface"
+  #     dns_record_ip_type = "ipv4"
+  #     subnet_ids = [
+  #       dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.primary_subnet_id,
+  #       dependency.shared_services.outputs.Account_products[local.vpc_name].public_subnet.sbnt1.secondary_subnet_id
+  #     ]
+  #     security_group_keys  = ["${local.native_resource}"]
+  #     create_vpc_endpoints = false
+  #   }
+  # ]
   ec2_instances = [
     {
       index            = "nfs"
@@ -269,7 +269,7 @@ inputs = {
     #   }
     # }
   ]
-  
+
   datasync_tasks = [
     # {
     #   key                         = "nfs-to-s3"
