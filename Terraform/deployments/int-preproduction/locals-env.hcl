@@ -43,11 +43,11 @@ locals {
 
   datasync = {
     agent_arns = {
-      int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-07047a25d8994edc8"
+      int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-0eddf2c4927e86850"
     }
     nfs = {
       server_hostname = {
-        nfs = "54.92.154.199"
+        nfs = "3.82.58.68"
       }
       subdirectory = {
         nfs = "/shared/nfs"
