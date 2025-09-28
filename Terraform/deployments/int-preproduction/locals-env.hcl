@@ -55,16 +55,16 @@ locals {
     }
     smb = {
       server_hostname = {
-        laptop = "69.143.134.56"
+        ec2 = "34.230.66.117"
       }
       subdirectory = {
         smb = "/Datasync-folder/"
       }
       user = {
-        first = "kah"
+        first = "Admin"
       }
       password = {
-        first = "Shilohangel@2025"
+        first = "sNf&@jx&bwTxPT7"
       }
     }
     s3 = {

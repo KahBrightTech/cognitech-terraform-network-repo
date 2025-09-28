@@ -249,10 +249,10 @@ inputs = {
       }
     },
     {
-      key = "smb-laptop"
+      key = "smb-ec2"
       smb_location = {
         location_type   = "smb"
-        server_hostname = include.env.locals.datasync.smb.server_hostname.laptop
+        server_hostname = include.env.locals.datasync.smb.server_hostname.ec2
         user            = include.env.locals.datasync.smb.user.first
         password        = include.env.locals.datasync.smb.password.first
         subdirectory    = include.env.locals.datasync.smb.subdirectory.smb
@@ -297,7 +297,7 @@ inputs = {
       cloudwatch_log_group_name   = "smbtos3"
       task = {
         name            = "${local.vpc_name}-smb-to-s3"
-        source_key      = "smb-laptop"
+        source_key      = "smb-ec2"
         destination_key = "s3-smb"
         options = {
           verify_mode            = "POINT_IN_TIME_CONSISTENT"
