@@ -283,6 +283,14 @@ inputs = {
                 from_port   = 2049
                 to_port     = 2049
                 ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-445-internet"
+                cidr_ipv4   = local.internet_cidr
+                description = "BASE - Inbound NFS traffic from the internet on tcp port 445"
+                from_port   = 445
+                to_port     = 445
+                ip_protocol = "tcp"
               }
             ]
           )
