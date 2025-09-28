@@ -43,11 +43,11 @@ locals {
 
   datasync = {
     agent_arns = {
-      int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-0eddf2c4927e86850"
+      int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-0c89bb6ec58532688"
     }
     nfs = {
       server_hostname = {
-        nfs = "3.82.58.68"
+        nfs = "18.232.128.38"
       }
       subdirectory = {
         nfs = "/shared/nfs"
@@ -55,7 +55,6 @@ locals {
     }
     smb = {
       server_hostname = {
-        ec2 = "smb.cognitechllc.org"  # This must be a dns record that resolves to the smb server
       }
       subdirectory = {
         smb = "/Datasync-folder/"

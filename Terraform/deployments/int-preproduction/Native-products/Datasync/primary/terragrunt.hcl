@@ -228,7 +228,7 @@ inputs = {
       index            = "smb1"
       name             = "smb1-server"
       backup_plan_name = "${local.aws_account_name}-${local.region_context}-continous-backup"
-      name_override    = "INTPP-SHR-W-SSMB-01"
+      name_override    = "INTPP-SHR-W-SMB-01"
       ami_config = {
         os_release_date  = "W22"
         os_base_packages = "BASE"
@@ -241,8 +241,8 @@ inputs = {
       custom_tags = merge(
         local.Misc_tags,
         {
-          "Name"         = "INTPP-SHR-W-SSMB-01"
-          "DNS_Prefix"   = "ssmb01"
+          "Name"         = "INTPP-SHR-W-SMB-01"
+          "DNS_Prefix"   = "smb01"
           "CreateUser"   = "True"
           "WinRMInstall" = "True"
         }
@@ -259,7 +259,7 @@ inputs = {
         dependency.shared_services.outputs.Account_products[local.vpc_name].security_group.app.id
       ]
       hosted_zones = {
-        name    = "ssmb01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
+        name    = "smb01.${dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_name}"
         zone_id = dependency.shared_services.outputs.Account_products[local.vpc_name].zones.shared.zone_id
         type    = "A"
       }

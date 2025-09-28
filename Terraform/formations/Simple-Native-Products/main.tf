@@ -225,3 +225,20 @@ module "security_group_rules" {
     ]
   }
 }
+
+# #--------------------------------------------------------------------
+# # AWS EFS - Creates EFS file systems
+# #--------------------------------------------------------------------
+# module "efs" {
+#   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWSEFS?ref=v1.3.62"
+#   for_each = (var.efs != null) ? { for item in var.efs : item.key => item } : {}
+#   common   = var.common
+#   vpc_endpoints = merge(
+#     each.value,
+#     {
+#       security_group_ids = each.value.security_group_keys != null ? [
+#         for sg_key in each.value.security_group_keys : module.security_groups[sg_key].security_group_id
+#       ] : each.value.security_group_ids
+#     }
+#   )
+# }
