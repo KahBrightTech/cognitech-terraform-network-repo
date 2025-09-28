@@ -55,7 +55,7 @@ locals {
     }
     smb = {
       server_hostname = {
-        ec2 = "EC2AMAZ-2B0E11U"
+        ec2 = "EC2AMAZ-2B0E11U"  # This must be the actual hostname of the EC2 instance
       }
       subdirectory = {
         smb = "/Datasync-folder/"
