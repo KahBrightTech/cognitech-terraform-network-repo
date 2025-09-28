@@ -26,6 +26,10 @@ mainSteps:
             Write-Host "[$(Get-Date)] Starting WinRM configuration for Ansible Tower..."
 
             try {
+                # Set TLS to use more secure protocols
+                Write-Host "Configuring secure TLS protocols..."
+                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls
+                
                 # Install RSAT Tools
                 Write-Host "Installing Remote Server Administration Tools (RSAT)..."
                 try {
@@ -47,99 +51,185 @@ mainSteps:
                     Write-Host "Continuing with WinRM configuration..."
                 }
                 
-                # Enable WinRM service
+                # Enable WinRM service with enhanced security
                 Write-Host "Enabling WinRM service..."
-                Enable-PSRemoting -Force -SkipNetworkProfileCheck
-                
-                # Configure WinRM for HTTPS
-                Write-Host "Configuring WinRM for HTTPS..."
-                winrm quickconfig -q
-                winrm set winrm/config/service '@{AllowUnencrypted="false"}'
-                winrm set winrm/config/service/auth '@{Basic="true";Kerberos="true";Negotiate="true";Certificate="false";CredSSP="true"}'
-                winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="1024"}'
-                
-                # Create self-signed certificate for HTTPS if one doesn't exist
-                $cert = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object {$_.Subject -like "*$env:COMPUTERNAME*"}
-                if (-not $cert) {
-                    Write-Host "Creating self-signed certificate for HTTPS..."
-                    $cert = New-SelfSignedCertificate -DnsName $env:COMPUTERNAME -CertStoreLocation Cert:\LocalMachine\My
+                try {
+                    # Start WinRM service first
+                    Start-Service WinRM -ErrorAction SilentlyContinue
+                    Set-Service WinRM -StartupType Automatic
+                    
+                    # Enable PS Remoting with security considerations
+                    Enable-PSRemoting -Force -SkipNetworkProfileCheck
+                    Write-Host "WinRM service enabled successfully."
+                } catch {
+                    Write-Warning "Issue enabling WinRM service: $($_.Exception.Message)"
+                    # Continue anyway
                 }
                 
-                # Configure HTTPS listener - Remove existing listener first if it exists
-                Write-Host "Configuring HTTPS listener on port {{ WinRMPort }}..."
+                # Configure WinRM for HTTPS with better error handling
+                Write-Host "Configuring WinRM for HTTPS..."
                 try {
-                    # Remove existing HTTPS listeners to avoid conflicts
-                    $existingListeners = Get-WSManInstance -ResourceURI winrm/config/listener -Enumerate | Where-Object {$_.Transport -eq "HTTPS"}
-                    foreach ($listener in $existingListeners) {
-                        Write-Host "Removing existing HTTPS listener on port $($listener.Port)..."
-                        Remove-WSManInstance -ResourceURI winrm/config/listener -SelectorSet @{Address=$listener.Address;Transport="HTTPS"}
+                    winrm quickconfig -q -transport:https
+                    winrm set winrm/config/service '@{AllowUnencrypted="false"}'
+                    winrm set winrm/config/service/auth '@{Basic="true";Kerberos="true";Negotiate="true";Certificate="false";CredSSP="false"}'
+                    winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="1024"}'
+                    Write-Host "Basic WinRM configuration completed."
+                } catch {
+                    Write-Warning "Issue with WinRM basic configuration: $($_.Exception.Message)"
+                }
+                
+                # Create self-signed certificate with better security
+                Write-Host "Managing SSL certificate for HTTPS..."
+                $cert = $null
+                try {
+                    # Look for existing suitable certificate
+                    $existingCerts = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object {
+                        ($_.Subject -like "*$env:COMPUTERNAME*" -or $_.DnsNameList.Unicode -contains $env:COMPUTERNAME) -and
+                        $_.NotAfter -gt (Get-Date).AddDays(30) -and
+                        $_.HasPrivateKey -eq $true
+                    }
+                    
+                    if ($existingCerts) {
+                        $cert = $existingCerts | Sort-Object NotAfter -Descending | Select-Object -First 1
+                        Write-Host "Using existing certificate with thumbprint: $($cert.Thumbprint)"
+                    } else {
+                        Write-Host "Creating new self-signed certificate..."
+                        $cert = New-SelfSignedCertificate -DnsName $env:COMPUTERNAME, "localhost" -CertStoreLocation Cert:\LocalMachine\My -KeyUsage DigitalSignature,KeyEncipherment -NotAfter (Get-Date).AddYears(2) -KeyExportPolicy NonExportable -KeyLength 2048
+                        Write-Host "New certificate created with thumbprint: $($cert.Thumbprint)"
                     }
                 } catch {
-                    Write-Host "No existing HTTPS listeners found or failed to remove: $($_.Exception.Message)"
+                    Write-Error "Failed to create or find SSL certificate: $($_.Exception.Message)"
+                    throw "Certificate configuration failed"
                 }
                 
-                # Create new HTTPS listener
+                # Configure HTTPS listener with better error handling
+                Write-Host "Configuring HTTPS listener on port {{ WinRMPort }}..."
                 try {
+                    # Remove existing HTTPS listeners first
+                    $existingListeners = @()
+                    try {
+                        $existingListeners = Get-WSManInstance -ResourceURI winrm/config/listener -Enumerate | Where-Object {$_.Transport -eq "HTTPS"}
+                    } catch {
+                        Write-Host "No existing listeners found or unable to enumerate."
+                    }
+                    
+                    foreach ($listener in $existingListeners) {
+                        try {
+                            Write-Host "Removing existing HTTPS listener on port $($listener.Port)..."
+                            Remove-WSManInstance -ResourceURI winrm/config/listener -SelectorSet @{Address=$listener.Address;Transport="HTTPS"}
+                        } catch {
+                            Write-Warning "Failed to remove listener: $($_.Exception.Message)"
+                        }
+                    }
+                    
+                    # Create new HTTPS listener
                     Write-Host "Creating new HTTPS listener..."
                     New-WSManInstance -ResourceURI winrm/config/listener -SelectorSet @{Address="*";Transport="HTTPS"} -ValueSet @{Hostname=$env:COMPUTERNAME;CertificateThumbprint=$cert.Thumbprint;Port="{{ WinRMPort }}"}
-                    Write-Host "HTTPS listener created successfully."
+                    Write-Host "HTTPS listener created successfully on port {{ WinRMPort }}."
+                    
                 } catch {
-                    Write-Warning "Failed to create HTTPS listener: $($_.Exception.Message)"
-                    # Try alternative method using winrm command
-                    Write-Host "Attempting alternative HTTPS listener configuration..."
-                    & winrm create winrm/config/listener?Address=*+Transport=HTTPS "@{Hostname=`"$env:COMPUTERNAME`";CertificateThumbprint=`"$($cert.Thumbprint)`";Port=`"{{ WinRMPort }}`"}"
+                    Write-Warning "Failed to configure HTTPS listener via PowerShell: $($_.Exception.Message)"
+                    # Try alternative command-line method
+                    try {
+                        Write-Host "Attempting alternative listener configuration..."
+                        $winrmCmd = "winrm create winrm/config/listener?Address=*+Transport=HTTPS `"@{Hostname=`"$env:COMPUTERNAME`";CertificateThumbprint=`"$($cert.Thumbprint)`";Port=`"{{ WinRMPort }}`"}`""
+                        Invoke-Expression $winrmCmd
+                        Write-Host "Alternative HTTPS listener configuration completed."
+                    } catch {
+                        Write-Error "Both listener configuration methods failed: $($_.Exception.Message)"
+                        throw "HTTPS listener configuration failed"
+                    }
                 }
                 
                 # Configure firewall rules
-                Write-Host "Configuring Windows Firewall for WinRM..."
-                netsh advfirewall firewall add rule name="WinRM HTTPS" dir=in action=allow protocol=TCP localport={{ WinRMPort }}
+                Write-Host "Configuring Windows Firewall for WinRM HTTPS..."
+                try {
+                    # Remove existing rule if it exists
+                    netsh advfirewall firewall delete rule name="WinRM HTTPS" protocol=TCP localport={{ WinRMPort }} 2>$null
+                    # Add new rule
+                    netsh advfirewall firewall add rule name="WinRM HTTPS" dir=in action=allow protocol=TCP localport={{ WinRMPort }}
+                    Write-Host "Firewall rule configured for port {{ WinRMPort }}."
+                } catch {
+                    Write-Warning "Firewall configuration failed: $($_.Exception.Message)"
+                }
                 
                 # Set execution policy for PowerShell scripts
                 Write-Host "Setting PowerShell execution policy..."
-                Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force
+                try {
+                    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
+                    Write-Host "Execution policy set to RemoteSigned."
+                } catch {
+                    Write-Warning "Failed to set execution policy: $($_.Exception.Message)"
+                }
                 
                 # Configure additional WinRM settings for Ansible compatibility
-                Write-Host "Configuring additional WinRM settings..."
-                winrm set winrm/config '@{MaxTimeoutms="1800000"}'
-                winrm set winrm/config/service '@{MaxConcurrentOperations="4294967295"}'
-                winrm set winrm/config/service '@{MaxConcurrentOperationsPerUser="1500"}'
-                winrm set winrm/config/service '@{EnumerationTimeoutms="240000"}'
-                winrm set winrm/config/service '@{MaxConnections="300"}'
-                winrm set winrm/config/service '@{MaxPacketRetrievalTimeSeconds="120"}'
+                Write-Host "Configuring additional WinRM settings for Ansible..."
+                try {
+                    winrm set winrm/config '@{MaxTimeoutms="1800000"}'
+                    winrm set winrm/config/service '@{MaxConcurrentOperations="4294967295"}'
+                    winrm set winrm/config/service '@{MaxConcurrentOperationsPerUser="1500"}'
+                    winrm set winrm/config/service '@{EnumerationTimeoutms="240000"}'
+                    winrm set winrm/config/service '@{MaxConnections="300"}'
+                    winrm set winrm/config/service '@{MaxPacketRetrievalTimeSeconds="120"}'
+                    Write-Host "Additional WinRM settings configured."
+                } catch {
+                    Write-Warning "Some WinRM settings configuration failed: $($_.Exception.Message)"
+                }
+                
+                # Restart WinRM service to apply all changes
+                Write-Host "Restarting WinRM service to apply changes..."
+                try {
+                    Restart-Service WinRM -Force
+                    Start-Sleep -Seconds 3
+                    Write-Host "WinRM service restarted successfully."
+                } catch {
+                    Write-Warning "Failed to restart WinRM service: $($_.Exception.Message)"
+                }
                 
                 # Test WinRM configuration
-                Write-Host "Testing WinRM configuration..."
+                Write-Host "Testing WinRM HTTPS configuration..."
+                $testPassed = $false
                 try {
-                    # Wait a moment for services to stabilize
+                    # Wait for service to stabilize
                     Start-Sleep -Seconds 5
                     
                     # Test WinRM HTTPS connectivity
                     $testResult = Test-WSMan -ComputerName localhost -Port {{ WinRMPort }} -UseSSL -ErrorAction Stop
                     if ($testResult) {
-                        Write-Host "WinRM HTTPS configuration successful!"
+                        Write-Host "WinRM HTTPS test passed!"
+                        $testPassed = $true
                     }
                 } catch {
-                    Write-Warning "WinRM HTTPS test failed: $($_.Exception.Message)"
-                    Write-Host "Attempting to verify listener configuration..."
-                    
-                    # Verify listener exists
+                    Write-Warning "WinRM HTTPS connectivity test failed: $($_.Exception.Message)"
+                }
+                
+                # Verify configuration even if test failed
+                Write-Host "Verifying WinRM listener configuration..."
+                try {
                     $listeners = Get-WSManInstance -ResourceURI winrm/config/listener -Enumerate
                     $httpsListeners = $listeners | Where-Object {$_.Transport -eq "HTTPS"}
                     if ($httpsListeners) {
-                        Write-Host "HTTPS listener found on port(s): $($httpsListeners.Port -join ', ')"
+                        Write-Host "HTTPS listener(s) found on port(s): $($httpsListeners.Port -join ', ')"
+                        foreach ($listener in $httpsListeners) {
+                            Write-Host "  Address: $($listener.Address), Port: $($listener.Port), Certificate: $($listener.CertificateThumbprint)"
+                        }
+                        if (-not $testPassed) {
+                            Write-Host "Configuration appears correct despite test failure."
+                        }
                     } else {
-                        Write-Warning "No HTTPS listeners found!"
+                        Write-Warning "No HTTPS listeners found in final verification!"
                     }
-                    
-                    # Continue anyway as the configuration might still work
-                    Write-Host "Continuing despite test failure - configuration may still be functional."
+                } catch {
+                    Write-Warning "Failed to verify listener configuration: $($_.Exception.Message)"
                 }
                 
-                Write-Host "WinRM configuration completed successfully!"
+                Write-Host "WinRM configuration process completed!"
                 Write-Host "WinRM HTTPS endpoint: https://$($env:COMPUTERNAME):{{ WinRMPort }}/wsman"
+                Write-Host "Certificate thumbprint: $($cert.Thumbprint)"
                 
             } catch {
                 Write-Error "Failed to configure WinRM: $($_.Exception.Message)"
+                Write-Host "Error details: $($_.Exception.ToString())"
                 exit 1
             }
     precondition:

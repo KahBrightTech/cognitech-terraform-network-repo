@@ -335,6 +335,7 @@ inputs = {
       ]
     }
   ]
+  
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"

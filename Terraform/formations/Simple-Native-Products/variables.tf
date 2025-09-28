@@ -493,7 +493,7 @@ variable "security_group_rules" {
   default = null
 }
 
-variable "efs" {
+variable "efs_file_systems" {
   description = "Configuration for EFS file system"
   type = list(object({
     name                            = string
@@ -504,7 +504,8 @@ variable "efs" {
     encrypted                       = optional(bool, true)
     kms_key_id                      = optional(string)
     subnet_ids                      = list(string)
-    security_group_ids              = list(string)
+    security_group_ids              = optional(list(string))
+    security_group_keys             = optional(list(string))
     lifecycle_policy = optional(object({
       transition_to_ia                    = optional(string)
       transition_to_primary_storage_class = optional(string)
