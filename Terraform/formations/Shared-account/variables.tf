@@ -127,7 +127,6 @@ variable "vpcs" {
       })))
     })))
     s3 = optional(object({
-      Key                      = string
       name                     = string
       description              = string
       name_override            = optional(string)
