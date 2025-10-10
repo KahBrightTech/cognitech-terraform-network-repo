@@ -635,7 +635,7 @@ inputs = {
       allow_external_principals = true 
       enabled                  = true
       share_name              = "${local.vpc_name}-tgw-share"
-      principals               = local.env.ram_principals 
+      principals               = include.env.locals.ram_principals 
     }
   }
   tgw_route_table = {
