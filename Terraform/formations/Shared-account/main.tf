@@ -127,7 +127,7 @@ module "transit_gateway_subnet_route" {
 #--------------------------------------------------------------------
 module "ram" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.65"
-  for_each = var.transit_gateway != null && var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true ? { for key in var.transit_gateway.ram : key => var.transit_gateway.ram[key] } : {}
+  for_each = var.transit_gateway != null && var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true ? { (var.transit_gateway.ram.key) = var.transit_gateway.ram } : {}
   common   = var.common
   ram = {
     key                       = each.value.key
