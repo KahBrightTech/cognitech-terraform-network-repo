@@ -225,7 +225,16 @@ variable "transit_gateway" {
     dns_support                     = string
     amazon_side_asn                 = number
     vpc_name                        = string
+    ram = optional(object({
+      key                       = string
+      enabled                   = optional(bool, true)
+      share_name                = optional(string)
+      allow_external_principals = optional(bool, true)
+      resource_arns             = optional(list(string), [])
+      principals                = optional(list(string), [])
+    }))
   })
+  default = null
 }
 
 variable "tgw_attachments" {

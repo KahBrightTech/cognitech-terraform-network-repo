@@ -25,7 +25,7 @@ module "shared_vpc" {
 # Transit Gateway - Creates Transit Gateway
 #--------------------------------------------------------------------
 module "transit_gateway" {
-  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.1.28"
+  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.3.64"
   transit_gateway = var.transit_gateway
   common          = var.common
 }
@@ -120,6 +120,25 @@ module "transit_gateway_subnet_route" {
     subnet_name        = each.value.subnet_name
   }
 }
+
+
+#--------------------------------------------------------------------
+# Creates ram resources
+#--------------------------------------------------------------------
+module "ram" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3."
+  for_each = var.transit_gateway != null && var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true ? { for key in var.transit_gateway.ram : key => var.transit_gateway.ram[key] } : {}
+  common   = var.common
+  ram = {
+    key                       = each.value.key
+    enabled                   = each.value.enabled
+    share_name                = each.value.share_name
+    allow_external_principals = each.value.allow_external_principals
+    resource_arns             = module.transit_gateway.tgw_arn != null ? [module.transit_gateway.tgw_arn] : each.value.resource_arns
+    principals                = each.value.principals
+  }
+}
+
 #--------------------------------------------------------------------
 # S3 Private app bucket
 #--------------------------------------------------------------------
@@ -185,6 +204,7 @@ module "load_balancers" {
   common        = var.common
   load_balancer = each.value
 }
+
 
 
 

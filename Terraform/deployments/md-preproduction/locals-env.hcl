@@ -3,56 +3,16 @@ locals {
 
   # Simple variables 
   name_abr = "mdpp"
-
   # Environment tags 
   build       = "terraform"
   compliance  = "hippaa"
-  environment = "sit"
+  environment = "md-preprod"
   owner       = "kbrigthain@gmail.com"
+  repo_name   = "cognitech-terraform-network-repo"
 
   remote_state_bucket = {
     primary   = "terragruntuse1"
     secondary = "terragruntusw2"
-  }
-  iam_users = {
-    primary = {
-      mdpp = {
-        name        = "keeper"
-        groups      = ["keeper_group"]
-        policy_name = "keeper_policy"
-      }
-    }
-    secondary = {
-      mdpp = {
-        name        = "keeper"
-        groups      = ["keeper_group"]
-        policy_name = "keeper_policy"
-      }
-    }
-  }
-
-  secrets = {
-    primary = {
-      mdpp = {
-        name              = "fsx"
-        record_folder_uid = "FYbRcJXGc7G83z9xyzToOA"
-      }
-    }
-    secondary = {
-      mdpp = {
-        name              = "fsx"
-        record_folder_uid = "FYbRcJXGc7G83z9xyzToOA"
-      }
-    }
-  }
-
-  keeper_flder_ui = {
-    primary = {
-      mdpp = "mHanfChbSsciRD98ISfMtw"
-    }
-    secondary = {
-      mdpp = "mHanfChbSsciRD98ISfMtw"
-    }
   }
 
   subnet_prefix = {
@@ -61,12 +21,28 @@ locals {
     tertiary   = "sbnt3"
     quaternary = "sbnt4"
   }
-
-  remote_dynamodb_table = "Terraform"
+  public_domain         = "kahbrigthllc.com"
+  remote_dynamodb_table = "Terragrunt"
   tags = {
     Environment  = local.environment
     Owner        = local.owner
     Build-method = local.build
     Compliance   = local.compliance
   }
+
+  secret_names = {
+    ansible = "ansible-authentication"
+    user    = "user-authentication"
+    docker  = "docker-authentication"
+    keys    = "ec2-private-key-pair"
+  }
+
+  # RAM principals as a list of strings (AWS account IDs)
+  ram_principals = [
+    "730335294148"  # intpp account
+    # "123456789012",  # dev account
+    # "987654321098",  # staging account
+    # "555666777888"   # prod account
+  ]
 }
+
