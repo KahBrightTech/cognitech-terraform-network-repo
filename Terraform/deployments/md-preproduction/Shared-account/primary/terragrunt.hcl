@@ -659,34 +659,19 @@ inputs = {
   ]
   tgw_subnet_route = [
     {
-      name        = "private-sbnt1-subnet-rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+      name        = "dev-subnet_rt"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.dev.vpc
       subnet_name = include.env.locals.subnet_prefix.primary
       vpc_name    = local.vpc_name
     },
     {
-      name        = "private-sbnt2-subnet-rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-      subnet_name = include.env.locals.subnet_prefix.secondary
+      name        = "trn-subnet_rt"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.trn.vpc
+      subnet_name = include.env.locals.subnet_prefix.primary
       vpc_name    = local.vpc_name
-    },
-    {
-      name                = "public-sbnt1-subnet-rt"
-      cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-      subnet_name         = include.env.locals.subnet_prefix.primary
-      vpc_name            = local.vpc_name
-      create_public_route = true
-    },
-    {
-      name                = "public-sbnt2-subnet-rt"
-      cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
-      subnet_name         = include.env.locals.subnet_prefix.secondary
-      vpc_name            = local.vpc_name
-      create_public_route = true
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
