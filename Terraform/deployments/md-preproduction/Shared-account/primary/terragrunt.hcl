@@ -650,14 +650,14 @@ inputs = {
   tgw_attachments = {
     name = local.vpc_name
   }
-  tgw_routes = [
+  tgw_routes = [ # Creates routes in TGW route table to point to spoke VPCs
     {
       name                   = "spoke-to-hub-tgw-route"
       blackhole              = false
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
     }
   ]
-  tgw_subnet_route = [
+  tgw_subnet_route = [ # Creates routes in subnet route tables to point to TGW
     {
       name        = "dev-subnet_rt"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.dev.vpc
@@ -665,14 +665,25 @@ inputs = {
       vpc_name    = local.vpc_name
     },
     {
+      name        = "dev-subnet_rt-secondary"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.dev.vpc
+      subnet_name = include.env.locals.subnet_prefix.secondary
+      vpc_name    = local.vpc_name
+    },
+    {
       name        = "trn-subnet_rt"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.trn.vpc
       subnet_name = include.env.locals.subnet_prefix.primary
       vpc_name    = local.vpc_name
+    },
+    {
+      name        = "trn-subnet_rt-secondary"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.trn.vpc
+      subnet_name = include.env.locals.subnet_prefix.secondary
+      vpc_name    = local.vpc_name
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
