@@ -14,11 +14,11 @@ locals {
 
   account_info = {
     mdpp = {
-      name   = "mdpreproduction"
+      name   = "md-preproduction"
       number = "485147667400"
     }
     mdp = {
-      name   = "mdproduction"
+      name   = "md-production"
       number = "730335294148"
     }
     tpp = {
