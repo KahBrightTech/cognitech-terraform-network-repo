@@ -15,19 +15,25 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context   = "primary"
-  deploy_globally  = "true"
-  internal         = "private"
-  external         = "public"
-  region           = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
-  region_prefix    = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
-  region_blk       = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
-  deployment_name  = "terraform/${include.env.locals.name_abr}-${local.vpc_name}-${local.region_context}"
-  cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
-  state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
-  state_lock_table = include.env.locals.remote_dynamodb_table
-  vpc_name         = "dev"
-  vpc_name_abr     = "dev"
+  region_context     = "primary"
+  deploy_globally    = "true"
+  internal           = "private"
+  external           = "public"
+  region             = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
+  region_prefix      = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
+  region_blk         = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
+  deployment_name    = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.vpc_name_abr}-${local.region_context}"
+  cidr_blocks        = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
+  state_bucket       = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
+  state_lock_table   = include.env.locals.remote_dynamodb_table
+  account_id         = include.cloud.locals.account_info[include.env.locals.name_abr].number
+  aws_account_name   = include.cloud.locals.account_info[include.env.locals.name_abr].name
+  public_hosted_zone = "${local.vpc_name_abr}.${include.env.locals.public_domain}"
+  internet_cidr      = "0.0.0.0/0"
+  deployment         = "Tenant-account"
+  ## Updates these variables as per the product/service
+  vpc_name     = "Development"
+  vpc_name_abr = "dev"
 
   # Composite variables 
   tags = merge(
@@ -67,6 +73,7 @@ inputs = {
       cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].vpc
       public_subnets = [
         {
+          key                         = include.env.locals.subnet_prefix.primary
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt1.primary
@@ -76,6 +83,7 @@ inputs = {
           vpc_name                    = local.vpc_name
         },
         {
+          key                         = include.env.locals.subnet_prefix.secondary
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt2.primary
@@ -87,6 +95,7 @@ inputs = {
       ]
       private_subnets = [
         {
+          key                         = include.env.locals.subnet_prefix.primary
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt1.primary
@@ -96,6 +105,7 @@ inputs = {
           vpc_name                    = local.vpc_name
         },
         {
+          key                         = include.env.locals.subnet_prefix.secondary
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
           primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt2.primary
@@ -287,6 +297,7 @@ inputs = {
     }
   ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
