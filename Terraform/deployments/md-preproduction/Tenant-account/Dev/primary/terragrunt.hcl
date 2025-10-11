@@ -32,7 +32,7 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Tenant-account"
   ## Updates these variables as per the product/service
-  vpc_name     = "Development"
+  vpc_name     = "dev"
   vpc_name_abr = "dev"
 
   # Composite variables 
