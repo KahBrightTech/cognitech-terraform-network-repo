@@ -627,7 +627,6 @@ inputs = {
       document_format = "YAML"
     }
   ]
-
   transit_gateway = {
     name                            = local.vpc_name
     default_route_table_association = "disable"
