@@ -133,12 +133,15 @@ module "ram" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.66"
   for_each = var.transit_gateway != null && var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true ? { (var.transit_gateway.ram.key) = var.transit_gateway.ram } : {}
   common   = var.common
+  depends_on = [
+    module.transit_gateway
+  ]
   ram = {
     key                       = each.value.key
     enabled                   = each.value.enabled
     share_name                = each.value.share_name
     allow_external_principals = each.value.allow_external_principals
-    resource_arns             = module.transit_gateway.tgw_arn != null ? [module.transit_gateway.tgw_arn] : each.value.resource_arns
+    resource_arns             = [module.transit_gateway.tgw_arn]
     principals                = each.value.principals
   }
 }
