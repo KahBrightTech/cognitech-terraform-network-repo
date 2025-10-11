@@ -86,17 +86,21 @@ module "transit_gateway_subnet_route" {
 #--------------------------------------------------------------------
 # S3 Private app bucket
 #--------------------------------------------------------------------
-
 module "s3_app_bucket" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.2.22"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.3.7"
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
   common   = var.common
-  s3 = {
-    name              = each.value.name
-    description       = each.value.description
-    enable_versioning = each.value.enable_versioning
-    policy            = each.value.policy
-  }
+  s3 = merge(
+    {
+      name              = each.value.name
+      description       = each.value.description
+      enable_versioning = each.value.enable_versioning
+      replication       = each.value.replication != null ? each.value.replication : null
+      encryption        = each.value.encryption != null ? each.value.encryption : null
+      objects           = each.value.objects != null ? each.value.objects : null
+    },
+    (each.value.enable_bucket_policy != false && each.value.policy != null) ? { policy = each.value.policy } : {}
+  )
 }
 
 #--------------------------------------------------------------------
