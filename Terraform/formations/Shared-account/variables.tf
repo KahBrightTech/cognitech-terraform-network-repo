@@ -173,6 +173,7 @@ variable "s3_private_buckets" {
     name_override            = optional(string)
     policy                   = optional(string)
     enable_versioning        = optional(bool, true)
+    enable_bucket_policy     = optional(bool, true)
     override_policy_document = optional(string)
     encryption = optional(object({
       enabled            = optional(bool, true)
@@ -201,18 +202,38 @@ variable "s3_private_buckets" {
     objects = optional(list(object({
       key = string
     })))
-    route53_zones = optional(list(object({
-      key           = string
-      name          = string
-      vpc_id        = optional(string)
-      comment       = optional(string, null)
-      private_zone  = optional(bool, true)
-      force_destroy = optional(bool, true)
-    })))
+    replication = optional(object({
+      role_arn = string
+      rules = list(object({
+        status                    = string
+        delete_marker_replication = optional(bool, false)
+        prefix                    = optional(string, "")
+        filter = optional(object({
+          prefix = string
+        }))
+        destination = object({
+          bucket_arn    = string
+          storage_class = optional(string, "STANDARD")
+          access_control_translation = optional(object({
+            owner = string
+          }))
+          account_id = optional(number)
+          encryption_configuration = optional(object({
+            replica_kms_key_id = string
+          }))
+          replication_time = optional(object({
+            minutes = optional(number, 15)
+          }))
+          replica_modification = optional(object({
+            enabled                         = optional(bool, false)
+            metrics_event_threshold_minutes = optional(number, 15)
+          }))
+        })
+      }))
+    }))
   }))
   default = null
 }
-
 variable "transit_gateway" {
   description = "values for transit gateway"
   type = object({
