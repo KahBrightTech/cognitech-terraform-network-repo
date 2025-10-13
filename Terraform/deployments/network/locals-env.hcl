@@ -37,9 +37,9 @@ locals {
     keys    = "ec2-private-key-pair"
   }
 
-  # RAM principals as a list of strings (AWS account IDs or Organization ID)
+  # RAM principals as a list of strings (Organization ARN)
   ram_principals = [
-    "o-1234567890"    # Replace with your AWS Organization ID to share with entire org
+    "arn:aws:organizations::485147667400:organization/o-orvtyisdyc"    # Replace with your actual Organization ARN
   ]
 }
 

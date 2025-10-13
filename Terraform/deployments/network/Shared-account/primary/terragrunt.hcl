@@ -491,8 +491,6 @@ inputs = {
       principals                = include.env.locals.ram_principals
     }
   }
-  tgw_routes       = []
-  tgw_subnet_route = []
 }
 #-------------------------------------------------------
 # State Configuration
