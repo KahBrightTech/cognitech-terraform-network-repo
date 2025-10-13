@@ -130,7 +130,7 @@ module "transit_gateway_subnet_route" {
 # Creates ram resources
 #--------------------------------------------------------------------
 module "ram" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.68"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.69"
   count  = var.transit_gateway != null && var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true ? 1 : 0
   common = var.common
   depends_on = [
