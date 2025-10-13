@@ -55,12 +55,11 @@ terraform {
 #-------------------------------------------------------
 inputs = {
   common = {
-    global           = local.deploy_globally
-    account_name     = include.cloud.locals.account_info[include.env.locals.name_abr].name
-    region_prefix    = local.region_prefix
-    tags             = local.tags
-    region           = local.region
-    account_name_abr = include.env.locals.name_abr
+    global        = local.deploy_globally
+    account_name  = include.cloud.locals.account_info[include.env.locals.name_abr].name
+    region_prefix = local.region_prefix
+    tags          = local.tags
+    region        = local.region
   }
   vpcs = [
     {
@@ -124,37 +123,37 @@ inputs = {
       security_groups = [
         {
           key         = "bastion"
-          name        = "bastion"
+          name        = "${local.vpc_name}-bastion"
           description = "standard ${local.vpc_name} bastion security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "alb"
-          name        = "alb"
+          name        = "${local.vpc_name}-alb"
           description = "standard ${local.vpc_name} alb security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "app"
-          name        = "app"
+          name        = "${local.vpc_name}-app"
           description = "standard ${local.vpc_name} app security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "db"
-          name        = "db"
+          name        = "${local.vpc_name}-db"
           description = "standard ${local.vpc_name} db security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "efs"
-          name        = "efs"
+          name        = "${local.vpc_name}-efs"
           description = "standard ${local.vpc_name} efs security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "nlb"
-          name        = "nlb"
+          name        = "${local.vpc_name}-nlb"
           description = "standard ${local.vpc_name} nlb security group"
           vpc_name    = local.vpc_name
         }
@@ -364,7 +363,6 @@ inputs = {
       ]
     }
   ]
-
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
@@ -628,6 +626,7 @@ inputs = {
       document_format = "YAML"
     }
   ]
+
   transit_gateway = {
     name                            = local.vpc_name
     default_route_table_association = "disable"
@@ -640,7 +639,7 @@ inputs = {
       key                       = "tgw-share"
       allow_external_principals = true
       enabled                   = true
-      share_name                = "${local.vpc_name}-tgw"
+      share_name                = "${local.vpc_name}-tgw-share"
       principals                = include.env.locals.ram_principals
     }
   }
@@ -650,37 +649,41 @@ inputs = {
   tgw_attachments = {
     name = local.vpc_name
   }
-  tgw_routes = [ # Creates routes in TGW route table to point to spoke VPCs
+
+  tgw_routes = [
     {
       name                   = "spoke-to-hub-tgw-route"
       blackhole              = false
       destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
     }
   ]
-  tgw_subnet_route = [ # Creates routes in subnet route tables to point to TGW
+
+  tgw_subnet_route = [
     {
-      name        = "dev-subnet_rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.dev.vpc
+      name        = "private-sbnt1-subnet-rt"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
       subnet_name = include.env.locals.subnet_prefix.primary
       vpc_name    = local.vpc_name
     },
     {
-      name        = "dev-subnet_rt-secondary"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.dev.vpc
+      name        = "private-sbnt2-subnet-rt"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
       subnet_name = include.env.locals.subnet_prefix.secondary
       vpc_name    = local.vpc_name
     },
     {
-      name        = "trn-subnet_rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.trn.vpc
-      subnet_name = include.env.locals.subnet_prefix.primary
-      vpc_name    = local.vpc_name
+      name                = "public-sbnt1-subnet-rt"
+      cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+      subnet_name         = include.env.locals.subnet_prefix.primary
+      vpc_name            = local.vpc_name
+      create_public_route = true
     },
     {
-      name        = "trn-subnet_rt-secondary"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.trn.vpc
-      subnet_name = include.env.locals.subnet_prefix.secondary
-      vpc_name    = local.vpc_name
+      name                = "public-sbnt2-subnet-rt"
+      cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.Account_cidr
+      subnet_name         = include.env.locals.subnet_prefix.secondary
+      vpc_name            = local.vpc_name
+      create_public_route = true
     }
   ]
 }

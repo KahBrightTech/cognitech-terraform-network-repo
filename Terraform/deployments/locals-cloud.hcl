@@ -46,12 +46,16 @@ locals {
       name   = "dev-preproduction"
       number = "533267408704"
     }
+    ntw = {
+      name   = "network"
+      number = "637423478842"
+    }
   }
   billing_code_number = {
     kah = "90471"
     int = "TBD"
     dev = "TBD"
-    qa  = "TBD" 
+    qa  = "TBD"
   }
   region_prefix = {
     primary   = "use1"

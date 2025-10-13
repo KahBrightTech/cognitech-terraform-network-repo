@@ -236,7 +236,7 @@ variable "s3_private_buckets" {
 }
 variable "transit_gateway" {
   description = "values for transit gateway"
-  type = list(object({
+  type = object({
     name                            = string
     default_route_table_association = string
     default_route_table_propagation = string
@@ -252,27 +252,27 @@ variable "transit_gateway" {
       resource_arns             = optional(list(string), [])
       principals                = optional(list(string), [])
     }))
-  }))
+  })
   default = null
 }
 
 variable "tgw_attachments" {
   description = "The transit gateway attachment variables"
-  type = list(object({
+  type = object({
     transit_gateway_id   = optional(string)
     subnet_ids           = optional(list(string))
     transit_gateway_name = optional(string)
     name                 = optional(string)
-  }))
+  })
   default = null
 }
 
 variable "tgw_route_table" {
   description = "The transit gateway route table variables"
-  type = list(object({
+  type = object({
     name   = string
     tgw_id = optional(string)
-  }))
+  })
   default = null
 }
 
