@@ -475,24 +475,22 @@ inputs = {
   secrets        = []
   ssm_parameters = []
   ssm_documents  = []
-  transit_gateway = [
-    {
-      name                            = local.vpc_name
-      default_route_table_association = "disable"
-      default_route_table_propagation = "disable"
-      auto_accept_shared_attachments  = "disable"
-      dns_support                     = "enable"
-      amazon_side_asn                 = "64512"
-      vpc_name                        = local.vpc_name
-      ram = {
-        key                       = "tgw-share"
-        allow_external_principals = true
-        enabled                   = true
-        share_name                = "${local.vpc_name}-tgw"
-        principals                = include.env.locals.ram_principals
-      }
+  transit_gateway = {
+    name                            = local.vpc_name
+    default_route_table_association = "disable"
+    default_route_table_propagation = "disable"
+    auto_accept_shared_attachments  = "disable"
+    dns_support                     = "enable"
+    amazon_side_asn                 = "64512"
+    vpc_name                        = local.vpc_name
+    ram = {
+      key                       = "tgw-share"
+      allow_external_principals = true
+      enabled                   = true
+      share_name                = "${local.vpc_name}-tgw"
+      principals                = include.env.locals.ram_principals
     }
-  ]
+  }
   tgw_routes       = []
   tgw_subnet_route = []
 }
