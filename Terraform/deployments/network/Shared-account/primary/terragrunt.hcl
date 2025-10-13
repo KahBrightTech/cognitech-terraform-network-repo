@@ -15,21 +15,21 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context     = "primary"
-  deploy_globally    = "true"
-  internal           = "private"
-  external           = "public"
-  region             = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
-  region_prefix      = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
-  region_blk         = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
-  deployment_name    = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.vpc_name}-${local.region_context}"
-  cidr_blocks        = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
-  state_bucket       = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
-  state_lock_table   = include.env.locals.remote_dynamodb_table
-  account_id         = include.cloud.locals.account_info[include.env.locals.name_abr].number
-  aws_account_name   = include.cloud.locals.account_info[include.env.locals.name_abr].name
-  internet_cidr      = "0.0.0.0/0"
-  deployment         = "Shared-account"
+  region_context   = "primary"
+  deploy_globally  = "true"
+  internal         = "private"
+  external         = "public"
+  region           = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
+  region_prefix    = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
+  region_blk       = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
+  deployment_name  = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.vpc_name}-${local.region_context}"
+  cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
+  state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
+  state_lock_table = include.env.locals.remote_dynamodb_table
+  account_id       = include.cloud.locals.account_info[include.env.locals.name_abr].number
+  aws_account_name = include.cloud.locals.account_info[include.env.locals.name_abr].name
+  internet_cidr    = "0.0.0.0/0"
+  deployment       = "Shared-account"
   ## Updates these variables as per the product/service
   vpc_name     = "shared-services"
   vpc_name_abr = "shared"
@@ -471,26 +471,28 @@ inputs = {
       create_secret      = true
     }
   ]
-  secrets = []
+  secrets        = []
   ssm_parameters = []
-  ssm_documents = []
-  transit_gateway = {
-    name                            = local.vpc_name
-    default_route_table_association = "disable"
-    default_route_table_propagation = "disable"
-    auto_accept_shared_attachments  = "disable"
-    dns_support                     = "enable"
-    amazon_side_asn                 = "64512"
-    vpc_name                        = local.vpc_name
-    ram = {
-      key                       = "tgw-share"
-      allow_external_principals = true
-      enabled                   = true
-      share_name                = "${local.vpc_name}-tgw"
-      principals                = include.env.locals.ram_principals
+  ssm_documents  = []
+  transit_gateway = [
+    {
+      name                            = local.vpc_name
+      default_route_table_association = "disable"
+      default_route_table_propagation = "disable"
+      auto_accept_shared_attachments  = "disable"
+      dns_support                     = "enable"
+      amazon_side_asn                 = "64512"
+      vpc_name                        = local.vpc_name
+      ram = {
+        key                       = "tgw-share"
+        allow_external_principals = true
+        enabled                   = true
+        share_name                = "${local.vpc_name}-tgw"
+        principals                = include.env.locals.ram_principals
+      }
     }
-  }
-  tgw_routes = []
+  ]
+  tgw_routes       = []
   tgw_subnet_route = []
 }
 #-------------------------------------------------------

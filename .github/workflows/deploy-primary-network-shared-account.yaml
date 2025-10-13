@@ -5,7 +5,7 @@ on:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
-      - ".github/workflows/deploy-primary-md-network-shared-account.yaml"
+      - ".github/workflows/deploy-primary-network-shared-account.yaml"
       - "Terraform/deployments/network/Shared-account/primary/**/*"
   workflow_dispatch:
     inputs:

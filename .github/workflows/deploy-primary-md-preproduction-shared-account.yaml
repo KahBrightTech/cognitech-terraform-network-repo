@@ -1,11 +1,11 @@
-name: Deploy-primary-md-preproduction-shared
+name: Deploy-primary-md-preproduction-shared-account
 on:
   push:
     branches:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
-      - ".github/workflows/deploy-primary-md-preproduction-shared.yaml"
+      - ".github/workflows/deploy-primary-md-preproduction-shared-account.yaml"
       - "Terraform/deployments/md-preproduction/Shared-account/primary/**/*"
   workflow_dispatch:
     inputs:

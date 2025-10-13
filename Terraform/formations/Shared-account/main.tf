@@ -25,9 +25,9 @@ module "shared_vpc" {
 # Transit Gateway - Creates Transit Gateway
 #--------------------------------------------------------------------
 module "transit_gateway" {
-  for_each        = var.transit_gateway != null ? { (var.transit_gateway.name) = var.transit_gateway } : {}
+  count           = var.transit_gateway != null ? 1 : 0
   source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.3.64"
-  transit_gateway = each.value
+  transit_gateway = var.transit_gateway
   common          = var.common
 }
 
@@ -35,37 +35,37 @@ module "transit_gateway" {
 # Transit Gateway attacments - Creates Transit Gateway attachments
 #--------------------------------------------------------------------
 module "transit_gateway_attachment" {
-  for_each = var.tgw_attachments != null && var.transit_gateway != null ? { (var.tgw_attachments.name) = var.tgw_attachments } : {}
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.1.17"
-  common   = var.common
-  vpc_id   = var.vpc != null ? module.shared_vpc[each.value.name].vpc_id : null
+  count  = var.tgw_attachments != null && var.transit_gateway != null ? 1 : 0
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.1.17"
+  common = var.common
+  vpc_id = var.vpcs != null ? module.shared_vpc[var.tgw_attachments.name].vpc_id : null
   depends_on = [
     module.shared_vpc,
     module.transit_gateway
   ]
   tgw_attachments = {
-    transit_gateway_id = module.transit_gateway[var.transit_gateway.name].transit_gateway_id
+    transit_gateway_id = module.transit_gateway[0].transit_gateway_id
     subnet_ids = compact([
-      module.shared_vpc[each.value.name].private_subnet.sbnt1.primary_subnet_id, # FYI you can only have one subnet per az for transit gateway attachments. So only using primary subnets here
-      module.shared_vpc[each.value.name].private_subnet.sbnt1.secondary_subnet_id
+      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id, # FYI you can only have one subnet per az for transit gateway attachments. So only using primary subnets here
+      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
     ])
-    name = each.value.name
+    name = var.tgw_attachments.name
   }
 }
 #--------------------------------------------------------------------
 # Transit Gateway route table - Creates Transit Gateway route tables
 #--------------------------------------------------------------------
 module "transit_gateway_route_table" {
-  for_each = var.tgw_route_table != null && var.transit_gateway != null ? { (var.tgw_route_table.name) = var.tgw_route_table } : {}
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-route-table?ref=v1.1.17"
-  common   = var.common
+  count  = var.tgw_route_table != null && var.transit_gateway != null ? 1 : 0
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-route-table?ref=v1.1.17"
+  common = var.common
   depends_on = [
     module.shared_vpc,
     module.transit_gateway
   ]
   tgw_route_table = {
-    name   = each.value.name
-    tgw_id = module.transit_gateway[var.transit_gateway.name].transit_gateway_id
+    name   = var.tgw_route_table.name
+    tgw_id = module.transit_gateway[0].transit_gateway_id
   }
 }
 
@@ -73,17 +73,17 @@ module "transit_gateway_route_table" {
 # Transit Gateway Association - Creates Transit Gateway associations
 #--------------------------------------------------------------------
 module "transit_gateway_association" {
-  for_each = var.tgw_attachments != null && var.tgw_route_table != null && var.transit_gateway != null ? { "association" = "association" } : {}
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-association?ref=v1.1.18"
-  common   = var.common
+  count  = var.tgw_association != null && var.tgw_attachments != null && var.tgw_route_table != null && var.transit_gateway != null ? 1 : 0
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-association?ref=v1.1.18"
+  common = var.common
   depends_on = [
     module.shared_vpc,
     module.transit_gateway,
     module.transit_gateway_route_table
   ]
   tgw_association = {
-    attachment_id  = module.transit_gateway_attachment[var.tgw_attachments.name].tgw_attachment_id
-    route_table_id = module.transit_gateway_route_table[var.tgw_route_table.name].tgw_rtb_id
+    attachment_id  = var.tgw_association.attachment_id != null ? var.tgw_association.attachment_id : module.transit_gateway_attachment[0].tgw_attachment_id
+    route_table_id = var.tgw_association.route_table_id != null ? var.tgw_association.route_table_id : module.transit_gateway_route_table[0].tgw_rtb_id
   }
 }
 
@@ -101,8 +101,8 @@ module "transit_gateway_route" {
     name                   = each.value.name
     blackhole              = each.value.blackhole
     destination_cidr_block = each.value.destination_cidr_block
-    attachment_id          = each.value.blackhole == false ? module.transit_gateway_attachment[var.tgw_attachments.name].tgw_attachment_id : null
-    route_table_id         = module.transit_gateway_route_table[var.tgw_route_table.name].tgw_rtb_id
+    attachment_id          = each.value.blackhole == false ? (each.value.attachment_id != null ? each.value.attachment_id : module.transit_gateway_attachment[0].tgw_attachment_id) : null
+    route_table_id         = each.value.route_table_id != null ? each.value.route_table_id : module.transit_gateway_route_table[0].tgw_rtb_id
   }
 }
 
@@ -119,7 +119,7 @@ module "transit_gateway_subnet_route" {
   ]
   tgw_subnet_route = {
     route_table_id     = each.value.create_public_route ? module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
-    transit_gateway_id = module.transit_gateway[var.transit_gateway.name].transit_gateway_id
+    transit_gateway_id = module.transit_gateway[0].transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name
   }
@@ -130,19 +130,19 @@ module "transit_gateway_subnet_route" {
 # Creates ram resources
 #--------------------------------------------------------------------
 module "ram" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.68"
-  for_each = var.transit_gateway != null && var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true ? { (var.transit_gateway.ram.key) = var.transit_gateway.ram } : {}
-  common   = var.common
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.68"
+  count  = var.transit_gateway != null && var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true ? 1 : 0
+  common = var.common
   depends_on = [
     module.transit_gateway
   ]
   ram = {
-    key                       = each.value.key
-    enabled                   = each.value.enabled
-    share_name                = each.value.share_name
-    allow_external_principals = each.value.allow_external_principals
-    resource_arns             = [module.transit_gateway[var.transit_gateway.name].tgw_arn]
-    principals                = each.value.principals
+    key                       = var.transit_gateway.ram.key
+    enabled                   = var.transit_gateway.ram.enabled
+    share_name                = var.transit_gateway.ram.share_name
+    allow_external_principals = var.transit_gateway.ram.allow_external_principals
+    resource_arns             = [module.transit_gateway[0].tgw_arn]
+    principals                = var.transit_gateway.ram.principals
   }
 }
 
@@ -425,70 +425,6 @@ module "iam_users" {
   iam_user = each.value
 }
 
-
-#--------------------------------------------------------------------
-# DataSync Locations (Source and Destination)
-#--------------------------------------------------------------------
-module "datasync_locations" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Datasync-locations?ref=v1.3.55"
-  for_each = (var.datasync_locations != null) ? { for item in var.datasync_locations : item.key => item } : {}
-  common   = var.common
-  datasync = each.value
-  depends_on = [
-    module.iam_roles,
-    module.s3_app_bucket
-  ]
-}
-
-#--------------------------------------------------------------------
-# DataSync Tasks
-#--------------------------------------------------------------------
-module "datasync_tasks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Datasync-Tasks?ref=v1.3.58"
-  for_each = (var.datasync_tasks != null) ? { for item in var.datasync_tasks : item.key => item if item.task != null } : {}
-  common   = var.common
-  datasync = merge(
-    each.value,
-    {
-      task = merge(
-        each.value.task,
-        {
-          source_location_arn = each.value.task.source_key != null ? coalesce(
-            module.datasync_locations[each.value.task.source_key].s3_location_arn,
-            module.datasync_locations[each.value.task.source_key].efs_location_arn,
-            module.datasync_locations[each.value.task.source_key].fsx_windows_location_arn,
-            module.datasync_locations[each.value.task.source_key].fsx_lustre_location_arn,
-            module.datasync_locations[each.value.task.source_key].fsx_ontap_location_arn,
-            module.datasync_locations[each.value.task.source_key].fsx_openzfs_location_arn,
-            module.datasync_locations[each.value.task.source_key].nfs_location_arn,
-            module.datasync_locations[each.value.task.source_key].smb_location_arn,
-            module.datasync_locations[each.value.task.source_key].hdfs_location_arn,
-            module.datasync_locations[each.value.task.source_key].object_storage_location_arn,
-            module.datasync_locations[each.value.task.source_key].azure_blob_location_arn
-          ) : each.value.task.source_location_arn
-          destination_location_arn = each.value.task.destination_key != null ? coalesce(
-            module.datasync_locations[each.value.task.destination_key].s3_location_arn,
-            module.datasync_locations[each.value.task.destination_key].efs_location_arn,
-            module.datasync_locations[each.value.task.destination_key].fsx_windows_location_arn,
-            module.datasync_locations[each.value.task.destination_key].fsx_lustre_location_arn,
-            module.datasync_locations[each.value.task.destination_key].fsx_ontap_location_arn,
-            module.datasync_locations[each.value.task.destination_key].fsx_openzfs_location_arn,
-            module.datasync_locations[each.value.task.destination_key].nfs_location_arn,
-            module.datasync_locations[each.value.task.destination_key].smb_location_arn,
-            module.datasync_locations[each.value.task.destination_key].hdfs_location_arn,
-            module.datasync_locations[each.value.task.destination_key].object_storage_location_arn,
-            module.datasync_locations[each.value.task.destination_key].azure_blob_location_arn
-          ) : each.value.task.destination_location_arn
-        }
-      )
-    }
-  )
-  depends_on = [
-    module.datasync_locations,
-    module.iam_roles,
-    module.s3_app_bucket
-  ]
-}
 
 
 

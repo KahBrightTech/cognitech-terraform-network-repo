@@ -236,7 +236,7 @@ variable "s3_private_buckets" {
 }
 variable "transit_gateway" {
   description = "values for transit gateway"
-  type = list(object({
+  type = object({
     name                            = string
     default_route_table_association = string
     default_route_table_propagation = string
@@ -252,27 +252,35 @@ variable "transit_gateway" {
       resource_arns             = optional(list(string), [])
       principals                = optional(list(string), [])
     }))
-  }))
+  })
   default = null
 }
 
 variable "tgw_attachments" {
   description = "The transit gateway attachment variables"
-  type = list(object({
+  type = object({
     transit_gateway_id   = optional(string)
     subnet_ids           = optional(list(string))
     transit_gateway_name = optional(string)
     name                 = optional(string)
-  }))
+  })
   default = null
 }
 
+variable "tgw_association" {
+  description = "The transit gateway association variables"
+  type = object({
+    attachment_id  = string
+    route_table_id = string
+  })
+  default = null
+}
 variable "tgw_route_table" {
   description = "The transit gateway route table variables"
-  type = list(object({
+  type = object({
     name   = string
     tgw_id = optional(string)
-  }))
+  })
   default = null
 }
 
@@ -878,50 +886,4 @@ variable "datasync_locations" {
   default = null
 }
 
-variable "datasync_tasks" {
-  description = "DataSync configuration with all location types and task settings"
-  type = list(object({
-    key = optional(string)
-    # Common Configuration
-    # CloudWatch Log Group Configuration
-    create_cloudwatch_log_group   = optional(bool, false)
-    cloudwatch_log_group_name     = optional(string)
-    cloudwatch_log_retention_days = optional(number, 30)
-    # DataSync Task Configuration
-    task = optional(object({
-      name                     = optional(string)
-      source_key               = optional(string)
-      destination_key          = optional(string)
-      source_location_arn      = optional(string)
-      destination_location_arn = optional(string)
-      cloudwatch_log_group_arn = optional(string)
-      options = optional(object({
-        atime                          = optional(string)
-        bytes_per_second               = optional(number)
-        gid                            = optional(string)
-        log_level                      = optional(string)
-        mtime                          = optional(string)
-        overwrite_mode                 = optional(string)
-        posix_permissions              = optional(string)
-        preserve_deleted_files         = optional(string)
-        preserve_devices               = optional(string)
-        security_descriptor_copy_flags = optional(string)
-        task_queueing                  = optional(string)
-        transfer_mode                  = optional(string)
-        uid                            = optional(string)
-        verify_mode                    = optional(string)
-      }))
-      schedule_expression = optional(string)
-      excludes = optional(list(object({
-        filter_type = string
-        value       = string
-      })))
-      includes = optional(list(object({
-        filter_type = string
-        value       = string
-      })))
-    }))
-  }))
-  default = null
-}
 
