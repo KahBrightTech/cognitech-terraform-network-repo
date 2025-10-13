@@ -1,4 +1,4 @@
-name: Deploy-primary-md-network-shared-account
+name: Deploy-primary-network-shared-account
 on:
   push:
     branches:
