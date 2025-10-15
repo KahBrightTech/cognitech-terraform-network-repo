@@ -35,7 +35,7 @@ module "transit_gateway" {
 # Transit Gateway attacments - Creates Transit Gateway attachments
 #--------------------------------------------------------------------
 module "transit_gateway_attachment" {
-  count  = var.tgw_attachments != null && var.transit_gateway != null ? 1 : 0
+  count  = var.tgw_attachments != null ? 1 : 0
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.1.17"
   common = var.common
   vpc_id = var.vpcs != null ? module.shared_vpc[var.tgw_attachments.name].vpc_id : null
@@ -44,7 +44,7 @@ module "transit_gateway_attachment" {
     module.transit_gateway
   ]
   tgw_attachments = {
-    transit_gateway_id = module.transit_gateway[0].transit_gateway_id
+    transit_gateway_id = var.tgw_attachments.transit_gateway_id != null ? var.tgw_attachments.transit_gateway_id : module.transit_gateway[0].transit_gateway_id
     subnet_ids = compact([
       module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id, # FYI you can only have one subnet per az for transit gateway attachments. So only using primary subnets here
       module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
@@ -56,7 +56,7 @@ module "transit_gateway_attachment" {
 # Transit Gateway route table - Creates Transit Gateway route tables
 #--------------------------------------------------------------------
 module "transit_gateway_route_table" {
-  count  = var.tgw_route_table != null && var.transit_gateway != null ? 1 : 0
+  count  = var.tgw_route_table != null ? 1 : 0
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-route-table?ref=v1.1.17"
   common = var.common
   depends_on = [
@@ -65,7 +65,7 @@ module "transit_gateway_route_table" {
   ]
   tgw_route_table = {
     name   = var.tgw_route_table.name
-    tgw_id = module.transit_gateway[0].transit_gateway_id
+    tgw_id = var.tgw_route_table.tgw_id != null ? var.tgw_route_table.tgw_id : module.transit_gateway[0].transit_gateway_id
   }
 }
 
@@ -73,7 +73,7 @@ module "transit_gateway_route_table" {
 # Transit Gateway Association - Creates Transit Gateway associations
 #--------------------------------------------------------------------
 module "transit_gateway_association" {
-  count  = var.tgw_association != null && var.tgw_attachments != null && var.tgw_route_table != null && var.transit_gateway != null ? 1 : 0
+  count  = var.tgw_association != null && var.tgw_attachments != null && var.tgw_route_table != null ? 1 : 0
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-association?ref=v1.1.18"
   common = var.common
   depends_on = [

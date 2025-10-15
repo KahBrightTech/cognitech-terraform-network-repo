@@ -22,7 +22,7 @@ locals {
   region             = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
   region_prefix      = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
   region_blk         = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
-  deployment_name    = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.vpc_name}-${local.region_context}"
+  deployment_name    = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.region_context}"
   cidr_blocks        = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket       = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table   = include.env.locals.remote_dynamodb_table
@@ -496,12 +496,12 @@ inputs = {
     }
   ]
   certificates = [
-    {
-      name              = "${local.vpc_name}"
-      domain_name       = "*.${local.vpc_name_abr}.${include.env.locals.public_domain}"
-      validation_method = "DNS"
-      zone_name         = include.env.locals.public_domain
-    }
+    # {
+    #   name              = "${local.vpc_name}"
+    #   domain_name       = "*.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+    #   validation_method = "DNS"
+    #   zone_name         = include.env.locals.public_domain
+    # }
   ]
   secrets = [
     {
@@ -634,28 +634,16 @@ inputs = {
       document_format = "YAML"
     }
   ]
-  transit_gateway = {
-    name                            = local.vpc_name
-    default_route_table_association = "disable"
-    default_route_table_propagation = "disable"
-    auto_accept_shared_attachments  = "disable"
-    dns_support                     = "enable"
-    amazon_side_asn                 = "64512"
-    vpc_name                        = local.vpc_name
-    ram = {
-      key                       = "tgw-share"
-      allow_external_principals = true
-      enabled                   = true
-      share_name                = "${local.vpc_name}-tgw"
-      principals                = include.env.locals.ram_principals
-    }
+
+  tgw_attachments = {
+    name               = local.vpc_name
+    transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
   }
   tgw_route_table = {
-    name = local.vpc_name
+    name   = local.vpc_name
+    tgw_id = dependency.network.outputs.transit_gateway.transit_gateway_id
   }
-  tgw_attachments = {
-    name = local.vpc_name
-  }
+
   tgw_routes = [ # Creates routes in TGW route table to point to spoke VPCs
     # {
     #   name                   = "default-to-dev"
