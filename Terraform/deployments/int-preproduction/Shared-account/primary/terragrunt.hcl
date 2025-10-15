@@ -547,7 +547,7 @@ inputs = {
     {
       key                     = "ansible"
       name_prefix             = include.env.locals.secret_names.ansible
-      description             = "Ansible tower credentials"
+      description             = "Ansible tower credentials."
       recovery_window_in_days = 7
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       value = {
