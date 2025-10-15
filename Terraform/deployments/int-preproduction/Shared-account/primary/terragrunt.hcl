@@ -544,6 +544,7 @@ inputs = {
   ]
   secrets = [
     {
+      key = "ansible"
       name_prefix             = include.env.locals.secret_names.ansible
       description             = "Ansible tower credentials"
       recovery_window_in_days = 7
@@ -554,6 +555,7 @@ inputs = {
       }
     },
     {
+      key                    = "user"
       name                    = include.env.locals.secret_names.user
       description             = "User credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7
@@ -566,6 +568,7 @@ inputs = {
       }
     },
     {
+      key                    = "docker"
       name_prefix             = include.env.locals.secret_names.docker
       description             = "Docker credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7

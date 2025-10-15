@@ -478,6 +478,7 @@ variable "load_balancers" {
 variable "secrets" {
   description = "Secrets Manager variables"
   type = list(object({
+    key                     = string
     name                    = optional(string)
     name_prefix             = optional(string)
     description             = string
