@@ -246,7 +246,7 @@ variable "transit_gateway" {
     vpc_name                        = string
     ram = optional(object({
       key                       = string
-      enabled                   = optional(bool, true)
+      enabled                   = optional(bool, false)
       share_name                = optional(string)
       allow_external_principals = optional(bool, true)
       resource_arns             = optional(list(string), [])
