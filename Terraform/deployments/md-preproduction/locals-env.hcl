@@ -31,10 +31,10 @@ locals {
   }
 
   secret_names = {
-    ansible = "ansible-auth"
-    user    = "user-auth"
-    docker  = "docker-auth"
-    keys    = "ec2-private-key-pair"
+    ansible = "ansible-auths"
+    user    = "user-auths"
+    docker  = "docker-auths"
+    keys    = "ec2-private-key-pairs"
   }
 
   # RAM principals as a list of strings (AWS account IDs)

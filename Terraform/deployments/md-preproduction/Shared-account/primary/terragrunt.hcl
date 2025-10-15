@@ -634,7 +634,6 @@ inputs = {
       document_format = "YAML"
     }
   ]
-
   tgw_attachments = {
     name               = local.vpc_name_abr
     transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
