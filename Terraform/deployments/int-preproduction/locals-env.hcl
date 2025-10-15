@@ -36,7 +36,7 @@ locals {
 
   secret_names = {
     ansible = "ansible-authentication"
-    user    = "user-auth"
+    user    = "user-login"
     docker  = "docker-auth"
     keys    = "ec2-private-key-pairs"
     iam_user = "user"

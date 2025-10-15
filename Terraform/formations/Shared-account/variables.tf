@@ -496,6 +496,7 @@ variable "ssm_parameters" {
     description = string
     type        = string
     value       = string
+    secret_key  = optional(string)
     tier        = optional(string, "Standard") # Default to Standard if not specified
     overwrite   = optional(bool, false)        # Default to false if not specified
   }))

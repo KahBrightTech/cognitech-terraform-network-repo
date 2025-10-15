@@ -557,7 +557,7 @@ inputs = {
     },
     {
       key                     = "user" # Do not use name_prefix here as it it refernced on the ssm parameter on line 606
-      name                    = include.env.locals.secret_names.user
+      name_prefix             = include.env.locals.secret_names.user
       description             = "User credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
@@ -604,7 +604,7 @@ inputs = {
       description = "Account User Credentials"
       type        = "String"
       overwrite   = true
-      value       = "${local.aws_account_name}-${local.region_prefix}-${include.env.locals.secret_names.user}"
+      secret_key  = "user"
     }
   ]
   backups = [
