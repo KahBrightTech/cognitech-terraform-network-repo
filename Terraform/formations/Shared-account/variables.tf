@@ -15,7 +15,7 @@ variable "vpcs" {
   type = list(object({
     name       = string
     cidr_block = string
-    public_subnets = list(object({
+    public_subnets = optional(list(object({
       key                            = string
       name                           = string
       primary_availability_zone      = optional(string)
@@ -30,8 +30,8 @@ variable "vpcs" {
       subnet_ids                     = optional(list(string))
       subnet_type                    = optional(string)
       vpc_name                       = string
-    }))
-    private_subnets = list(object({
+    })))
+    private_subnets = optional(list(object({
       key                             = string
       name                            = string
       primary_availability_zone       = optional(string)
@@ -48,13 +48,13 @@ variable "vpcs" {
       quaternary_cidr_block           = optional(string)
       subnet_type                     = optional(string)
       vpc_name                        = string
-    }))
-    public_routes = object({
+    })))
+    public_routes = optional(object({
       public_gateway_id      = optional(string)
       destination_cidr_block = optional(string)
       subnet_ids             = optional(list(string))
       subnet_name            = optional(string)
-    })
+    }))
     nat_gateway = optional(object({
       name              = string
       type              = string
@@ -64,7 +64,7 @@ variable "vpcs" {
       quaternary_subnet = optional(string)
       subnet_name       = optional(string)
     }))
-    private_routes = object({
+    private_routes = optional(object({
       nat_gateway_id         = optional(string)
       destination_cidr_block = optional(string)
       primary_subnet_id      = optional(string)
@@ -74,7 +74,7 @@ variable "vpcs" {
       has_tertiary_subnet    = optional(bool, false)
       has_quaternary_subnet  = optional(bool, false)
       subnet_name            = optional(string)
-    })
+    }))
     security_groups = optional(list(object({
       key         = string
       description = string
