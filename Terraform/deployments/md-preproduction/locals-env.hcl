@@ -11,8 +11,8 @@ locals {
   repo_name   = "cognitech-terraform-network-repo"
 
   remote_state_bucket = {
-    primary   = "terragruntuse1"
-    secondary = "terragruntusw2"
+    primary   = "md-preprod-us-east-1-network-config-state"
+    secondary = "md-preprod-us-west-2-network-config-state"
   }
 
   subnet_prefix = {
@@ -22,7 +22,7 @@ locals {
     quaternary = "sbnt4"
   }
   public_domain         = "kahbrigthllc.com"
-  remote_dynamodb_table = "Terragrunt"
+  remote_dynamodb_table = "terragrunt-lock-table"
   tags = {
     Environment  = local.environment
     Owner        = local.owner
