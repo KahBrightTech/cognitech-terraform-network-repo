@@ -509,6 +509,7 @@ inputs = {
       notifications_email = include.env.locals.owner
       create_access_key   = true
       secrets_manager = {
+        name_prefix             = "${local.vpc_name_abr}-${include.env.locals.secret_names.iam_user}"
         recovery_window_in_days = 7
         description             = "Access and Secret key for Ansible Service Account"
         policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
@@ -544,7 +545,7 @@ inputs = {
   ]
   secrets = [
     {
-      key = "ansible"
+      key                     = "ansible"
       name_prefix             = include.env.locals.secret_names.ansible
       description             = "Ansible tower credentials"
       recovery_window_in_days = 7
@@ -555,7 +556,7 @@ inputs = {
       }
     },
     {
-      key                    = "user"
+      key                     = "user" # Do not use name_prefix here as it it refernced on the ssm parameter on line 606
       name                    = include.env.locals.secret_names.user
       description             = "User credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7
@@ -568,7 +569,7 @@ inputs = {
       }
     },
     {
-      key                    = "docker"
+      key                     = "docker"
       name_prefix             = include.env.locals.secret_names.docker
       description             = "Docker credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7

@@ -290,7 +290,7 @@ module "load_balancers" {
 # Creates secrets
 #--------------------------------------------------------------------
 module "secrets" {
-  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Secrets-manager?ref=v1.3.71"
+  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Secrets-manager?ref=v1.3.74"
   for_each        = (var.secrets != null) ? { for item in var.secrets : item.key => item } : {}
   common          = var.common
   secrets_manager = each.value
