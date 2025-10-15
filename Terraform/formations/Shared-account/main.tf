@@ -290,7 +290,7 @@ module "load_balancers" {
 # Creates secrets
 #--------------------------------------------------------------------
 module "secrets" {
-  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Secrets-manager?ref=v1.2.42"
+  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Secrets-manager?ref=v1.3.70"
   for_each        = (var.secrets != null) ? { for item in var.secrets : item.name => item } : {}
   common          = var.common
   secrets_manager = each.value
@@ -419,7 +419,7 @@ module "ssm_documents" {
 # Creates lIAM users
 #--------------------------------------------------------------------
 module "iam_users" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-User?ref=v1.3.29"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-User?ref=v1.3.70"
   for_each = (var.iam_users != null) ? { for item in var.iam_users : item.name => item } : {}
   common   = var.common
   iam_user = each.value

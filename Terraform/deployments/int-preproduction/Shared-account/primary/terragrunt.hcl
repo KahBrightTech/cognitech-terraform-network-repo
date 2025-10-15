@@ -523,6 +523,7 @@ inputs = {
       ]
     }
   ]
+  
   key_pairs = [
     {
       name               = "${local.vpc_name_abr}-key-pair"
