@@ -658,24 +658,28 @@ inputs = {
       cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
       subnet_name        = include.env.locals.subnet_prefix.primary
       transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+      vpc_name   = local.vpc_name
     },
     {
       name               = "dev-subnet_rt-secondary"
       cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
       subnet_name        = include.env.locals.subnet_prefix.secondary
       transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+      vpc_name   = local.vpc_name
     },
     {
-      name        = "trn-subnet_rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
-      subnet_name = include.env.locals.subnet_prefix.primary
+      name               = "trn-subnet_rt"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
+      subnet_name        = include.env.locals.subnet_prefix.primary
       transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+      vpc_name   = local.vpc_name
     },
     {
       name        = "trn-subnet_rt-secondary"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
       subnet_name = include.env.locals.subnet_prefix.secondary
       transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+      vpc_name   = local.vpc_name
     }
   ]
 }
