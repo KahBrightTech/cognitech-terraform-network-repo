@@ -39,6 +39,7 @@ locals {
     user    = "user-auth"
     docker  = "docker-auth"
     keys    = "ec2-private-key-pairs"
+    iam_user = "user"
   }
 
   datasync = {

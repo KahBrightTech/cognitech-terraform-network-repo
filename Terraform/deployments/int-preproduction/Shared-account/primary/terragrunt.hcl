@@ -406,13 +406,13 @@ inputs = {
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
     },
-    {
-      key               = "report-bucket"
-      name              = "${local.vpc_name_abr}-report-bucket"
-      description       = "The report bucket for different apps"
-      enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
-    },
+    # {
+    #   key               = "report-bucket"
+    #   name              = "${local.vpc_name_abr}-report-bucket"
+    #   description       = "The report bucket for different apps"
+    #   enable_versioning = true
+    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
+    # },
     {
       key               = "software-bucket"
       name              = "${local.vpc_name_abr}-software-bucket"
@@ -500,7 +500,7 @@ inputs = {
   ]
   iam_users = [
     {
-      name                = "${local.vpc_name_abr}-iam-user"
+      name                = "${local.vpc_name_abr}-${include.env.locals.secret_names.iam_user}"
       description         = "${local.vpc_name_abr} IAM user credentials"
       path                = "/"
       force_destroy       = true
