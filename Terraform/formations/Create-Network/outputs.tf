@@ -62,7 +62,7 @@ output "private_subnets" {
 
 output "private_subnet" {
   description = "Values for all private subnets by name index"
-  value       = var.vpc != null ? { for key, item in var.vpc.private_subnets : item.name => module.private_subnets[item.name] } : null
+  value       = var.vpc != null && var.vpc.private_subnets != null ? { for key, item in var.vpc.private_subnets : item.name => module.private_subnets[item.name] } : null
 
 }
 

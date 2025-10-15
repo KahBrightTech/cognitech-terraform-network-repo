@@ -82,7 +82,7 @@ inputs = {
           secondary_availability_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
           subnet_type                 = local.external
-          vpc_name                    = local.vpc_name
+          vpc_name                    = local.vpc_name_abr
         },
         {
           key                         = include.env.locals.subnet_prefix.secondary
@@ -92,7 +92,7 @@ inputs = {
           secondary_availability_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
           subnet_type                 = local.external
-          vpc_name                    = local.vpc_name
+          vpc_name                    = local.vpc_name_abr
         }
       ]
       private_subnets = [
@@ -104,7 +104,7 @@ inputs = {
           secondary_availability_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
           subnet_type                 = local.internal
-          vpc_name                    = local.vpc_name
+          vpc_name                    = local.vpc_name_abr
         },
         {
           key                         = include.env.locals.subnet_prefix.secondary
@@ -114,7 +114,7 @@ inputs = {
           secondary_availability_zone = local.region_blk.availability_zones.secondary
           secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
           subnet_type                 = local.internal
-          vpc_name                    = local.vpc_name
+          vpc_name                    = local.vpc_name_abr
         }
       ]
       public_routes = {
@@ -126,44 +126,44 @@ inputs = {
       nat_gateway = {
         name     = "nat"
         type     = local.external
-        vpc_name = local.vpc_name
+        vpc_name = local.vpc_name_abr
       }
       security_groups = [
         {
           key         = "bastion"
           name        = "bastion"
           description = "standard ${local.vpc_name} bastion security group"
-          vpc_name    = local.vpc_name
+          vpc_name    = local.vpc_name_abr
         },
         {
           key         = "alb"
           name        = "alb"
           description = "standard ${local.vpc_name} alb security group"
-          vpc_name    = local.vpc_name
+          vpc_name    = local.vpc_name_abr
         },
         {
           key         = "app"
           name        = "app"
           description = "standard ${local.vpc_name} app security group"
-          vpc_name    = local.vpc_name
+          vpc_name    = local.vpc_name_abr
         },
         {
           key         = "db"
           name        = "db"
           description = "standard ${local.vpc_name} db security group"
-          vpc_name    = local.vpc_name
+          vpc_name    = local.vpc_name_abr
         },
         {
           key         = "efs"
           name        = "efs"
           description = "standard ${local.vpc_name} efs security group"
-          vpc_name    = local.vpc_name
+          vpc_name    = local.vpc_name_abr
         },
         {
           key         = "nlb"
           name        = "nlb"
           description = "standard ${local.vpc_name} nlb security group"
-          vpc_name    = local.vpc_name
+          vpc_name    = local.vpc_name_abr
         }
       ]
       security_group_rules = [
@@ -374,27 +374,27 @@ inputs = {
 
   s3_private_buckets = [
     {
-      name              = "${local.vpc_name}-app-bucket"
+      name              = "${local.vpc_name_abr}-app-bucket"
       description       = "The application bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     },
     {
-      name              = "${local.vpc_name}-config-bucket"
+      name              = "${local.vpc_name_abr}-config-bucket"
       description       = "The configuration bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
     {
       key               = "audit-bucket"
-      name              = "${local.vpc_name}-audit-bucket"
+      name              = "${local.vpc_name_abr}-audit-bucket"
       description       = "The audit bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
     },
     {
       key               = "software-bucket"
-      name              = "${local.vpc_name}-software-bucket"
+      name              = "${local.vpc_name_abr}-software-bucket"
       description       = "The software bucket for different apps"
       enable_versioning = true
       objects = [
@@ -406,7 +406,7 @@ inputs = {
   ]
   ec2_profiles = [
     {
-      name               = "${local.vpc_name}"
+      name               = "${local.vpc_name_abr}"
       description        = "EC2 Instance Profile for Shared Services"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
@@ -416,7 +416,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AdministratorAccess"
       ]
       policy = {
-        name        = "${local.vpc_name}-ec2-instance-profile"
+        name        = "${local.vpc_name_abr}-ec2-instance-profile"
         description = "EC2 Instance Permission for instances"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
@@ -424,8 +424,8 @@ inputs = {
   ]
   iam_roles = [
     {
-      name               = "${local.vpc_name}-default"
-      description        = "Default IAM Role for ${local.vpc_name}"
+      name               = "${local.vpc_name_abr}-default"
+      description        = "Default IAM Role for ${local.vpc_name_abr}"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
@@ -434,30 +434,30 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       ]
       policy = {
-        name        = "${local.vpc_name}-default"
-        description = "${local.vpc_name} default role policy"
+        name        = "${local.vpc_name_abr}-default"
+        description = "${local.vpc_name_abr} default role policy"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
     },
     {
-      name               = "${local.vpc_name}-source-replication"
-      description        = "IAM Role for ${local.vpc_name} replication rule"
+      name               = "${local.vpc_name_abr}-source-replication"
+      description        = "IAM Role for ${local.vpc_name_abr} replication rule"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/s3_trust_policy.json"
       policy = {
-        name        = "${local.vpc_name}-source-replication"
-        description = "IAM policy for ${local.vpc_name} source replication"
+        name        = "${local.vpc_name_abr}-source-replication"
+        description = "IAM policy for ${local.vpc_name_abr} source replication"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
       }
     },
     {
-      name               = "${local.vpc_name}-datasync"
-      description        = "IAM Role for ${local.vpc_name} DataSync"
+      name               = "${local.vpc_name_abr}-datasync"
+      description        = "IAM Role for ${local.vpc_name_abr} DataSync"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/datasync_trust_policy.json"
       policy = {
-        name        = "${local.vpc_name}-datasync"
-        description = "IAM policy for ${local.vpc_name} DataSync"
+        name        = "${local.vpc_name_abr}-datasync"
+        description = "IAM policy for ${local.vpc_name_abr} DataSync"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_datasync.json"
       }
     }
@@ -489,9 +489,9 @@ inputs = {
   ]
   key_pairs = [
     {
-      name               = "${local.vpc_name}-key-pair"
-      secret_name        = "${local.vpc_name}-${include.env.locals.secret_names.keys}"
-      secret_description = "Private key for ${local.vpc_name} VPC"
+      name               = "${local.vpc_name_abr}-key-pair"
+      secret_name        = "${local.vpc_name_abr}-${include.env.locals.secret_names.keys}"
+      secret_description = "Private key for ${local.vpc_name_abr} VPC"
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
     }
