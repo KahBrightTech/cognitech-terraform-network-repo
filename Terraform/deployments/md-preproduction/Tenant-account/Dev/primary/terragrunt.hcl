@@ -49,6 +49,9 @@ locals {
 dependency "shared_services" {
   config_path = "../../../Shared-account/${local.region_context}"
 }
+dependency "network" {
+  config_path = "../../../../network/Shared-account/${local.region_context}"
+}
 #-------------------------------------------------------
 # Source  
 #-------------------------------------------------------

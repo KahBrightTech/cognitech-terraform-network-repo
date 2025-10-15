@@ -45,6 +45,12 @@ locals {
   )
 }
 #-------------------------------------------------------
+# Dependencies 
+#-------------------------------------------------------
+dependency "network" {
+  config_path = "../../../network/Shared-account/${local.region_context}"
+}
+#-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
 terraform {
@@ -651,34 +657,35 @@ inputs = {
     name = local.vpc_name
   }
   tgw_routes = [ # Creates routes in TGW route table to point to spoke VPCs
-    {
-      name                   = "spoke-to-hub-tgw-route"
-      blackhole              = false
-      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
-    }
+    # {
+    #   name                   = "default-to-dev"
+    #   blackhole              = false
+    #   attachment_id         = dependency.network.tgw_attachments["development"].id
+    #   destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
+    # }
   ]
   tgw_subnet_route = [ # Creates routes in subnet route tables to point to TGW
     {
       name        = "dev-subnet_rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.dev.vpc
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
       subnet_name = include.env.locals.subnet_prefix.primary
       vpc_name    = local.vpc_name
     },
     {
       name        = "dev-subnet_rt-secondary"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.dev.vpc
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
       subnet_name = include.env.locals.subnet_prefix.secondary
       vpc_name    = local.vpc_name
     },
     {
       name        = "trn-subnet_rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.trn.vpc
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
       subnet_name = include.env.locals.subnet_prefix.primary
       vpc_name    = local.vpc_name
     },
     {
       name        = "trn-subnet_rt-secondary"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.trn.vpc
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
       subnet_name = include.env.locals.subnet_prefix.secondary
       vpc_name    = local.vpc_name
     }

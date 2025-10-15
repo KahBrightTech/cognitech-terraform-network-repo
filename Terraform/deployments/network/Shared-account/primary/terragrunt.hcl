@@ -414,28 +414,6 @@ inputs = {
         description = "${local.vpc_name} default role policy"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
-    },
-    {
-      name               = "${local.vpc_name}-source-replication"
-      description        = "IAM Role for ${local.vpc_name} replication rule"
-      path               = "/"
-      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/s3_trust_policy.json"
-      policy = {
-        name        = "${local.vpc_name}-source-replication"
-        description = "IAM policy for ${local.vpc_name} source replication"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
-      }
-    },
-    {
-      name               = "${local.vpc_name}-datasync"
-      description        = "IAM Role for ${local.vpc_name} DataSync"
-      path               = "/"
-      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/datasync_trust_policy.json"
-      policy = {
-        name        = "${local.vpc_name}-datasync"
-        description = "IAM policy for ${local.vpc_name} DataSync"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_datasync.json"
-      }
     }
   ]
   iam_users = [
