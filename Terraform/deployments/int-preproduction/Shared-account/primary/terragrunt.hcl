@@ -574,7 +574,6 @@ inputs = {
       }
     }
   ]
-
   ssm_parameters = [
     {
       name        = "/Standard/ansible/username"
