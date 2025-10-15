@@ -418,7 +418,7 @@ inputs = {
   ]
   iam_users = [
     {
-      name                = "${local.vpc_name_abr}-iam-user"
+      name                = "${local.vpc_name_abr}-${include.env.locals.secret_names.iam-user}"
       description         = "${local.vpc_name_abr} IAM user credentials"
       path                = "/"
       force_destroy       = true

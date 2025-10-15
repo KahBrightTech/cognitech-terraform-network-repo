@@ -31,15 +31,16 @@ locals {
   }
 
   secret_names = {
-    ansible = "ansible-authentication"
-    user    = "user-authentication"
-    docker  = "docker-authentication"
-    keys    = "ec2-private-key-pair"
+    ansible  = "ansible-authentication"
+    user     = "user-authentication"
+    docker   = "docker-authentication"
+    keys     = "ec2-private-key-pairs"
+    iam-user = "user"
   }
 
   # RAM principals as a list of strings (Organization ARN)
   ram_principals = [
-    "arn:aws:organizations::485147667400:organization/o-orvtyisdyc"    # Replace with your actual Organization ARN
+    "arn:aws:organizations::485147667400:organization/o-orvtyisdyc" # Replace with your actual Organization ARN
   ]
 }
 
