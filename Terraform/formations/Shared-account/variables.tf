@@ -371,7 +371,8 @@ variable "iam_policies" {
 variable "key_pairs" {
   description = "Key pair configuration for EC2 instances"
   type = list(object({
-    name               = string
+    name               = optional(string)
+    name_prefix        = optional(string)
     secret_name        = optional(string)
     secret_description = optional(string)
     policy             = optional(string)
@@ -477,7 +478,8 @@ variable "load_balancers" {
 variable "secrets" {
   description = "Secrets Manager variables"
   type = list(object({
-    name                    = string
+    name                    = optional(string)
+    name_prefix             = optional(string)
     description             = string
     recovery_window_in_days = optional(number)
     policy                  = optional(string)
@@ -701,6 +703,7 @@ variable "iam_users" {
     user_type            = optional(string, "standard")
     create_access_key    = optional(bool, true)
     secrets_manager = optional(object({
+      name_prefix             = optional(string)
       recovery_window_in_days = optional(number, 30)
       description             = optional(string, null)
       policy                  = optional(string)
