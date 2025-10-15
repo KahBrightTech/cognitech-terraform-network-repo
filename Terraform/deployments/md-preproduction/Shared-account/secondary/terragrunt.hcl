@@ -654,31 +654,32 @@ inputs = {
   ]
   tgw_subnet_route = [ # Creates routes in subnet route tables to point to TGW
     {
-      name        = "dev-subnet_rt"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
-      subnet_name = include.env.locals.subnet_prefix.primary
-      vpc_name    = local.vpc_name
+      name               = "dev-subnet_rt"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
+      subnet_name        = include.env.locals.subnet_prefix.primary
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
     },
     {
-      name        = "dev-subnet_rt-secondary"
-      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
-      subnet_name = include.env.locals.subnet_prefix.secondary
-      vpc_name    = local.vpc_name
+      name               = "dev-subnet_rt-secondary"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
+      subnet_name        = include.env.locals.subnet_prefix.secondary
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
     },
     {
       name        = "trn-subnet_rt"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
       subnet_name = include.env.locals.subnet_prefix.primary
-      vpc_name    = local.vpc_name
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
     },
     {
       name        = "trn-subnet_rt-secondary"
       cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
       subnet_name = include.env.locals.subnet_prefix.secondary
-      vpc_name    = local.vpc_name
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
     }
   ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------

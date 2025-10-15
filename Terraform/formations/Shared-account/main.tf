@@ -119,7 +119,7 @@ module "transit_gateway_subnet_route" {
   ]
   tgw_subnet_route = {
     route_table_id     = each.value.create_public_route ? module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
-    transit_gateway_id = module.transit_gateway[0].transit_gateway_id
+    transit_gateway_id = each.value.transit_gateway_id != null ? each.value.transit_gateway_id : module.transit_gateway[0].transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name
   }
@@ -131,7 +131,7 @@ module "transit_gateway_subnet_route" {
 #--------------------------------------------------------------------
 module "ram" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.69"
-  count  = var.transit_gateway != null && var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true ? 1 : 0
+  count  = var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true ? 1 : 0
   common = var.common
   depends_on = [
     module.transit_gateway

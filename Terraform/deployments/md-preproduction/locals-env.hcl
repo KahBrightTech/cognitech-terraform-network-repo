@@ -40,9 +40,6 @@ locals {
   # RAM principals as a list of strings (AWS account IDs)
   ram_principals = [
     "730335294148"  # intpp account
-    # "123456789012",  # dev account
-    # "987654321098",  # staging account
-    # "555666777888"   # prod account
   ]
 }
 
