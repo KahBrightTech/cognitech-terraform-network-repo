@@ -43,14 +43,17 @@ module "transit_gateway_attachment" {
     module.shared_vpc,
     module.transit_gateway
   ]
-  tgw_attachments = {
-    transit_gateway_id = var.tgw_attachments.transit_gateway_id != null ? var.tgw_attachments.transit_gateway_id : module.transit_gateway[0].transit_gateway_id
-    subnet_ids = compact([
-      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id, # FYI you can only have one subnet per az for transit gateway attachments. So only using primary subnets here
-      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
-    ])
-    name = var.tgw_attachments.name
-  }
+  tgw_attachments = merge(
+    var.tgw_attachments,
+    {
+      transit_gateway_id = var.tgw_attachments.transit_gateway_id != null ? var.tgw_attachments.transit_gateway_id : module.transit_gateway[0].transit_gateway_id
+      subnet_ids = compact([
+        module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id, # FYI you can only have one subnet per az for transit gateway attachments. So only using primary subnets here
+        module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
+      ])
+      name = var.tgw_attachments.name
+    }
+  )
 }
 #--------------------------------------------------------------------
 # Transit Gateway route table - Creates Transit Gateway route tables
