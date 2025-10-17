@@ -464,7 +464,7 @@ inputs = {
   ]
   iam_users = [
     {
-      name                = "${local.vpc_name_abr}-${include.env.locals.secret_names.iam_user}"
+      name                = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.iam_user}"
       description         = "${local.vpc_name_abr} IAM user credentials"
       path                = "/"
       force_destroy       = true
@@ -473,7 +473,7 @@ inputs = {
       notifications_email = include.env.locals.owner
       create_access_key   = true
       secrets_manager = {
-        name_prefix             = "${local.vpc_name_abr}-${include.env.locals.secret_names.iam_user}"
+        name_prefix             = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.iam_user}"
         recovery_window_in_days = 7
         description             = "Access and Secret key for Ansible Service Account"
         policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
@@ -493,7 +493,7 @@ inputs = {
     {
       name               = "${local.vpc_name_abr}-key-pair"
       name_prefix        = "${local.vpc_name_abr}-key-pair"
-      secret_name        = "${local.vpc_name_abr}-${include.env.locals.secret_names.keys}"
+      secret_name        = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.keys}"
       secret_description = "Private key for ${local.vpc_name_abr} VPC"
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
@@ -510,7 +510,7 @@ inputs = {
  secrets = [
     {
       key                     = "ansible"
-      name_prefix             = include.env.locals.secret_names.ansible
+      name_prefix             = include.cloud.locals.secret_names.ansible
       description             = "Ansible tower credentials"
       recovery_window_in_days = 7
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
@@ -521,7 +521,7 @@ inputs = {
     },
     {
       key                     = "user" # Do not use name_prefix here as it it refernced on the ssm parameter on line 606
-      name                    = include.env.locals.secret_names.user
+      name                    = include.cloud.locals.secret_names.user
       description             = "User credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
@@ -534,7 +534,7 @@ inputs = {
     },
     {
       key                     = "docker"
-      name_prefix             = include.env.locals.secret_names.docker
+      name_prefix             = include.cloud.locals.secret_names.docker
       description             = "Docker credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")

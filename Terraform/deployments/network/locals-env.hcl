@@ -31,11 +31,11 @@ locals {
   }
 
   secret_names = {
-    ansible  = "ansible-authentication"
-    user     = "user-authentication"
-    docker   = "docker-authentication"
-    keys     = "ec2-private-key-pairs"
-    iam-user = "user"
+    ansible = "ansible-authentication"
+    user    = "user-login"
+    docker  = "docker-auth"
+    keys    = "ec2-private-key-pairs"
+    iam_user = "user"
   }
 
   # RAM principals as a list of strings (Organization ARN)
