@@ -15,6 +15,16 @@ module "customer_vpc" {
 }
 
 #--------------------------------------------------------------------
+# Transit Gateway - Creates Transit Gateway
+#--------------------------------------------------------------------
+module "transit_gateway" {
+  count           = var.transit_gateway != null ? 1 : 0
+  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.3.64"
+  transit_gateway = var.transit_gateway
+  common          = var.common
+}
+
+#--------------------------------------------------------------------
 # Transit Gateway attacments - Creates Transit Gateway attachments
 #--------------------------------------------------------------------
 module "transit_gateway_attachment" {
@@ -133,7 +143,7 @@ module "ram" {
 # S3 Private app bucket
 #--------------------------------------------------------------------
 module "s3_app_bucket" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.3.7"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.3.75"
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
   common   = var.common
   s3 = merge(
@@ -284,10 +294,15 @@ module "secrets" {
 # Creates SSM Parameters
 #--------------------------------------------------------------------
 module "ssm_parameters" {
-  source        = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/SSM-Parameter-store?ref=v1.2.45"
-  for_each      = (var.ssm_parameters != null) ? { for item in var.ssm_parameters : item.name => item } : {}
-  common        = var.common
-  ssm_parameter = each.value
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/SSM-Parameter-store?ref=v1.2.45"
+  for_each = (var.ssm_parameters != null) ? { for item in var.ssm_parameters : item.name => item } : {}
+  common   = var.common
+  ssm_parameter = merge(
+    each.value,
+    {
+      value = each.value.secret_key != null ? module.secrets[each.value.secret_key].name : each.value.value
+    }
+  )
 }
 
 #--------------------------------------------------------------------
@@ -402,7 +417,7 @@ module "ssm_documents" {
 # Creates lIAM users
 #--------------------------------------------------------------------
 module "iam_users" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-User?ref=v1.3.71"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-User?ref=v1.3.76"
   for_each = (var.iam_users != null) ? { for item in var.iam_users : item.name => item } : {}
   common   = var.common
   iam_user = each.value
