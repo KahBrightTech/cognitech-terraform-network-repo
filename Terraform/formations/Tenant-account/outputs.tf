@@ -30,7 +30,7 @@ output "ram" {
 output "s3_app_bucket" {
   description = "S3 bucket details"
   value       = module.s3_app_bucket
-  depends_on  = [module.shared_vpc]
+  depends_on  = [module.customer_vpc]
 }
 
 output "IAM_roles" {
