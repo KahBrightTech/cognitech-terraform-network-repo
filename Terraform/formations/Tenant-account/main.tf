@@ -21,16 +21,16 @@ module "transit_gateway_attachment" {
   count  = var.tgw_attachments != null ? 1 : 0
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.1.17"
   common = var.common
-  vpc_id = var.vpcs != null ? module.shared_vpc[var.tgw_attachments.name].vpc_id : null
+  vpc_id = var.vpcs != null ? module.customer_vpc[var.tgw_attachments.name].vpc_id : null
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway
   ]
   tgw_attachments = {
     transit_gateway_id = var.tgw_attachments.transit_gateway_id != null ? var.tgw_attachments.transit_gateway_id : module.transit_gateway[0].transit_gateway_id
     subnet_ids = compact([
-      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id, # FYI you can only have one subnet per az for transit gateway attachments. So only using primary subnets here
-      module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
+      module.customer_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id, # FYI you can only have one subnet per az for transit gateway attachments. So only using primary subnets here
+      module.customer_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
     ])
     name = var.tgw_attachments.name
   }
@@ -43,7 +43,7 @@ module "transit_gateway_route_table" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-route-table?ref=v1.1.17"
   common = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway
   ]
   tgw_route_table = {
@@ -60,7 +60,7 @@ module "transit_gateway_association" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-association?ref=v1.1.18"
   common = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway,
     module.transit_gateway_route_table
   ]
@@ -78,7 +78,7 @@ module "transit_gateway_route" {
   for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.name => route } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
   ]
   tgw_routes = {
     name                   = each.value.name
@@ -97,11 +97,11 @@ module "transit_gateway_subnet_route" {
   for_each = var.tgw_subnet_route != null ? { for route in var.tgw_subnet_route : route.name => route } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway
   ]
   tgw_subnet_route = {
-    route_table_id     = each.value.create_public_route ? module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
+    route_table_id     = each.value.create_public_route ? module.customer_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.customer_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
     transit_gateway_id = each.value.transit_gateway_id != null ? each.value.transit_gateway_id : module.transit_gateway[0].transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name
@@ -228,18 +228,18 @@ module "load_balancers" {
     {
       security_groups = [
         for sg_key in each.value.security_groups :
-        module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+        module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
       ]
       subnets = flatten([
         for subnet_key in each.value.subnets :
         (each.value.use_private_subnets == true) ?
-        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+        module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ])
       subnet_mappings = (each.value.subnet_mappings != null) ? [
         for mapping in each.value.subnet_mappings : {
           subnet_id = lookup(
-            module.shared_vpc[each.value.vpc_name].private_subnet[mapping.subnet_key],
+            module.customer_vpc[each.value.vpc_name].private_subnet[mapping.subnet_key],
             "${mapping.az_subnet_selector}_subnet_id",
             null
           )
@@ -300,7 +300,7 @@ module "target_groups" {
   target_group = merge(
     each.value,
     {
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
     }
   )
 }
@@ -324,7 +324,7 @@ module "alb_listeners" {
         module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {
@@ -377,7 +377,7 @@ module "nlb_listeners" {
         module.certificates[each.value.vpc_name].arn,
         each.value.certificate_arn
       ) : null
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {
