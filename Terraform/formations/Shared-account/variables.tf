@@ -272,6 +272,7 @@ variable "tgw_association" {
     attachment_id    = optional(string)
     route_table_id   = optional(string)
     route_table_name = optional(string) # Add this for referencing the route table by name
+    route_table_key  = optional(string) # Add this for referencing the route table by key
   })
   default = null
 }
@@ -294,6 +295,7 @@ variable "tgw_routes" {
     attachment_id          = optional(string)
     route_table_id         = optional(string)
     route_table_name       = optional(string) # Add this for referencing the route table by name
+    route_table_key        = optional(string) # Add this for referencing the route table by key
   }))
   default = null
 }

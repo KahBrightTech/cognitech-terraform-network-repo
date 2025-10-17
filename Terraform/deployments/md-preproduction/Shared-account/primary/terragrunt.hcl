@@ -507,7 +507,7 @@ inputs = {
     #   zone_name         = include.env.locals.public_domain
     # }
   ]
- secrets = [
+  secrets = [
     {
       key                     = "ansible"
       name_prefix             = include.cloud.locals.secret_names.ansible
@@ -643,12 +643,14 @@ inputs = {
   tgw_attachments = {
     name               = local.vpc_name_abr
     transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+    ram = {
+      key                       = "${local.vpc_name_abr}-tgw-attachment"
+      allow_external_principals = true
+      enabled                   = true
+      share_name                = "${local.vpc_name_abr}-tgw-attachment"
+      principals                = include.cloud.locals.ntw_principals
+    }
   }
-  tgw_route_table = {
-    name   = local.vpc_name_abr
-    tgw_id = dependency.network.outputs.transit_gateway.transit_gateway_id
-  }
-
   tgw_routes = [ # Creates routes in TGW route table to point to spoke VPCs
     # {
     #   name                   = "default-to-dev"
@@ -657,7 +659,7 @@ inputs = {
     #   destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
     # }
   ]
-  
+
   tgw_subnet_route = [ # Creates routes in subnet route tables to point to TGW
     {
       name               = "dev-subnet_rt"

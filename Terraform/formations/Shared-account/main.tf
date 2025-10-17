@@ -84,6 +84,8 @@ module "transit_gateway_association" {
   tgw_association = {
     attachment_id = var.tgw_association.attachment_id != null ? var.tgw_association.attachment_id : module.transit_gateway_attachment[0].tgw_attachment_id
     route_table_id = var.tgw_association.route_table_id != null ? var.tgw_association.route_table_id : (
+      var.tgw_association.route_table_key != null ?
+      module.transit_gateway_route_table[var.tgw_association.route_table_key].tgw_rtb_id :
       var.tgw_association.route_table_name != null ?
       module.transit_gateway_route_table[var.tgw_association.route_table_name].tgw_rtb_id :
       values(module.transit_gateway_route_table)[0].tgw_rtb_id
@@ -107,6 +109,8 @@ module "transit_gateway_route" {
     destination_cidr_block = each.value.destination_cidr_block
     attachment_id          = each.value.blackhole == false ? (each.value.attachment_id != null ? each.value.attachment_id : module.transit_gateway_attachment[0].tgw_attachment_id) : null
     route_table_id = each.value.route_table_id != null ? each.value.route_table_id : (
+      each.value.route_table_key != null ?
+      module.transit_gateway_route_table[each.value.route_table_key].tgw_rtb_id :
       each.value.route_table_name != null ?
       module.transit_gateway_route_table[each.value.route_table_name].tgw_rtb_id :
       values(module.transit_gateway_route_table)[0].tgw_rtb_id
