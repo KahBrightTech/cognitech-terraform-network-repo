@@ -262,6 +262,12 @@ variable "tgw_attachments" {
     subnet_ids           = optional(list(string))
     transit_gateway_name = optional(string)
     name                 = optional(string)
+    ram = optional(object({
+      enabled                   = optional(bool, false)
+      share_name                = optional(string, "tgw-attachment-share")
+      allow_external_principals = optional(bool, false)
+      principals                = optional(list(string), [])
+    }))
   })
   default = null
 }

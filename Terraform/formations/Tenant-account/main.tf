@@ -119,25 +119,25 @@ module "transit_gateway_subnet_route" {
 }
 
 
-#--------------------------------------------------------------------
-# Creates ram resources
-#--------------------------------------------------------------------
-module "ram" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.69"
-  count  = var.transit_gateway != null && try(var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true, false) && length(module.transit_gateway) > 0 ? 1 : 0
-  common = var.common
-  depends_on = [
-    module.transit_gateway
-  ]
-  ram = {
-    key                       = try(var.transit_gateway.ram.key, "")
-    enabled                   = try(var.transit_gateway.ram.enabled, false)
-    share_name                = try(var.transit_gateway.ram.share_name, "")
-    allow_external_principals = try(var.transit_gateway.ram.allow_external_principals, true)
-    resource_arns             = [module.transit_gateway[0].tgw_arn]
-    principals                = try(var.transit_gateway.ram.principals, [])
-  }
-}
+# #--------------------------------------------------------------------
+# # Creates ram resources
+# #--------------------------------------------------------------------
+# module "ram" {
+#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.69"
+#   count  = var.transit_gateway != null && try(var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true, false) && length(module.transit_gateway) > 0 ? 1 : 0
+#   common = var.common
+#   depends_on = [
+#     module.transit_gateway
+#   ]
+#   ram = {
+#     key                       = try(var.transit_gateway.ram.key, "")
+#     enabled                   = try(var.transit_gateway.ram.enabled, false)
+#     share_name                = try(var.transit_gateway.ram.share_name, "")
+#     allow_external_principals = try(var.transit_gateway.ram.allow_external_principals, true)
+#     resource_arns             = [module.transit_gateway[0].tgw_arn]
+#     principals                = try(var.transit_gateway.ram.principals, [])
+#   }
+# }
 
 #--------------------------------------------------------------------
 # S3 Private app bucket
