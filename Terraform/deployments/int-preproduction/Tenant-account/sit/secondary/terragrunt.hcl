@@ -31,7 +31,7 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Tenant-account"
   ## Updates these variables as per the product/service
-  vpc_name     = "system-integration"
+  vpc_name     = "system-int"
   vpc_name_abr = "sit"
 
   # Composite variables 

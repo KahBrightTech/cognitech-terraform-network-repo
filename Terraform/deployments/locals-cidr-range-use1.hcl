@@ -149,7 +149,7 @@ locals {
               }
             }
           }
-          system-integration = {
+          system-int = {
             vpc = "10.1.5.0/24"
             public_subnets = {
               sbnt1 = {
