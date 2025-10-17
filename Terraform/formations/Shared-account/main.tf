@@ -36,7 +36,7 @@ module "transit_gateway" {
 #--------------------------------------------------------------------
 module "transit_gateway_attachment" {
   count  = var.tgw_attachments != null ? 1 : 0
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.3.79"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.3.81"
   common = var.common
   vpc_id = var.vpcs != null ? module.shared_vpc[var.tgw_attachments.name].vpc_id : null
   depends_on = [
