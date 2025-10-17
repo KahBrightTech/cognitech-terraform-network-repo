@@ -121,6 +121,13 @@ locals {
       layer_s3_key         = "IAM-Credentials/layers/python.zip"
     }
   }
+  secret_names = {
+    ansible  = "ansible-authentication"
+    user     = "user-login"
+    docker   = "docker-auth"
+    keys     = "ec2-private-key-pairs"
+    iam_user = "user"
+  }
 
   Service_catalog = {
     Training = {
@@ -162,11 +169,4 @@ locals {
       }
     }
   }
-}
-secret_names = {
-  ansible  = "ansible-authentication"
-  user     = "user-login"
-  docker   = "docker-auth"
-  keys     = "ec2-private-key-pairs"
-  iam_user = "user"
 }
