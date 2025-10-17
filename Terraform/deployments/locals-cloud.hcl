@@ -132,7 +132,7 @@ locals {
   ram_principals = [
     "arn:aws:organizations::485147667400:organization/o-orvtyisdyc" # Replace with your actual Organization ARN
   ]
-
+  repo_name = "cognitech-terraform-network-repo"
   Service_catalog = {
     Training = {
       InstanceStatus = {
