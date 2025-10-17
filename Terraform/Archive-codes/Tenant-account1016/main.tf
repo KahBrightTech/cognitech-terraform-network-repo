@@ -1,34 +1,17 @@
+
 #--------------------------------------------------------------------
-# Data
+# Data block to fetch values from the console 
 #--------------------------------------------------------------------
-data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
-data "aws_iam_roles" "admin_role" {
-  name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
-  path_prefix = "/aws-reserved/sso.amazonaws.com/"
-}
-
-data "aws_iam_roles" "network_role" {
-  name_regex  = "AWSReservedSSO_NetworkAdministrator_.*"
-  path_prefix = "/aws-reserved/sso.amazonaws.com/"
-}
-
-module "shared_vpc" {
+#--------------------------------------------------------------------
+# Creating customer resources
+#--------------------------------------------------------------------
+module "customer_vpc" {
   source   = "../Create-Network"
   for_each = var.vpcs != null ? { for vpc in var.vpcs : vpc.name => vpc } : {}
   vpc      = each.value
   common   = var.common
-}
-
-#--------------------------------------------------------------------
-# Transit Gateway - Creates Transit Gateway
-#--------------------------------------------------------------------
-module "transit_gateway" {
-  count           = var.transit_gateway != null ? 1 : 0
-  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.3.64"
-  transit_gateway = var.transit_gateway
-  common          = var.common
 }
 
 #--------------------------------------------------------------------
@@ -150,7 +133,7 @@ module "ram" {
 # S3 Private app bucket
 #--------------------------------------------------------------------
 module "s3_app_bucket" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.3.75"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.3.7"
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
   common   = var.common
   s3 = merge(
@@ -301,15 +284,10 @@ module "secrets" {
 # Creates SSM Parameters
 #--------------------------------------------------------------------
 module "ssm_parameters" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/SSM-Parameter-store?ref=v1.2.45"
-  for_each = (var.ssm_parameters != null) ? { for item in var.ssm_parameters : item.name => item } : {}
-  common   = var.common
-  ssm_parameter = merge(
-    each.value,
-    {
-      value = each.value.secret_key != null ? module.secrets[each.value.secret_key].name : each.value.value
-    }
-  )
+  source        = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/SSM-Parameter-store?ref=v1.2.45"
+  for_each      = (var.ssm_parameters != null) ? { for item in var.ssm_parameters : item.name => item } : {}
+  common        = var.common
+  ssm_parameter = each.value
 }
 
 #--------------------------------------------------------------------
@@ -424,7 +402,7 @@ module "ssm_documents" {
 # Creates lIAM users
 #--------------------------------------------------------------------
 module "iam_users" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-User?ref=v1.3.76"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-User?ref=v1.3.71"
   for_each = (var.iam_users != null) ? { for item in var.iam_users : item.name => item } : {}
   common   = var.common
   iam_user = each.value

@@ -172,7 +172,6 @@ variable "s3_private_buckets" {
     description              = string
     name_override            = optional(string)
     policy                   = optional(string)
-    force_destroy            = optional(bool, true)
     enable_versioning        = optional(bool, true)
     enable_bucket_policy     = optional(bool, true)
     override_policy_document = optional(string)
@@ -496,8 +495,7 @@ variable "ssm_parameters" {
     name        = string
     description = string
     type        = string
-    value       = optional(string)
-    secret_key  = optional(string)
+    value       = string
     tier        = optional(string, "Standard") # Default to Standard if not specified
     overwrite   = optional(bool, false)        # Default to false if not specified
   }))
@@ -706,7 +704,6 @@ variable "iam_users" {
     user_type            = optional(string, "standard")
     create_access_key    = optional(bool, true)
     secrets_manager = optional(object({
-      name_prefix             = optional(string, "iam-user")
       recovery_window_in_days = optional(number, 30)
       description             = optional(string, null)
       policy                  = optional(string)

@@ -427,6 +427,7 @@ inputs = {
       notifications_email = include.env.locals.owner
       create_access_key   = true
       secrets_manager = {
+        name_prefix             = "${local.vpc_name_abr}-${include.env.locals.secret_names.iam_user}"
         recovery_window_in_days = 7
         description             = "Access and Secret key for Ansible Service Account"
         policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
