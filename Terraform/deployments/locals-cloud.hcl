@@ -128,6 +128,10 @@ locals {
     keys     = "ec2-private-key-pairs"
     iam_user = "user"
   }
+  # RAM principals as a list of strings (Organization ARN)
+  ram_principals = [
+    "arn:aws:organizations::485147667400:organization/o-orvtyisdyc" # Replace with your actual Organization ARN
+  ]
 
   Service_catalog = {
     Training = {

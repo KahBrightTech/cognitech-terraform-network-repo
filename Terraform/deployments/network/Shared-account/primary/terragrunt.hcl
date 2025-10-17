@@ -467,7 +467,7 @@ inputs = {
       allow_external_principals = true
       enabled                   = true
       share_name                = "${local.vpc_name}-tgw"
-      principals                = include.env.locals.ram_principals
+      principals                = include.cloud.locals.ram_principals
     }
   }
 }

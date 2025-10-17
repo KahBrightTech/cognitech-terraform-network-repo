@@ -29,18 +29,5 @@ locals {
     Build-method = local.build
     Compliance   = local.compliance
   }
-
-  secret_names = {
-    ansible = "ansible-authentication"
-    user    = "user-login"
-    docker  = "docker-auth"
-    keys    = "ec2-private-key-pairs"
-    iam_user = "user"
-  }
-
-  # RAM principals as a list of strings (Organization ARN)
-  ram_principals = [
-    "arn:aws:organizations::485147667400:organization/o-orvtyisdyc" # Replace with your actual Organization ARN
-  ]
 }
 
