@@ -568,7 +568,7 @@ inputs = {
       description = "Account User Credentials"
       type        = "String"
       overwrite   = true
-      value       = "${local.aws_account_name}-${local.region_prefix}-${include.env.locals.secret_names.user}"
+      secret_key  = "user"
     }
   ]
 

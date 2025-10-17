@@ -172,6 +172,7 @@ variable "s3_private_buckets" {
     description              = string
     name_override            = optional(string)
     policy                   = optional(string)
+    force_destroy            = optional(bool, true)
     enable_versioning        = optional(bool, true)
     enable_bucket_policy     = optional(bool, true)
     override_policy_document = optional(string)
