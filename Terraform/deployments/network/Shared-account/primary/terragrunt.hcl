@@ -451,6 +451,7 @@ inputs = {
       create_secret      = true
     }
   ]
+  
   security_groups = []
   secrets         = []
   ssm_parameters  = []
