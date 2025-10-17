@@ -73,7 +73,7 @@ module "transit_gateway_route_table" {
 # Transit Gateway Association - Creates Transit Gateway associations
 #--------------------------------------------------------------------
 module "transit_gateway_association" {
-  count  = var.tgw_association != null && var.tgw_attachments != null && var.tgw_route_table != null && length(var.tgw_route_table) > 0 ? 1 : 0
+  count  = var.tgw_association != null && var.tgw_attachments != null && try(length(var.tgw_route_table), 0) > 0 ? 1 : 0
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-association?ref=v1.1.18"
   common = var.common
   depends_on = [

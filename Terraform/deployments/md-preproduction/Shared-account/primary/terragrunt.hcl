@@ -659,7 +659,6 @@ inputs = {
     #   destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
     # }
   ]
-
   tgw_subnet_route = [ # Creates routes in subnet route tables to point to TGW
     {
       name               = "dev-subnet_rt"
