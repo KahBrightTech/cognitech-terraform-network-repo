@@ -651,7 +651,6 @@ inputs = {
       principals                = include.cloud.locals.ntw_principals
     }
   }
-  
   tgw_routes = [ # Creates routes in TGW route table to point to spoke VPCs
     # {
     #   name                   = "default-to-dev"
