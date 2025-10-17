@@ -31,8 +31,8 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Tenant-account"
   ## Updates these variables as per the product/service
-  vpc_name     = "development"
-  vpc_name_abr = "dev"
+  vpc_name     = "system-integration"
+  vpc_name_abr = "sit"
 
   # Composite variables 
   tags = merge(

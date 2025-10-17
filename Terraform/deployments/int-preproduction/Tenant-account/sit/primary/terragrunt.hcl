@@ -31,8 +31,8 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Tenant-account"
   ## Updates these variables as per the product/service
-  vpc_name     = "training"
-  vpc_name_abr = "trn"
+  vpc_name     = "system-integration"
+  vpc_name_abr = "sit"
 
   # Composite variables 
   tags = merge(
@@ -52,6 +52,9 @@ dependency "shared_services" {
 #-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
+# terraform {
+#   source = "../../../../..//formations/Simple-Network-Tenant-Account"
+# }
 terraform {
   source = "../../../../..//formations/Tenant-account"
 }
