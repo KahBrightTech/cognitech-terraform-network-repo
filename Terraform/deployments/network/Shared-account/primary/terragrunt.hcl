@@ -451,9 +451,10 @@ inputs = {
       create_secret      = true
     }
   ]
-  secrets        = []
-  ssm_parameters = []
-  ssm_documents  = []
+  security_groups = []
+  secrets         = []
+  ssm_parameters  = []
+  ssm_documents   = []
   transit_gateway = {
     name                            = local.vpc_name
     default_route_table_association = "disable"
@@ -472,8 +473,8 @@ inputs = {
   }
   tgw_route_table = [
     {
-      key  = "${include.cloud.locals.account_info["mdpp"].name_abr}-shared-rtb"
-      name = "${include.cloud.locals.account_info["mdpp"].name_abr}-shared-rtb"
+      key  = "${include.cloud.locals.account_info["mdpp"].name}-shared-rtb"
+      name = "${include.cloud.locals.account_info["mdpp"].name}-shared-rtb"
     }
   ]
 }
@@ -507,7 +508,5 @@ generate "aws-providers" {
   }
   EOF
 }
-
-
 
 
