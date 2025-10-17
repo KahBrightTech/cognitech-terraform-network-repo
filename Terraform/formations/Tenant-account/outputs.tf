@@ -69,7 +69,6 @@ output "load_balancers" {
 
 }
 
-
 #-------------------------------------------------------
 # AWS Backup outputs
 #-------------------------------------------------------
@@ -93,7 +92,6 @@ output "ssm_parameters" {
   description = "Output for SSM Parameters"
   value       = module.ssm_parameters
 }
-
 
 #-------------------------------------------------------
 # ALB listener outputs
