@@ -8,7 +8,6 @@ locals {
   compliance  = "hippaa"
   environment = "sit"
   owner       = "kbrigthain@gmail.com"
-  repo_name   = "cognitech-terraform-network-repo"
 
   remote_state_bucket = {
     primary   = "terragruntint"
