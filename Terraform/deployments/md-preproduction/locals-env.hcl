@@ -30,13 +30,13 @@ locals {
     Compliance   = local.compliance
   }
 
-  secret_names = {
-    ansible  = "ansible-authentication"
-    user     = "user-login"
-    docker   = "docker-auth"
-    keys     = "ec2-private-key-pairs"
-    iam_user = "user"
-  }
+  # secret_names = {
+  #   ansible  = "ansible-authentication"
+  #   user     = "user-login"
+  #   docker   = "docker-auth"
+  #   keys     = "ec2-private-key-pairs"
+  #   iam_user = "user"
+  # }
 
   # RAM principals as a list of strings (AWS account IDs)
   ram_principals = [

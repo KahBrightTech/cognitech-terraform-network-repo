@@ -19,7 +19,7 @@ module "customer_vpc" {
 #--------------------------------------------------------------------
 module "transit_gateway" {
   count           = var.transit_gateway != null ? 1 : 0
-  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.3.64"
+  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.3.78"
   transit_gateway = var.transit_gateway
   common          = var.common
 }

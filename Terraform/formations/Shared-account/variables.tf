@@ -246,11 +246,9 @@ variable "transit_gateway" {
     amazon_side_asn                 = number
     vpc_name                        = string
     ram = optional(object({
-      key                       = string
       enabled                   = optional(bool, false)
-      share_name                = optional(string)
-      allow_external_principals = optional(bool, true)
-      resource_arns             = optional(list(string), [])
+      share_name                = optional(string, "transit-gateway-share")
+      allow_external_principals = optional(bool, false)
       principals                = optional(list(string), [])
     }))
   })
@@ -271,17 +269,19 @@ variable "tgw_attachments" {
 variable "tgw_association" {
   description = "The transit gateway association variables"
   type = object({
-    attachment_id  = string
-    route_table_id = string
+    attachment_id    = optional(string)
+    route_table_id   = optional(string)
+    route_table_name = optional(string) # Add this for referencing the route table by name
   })
   default = null
 }
 variable "tgw_route_table" {
   description = "The transit gateway route table variables"
-  type = object({
+  type = list(object({
+    key    = string
     name   = string
     tgw_id = optional(string)
-  })
+  }))
   default = null
 }
 
@@ -293,6 +293,7 @@ variable "tgw_routes" {
     destination_cidr_block = string
     attachment_id          = optional(string)
     route_table_id         = optional(string)
+    route_table_name       = optional(string) # Add this for referencing the route table by name
   }))
   default = null
 }

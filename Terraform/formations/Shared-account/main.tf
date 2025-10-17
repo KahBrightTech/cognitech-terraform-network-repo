@@ -26,7 +26,7 @@ module "shared_vpc" {
 #--------------------------------------------------------------------
 module "transit_gateway" {
   count           = var.transit_gateway != null ? 1 : 0
-  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.3.64"
+  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.3.78"
   transit_gateway = var.transit_gateway
   common          = var.common
 }
@@ -56,16 +56,16 @@ module "transit_gateway_attachment" {
 # Transit Gateway route table - Creates Transit Gateway route tables
 #--------------------------------------------------------------------
 module "transit_gateway_route_table" {
-  count  = var.tgw_route_table != null ? 1 : 0
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-route-table?ref=v1.1.17"
-  common = var.common
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-route-table?ref=v1.1.17"
+  for_each = var.tgw_route_table != null ? { for rt in var.tgw_route_table : rt.key => rt } : {}
+  common   = var.common
   depends_on = [
     module.shared_vpc,
     module.transit_gateway
   ]
   tgw_route_table = {
-    name   = var.tgw_route_table.name
-    tgw_id = var.tgw_route_table.tgw_id != null ? var.tgw_route_table.tgw_id : module.transit_gateway[0].transit_gateway_id
+    name   = each.value.name
+    tgw_id = each.value.tgw_id != null ? each.value.tgw_id : module.transit_gateway[0].transit_gateway_id
   }
 }
 
@@ -73,7 +73,7 @@ module "transit_gateway_route_table" {
 # Transit Gateway Association - Creates Transit Gateway associations
 #--------------------------------------------------------------------
 module "transit_gateway_association" {
-  count  = var.tgw_association != null && var.tgw_attachments != null && var.tgw_route_table != null ? 1 : 0
+  count  = var.tgw_association != null && var.tgw_attachments != null && var.tgw_route_table != null && length(var.tgw_route_table) > 0 ? 1 : 0
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-association?ref=v1.1.18"
   common = var.common
   depends_on = [
@@ -82,8 +82,12 @@ module "transit_gateway_association" {
     module.transit_gateway_route_table
   ]
   tgw_association = {
-    attachment_id  = var.tgw_association.attachment_id != null ? var.tgw_association.attachment_id : module.transit_gateway_attachment[0].tgw_attachment_id
-    route_table_id = var.tgw_association.route_table_id != null ? var.tgw_association.route_table_id : module.transit_gateway_route_table[0].tgw_rtb_id
+    attachment_id = var.tgw_association.attachment_id != null ? var.tgw_association.attachment_id : module.transit_gateway_attachment[0].tgw_attachment_id
+    route_table_id = var.tgw_association.route_table_id != null ? var.tgw_association.route_table_id : (
+      var.tgw_association.route_table_name != null ?
+      module.transit_gateway_route_table[var.tgw_association.route_table_name].tgw_rtb_id :
+      values(module.transit_gateway_route_table)[0].tgw_rtb_id
+    )
   }
 }
 
@@ -102,7 +106,11 @@ module "transit_gateway_route" {
     blackhole              = each.value.blackhole
     destination_cidr_block = each.value.destination_cidr_block
     attachment_id          = each.value.blackhole == false ? (each.value.attachment_id != null ? each.value.attachment_id : module.transit_gateway_attachment[0].tgw_attachment_id) : null
-    route_table_id         = each.value.route_table_id != null ? each.value.route_table_id : module.transit_gateway_route_table[0].tgw_rtb_id
+    route_table_id = each.value.route_table_id != null ? each.value.route_table_id : (
+      each.value.route_table_name != null ?
+      module.transit_gateway_route_table[each.value.route_table_name].tgw_rtb_id :
+      values(module.transit_gateway_route_table)[0].tgw_rtb_id
+    )
   }
 }
 
@@ -126,25 +134,25 @@ module "transit_gateway_subnet_route" {
 }
 
 
-#--------------------------------------------------------------------
-# Creates ram resources
-#--------------------------------------------------------------------
-module "ram" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.69"
-  count  = var.transit_gateway != null && try(var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true, false) && length(module.transit_gateway) > 0 ? 1 : 0
-  common = var.common
-  depends_on = [
-    module.transit_gateway
-  ]
-  ram = {
-    key                       = try(var.transit_gateway.ram.key, "")
-    enabled                   = try(var.transit_gateway.ram.enabled, false)
-    share_name                = try(var.transit_gateway.ram.share_name, "")
-    allow_external_principals = try(var.transit_gateway.ram.allow_external_principals, true)
-    resource_arns             = [module.transit_gateway[0].tgw_arn]
-    principals                = try(var.transit_gateway.ram.principals, [])
-  }
-}
+# #--------------------------------------------------------------------
+# # Creates ram resources
+# #--------------------------------------------------------------------
+# module "ram" {
+#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RAM?ref=v1.3.69"
+#   count  = var.transit_gateway != null && try(var.transit_gateway.ram != null && var.transit_gateway.ram.enabled == true, false) && length(module.transit_gateway) > 0 ? 1 : 0
+#   common = var.common
+#   depends_on = [
+#     module.transit_gateway
+#   ]
+#   ram = {
+#     key                       = try(var.transit_gateway.ram.key, "")
+#     enabled                   = try(var.transit_gateway.ram.enabled, false)
+#     share_name                = try(var.transit_gateway.ram.share_name, "")
+#     allow_external_principals = try(var.transit_gateway.ram.allow_external_principals, true)
+#     resource_arns             = [module.transit_gateway[0].tgw_arn]
+#     principals                = try(var.transit_gateway.ram.principals, [])
+#   }
+# }
 
 #--------------------------------------------------------------------
 # S3 Private app bucket

@@ -470,6 +470,12 @@ inputs = {
       principals                = include.cloud.locals.ram_principals
     }
   }
+  tgw_route_table = [
+    {
+      key  = "${include.cloud.locals.account_info["mdpp"].name_abr}-shared-rtb"
+      name = "${include.cloud.locals.account_info["mdpp"].name_abr}-shared-rtb"
+    }
+  ]
 }
 #-------------------------------------------------------
 # State Configuration

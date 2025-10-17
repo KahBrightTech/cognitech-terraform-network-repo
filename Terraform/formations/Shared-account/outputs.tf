@@ -13,7 +13,7 @@ output "transit_gateway_attachment" {
 
 output "transit_gateway_route_table" {
   description = "Transit Gateway route table details"
-  value       = length(module.transit_gateway_route_table) > 0 ? module.transit_gateway_route_table[0] : null
+  value       = length(module.transit_gateway_route_table) > 0 ? module.transit_gateway_route_table : null
 }
 
 output "transit_gateway_association" {
