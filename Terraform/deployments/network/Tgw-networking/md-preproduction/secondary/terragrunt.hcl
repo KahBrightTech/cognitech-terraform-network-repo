@@ -64,6 +64,7 @@ inputs = {
     {
       key  = "shared-rtb"
       name = "${local.aws_account_name}-shared-rtb"
+      tgw_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
     }
   ]
   tgw_association = [
