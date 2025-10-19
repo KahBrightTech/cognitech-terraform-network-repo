@@ -5,6 +5,16 @@ data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
 #--------------------------------------------------------------------
+# Transit Gateway - Creates Transit Gateway
+#--------------------------------------------------------------------
+module "transit_gateway" {
+  count           = var.transit_gateway != null ? 1 : 0
+  source          = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway?ref=v1.3.78"
+  transit_gateway = var.transit_gateway
+  common          = var.common
+}
+
+#--------------------------------------------------------------------
 # Transit Gateway route table - Creates Transit Gateway route tables
 #--------------------------------------------------------------------
 module "transit_gateway_route_table" {
@@ -13,7 +23,7 @@ module "transit_gateway_route_table" {
   common   = var.common
   tgw_route_table = {
     name   = each.value.name
-    tgw_id = each.value.tgw_id != null ? each.value.tgw_id : module.transit_gateway[0].transit_gateway_id
+    tgw_id = each.value.tgw_id
   }
 }
 
