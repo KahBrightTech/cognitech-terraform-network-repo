@@ -52,9 +52,6 @@ dependency "shared_services" {
 #-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
-# terraform {
-#   source = "../../../../..//formations/Simple-Network-Tenant-Account"
-# }
 terraform {
   source = "../../../../..//formations/Tenant-account"
 }
