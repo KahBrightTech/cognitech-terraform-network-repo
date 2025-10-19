@@ -473,10 +473,10 @@ inputs = {
     }
   }
   tgw_route_table = [
-    {
-      key  = "${include.cloud.locals.account_info["mdpp"].name}-shared-rtb"
-      name = "${include.cloud.locals.account_info["mdpp"].name}-shared-rtb"
-    }
+    # {
+    #   key  = "${include.cloud.locals.account_info["mdpp"].name}-shared-rtb"
+    #   name = "${include.cloud.locals.account_info["mdpp"].name}-shared-rtb"
+    # }
   ]
 }
 #-------------------------------------------------------
