@@ -1,0 +1,487 @@
+schemaVersion: '2.2'
+description: "Document to install/uninstall PuTTY and related tools on Windows servers using AWS Systems Manager (SSM)."
+parameters:
+    Operation:
+        type: String
+        description: "Operation to perform: install or uninstall"
+        default: "install"
+        allowedValues:
+          - "install"
+          - "uninstall"
+    InstallPutty:
+        type: String
+        description: "Whether to install PuTTY (true/false)"
+        default: "true"
+        allowedValues:
+          - "true"
+          - "false"
+    InstallPuttygen:
+        type: String
+        description: "Whether to install PuTTYgen (true/false)"
+        default: "true"
+        allowedValues:
+          - "true"
+          - "false"
+    InstallPscp:
+        type: String
+        description: "Whether to install PSCP (true/false)"
+        default: "true"
+        allowedValues:
+          - "true"
+          - "false"
+    InstallPsftp:
+        type: String
+        description: "Whether to install PSFTP (true/false)"
+        default: "true"
+        allowedValues:
+          - "true"
+          - "false"
+    RemoveUserData:
+        type: String
+        description: "Whether to remove user configuration data during uninstall (true/false)"
+        default: "false"
+        allowedValues:
+          - "true"
+          - "false"
+    InstallLocation:
+        type: String
+        description: "Installation directory for PuTTY"
+        default: "C:\\Program Files\\PuTTY"
+mainSteps:
+  - action: aws:runPowerShellScript
+    name: ManagePuTTY
+    description: Installs or uninstalls PuTTY and related tools on Windows servers
+    inputs:
+        timeoutSeconds: 3600
+        runCommand:
+          - |
+            # PowerShell script for PuTTY management
+
+            # Logging and error handling functions
+            function Write-Log {
+                param([string]$Message)
+                $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+                Write-Output "[$timestamp] $Message"
+            }
+
+            function Exit-WithError {
+                param([string]$ErrorMessage)
+                Write-Log "ERROR: $ErrorMessage"
+                exit 1
+            }
+
+            Write-Log "Starting PuTTY management..."
+
+            # Get operation parameter
+            $OPERATION = "{{ Operation }}"
+            Write-Log "Operation requested: $OPERATION"
+
+            # Detect Windows version
+            function Get-WindowsVersion {
+                try {
+                    $osInfo = Get-CimInstance -ClassName Win32_OperatingSystem
+                    $osVersion = $osInfo.Version
+                    $osCaption = $osInfo.Caption
+                    Write-Log "Detected OS: $osCaption, Version: $osVersion"
+                    return @{
+                        Version = $osVersion
+                        Caption = $osCaption
+                        Architecture = $osInfo.OSArchitecture
+                    }
+                } catch {
+                    Write-Log "Warning: Could not detect OS version: $($_.Exception.Message)"
+                    return @{
+                        Version = "Unknown"
+                        Caption = "Windows"
+                        Architecture = "64-bit"
+                    }
+                }
+            }
+
+            # Download and install PuTTY tools
+            function Install-PuTTY {
+                Write-Log "Installing PuTTY and related tools..."
+                
+                $installLocation = "{{ InstallLocation }}"
+                $tempDir = $env:TEMP
+                
+                # Create installation directory if it doesn't exist
+                if (!(Test-Path $installLocation)) {
+                    try {
+                        New-Item -ItemType Directory -Path $installLocation -Force | Out-Null
+                        Write-Log "Created installation directory: $installLocation"
+                    } catch {
+                        Exit-WithError "Failed to create installation directory: $($_.Exception.Message)"
+                    }
+                }
+                
+                # Define PuTTY tools to download
+                $puttyTools = @()
+                
+                if ("{{ InstallPutty }}" -eq "true") {
+                    $puttyTools += @{Name = "putty.exe"; Description = "PuTTY SSH Client"}
+                }
+                if ("{{ InstallPuttygen }}" -eq "true") {
+                    $puttyTools += @{Name = "puttygen.exe"; Description = "PuTTY Key Generator"}
+                }
+                if ("{{ InstallPscp }}" -eq "true") {
+                    $puttyTools += @{Name = "pscp.exe"; Description = "PuTTY Secure Copy Client"}
+                }
+                if ("{{ InstallPsftp }}" -eq "true") {
+                    $puttyTools += @{Name = "psftp.exe"; Description = "PuTTY SFTP Client"}
+                }
+                
+                if ($puttyTools.Count -eq 0) {
+                    Write-Log "No PuTTY tools selected for installation"
+                    return
+                }
+                
+                # Get system architecture
+                $osInfo = Get-WindowsVersion
+                $architecture = if ($osInfo.Architecture -eq "32-bit") { "w32" } else { "w64" }
+                
+                # Base URL for PuTTY downloads
+                $baseUrl = "https://the.earth.li/~sgtatham/putty/latest"
+                
+                # Download and install each tool
+                foreach ($tool in $puttyTools) {
+                    Write-Log "Downloading $($tool.Description)..."
+                    
+                    $downloadUrl = "$baseUrl/$architecture/$($tool.Name)"
+                    $destinationPath = Join-Path $installLocation $tool.Name
+                    $tempPath = Join-Path $tempDir $tool.Name
+                    
+                    try {
+                        # Download the tool
+                        Invoke-WebRequest -Uri $downloadUrl -OutFile $tempPath -UseBasicParsing
+                        Write-Log "Downloaded $($tool.Name) successfully"
+                        
+                        # Move to installation directory
+                        Move-Item -Path $tempPath -Destination $destinationPath -Force
+                        Write-Log "Installed $($tool.Name) to $destinationPath"
+                        
+                    } catch {
+                        Write-Log "Warning: Failed to download/install $($tool.Name): $($_.Exception.Message)"
+                        # Clean up temp file if it exists
+                        if (Test-Path $tempPath) {
+                            Remove-Item $tempPath -Force -ErrorAction SilentlyContinue
+                        }
+                    }
+                }
+                
+                # Add installation directory to PATH if not already present
+                $currentPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
+                if ($currentPath -notlike "*$installLocation*") {
+                    try {
+                        $newPath = "$currentPath;$installLocation"
+                        [Environment]::SetEnvironmentVariable("PATH", $newPath, "Machine")
+                        Write-Log "Added $installLocation to system PATH"
+                        
+                        # Update current session PATH
+                        $env:PATH = "$env:PATH;$installLocation"
+                    } catch {
+                        Write-Log "Warning: Failed to update PATH: $($_.Exception.Message)"
+                    }
+                }
+                
+                Write-Log "PuTTY installation completed successfully"
+            }
+
+            # Verify PuTTY installation
+            function Test-PuTTYInstallation {
+                Write-Log "Verifying PuTTY installation..."
+                
+                $installLocation = "{{ InstallLocation }}"
+                $installedTools = @()
+                
+                # Check each tool that was requested for installation
+                if ("{{ InstallPutty }}" -eq "true") {
+                    $puttyPath = Join-Path $installLocation "putty.exe"
+                    if (Test-Path $puttyPath) {
+                        $installedTools += "PuTTY"
+                        Write-Log "✓ PuTTY found at: $puttyPath"
+                    } else {
+                        Write-Log "✗ PuTTY not found at: $puttyPath"
+                    }
+                }
+                
+                if ("{{ InstallPuttygen }}" -eq "true") {
+                    $puttygenPath = Join-Path $installLocation "puttygen.exe"
+                    if (Test-Path $puttygenPath) {
+                        $installedTools += "PuTTYgen"
+                        Write-Log "✓ PuTTYgen found at: $puttygenPath"
+                    } else {
+                        Write-Log "✗ PuTTYgen not found at: $puttygenPath"
+                    }
+                }
+                
+                if ("{{ InstallPscp }}" -eq "true") {
+                    $pscpPath = Join-Path $installLocation "pscp.exe"
+                    if (Test-Path $pscpPath) {
+                        $installedTools += "PSCP"
+                        Write-Log "✓ PSCP found at: $pscpPath"
+                    } else {
+                        Write-Log "✗ PSCP not found at: $pscpPath"
+                    }
+                }
+                
+                if ("{{ InstallPsftp }}" -eq "true") {
+                    $psftpPath = Join-Path $installLocation "psftp.exe"
+                    if (Test-Path $psftpPath) {
+                        $installedTools += "PSFTP"
+                        Write-Log "✓ PSFTP found at: $psftpPath"
+                    } else {
+                        Write-Log "✗ PSFTP not found at: $psftpPath"
+                    }
+                }
+                
+                if ($installedTools.Count -gt 0) {
+                    Write-Log "Successfully installed: $($installedTools -join ', ')"
+                    return $true
+                } else {
+                    Write-Log "No PuTTY tools were successfully installed"
+                    return $false
+                }
+            }
+
+            # Uninstall PuTTY tools
+            function Uninstall-PuTTY {
+                Write-Log "Uninstalling PuTTY and related tools..."
+                
+                $installLocation = "{{ InstallLocation }}"
+                $removeUserData = "{{ RemoveUserData }}"
+                
+                # Define all possible PuTTY tools
+                $puttyTools = @("putty.exe", "puttygen.exe", "pscp.exe", "psftp.exe", "plink.exe", "pageant.exe")
+                
+                # Remove PuTTY executables
+                $removedTools = @()
+                foreach ($tool in $puttyTools) {
+                    $toolPath = Join-Path $installLocation $tool
+                    if (Test-Path $toolPath) {
+                        try {
+                            Remove-Item -Path $toolPath -Force
+                            $removedTools += $tool
+                            Write-Log "Removed: $toolPath"
+                        } catch {
+                            Write-Log "Warning: Failed to remove $toolPath : $($_.Exception.Message)"
+                        }
+                    }
+                }
+                
+                # Remove installation directory if empty
+                if (Test-Path $installLocation) {
+                    $remainingFiles = Get-ChildItem -Path $installLocation -Force
+                    if ($remainingFiles.Count -eq 0) {
+                        try {
+                            Remove-Item -Path $installLocation -Force
+                            Write-Log "Removed empty installation directory: $installLocation"
+                        } catch {
+                            Write-Log "Warning: Failed to remove installation directory: $($_.Exception.Message)"
+                        }
+                    } else {
+                        Write-Log "Installation directory not removed (contains other files): $installLocation"
+                    }
+                }
+                
+                # Remove from PATH
+                $currentPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
+                if ($currentPath -like "*$installLocation*") {
+                    try {
+                        $pathEntries = $currentPath -split ";" | Where-Object { $_ -ne $installLocation -and $_ -ne "" }
+                        $newPath = $pathEntries -join ";"
+                        [Environment]::SetEnvironmentVariable("PATH", $newPath, "Machine")
+                        Write-Log "Removed $installLocation from system PATH"
+                    } catch {
+                        Write-Log "Warning: Failed to update PATH: $($_.Exception.Message)"
+                    }
+                }
+                
+                # Remove user configuration data if requested
+                if ($removeUserData -eq "true") {
+                    Write-Log "Removing user configuration data..."
+                    
+                    # Remove PuTTY registry entries for current user
+                    try {
+                        $puttyRegPath = "HKCU:\Software\SimonTatham"
+                        if (Test-Path $puttyRegPath) {
+                            Remove-Item -Path $puttyRegPath -Recurse -Force
+                            Write-Log "Removed PuTTY registry entries"
+                        }
+                    } catch {
+                        Write-Log "Warning: Failed to remove registry entries: $($_.Exception.Message)"
+                    }
+                    
+                    # Remove saved sessions (they are in the registry)
+                    try {
+                        $sessionsRegPath = "HKCU:\Software\SimonTatham\PuTTY\Sessions"
+                        if (Test-Path $sessionsRegPath) {
+                            Remove-Item -Path $sessionsRegPath -Recurse -Force
+                            Write-Log "Removed saved PuTTY sessions"
+                        }
+                    } catch {
+                        Write-Log "Warning: Failed to remove saved sessions: $($_.Exception.Message)"
+                    }
+                } else {
+                    Write-Log "Preserving user configuration data (RemoveUserData=false)"
+                }
+                
+                if ($removedTools.Count -gt 0) {
+                    Write-Log "Successfully removed: $($removedTools -join ', ')"
+                } else {
+                    Write-Log "No PuTTY tools were found to remove"
+                }
+                
+                Write-Log "PuTTY uninstallation completed"
+            }
+
+            # Verify PuTTY uninstallation
+            function Test-PuTTYUninstallation {
+                Write-Log "Verifying PuTTY uninstallation..."
+                
+                $installLocation = "{{ InstallLocation }}"
+                $foundTools = @()
+                
+                # Check if any PuTTY tools still exist
+                $puttyTools = @("putty.exe", "puttygen.exe", "pscp.exe", "psftp.exe", "plink.exe", "pageant.exe")
+                
+                foreach ($tool in $puttyTools) {
+                    $toolPath = Join-Path $installLocation $tool
+                    if (Test-Path $toolPath) {
+                        $foundTools += $tool
+                        Write-Log "✗ $tool still found at: $toolPath"
+                    }
+                }
+                
+                if ($foundTools.Count -eq 0) {
+                    Write-Log "✓ All PuTTY tools successfully removed"
+                    return $true
+                } else {
+                    Write-Log "✗ Some PuTTY tools still remain: $($foundTools -join ', ')"
+                    return $false
+                }
+            }
+
+            # Get Windows version information
+            $osInfo = Get-WindowsVersion
+
+            # Execute based on operation
+            if ($OPERATION -eq "install") {
+                Write-Log "Performing installation operations..."
+                
+                # Install PuTTY tools
+                Install-PuTTY
+                
+                # Verify installation
+                $installationSuccess = Test-PuTTYInstallation
+                
+                if ($installationSuccess) {
+                    Write-Log "PuTTY installation completed successfully!"
+                } else {
+                    Write-Log "Warning: PuTTY installation completed with some issues. Check the logs above."
+                }
+                
+            } elseif ($OPERATION -eq "uninstall") {
+                Write-Log "Performing uninstall operations..."
+                
+                # Uninstall PuTTY
+                Uninstall-PuTTY
+                
+                # Verify uninstallation
+                $uninstallSuccess = Test-PuTTYUninstallation
+                
+                if ($uninstallSuccess) {
+                    Write-Log "PuTTY uninstallation completed successfully!"
+                } else {
+                    Write-Log "Warning: PuTTY uninstallation completed with some issues. Check the logs above."
+                }
+                
+            } else {
+                Exit-WithError "Invalid operation: $OPERATION. Must be 'install' or 'uninstall'"
+            }
+
+            Write-Log "Operation completed successfully!"
+            Write-Log "=========================================="
+            Write-Log "SYSTEM STATUS SUMMARY:"
+            Write-Log "=========================================="
+            Write-Log "Operation Performed: $OPERATION"
+            Write-Log "Operating System: $($osInfo.Caption)"
+            Write-Log "OS Version: $($osInfo.Version)"
+            Write-Log "Architecture: $($osInfo.Architecture)"
+            Write-Log "Installation Location: {{ InstallLocation }}"
+
+            # Check status of each tool
+            $installLocation = "{{ InstallLocation }}"
+
+            $puttyPath = Join-Path $installLocation "putty.exe"
+            if (Test-Path $puttyPath) {
+                Write-Log "PuTTY Status: INSTALLED"
+                try {
+                    $puttyVersion = & $puttyPath -V 2>&1
+                    Write-Log "PuTTY Location: $puttyPath"
+                } catch {
+                    Write-Log "PuTTY Location: $puttyPath"
+                }
+            } else {
+                Write-Log "PuTTY Status: NOT INSTALLED"
+            }
+
+            $puttygenPath = Join-Path $installLocation "puttygen.exe"
+            if (Test-Path $puttygenPath) {
+                Write-Log "PuTTYgen Status: INSTALLED"
+                Write-Log "PuTTYgen Location: $puttygenPath"
+            } else {
+                Write-Log "PuTTYgen Status: NOT INSTALLED"
+            }
+
+            $pscpPath = Join-Path $installLocation "pscp.exe"
+            if (Test-Path $pscpPath) {
+                Write-Log "PSCP Status: INSTALLED"
+                Write-Log "PSCP Location: $pscpPath"
+            } else {
+                Write-Log "PSCP Status: NOT INSTALLED"
+            }
+
+            $psftpPath = Join-Path $installLocation "psftp.exe"
+            if (Test-Path $psftpPath) {
+                Write-Log "PSFTP Status: INSTALLED"
+                Write-Log "PSFTP Location: $psftpPath"
+            } else {
+                Write-Log "PSFTP Status: NOT INSTALLED"
+            }
+
+            Write-Log "=========================================="
+
+            if ((Test-Path $puttyPath) -or (Test-Path $puttygenPath) -or (Test-Path $pscpPath) -or (Test-Path $psftpPath)) {
+                Write-Log "Available PuTTY Commands:"
+                if (Test-Path $puttyPath) {
+                    Write-Log "- putty                  (SSH/Telnet client)"
+                }
+                if (Test-Path $puttygenPath) {
+                    Write-Log "- puttygen               (SSH key generator)"
+                }
+                if (Test-Path $pscpPath) {
+                    Write-Log "- pscp                   (secure copy client)"
+                }
+                if (Test-Path $psftpPath) {
+                    Write-Log "- psftp                  (secure FTP client)"
+                }
+                Write-Log "=========================================="
+                Write-Log "Usage Examples:"
+                Write-Log "- putty username@hostname"
+                Write-Log "- puttygen -t rsa -b 2048 -o mykey.ppk"
+                Write-Log "- pscp file.txt username@hostname:/path/"
+                Write-Log "- psftp username@hostname"
+                Write-Log "=========================================="
+            } elseif ($OPERATION -eq "install") {
+                Write-Log "PuTTY tools are not available. Installation may have failed."
+                Write-Log "Check the logs above for any error messages."
+                Write-Log "=========================================="
+            } else {
+                Write-Log "PuTTY has been successfully removed from the system."
+                Write-Log "=========================================="
+            }
+    precondition:
+        StringEquals:
+          - platformType
+          - Windows
