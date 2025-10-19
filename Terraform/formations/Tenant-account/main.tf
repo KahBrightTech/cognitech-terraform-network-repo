@@ -87,7 +87,7 @@ module "transit_gateway_route" {
   for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.key => route } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
   ]
   tgw_routes = {
     name                   = each.value.name
