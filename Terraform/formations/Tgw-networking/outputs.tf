@@ -5,5 +5,5 @@ output "transit_gateway_route_table" {
 
 output "transit_gateway_association" {
   description = "Transit Gateway association details"
-  value       = length(module.transit_gateway_association) > 0 ? module.transit_gateway_association[0] : null
+  value       = length(module.transit_gateway_association) > 0 ? module.transit_gateway_association : null
 }
