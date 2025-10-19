@@ -67,7 +67,7 @@ inputs = {
       tgw_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
     }
   ]
-  tgw_association = [
+  tgw_associations = [
     {
       key             = "shared-assoc"
       attachment_id   = local.cidr_blocks["mdpp"].segments["shared-services"].tgw_attachment
