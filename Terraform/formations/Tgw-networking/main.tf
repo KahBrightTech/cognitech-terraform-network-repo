@@ -11,10 +11,6 @@ module "transit_gateway_route_table" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-route-table?ref=v1.1.17"
   for_each = var.tgw_route_table != null ? { for rt in var.tgw_route_table : rt.key => rt } : {}
   common   = var.common
-  depends_on = [
-    module.shared_vpc,
-    module.transit_gateway
-  ]
   tgw_route_table = {
     name   = each.value.name
     tgw_id = each.value.tgw_id != null ? each.value.tgw_id : module.transit_gateway[0].transit_gateway_id
@@ -29,8 +25,6 @@ module "transit_gateway_association" {
   for_each = var.tgw_associations != null ? { for assoc in var.tgw_associations : assoc.key => assoc } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
-    module.transit_gateway,
     module.transit_gateway_route_table
   ]
   tgw_association = merge(
@@ -55,7 +49,7 @@ module "transit_gateway_route" {
   for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.key => route } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.transit_gateway_route_table
   ]
   tgw_routes = {
     name                   = each.value.name
