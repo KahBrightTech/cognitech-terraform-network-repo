@@ -73,7 +73,6 @@ inputs = {
       route_table_key = "shared-rtb"
     }
   ]
-
   tgw_routes = [
     {
       key                    = "shared-rt"
