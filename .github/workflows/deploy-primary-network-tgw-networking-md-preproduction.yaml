@@ -1,12 +1,12 @@
-name: Deploy-primary-network-tgw-networking
+name: Deploy-primary-network-tgw-networking-md-preproduction
 on:
   push:
     branches:
       - main # Run on push to the main branch
       - "*" # Run on push to any feature branch
     paths:
-      - ".github/workflows/deploy-primary-network-tgw-networking.yaml"
-      - "Terraform/deployments/network/Tgw-networking/primary/**/*"
+      - ".github/workflows/deploy-primary-network-tgw-networking-md-preproduction.yaml"
+      - "Terraform/deployments/network/Tgw-networking/md-preproduction/primary/**/*"
   workflow_dispatch:
     inputs:
       terragrunt_action:
@@ -25,7 +25,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::637423478842:role/network-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/network/Tgw-networking/primary
+  DEPLOYMENT_PATH: Terraform/deployments/network/Tgw-networking/md-preproduction/primary
   TF_VAR_ANSIBLE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_USERNAME }}
   TF_VAR_ANSIBLE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_PASSWORD }}
   TF_VAR_USER_USERNAME1: ${{ secrets.TF_VAR_USER_USERNAME1 }}
@@ -106,7 +106,7 @@ jobs:
     env:
       IAM_ROLE: arn:aws:iam::637423478842:role/network-OIDCGitHubRole-role
       REGION: us-east-1
-      DEPLOYMENT_PATH: Terraform/deployments/network/Tgw-networking/primary
+      DEPLOYMENT_PATH: Terraform/deployments/network/Tgw-networking/md-preproduction/primary
 
     defaults:
       run:
@@ -150,7 +150,7 @@ jobs:
     env:
       IAM_ROLE: arn:aws:iam::637423478842:role/network-OIDCGitHubRole-role
       REGION: us-east-1
-      DEPLOYMENT_PATH: Terraform/deployments/network/Tgw-networking/primary
+      DEPLOYMENT_PATH: Terraform/deployments/network/Tgw-networking/md-preproduction/primary
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
