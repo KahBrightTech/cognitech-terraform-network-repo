@@ -6,12 +6,13 @@ locals {
   # Environment tags 
   build       = "terraform"
   compliance  = "hippaa"
-  environment = "uat"
+  environment = "md-prod"
   owner       = "kbrigthain@gmail.com"
+  repo_name   = "cognitech-terraform-network-repo"
 
   remote_state_bucket = {
-    primary   = "prod-us-east-1-network-config-state"
-    secondary = "prod-us-west-2-network-config-state"
+    primary   = "md-prod-us-east-1-network-config-state"
+    secondary = "md-prod-us-west-2-network-config-state"
   }
 
   subnet_prefix = {
@@ -20,12 +21,19 @@ locals {
     tertiary   = "sbnt3"
     quaternary = "sbnt4"
   }
-
-  remote_dynamodb_table = "Terragrunt"
+  public_domain         = "kahbrigthllc.com"
+  remote_dynamodb_table = "terragrunt-lock-table"
   tags = {
     Environment  = local.environment
     Owner        = local.owner
     Build-method = local.build
     Compliance   = local.compliance
   }
+
+
+  # RAM principals as a list of strings (AWS account IDs)
+  ram_principals = [
+    "730335294148" # intpp account
+  ]
 }
+

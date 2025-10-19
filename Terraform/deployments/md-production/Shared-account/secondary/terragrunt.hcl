@@ -1,6 +1,7 @@
 #-------------------------------------------------------
 # Includes Block 
 #-------------------------------------------------------
+
 include "cloud" {
   path   = find_in_parent_folders("locals-cloud.hcl")
   expose = true
@@ -14,14 +15,14 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context     = "primary"
+  region_context     = "secondary"
   deploy_globally    = "true"
   internal           = "private"
   external           = "public"
   region             = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
   region_prefix      = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
   region_blk         = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
-  deployment_name    = "terraform/${include.cloud.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.vpc_name_abr}-${local.region_context}"
+  deployment_name    = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.region_context}"
   cidr_blocks        = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket       = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table   = include.env.locals.remote_dynamodb_table
@@ -29,10 +30,10 @@ locals {
   aws_account_name   = include.cloud.locals.account_info[include.env.locals.name_abr].name
   public_hosted_zone = "${local.vpc_name_abr}.${include.env.locals.public_domain}"
   internet_cidr      = "0.0.0.0/0"
-  deployment         = "Tenant-account"
+  deployment         = "Shared-account"
   ## Updates these variables as per the product/service
-  vpc_name     = "development"
-  vpc_name_abr = "dev"
+  vpc_name     = "shared-services"
+  vpc_name_abr = "shared"
 
   # Composite variables 
   tags = merge(
@@ -46,17 +47,14 @@ locals {
 #-------------------------------------------------------
 # Dependencies 
 #-------------------------------------------------------
-dependency "shared_services" {
-  config_path = "../../../Shared-account/${local.region_context}"
+dependency "network" {
+  config_path = "../../../network/Shared-account/${local.region_context}"
 }
 #-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
-# terraform {
-#   source = "../../../../..//formations/Simple-Network-Tenant-Account"
-# }
 terraform {
-  source = "../../../../..//formations/Tenant-account"
+  source = "../../../..//formations/Shared-account"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -73,15 +71,15 @@ inputs = {
   vpcs = [
     {
       name       = local.vpc_name
-      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].vpc
+      cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
       public_subnets = [
         {
           key                         = include.env.locals.subnet_prefix.primary
           name                        = include.env.locals.subnet_prefix.primary
           primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt1.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt1.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt1.secondary
           subnet_type                 = local.external
           vpc_name                    = local.vpc_name
         },
@@ -89,50 +87,80 @@ inputs = {
           key                         = include.env.locals.subnet_prefix.secondary
           name                        = include.env.locals.subnet_prefix.secondary
           primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt2.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.primary
           secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].public_subnets.sbnt2.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].public_subnets.sbnt2.secondary
           subnet_type                 = local.external
+          vpc_name                    = local.vpc_name
+        }
+      ]
+      private_subnets = [
+        {
+          key                         = include.env.locals.subnet_prefix.primary
+          name                        = include.env.locals.subnet_prefix.primary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name
+        },
+        {
+          key                         = include.env.locals.subnet_prefix.secondary
+          name                        = include.env.locals.subnet_prefix.secondary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
+          subnet_type                 = local.internal
           vpc_name                    = local.vpc_name
         }
       ]
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
       }
+      private_routes = {
+        destination_cidr_block = "0.0.0.0/0"
+      }
+      nat_gateway = {
+        name     = "nat"
+        type     = local.external
+        vpc_name = local.vpc_name
+      }
       security_groups = [
         {
           key         = "bastion"
-          name        = "${local.vpc_name}-bastion"
+          name        = "bastion"
           description = "standard ${local.vpc_name} bastion security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "alb"
-          name        = "${local.vpc_name}-alb"
+          name        = "alb"
           description = "standard ${local.vpc_name} alb security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "app"
-          name        = "${local.vpc_name}-app"
+          name        = "app"
           description = "standard ${local.vpc_name} app security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "db"
-          name        = "${local.vpc_name}-db"
+          name        = "db"
           description = "standard ${local.vpc_name} db security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "efs"
-          name        = "${local.vpc_name}-efs"
+          name        = "efs"
           description = "standard ${local.vpc_name} efs security group"
           vpc_name    = local.vpc_name
         },
         {
           key         = "nlb"
-          name        = "${local.vpc_name}-nlb"
+          name        = "nlb"
           description = "standard ${local.vpc_name} nlb security group"
           vpc_name    = local.vpc_name
         }
@@ -290,6 +318,14 @@ inputs = {
                 from_port   = 2049
                 to_port     = 2049
                 ip_protocol = "tcp"
+              },
+              {
+                key         = "ingress-445-internet"
+                cidr_ipv4   = local.internet_cidr
+                description = "BASE - Inbound NFS traffic from the internet on tcp port 445"
+                from_port   = 445
+                to_port     = 445
+                ip_protocol = "tcp"
               }
             ]
           )
@@ -329,17 +365,24 @@ inputs = {
       route53_zones = [
         {
           key  = local.vpc_name_abr
-          name = "${local.vpc_name_abr}.cognitech.com"
+          name = "${local.vpc_name_abr}.kahbrigthllc.com"
         }
       ]
     }
   ]
+
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
       description       = "The application bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
+    },
+    {
+      name              = "${local.vpc_name}-config-bucket"
+      description       = "The configuration bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
     {
       key               = "audit-bucket"
@@ -363,7 +406,7 @@ inputs = {
   ec2_profiles = [
     {
       name               = "${local.vpc_name}"
-      description        = "EC2 Instance Profile for ${local.vpc_name}"
+      description        = "EC2 Instance Profile for Shared Services"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
@@ -405,130 +448,238 @@ inputs = {
         description = "IAM policy for ${local.vpc_name} source replication"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_s3_source_bucket.json"
       }
+    },
+    {
+      name               = "${local.vpc_name}-datasync"
+      description        = "IAM Role for ${local.vpc_name} DataSync"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/datasync_trust_policy.json"
+      policy = {
+        name        = "${local.vpc_name}-datasync"
+        description = "IAM policy for ${local.vpc_name} DataSync"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_datasync.json"
+      }
     }
   ]
-  iam_users = []
+  iam_users = [
+    {
+      name                = "${local.vpc_name_abr}-iam-user"
+      description         = "${local.vpc_name_abr} IAM user credentials"
+      path                = "/"
+      force_destroy       = true
+      groups              = ["${local.vpc_name_abr}-Admins"]
+      regions             = null
+      notifications_email = include.env.locals.owner
+      create_access_key   = true
+      secrets_manager = {
+        recovery_window_in_days = 7
+        description             = "Access and Secret key for Ansible Service Account"
+        policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      }
+      group_policies = [
+        {
+          group_name  = "${local.vpc_name_abr}-Admins"
+          policy_name = "${local.vpc_name_abr}Admin-group-policy"
+          description = "${local.vpc_name_abr} Admin group policy"
+          policy      = file("${include.cloud.locals.repo.root}/iam_policies/Admin_group_policy.json")
+        }
+      ]
+    }
+  ]
   key_pairs = [
     {
       name               = "${local.vpc_name}-key-pair"
-      secret_name        = "${local.vpc_name}-${include.cloud.locals.secret_names.keys}"
+      secret_name        = "${local.vpc_name}-${include.env.locals.secret_names.keys}"
       secret_description = "Private key for ${local.vpc_name} VPC"
       policy             = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
       create_secret      = true
     }
   ]
   certificates = [
+    # {
+    #   name              = "${local.vpc_name}"
+    #   domain_name       = "*.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+    #   validation_method = "DNS"
+    #   zone_name         = include.env.locals.public_domain
+    # }
+  ]
+  secrets = [
     {
-      name              = "${local.vpc_name}"
-      domain_name       = "*.${local.vpc_name_abr}.${include.env.locals.public_domain}"
-      validation_method = "DNS"
-      zone_name         = include.env.locals.public_domain
+      name                    = include.env.locals.secret_names.ansible
+      description             = "Ansible tower credentials"
+      recovery_window_in_days = 7
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
+        password = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+      }
+    },
+    {
+      name                    = include.env.locals.secret_names.user
+      description             = "User credentials for ${local.aws_account_name} environment"
+      recovery_window_in_days = 7
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username1 = "${get_env("TF_VAR_USER_USERNAME1")}"
+        password1 = "${get_env("TF_VAR_USER_PASSWORD1")}"
+        username2 = "${get_env("TF_VAR_USER_USERNAME2")}"
+        password2 = "${get_env("TF_VAR_USER_PASSWORD2")}"
+      }
+    },
+    {
+      name                    = include.env.locals.secret_names.docker
+      description             = "Docker credentials for ${local.aws_account_name} environment"
+      recovery_window_in_days = 7
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
+        password = "${get_env("TF_VAR_DOCKER_PASSWORD")}"
+      }
     }
   ]
-  secrets        = []
-  ssm_parameters = []
-  ssm_documents  = []
-  #   load_balancers = [
-  #     # {
-  #     #   key             = "${local.vpc_name}"
-  #     #   name            = "${local.vpc_name}"
-  #     #   vpc_name_abr    = "${local.vpc_name_abr}"
-  #     #   type            = "application"
-  #     #   security_groups = ["alb"]
-  #     #   subnets = [
-  #     #     include.env.locals.subnet_prefix.primary
-  #     #   ]
-  #     #   enable_deletion_protection = true
-  #     #   enable_access_logs         = true
-  #     #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-  #     #   vpc_name                   = local.vpc_name
-  #     #   create_default_listener    = true
-  #     # },
-  #     # {
-  #     #   key             = "etl"
-  #     #   name            = "etl"
-  #     #   vpc_name_abr    = "${local.vpc_name_abr}"
-  #     #   type            = "application"
-  #     #   security_groups = ["alb"]
-  #     #   subnets = [
-  #     #     include.env.locals.subnet_prefix.primary
-  #     #   ]
-  #     #   enable_deletion_protection = true
-  #     #   enable_access_logs         = true
-  #     #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-  #     #   vpc_name                   = local.vpc_name
-  #     #   # create_default_listener    = false
-  #     # },
-  #     # {
-  #     #   key             = "ssrs"
-  #     #   name            = "ssrs"
-  #     #   vpc_name_abr    = "${local.vpc_name_abr}"
-  #     #   type            = "network"
-  #     #   security_groups = ["nlb"]
-  #     #   subnets = [
-  #     #     include.env.locals.subnet_prefix.primary
-  #     #   ]
-  #     #   enable_deletion_protection = true
-  #     #   enable_access_logs         = true
-  #     #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
-  #     #   vpc_name                   = local.vpc_name
-  #     # }
-  #   ]
-  #   alb_listeners = [
-  #     # {
-  #     #   key      = "etl"
-  #     #   alb_key  = "etl"
-  #     #   protocol = "HTTPS"
-  #     #   port     = 443
-  #     #   action   = "fixed-response"
-  #     #   # certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
-  #     #   vpc_name = local.vpc_name
-  #     #   fixed_response = {
-  #     #     content_type = "text/plain"
-  #     #     message_body = "This is a default response from the ETL ALB listener."
-  #     #     status_code  = "200"
-  #     #   }
-  #     # }
-  #   ]
-  #   nlb_listeners = [
-  #     # {
-  #     #   key        = "ssrs"
-  #     #   nlb_key    = "ssrs"
-  #     #   protocol   = "TLS"
-  #     #   port       = 443
-  #     #   ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  #     #   # certificate_arn = dependency.shared_services.outputs.certificates.shared-services.arn
-  #     #   action   = "forward"
-  #     #   vpc_name = local.vpc_name
-  #     #   target_group = {
-  #     #     name         = "ssrs"
-  #     #     protocol     = "TLS"
-  #     #     port         = 443
-  #     #     vpc_name_abr = local.vpc_name_abr
-  #     #     health_check = {
-  #     #       protocol = "HTTPS"
-  #     #       port     = "443"
-  #     #       path     = "/"
-  #     #     }
-  #     #   }
-  #     # }
-  #   ]
-  #   target_groups = [
-  #     # {
-  #     #   key      = "ssrs"
-  #     #   name     = "ssrs"
-  #     #   protocol = "HTTPS"
-  #     #   port     = 443
-  #     #   health_check = {
-  #     #     protocol = "HTTPS"
-  #     #     port     = "443"
-  #     #     path     = "/"
-  #     #   }
-  #     #   vpc_name = local.vpc_name
-  #     # }
-  #   ]
-  # }
+
+  ssm_parameters = [
+    {
+      name        = "/Standard/ansible/username"
+      description = "Ansible Tower Username"
+      type        = "String"
+      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_USERNAME")}"
+    },
+    {
+      name        = "/Standard/ansible/password"
+      description = "Ansible Tower Password"
+      type        = "String"
+      value       = "${get_env("TF_VAR_ANSIBLE_TOWER_PASSWORD")}"
+    },
+    {
+      name        = "/Standard/ansible/bucketName"
+      description = "Ansible Tower Bucket Name"
+      type        = "String"
+      value       = "ansibleautomationbucket"
+    },
+    {
+      name        = "/Standard/account/UserCredentials"
+      description = "Account User Credentials"
+      type        = "String"
+      overwrite   = true
+      value       = "${local.aws_account_name}-${local.region_prefix}-${include.env.locals.secret_names.user}"
+    }
+  ]
+
+  ssm_documents = [
+    {
+      name               = "ansible-tower-install"
+      content            = file("${include.cloud.locals.repo.root}/documents/AnsibleInstall.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:AnsibleInstall"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
+    },
+    {
+      name               = "universal-user-credentials"
+      content            = file("${include.cloud.locals.repo.root}/documents/UniversalUserCreation.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:CreateUser"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 3 ? * SUN *)" # Every Sunday at 3 AM
+    },
+    {
+      name               = "Docker-Install"
+      content            = file("${include.cloud.locals.repo.root}/documents/DockerInstall.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:DockerInstall"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
+    },
+    {
+      name               = "WinRM-Config"
+      content            = file("${include.cloud.locals.repo.root}/documents/WinRM.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:WinRMInstall"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 8 ? * SUN *)" # Every Sunday at 8 AM
+    },
+    {
+      name               = "Windows-Banner-Config"
+      content            = file("${include.cloud.locals.repo.root}/documents/LogonBanner.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:WindowsBannerConfig"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 9 ? * SUN *)" # Every Sunday at 9 AM
+    },
+    {
+      name            = "NFS-Install"
+      content         = file("${include.cloud.locals.repo.root}/documents/NFSInstall.yaml")
+      document_type   = "Command"
+      document_format = "YAML"
+    }
+  ]
+
+  tgw_attachments = {
+    name               = local.vpc_name
+    transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+  }
+  tgw_route_table = {
+    name   = local.vpc_name
+    tgw_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+  }
+
+  tgw_routes = [ # Creates routes in TGW route table to point to spoke VPCs
+    # {
+    #   name                   = "default-to-dev"
+    #   blackhole              = false
+    #   attachment_id         = dependency.network.tgw_attachments["development"].id
+    #   destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
+    # }
+  ]
+  tgw_subnet_route = [ # Creates routes in subnet route tables to point to TGW
+    {
+      name               = "dev-subnet_rt"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
+      subnet_name        = include.env.locals.subnet_prefix.primary
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+    },
+    {
+      name               = "dev-subnet_rt-secondary"
+      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
+      subnet_name        = include.env.locals.subnet_prefix.secondary
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+    },
+    {
+      name        = "trn-subnet_rt"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
+      subnet_name = include.env.locals.subnet_prefix.primary
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+    },
+    {
+      name        = "trn-subnet_rt-secondary"
+      cidr_block  = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
+      subnet_name = include.env.locals.subnet_prefix.secondary
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+    }
+  ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
@@ -559,13 +710,6 @@ generate "aws-providers" {
   }
   EOF
 }
-
-
-
-
-
-
-
 
 
 
