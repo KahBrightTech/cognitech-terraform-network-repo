@@ -62,8 +62,8 @@ inputs = {
 
   tgw_route_table = [
     {
-      key  = "shared-rtb"
-      name = "${local.aws_account_name}-shared-rtb"
+      key    = "shared-rtb"
+      name   = "${local.aws_account_name}-shared-rtb"
       tgw_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
     }
   ]
@@ -79,8 +79,8 @@ inputs = {
       key                    = "shared-rt"
       name                   = "shared-rt"
       blackhole              = false
-      attachment_id          = local.cidr_blocks["mdpp"].segments["shared-services"].tgw_attachment
-      destination_cidr_block = local.cidr_blocks["mdp"].segments["shared-services"].vpc
+      attachment_id          = local.cidr_blocks["mdp"].segments["shared-services"].tgw_attachment # Destination attachment
+      destination_cidr_block = local.cidr_blocks["mdp"].segments["shared-services"].vpc # Destination CIDR
       route_table_key        = "shared-rtb"
     }
   ]
