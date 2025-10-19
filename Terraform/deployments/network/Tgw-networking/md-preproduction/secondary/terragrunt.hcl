@@ -15,24 +15,24 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context   = "primary"
+  region_context   = "secondary"
   deploy_globally  = "true"
   region           = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
   region_prefix    = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
   region_blk       = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
-  deployment_name  = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.aws_account_name}-${local.vpc_name_abr}-${local.region_context}"
+  deployment_name  = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.aws_account_name}-${local.region_context}"
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
   ## Updates these variables as per the product/service
   deployment       = "Tgw-networking"
   aws_account_name = include.cloud.locals.account_info["mdpp"].name
-  vpc_name_abr     = "shared"
+  # vpc_name_abr     = "shared"
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
     {
-      ManagedBy   = "terraform:${local.deployment_name}"
+      ManagedBy = "terraform:${local.deployment_name}"
     }
   )
 }
@@ -46,7 +46,7 @@ dependency "shared_services" {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Tenant-account"
+  source = "../../../../..//formations/Tgw-networking"
 }
 #-------------------------------------------------------
 # Inputs 
@@ -59,45 +59,28 @@ inputs = {
     tags          = local.tags
     region        = local.region
   }
-  tgw_attachments = {
-    name               = local.vpc_name
-    transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-  }
 
-  tgw_association = {
-    route_table_id = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
-  }
+  tgw_route_table = [
+    {
+      key  = "shared-rtb"
+      name = "${local.aws_account_name}-shared-rtb"
+    }
+  ]
+  tgw_association = [
+    {
+      key             = "shared-assoc"
+      attachment_id   = local.cidr_blocks["mdpp"].segments["shared-services"].tgw_attachment
+      route_table_key = "shared-rtb"
+    }
+  ]
 
   tgw_routes = [
     {
-      name                   = "dev"
+      key                    = "shared-rt"
+      name                   = "shared-rt"
       blackhole              = false
-      destination_cidr_block = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name_abr].vpc
-      route_table_id         = dependency.shared_services.outputs.transit_gateway_route_table.tgw_rtb_id
-    }
-  ]
-  tgw_subnet_route = [
-    {
-      name               = "shared-subnet_rt"
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-      subnet_name        = include.env.locals.subnet_prefix.primary
-      vpc_name           = local.vpc_name
-    },
-    {
-      name               = "shared-subnet_rt-secondary"
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.shared-services.vpc
-      transit_gateway_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
-      subnet_name        = include.env.locals.subnet_prefix.secondary
-      vpc_name           = local.vpc_name
-    }
-  ]
-  s3_private_buckets = [
-    {
-      name              = "${local.vpc_name}-app-bucket"
-      description       = "The application bucket for different apps"
-      enable_versioning = true
-      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
+      destination_cidr_block = local.cidr_blocks["mdp"].segments["shared-services"].vpc
+      route_table_key        = "shared-rtb"
     }
   ]
 }

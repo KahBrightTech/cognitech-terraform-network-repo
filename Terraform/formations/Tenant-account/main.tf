@@ -79,23 +79,28 @@ module "transit_gateway_association" {
     route_table_id = var.tgw_association.route_table_id != null ? var.tgw_association.route_table_id : module.transit_gateway_route_table[0].tgw_rtb_id
   }
 }
-
 #--------------------------------------------------------------------
 # Transit Gateway routes - Creates Transit Gateway routes for shared services
 #--------------------------------------------------------------------
 module "transit_gateway_route" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-routes?ref=v1.1.17"
-  for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.name => route } : {}
+  for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.key => route } : {}
   common   = var.common
   depends_on = [
-    module.customer_vpc,
+    module.shared_vpc,
   ]
   tgw_routes = {
     name                   = each.value.name
     blackhole              = each.value.blackhole
     destination_cidr_block = each.value.destination_cidr_block
     attachment_id          = each.value.blackhole == false ? (each.value.attachment_id != null ? each.value.attachment_id : module.transit_gateway_attachment[0].tgw_attachment_id) : null
-    route_table_id         = each.value.route_table_id != null ? each.value.route_table_id : module.transit_gateway_route_table[0].tgw_rtb_id
+    route_table_id = each.value.route_table_id != null ? each.value.route_table_id : (
+      each.value.route_table_key != null ?
+      module.transit_gateway_route_table[each.value.route_table_key].tgw_rtb_id :
+      each.value.route_table_name != null ?
+      module.transit_gateway_route_table[each.value.route_table_name].tgw_rtb_id :
+      values(module.transit_gateway_route_table)[0].tgw_rtb_id
+    )
   }
 }
 

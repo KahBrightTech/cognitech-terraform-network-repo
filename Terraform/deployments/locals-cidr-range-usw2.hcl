@@ -2,10 +2,10 @@ locals {
   cidr_blocks = {
     mdpp = {
       segments = {
-        tgw_attachment = "tgw-attach-06ee7a7614bec2ced" # Update this after account creation
-        Account_cidr   = "10.20.0.0/16"
+        Account_cidr = "10.20.0.0/16"
         shared-services = {
-          vpc = "10.20.2.0/24"
+          tgw_attachment = "tgw-attach-06ee7a7614bec2ced" # Update this after account creation
+          vpc            = "10.20.2.0/24"
           public_subnets = {
             sbnt1 = {
               primary   = "10.20.2.0/27"
@@ -79,10 +79,10 @@ locals {
     }
     mdp = {
       segments = {
-        # tgw_attachment = "tgw-attach-06ee7a7614bec2ced" # Update this after account creation
         Account_cidr = "10.30.0.0/16"
         shared-services = {
-          vpc = "10.30.2.0/24"
+          tgw_attachment = "tgw-attach-0bea4ec77d6fc4424" # Update this after account creation
+          vpc            = "10.30.2.0/24"
           public_subnets = {
             sbnt1 = {
               primary   = "10.30.2.0/27"

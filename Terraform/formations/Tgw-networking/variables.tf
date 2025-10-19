@@ -42,14 +42,15 @@ variable "tgw_attachments" {
   default = null
 }
 
-variable "tgw_association" {
+variable "tgw_associations" {
   description = "The transit gateway association variables"
-  type = object({
+  type = list(object({
+    key              = optional(string)
     attachment_id    = optional(string)
     route_table_id   = optional(string)
     route_table_name = optional(string) # Add this for referencing the route table by name
     route_table_key  = optional(string) # Add this for referencing the route table by key
-  })
+  }))
   default = null
 }
 variable "tgw_route_table" {
@@ -65,6 +66,7 @@ variable "tgw_route_table" {
 variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({
+    key                    = optional(string)
     name                   = string
     blackhole              = optional(bool)
     destination_cidr_block = string

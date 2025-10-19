@@ -20,12 +20,6 @@ output "transit_gateway_association" {
   description = "Transit Gateway association details"
   value       = length(module.transit_gateway_association) > 0 ? module.transit_gateway_association[0] : null
 }
-
-# output "ram" {
-#   description = "RAM resource sharing details"
-#   value       = length(module.ram) > 0 ? module.ram[0] : null
-# }
-
 output "s3_app_bucket" {
   description = "S3 bucket details"
   value       = module.s3_app_bucket

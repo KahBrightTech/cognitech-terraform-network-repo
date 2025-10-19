@@ -76,21 +76,26 @@ module "transit_gateway_route_table" {
 # Transit Gateway Association - Creates Transit Gateway associations
 #--------------------------------------------------------------------
 module "transit_gateway_association" {
-  count  = var.tgw_association != null && var.tgw_attachments != null && try(length(var.tgw_route_table), 0) > 0 ? 1 : 0
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-association?ref=v1.1.18"
-  common = var.common
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-association?ref=v1.1.18"
+  for_each = var.tgw_associations != null ? { for assoc in var.tgw_associations : assoc.key => assoc } : {}
+  common   = var.common
   depends_on = [
     module.shared_vpc,
     module.transit_gateway,
     module.transit_gateway_route_table
   ]
   tgw_association = {
-    attachment_id = var.tgw_association.attachment_id != null ? var.tgw_association.attachment_id : module.transit_gateway_attachment[0].tgw_attachment_id
-    route_table_id = var.tgw_association.route_table_id != null ? var.tgw_association.route_table_id : (
-      var.tgw_association.route_table_key != null ?
-      module.transit_gateway_route_table[var.tgw_association.route_table_key].tgw_rtb_id :
-      var.tgw_association.route_table_name != null ?
-      module.transit_gateway_route_table[var.tgw_association.route_table_name].tgw_rtb_id :
+    name = each.value.name
+    attachment_id = each.value.attachment_id != null ? each.value.attachment_id : (
+      each.value.attachment_name != null ?
+      module.transit_gateway_attachment[0].tgw_attachment_id :
+      module.transit_gateway_attachment[0].tgw_attachment_id
+    )
+    route_table_id = each.value.route_table_id != null ? each.value.route_table_id : (
+      each.value.route_table_key != null ?
+      module.transit_gateway_route_table[each.value.route_table_key].tgw_rtb_id :
+      each.value.route_table_name != null ?
+      module.transit_gateway_route_table[each.value.route_table_name].tgw_rtb_id :
       values(module.transit_gateway_route_table)[0].tgw_rtb_id
     )
   }
@@ -101,7 +106,7 @@ module "transit_gateway_association" {
 #--------------------------------------------------------------------
 module "transit_gateway_route" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-routes?ref=v1.1.17"
-  for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.name => route } : {}
+  for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.key => route } : {}
   common   = var.common
   depends_on = [
     module.shared_vpc,

@@ -287,11 +287,14 @@ variable "tgw_route_table" {
 variable "tgw_routes" {
   description = "The transit gateway route variables"
   type = list(object({
+    key                    = optional(string)
     name                   = string
     blackhole              = optional(bool)
     destination_cidr_block = string
     attachment_id          = optional(string)
     route_table_id         = optional(string)
+    route_table_name       = optional(string) # Add this for referencing the route table by name
+    route_table_key        = optional(string) # Add this for referencing the route table by key
   }))
   default = null
 }
