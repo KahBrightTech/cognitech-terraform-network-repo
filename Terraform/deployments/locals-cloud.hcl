@@ -70,6 +70,9 @@ locals {
       name     = "us-east-1"
       name_abr = "use1"
     }
+    external_cidrs = {
+      internet = "0.0.0.0/0"
+    }
 
     usw2 = {
       availability_zones = {
