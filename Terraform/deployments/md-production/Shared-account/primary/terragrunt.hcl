@@ -365,7 +365,7 @@ inputs = {
       route53_zones = [
         {
           key  = local.vpc_name_abr
-          name = "${local.vpc_name_abr}.kahbrigthllc.com"
+          name = "${local.vpc_name_abr}.mdprod.com"
         }
       ]
     }
