@@ -1,5 +1,5 @@
 schemaVersion: '2.2'
-description: "Document to install/uninstall PuTTY and related tools on Windows servers using AWS Systems Manager (SSM)."
+description: "Install or uninstall PuTTY and related tools on Windows servers using AWS SSM, with Start Menu shortcuts."
 parameters:
     Operation:
         type: String
@@ -10,54 +10,51 @@ parameters:
           - "uninstall"
     InstallPutty:
         type: String
-        description: "Whether to install PuTTY (true/false)"
+        description: "Install PuTTY (true/false)"
         default: "true"
         allowedValues:
           - "true"
           - "false"
     InstallPuttygen:
         type: String
-        description: "Whether to install PuTTYgen (true/false)"
+        description: "Install PuTTYgen (true/false)"
         default: "true"
         allowedValues:
           - "true"
           - "false"
     InstallPscp:
         type: String
-        description: "Whether to install PSCP (true/false)"
+        description: "Install PSCP (true/false)"
         default: "true"
         allowedValues:
           - "true"
           - "false"
     InstallPsftp:
         type: String
-        description: "Whether to install PSFTP (true/false)"
+        description: "Install PSFTP (true/false)"
         default: "true"
         allowedValues:
           - "true"
           - "false"
     RemoveUserData:
         type: String
-        description: "Whether to remove user configuration data during uninstall (true/false)"
+        description: "Remove user configuration data during uninstall (true/false)"
         default: "false"
         allowedValues:
           - "true"
           - "false"
     InstallLocation:
         type: String
-        description: "Installation directory for PuTTY"
+        description: "Directory for PuTTY installation"
         default: "C:\\Program Files\\PuTTY"
 mainSteps:
   - action: aws:runPowerShellScript
     name: ManagePuTTY
-    description: Installs or uninstalls PuTTY and related tools on Windows servers
+    description: "Install/uninstall PuTTY and create Start Menu shortcuts"
     inputs:
-        timeoutSeconds: 3600
+        timeoutSeconds: 600
         runCommand:
           - |
-            # PowerShell script for PuTTY management
-
-            # Logging and error handling functions
             function Write-Log {
                 param([string]$Message)
                 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -71,216 +68,40 @@ mainSteps:
             }
 
             Write-Log "Starting PuTTY management..."
-
-            # Get operation parameter
             $OPERATION = "{{ Operation }}"
-            Write-Log "Operation requested: $OPERATION"
+            $installLocation = "{{ InstallLocation }}"
 
-            # Detect Windows version
-            function Get-WindowsVersion {
-                try {
-                    $osInfo = Get-CimInstance -ClassName Win32_OperatingSystem
-                    $osVersion = $osInfo.Version
-                    $osCaption = $osInfo.Caption
-                    Write-Log "Detected OS: $osCaption, Version: $osVersion"
-                    return @{
-                        Version = $osVersion
-                        Caption = $osCaption
-                        Architecture = $osInfo.OSArchitecture
-                    }
-                } catch {
-                    Write-Log "Warning: Could not detect OS version: $($_.Exception.Message)"
-                    return @{
-                        Version = "Unknown"
-                        Caption = "Windows"
-                        Architecture = "64-bit"
-                    }
-                }
+            # Check if running with administrative privileges
+            $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+            $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+            Write-Log "Running with administrative privileges: $isAdmin"
+
+            if (-not $isAdmin) {
+                Write-Log "WARNING: Script is not running with administrative privileges. Shortcut creation may fail."
             }
 
-            # Download and install PuTTY tools
-            function Install-PuTTY {
-                Write-Log "Installing PuTTY and related tools..."
+            # Handle operation type
+            if ($OPERATION -eq "uninstall") {
+                Write-Log "Performing uninstall operation..."
                 
-                $installLocation = "{{ InstallLocation }}"
-                $tempDir = $env:TEMP
-                
-                # Create installation directory if it doesn't exist
-                if (!(Test-Path $installLocation)) {
+                # Remove shortcuts
+                $shortcutDir = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\PuTTY"
+                if (Test-Path $shortcutDir) {
                     try {
-                        New-Item -ItemType Directory -Path $installLocation -Force | Out-Null
-                        Write-Log "Created installation directory: $installLocation"
+                        Remove-Item -Path $shortcutDir -Recurse -Force
+                        Write-Log "Removed PuTTY shortcuts directory"
                     } catch {
-                        Exit-WithError "Failed to create installation directory: $($_.Exception.Message)"
+                        Write-Log "Warning: Failed to remove shortcuts directory. Exception: $($_.Exception.Message)"
                     }
                 }
                 
-                # Define PuTTY tools to download
-                $puttyTools = @()
-                
-                if ("{{ InstallPutty }}" -eq "true") {
-                    $puttyTools += @{Name = "putty.exe"; Description = "PuTTY SSH Client"}
-                }
-                if ("{{ InstallPuttygen }}" -eq "true") {
-                    $puttyTools += @{Name = "puttygen.exe"; Description = "PuTTY Key Generator"}
-                }
-                if ("{{ InstallPscp }}" -eq "true") {
-                    $puttyTools += @{Name = "pscp.exe"; Description = "PuTTY Secure Copy Client"}
-                }
-                if ("{{ InstallPsftp }}" -eq "true") {
-                    $puttyTools += @{Name = "psftp.exe"; Description = "PuTTY SFTP Client"}
-                }
-                
-                if ($puttyTools.Count -eq 0) {
-                    Write-Log "No PuTTY tools selected for installation"
-                    return
-                }
-                
-                # Get system architecture
-                $osInfo = Get-WindowsVersion
-                $architecture = if ($osInfo.Architecture -eq "32-bit") { "w32" } else { "w64" }
-                
-                # Base URL for PuTTY downloads
-                $baseUrl = "https://the.earth.li/~sgtatham/putty/latest"
-                
-                # Download and install each tool
-                foreach ($tool in $puttyTools) {
-                    Write-Log "Downloading $($tool.Description)..."
-                    
-                    $downloadUrl = "$baseUrl/$architecture/$($tool.Name)"
-                    $destinationPath = Join-Path $installLocation $tool.Name
-                    $tempPath = Join-Path $tempDir $tool.Name
-                    
-                    try {
-                        # Download the tool
-                        Invoke-WebRequest -Uri $downloadUrl -OutFile $tempPath -UseBasicParsing
-                        Write-Log "Downloaded $($tool.Name) successfully"
-                        
-                        # Move to installation directory
-                        Move-Item -Path $tempPath -Destination $destinationPath -Force
-                        Write-Log "Installed $($tool.Name) to $destinationPath"
-                        
-                    } catch {
-                        Write-Log "Warning: Failed to download/install $($tool.Name): $($_.Exception.Message)"
-                        # Clean up temp file if it exists
-                        if (Test-Path $tempPath) {
-                            Remove-Item $tempPath -Force -ErrorAction SilentlyContinue
-                        }
-                    }
-                }
-                
-                # Add installation directory to PATH if not already present
-                $currentPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
-                if ($currentPath -notlike "*$installLocation*") {
-                    try {
-                        $newPath = "$currentPath;$installLocation"
-                        [Environment]::SetEnvironmentVariable("PATH", $newPath, "Machine")
-                        Write-Log "Added $installLocation to system PATH"
-                        
-                        # Update current session PATH
-                        $env:PATH = "$env:PATH;$installLocation"
-                    } catch {
-                        Write-Log "Warning: Failed to update PATH: $($_.Exception.Message)"
-                    }
-                }
-                
-                Write-Log "PuTTY installation completed successfully"
-            }
-
-            # Verify PuTTY installation
-            function Test-PuTTYInstallation {
-                Write-Log "Verifying PuTTY installation..."
-                
-                $installLocation = "{{ InstallLocation }}"
-                $installedTools = @()
-                
-                # Check each tool that was requested for installation
-                if ("{{ InstallPutty }}" -eq "true") {
-                    $puttyPath = Join-Path $installLocation "putty.exe"
-                    if (Test-Path $puttyPath) {
-                        $installedTools += "PuTTY"
-                        Write-Log "✓ PuTTY found at: $puttyPath"
-                    } else {
-                        Write-Log "✗ PuTTY not found at: $puttyPath"
-                    }
-                }
-                
-                if ("{{ InstallPuttygen }}" -eq "true") {
-                    $puttygenPath = Join-Path $installLocation "puttygen.exe"
-                    if (Test-Path $puttygenPath) {
-                        $installedTools += "PuTTYgen"
-                        Write-Log "✓ PuTTYgen found at: $puttygenPath"
-                    } else {
-                        Write-Log "✗ PuTTYgen not found at: $puttygenPath"
-                    }
-                }
-                
-                if ("{{ InstallPscp }}" -eq "true") {
-                    $pscpPath = Join-Path $installLocation "pscp.exe"
-                    if (Test-Path $pscpPath) {
-                        $installedTools += "PSCP"
-                        Write-Log "✓ PSCP found at: $pscpPath"
-                    } else {
-                        Write-Log "✗ PSCP not found at: $pscpPath"
-                    }
-                }
-                
-                if ("{{ InstallPsftp }}" -eq "true") {
-                    $psftpPath = Join-Path $installLocation "psftp.exe"
-                    if (Test-Path $psftpPath) {
-                        $installedTools += "PSFTP"
-                        Write-Log "✓ PSFTP found at: $psftpPath"
-                    } else {
-                        Write-Log "✗ PSFTP not found at: $psftpPath"
-                    }
-                }
-                
-                if ($installedTools.Count -gt 0) {
-                    Write-Log "Successfully installed: $($installedTools -join ', ')"
-                    return $true
-                } else {
-                    Write-Log "No PuTTY tools were successfully installed"
-                    return $false
-                }
-            }
-
-            # Uninstall PuTTY tools
-            function Uninstall-PuTTY {
-                Write-Log "Uninstalling PuTTY and related tools..."
-                
-                $installLocation = "{{ InstallLocation }}"
-                $removeUserData = "{{ RemoveUserData }}"
-                
-                # Define all possible PuTTY tools
-                $puttyTools = @("putty.exe", "puttygen.exe", "pscp.exe", "psftp.exe", "plink.exe", "pageant.exe")
-                
-                # Remove PuTTY executables
-                $removedTools = @()
-                foreach ($tool in $puttyTools) {
-                    $toolPath = Join-Path $installLocation $tool
-                    if (Test-Path $toolPath) {
-                        try {
-                            Remove-Item -Path $toolPath -Force
-                            $removedTools += $tool
-                            Write-Log "Removed: $toolPath"
-                        } catch {
-                            Write-Log "Warning: Failed to remove $toolPath : $($_.Exception.Message)"
-                        }
-                    }
-                }
-                
-                # Remove installation directory if empty
+                # Remove PuTTY installation directory
                 if (Test-Path $installLocation) {
-                    $remainingFiles = Get-ChildItem -Path $installLocation -Force
-                    if ($remainingFiles.Count -eq 0) {
-                        try {
-                            Remove-Item -Path $installLocation -Force
-                            Write-Log "Removed empty installation directory: $installLocation"
-                        } catch {
-                            Write-Log "Warning: Failed to remove installation directory: $($_.Exception.Message)"
-                        }
-                    } else {
-                        Write-Log "Installation directory not removed (contains other files): $installLocation"
+                    try {
+                        Remove-Item -Path $installLocation -Recurse -Force
+                        Write-Log "Removed PuTTY installation directory"
+                    } catch {
+                        Write-Log "Warning: Failed to remove installation directory. Exception: $($_.Exception.Message)"
                     }
                 }
                 
@@ -288,200 +109,280 @@ mainSteps:
                 $currentPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
                 if ($currentPath -like "*$installLocation*") {
                     try {
-                        $pathEntries = $currentPath -split ";" | Where-Object { $_ -ne $installLocation -and $_ -ne "" }
-                        $newPath = $pathEntries -join ";"
+                        $newPath = $currentPath -replace [regex]::Escape(";$installLocation"), ""
+                        $newPath = $newPath -replace [regex]::Escape("$installLocation;"), ""
+                        $newPath = $newPath -replace [regex]::Escape("$installLocation"), ""
                         [Environment]::SetEnvironmentVariable("PATH", $newPath, "Machine")
                         Write-Log "Removed $installLocation from system PATH"
                     } catch {
-                        Write-Log "Warning: Failed to update PATH: $($_.Exception.Message)"
+                        Write-Log "Warning: Failed to update PATH. Exception: $($_.Exception.Message)"
                     }
-                }
-                
-                # Remove user configuration data if requested
-                if ($removeUserData -eq "true") {
-                    Write-Log "Removing user configuration data..."
-                    
-                    # Remove PuTTY registry entries for current user
-                    try {
-                        $puttyRegPath = "HKCU:\Software\SimonTatham"
-                        if (Test-Path $puttyRegPath) {
-                            Remove-Item -Path $puttyRegPath -Recurse -Force
-                            Write-Log "Removed PuTTY registry entries"
-                        }
-                    } catch {
-                        Write-Log "Warning: Failed to remove registry entries: $($_.Exception.Message)"
-                    }
-                    
-                    # Remove saved sessions (they are in the registry)
-                    try {
-                        $sessionsRegPath = "HKCU:\Software\SimonTatham\PuTTY\Sessions"
-                        if (Test-Path $sessionsRegPath) {
-                            Remove-Item -Path $sessionsRegPath -Recurse -Force
-                            Write-Log "Removed saved PuTTY sessions"
-                        }
-                    } catch {
-                        Write-Log "Warning: Failed to remove saved sessions: $($_.Exception.Message)"
-                    }
-                } else {
-                    Write-Log "Preserving user configuration data (RemoveUserData=false)"
-                }
-                
-                if ($removedTools.Count -gt 0) {
-                    Write-Log "Successfully removed: $($removedTools -join ', ')"
-                } else {
-                    Write-Log "No PuTTY tools were found to remove"
                 }
                 
                 Write-Log "PuTTY uninstallation completed"
+                return
             }
 
-            # Verify PuTTY uninstallation
-            function Test-PuTTYUninstallation {
-                Write-Log "Verifying PuTTY uninstallation..."
-                
-                $installLocation = "{{ InstallLocation }}"
-                $foundTools = @()
-                
-                # Check if any PuTTY tools still exist
-                $puttyTools = @("putty.exe", "puttygen.exe", "pscp.exe", "psftp.exe", "plink.exe", "pageant.exe")
-                
-                foreach ($tool in $puttyTools) {
-                    $toolPath = Join-Path $installLocation $tool
-                    if (Test-Path $toolPath) {
-                        $foundTools += $tool
-                        Write-Log "✗ $tool still found at: $toolPath"
+            Write-Log "Performing install operation..."
+
+            # Kill running PuTTY processes
+            $toolsToKill = @("putty","puttygen","pscp","psftp")
+            foreach ($tool in $toolsToKill) {
+                $proc = Get-Process -Name $tool -ErrorAction SilentlyContinue
+                if ($proc) { 
+                    $proc | Stop-Process -Force -ErrorAction SilentlyContinue
+                    Write-Log "Stopped running process: $tool"
+                }
+            }
+
+            # Create install directory if missing
+            if (!(Test-Path $installLocation)) {
+                try {
+                    New-Item -ItemType Directory -Path $installLocation -Force | Out-Null
+                    Write-Log "Created installation directory: $installLocation"
+                } catch {
+                    Exit-WithError ("Failed to create installation directory. Exception: " + $_.Exception.Message)
+                }
+            }
+
+            # Base URL
+            $baseUrl = "https://the.earth.li/~sgtatham/putty/latest"
+
+            # Map tool names to descriptions
+            $puttyTools = @{}
+            if ("{{ InstallPutty }}" -eq "true") { $puttyTools["putty.exe"] = "PuTTY SSH Client" }
+            if ("{{ InstallPuttygen }}" -eq "true") { $puttyTools["puttygen.exe"] = "PuTTY Key Generator" }
+            if ("{{ InstallPscp }}" -eq "true") { $puttyTools["pscp.exe"] = "PuTTY Secure Copy Client" }
+            if ("{{ InstallPsftp }}" -eq "true") { $puttyTools["psftp.exe"] = "PuTTY SFTP Client" }
+
+            # Determine system architecture
+            $arch = if ((Get-CimInstance Win32_OperatingSystem).OSArchitecture -like "*32*") { "w32" } else { "w64" }
+
+            # Install each tool
+            foreach ($tool in $puttyTools.Keys) {
+                $description = $puttyTools[$tool]
+                $destinationPath = Join-Path $installLocation $tool
+
+                if (!(Test-Path $destinationPath)) {
+                    Write-Log "Downloading $description..."
+                    $tempPath = Join-Path $env:TEMP $tool
+                    try {
+                        Invoke-WebRequest -Uri "$baseUrl/$arch/$tool" -OutFile $tempPath -UseBasicParsing
+                        Write-Log ("Downloaded " + $tool + " to " + $tempPath)
+                        Unblock-File -Path $tempPath
+                        Copy-Item -Path $tempPath -Destination $destinationPath -Force
+                        Write-Log ("Copied " + $tool + " to " + $destinationPath)
+                        Remove-Item -Path $tempPath -Force -ErrorAction SilentlyContinue
+                    } catch {
+                        Write-Log ("Warning: Failed to download or copy " + $tool + ". Exception: " + $_.Exception.Message)
+                    }
+                } else {
+                    Write-Log ($tool + " already exists. Skipping download.")
+                }
+
+                # Ensure proper file permissions and unblock the file
+                if (Test-Path $destinationPath) {
+                    try {
+                        # First, unblock the file to remove Windows security restrictions
+                        Unblock-File -Path $destinationPath -ErrorAction SilentlyContinue
+                        Write-Log "Unblocked file: $destinationPath"
+                        
+                        # Verify the file is actually unblocked
+                        $isStillBlocked = try { Get-Item $destinationPath -Stream Zone.Identifier -ErrorAction Stop; $true } catch { $false }
+                        if ($isStillBlocked) {
+                            Write-Log "WARNING: File is still blocked after unblock attempt: $destinationPath"
+                            # Try alternative unblocking method
+                            try {
+                                Remove-Item "$destinationPath`:Zone.Identifier" -Force -ErrorAction Stop
+                                Write-Log "Alternative unblock method applied for: $destinationPath"
+                            } catch {
+                                Write-Log "Alternative unblock failed for: $destinationPath"
+                            }
+                        } else {
+                            Write-Log "File successfully unblocked: $destinationPath"
+                        }
+                        
+                        # Get and display file information
+                        $fileInfo = Get-Item $destinationPath
+                        Write-Log "File info - Size: $($fileInfo.Length) bytes, Created: $($fileInfo.CreationTime)"
+                        
+                        # Set explicit permissions for Everyone to have full control
+                        $acl = Get-Acl $destinationPath
+                        $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "Allow")
+                        $acl.SetAccessRule($accessRule)
+                        Set-Acl -Path $destinationPath -AclObject $acl
+                        Write-Log "Set full permissions for Everyone on: $destinationPath"
+                        
+                    } catch {
+                        Write-Log "Warning: Failed to set permissions for $destinationPath. Exception: $($_.Exception.Message)"
                     }
                 }
-                
-                if ($foundTools.Count -eq 0) {
-                    Write-Log "✓ All PuTTY tools successfully removed"
-                    return $true
-                } else {
-                    Write-Log "✗ Some PuTTY tools still remain: $($foundTools -join ', ')"
-                    return $false
-                }
-            }
 
-            # Get Windows version information
-            $osInfo = Get-WindowsVersion
-
-            # Execute based on operation
-            if ($OPERATION -eq "install") {
-                Write-Log "Performing installation operations..."
-                
-                # Install PuTTY tools
-                Install-PuTTY
-                
-                # Verify installation
-                $installationSuccess = Test-PuTTYInstallation
-                
-                if ($installationSuccess) {
-                    Write-Log "PuTTY installation completed successfully!"
-                } else {
-                    Write-Log "Warning: PuTTY installation completed with some issues. Check the logs above."
-                }
-                
-            } elseif ($OPERATION -eq "uninstall") {
-                Write-Log "Performing uninstall operations..."
-                
-                # Uninstall PuTTY
-                Uninstall-PuTTY
-                
-                # Verify uninstallation
-                $uninstallSuccess = Test-PuTTYUninstallation
-                
-                if ($uninstallSuccess) {
-                    Write-Log "PuTTY uninstallation completed successfully!"
-                } else {
-                    Write-Log "Warning: PuTTY uninstallation completed with some issues. Check the logs above."
-                }
-                
-            } else {
-                Exit-WithError "Invalid operation: $OPERATION. Must be 'install' or 'uninstall'"
-            }
-
-            Write-Log "Operation completed successfully!"
-            Write-Log "=========================================="
-            Write-Log "SYSTEM STATUS SUMMARY:"
-            Write-Log "=========================================="
-            Write-Log "Operation Performed: $OPERATION"
-            Write-Log "Operating System: $($osInfo.Caption)"
-            Write-Log "OS Version: $($osInfo.Version)"
-            Write-Log "Architecture: $($osInfo.Architecture)"
-            Write-Log "Installation Location: {{ InstallLocation }}"
-
-            # Check status of each tool
-            $installLocation = "{{ InstallLocation }}"
-
-            $puttyPath = Join-Path $installLocation "putty.exe"
-            if (Test-Path $puttyPath) {
-                Write-Log "PuTTY Status: INSTALLED"
+                # Create Start Menu shortcut with proper name
                 try {
-                    $puttyVersion = & $puttyPath -V 2>&1
-                    Write-Log "PuTTY Location: $puttyPath"
+                    $shortcutDir = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\PuTTY"
+                    if (!(Test-Path $shortcutDir)) { 
+                        New-Item -ItemType Directory -Path $shortcutDir -Force | Out-Null 
+                        Write-Log "Created shortcut directory: $shortcutDir"
+                    }
+                    
+                    # Remove old shortcuts with .exe.lnk naming convention
+                    $oldShortcutPath = Join-Path $shortcutDir "$tool.lnk"
+                    if (Test-Path $oldShortcutPath) {
+                        Remove-Item -Path $oldShortcutPath -Force
+                        Write-Log "Removed old shortcut: $oldShortcutPath"
+                    }
+                    
+                    # Verify target file exists and is accessible
+                    if (!(Test-Path $destinationPath)) {
+                        Write-Log "ERROR: Target file does not exist: $destinationPath"
+                        continue
+                    }
+                    
+                    # Check file permissions and properties
+                    try {
+                        $fileInfo = Get-Item $destinationPath
+                        Write-Log "Target file verified: $destinationPath (Size: $($fileInfo.Length) bytes)"
+                        
+                        # Check if file is blocked (safer than running it)
+                        $isBlocked = try { Get-Item $destinationPath -Stream Zone.Identifier -ErrorAction Stop; $true } catch { $false }
+                        if ($isBlocked) {
+                            Write-Log "WARNING: File is blocked by Windows security: $tool"
+                        } else {
+                            Write-Log "File security check passed for $tool"
+                        }
+                    } catch {
+                        Write-Log "WARNING: File verification failed for $tool. Exception: $($_.Exception.Message)"
+                    }
+                    
+                    # Create proper shortcut names
+                    $shortcutName = switch ($tool) {
+                        "putty.exe" { "PuTTY" }
+                        "puttygen.exe" { "PuTTYgen" }
+                        "pscp.exe" { "PSCP" }
+                        "psftp.exe" { "PSFTP" }
+                        default { $tool -replace "\.exe$", "" }
+                    }
+                    
+                    $shortcutPath = Join-Path $shortcutDir "$shortcutName.lnk"
+                    
+                    # Ensure we use absolute paths
+                    $absoluteTargetPath = [System.IO.Path]::GetFullPath($destinationPath)
+                    $absoluteWorkingDir = [System.IO.Path]::GetFullPath($installLocation)
+                    
+                    Write-Log "Creating shortcut with target: $absoluteTargetPath"
+                    Write-Log "Working directory: $absoluteWorkingDir"
+                    
+                    $WshShell = New-Object -ComObject WScript.Shell
+                    $Shortcut = $WshShell.CreateShortcut($shortcutPath)
+                    $Shortcut.TargetPath = $absoluteTargetPath
+                    $Shortcut.WorkingDirectory = $absoluteWorkingDir
+                    $Shortcut.Description = $description
+                    $Shortcut.Arguments = ""
+                    $Shortcut.Save()
+                    Write-Log "Created Start Menu shortcut: $shortcutPath"
+                    
+                    # Verify shortcut was created and test its properties
+                    if (Test-Path $shortcutPath) {
+                        $shortcutInfo = Get-Item $shortcutPath
+                        Write-Log "Shortcut verified: $($shortcutInfo.Name) (Size: $($shortcutInfo.Length) bytes)"
+                        
+                        # Test the shortcut by reading it back
+                        try {
+                            $testShortcut = $WshShell.CreateShortcut($shortcutPath)
+                            Write-Log "Shortcut target path: $($testShortcut.TargetPath)"
+                            Write-Log "Target exists: $(Test-Path $testShortcut.TargetPath)"
+                            
+                            # Verify target file is accessible
+                            if (Test-Path $testShortcut.TargetPath) {
+                                $targetFile = Get-Item $testShortcut.TargetPath
+                                Write-Log "Target file accessible: $($targetFile.FullName) ($($targetFile.Length) bytes)"
+                                
+                                # Test if file can be executed (quick test with invalid argument to avoid hanging)
+                                try {
+                                    $testProcess = Start-Process -FilePath $testShortcut.TargetPath -ArgumentList "--invalid-test-arg" -PassThru -WindowStyle Hidden -ErrorAction Stop
+                                    Start-Sleep -Milliseconds 500
+                                    if (!$testProcess.HasExited) {
+                                        $testProcess.Kill()
+                                    }
+                                    Write-Log "File execution test PASSED for: $tool"
+                                } catch {
+                                    Write-Log "File execution test FAILED for: $tool. Error: $($_.Exception.Message)"
+                                    
+                                    # Try to fix permissions if execution failed
+                                    try {
+                                        $acl = Get-Acl $testShortcut.TargetPath
+                                        $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Users", "FullControl", "Allow")
+                                        $acl.SetAccessRule($accessRule)
+                                        Set-Acl -Path $testShortcut.TargetPath -AclObject $acl
+                                        Write-Log "Applied Users FullControl permissions to: $($testShortcut.TargetPath)"
+                                    } catch {
+                                        Write-Log "Failed to set Users permissions: $($_.Exception.Message)"
+                                    }
+                                }
+                            } else {
+                                Write-Log "ERROR: Shortcut target does not exist: $($testShortcut.TargetPath)"
+                            }
+                        } catch {
+                            Write-Log "ERROR: Failed to validate shortcut: $($_.Exception.Message)"
+                        }
+                    } else {
+                        Write-Log "ERROR: Shortcut was not created: $shortcutPath"
+                    }
+                    
+                    # Release COM object
+                    try {
+                        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($WshShell) | Out-Null
+                    } catch {
+                        Write-Log "Warning: Failed to release COM object"
+                    }
                 } catch {
-                    Write-Log "PuTTY Location: $puttyPath"
+                    Write-Log "Warning: Failed to create shortcut for $tool. Exception: $($_.Exception.Message)"
                 }
-            } else {
-                Write-Log "PuTTY Status: NOT INSTALLED"
             }
 
-            $puttygenPath = Join-Path $installLocation "puttygen.exe"
-            if (Test-Path $puttygenPath) {
-                Write-Log "PuTTYgen Status: INSTALLED"
-                Write-Log "PuTTYgen Location: $puttygenPath"
-            } else {
-                Write-Log "PuTTYgen Status: NOT INSTALLED"
+            # Add install dir to PATH if missing
+            $currentPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
+            if ($currentPath -notlike "*$installLocation*") {
+                try {
+                    $newPath = "$currentPath;$installLocation"
+                    [Environment]::SetEnvironmentVariable("PATH", $newPath, "Machine")
+                    $env:PATH = "$env:PATH;$installLocation"
+                    Write-Log "Added " + $installLocation + " to system PATH"
+                } catch {
+                    Write-Log ("Warning: Failed to update PATH. Exception: " + $_.Exception.Message)
+                }
             }
 
-            $pscpPath = Join-Path $installLocation "pscp.exe"
-            if (Test-Path $pscpPath) {
-                Write-Log "PSCP Status: INSTALLED"
-                Write-Log "PSCP Location: $pscpPath"
+            Write-Log "PuTTY installation completed successfully"
+
+            # Verify shortcuts were created (simplified to avoid hanging)
+            $shortcutDir = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\PuTTY"
+            if (Test-Path $shortcutDir) {
+                $shortcuts = Get-ChildItem -Path $shortcutDir -Filter "*.lnk" -ErrorAction SilentlyContinue
+                if ($shortcuts) {
+                    Write-Log "Created shortcuts:"
+                    foreach ($shortcut in $shortcuts) {
+                        Write-Log "  - $($shortcut.Name)"
+                    }
+                } else {
+                    Write-Log "WARNING: No shortcuts found in $shortcutDir"
+                }
             } else {
-                Write-Log "PSCP Status: NOT INSTALLED"
+                Write-Log "WARNING: Shortcut directory not found: $shortcutDir"
             }
 
-            $psftpPath = Join-Path $installLocation "psftp.exe"
-            if (Test-Path $psftpPath) {
-                Write-Log "PSFTP Status: INSTALLED"
-                Write-Log "PSFTP Location: $psftpPath"
-            } else {
-                Write-Log "PSFTP Status: NOT INSTALLED"
-            }
-
-            Write-Log "=========================================="
-
-            if ((Test-Path $puttyPath) -or (Test-Path $puttygenPath) -or (Test-Path $pscpPath) -or (Test-Path $psftpPath)) {
-                Write-Log "Available PuTTY Commands:"
-                if (Test-Path $puttyPath) {
-                    Write-Log "- putty                  (SSH/Telnet client)"
+            # Verify PuTTY installation directory
+            Write-Log "Installation directory contents:"
+            if (Test-Path $installLocation) {
+                $installedFiles = Get-ChildItem -Path $installLocation -Filter "*.exe" -ErrorAction SilentlyContinue
+                foreach ($file in $installedFiles) {
+                    try {
+                        $isBlocked = Get-Item $file.FullName -Stream Zone.Identifier -ErrorAction Stop
+                        $blockedStatus = "(BLOCKED)"
+                    } catch {
+                        $blockedStatus = "(OK)"
+                    }
+                    Write-Log "  - $($file.Name) $blockedStatus"
                 }
-                if (Test-Path $puttygenPath) {
-                    Write-Log "- puttygen               (SSH key generator)"
-                }
-                if (Test-Path $pscpPath) {
-                    Write-Log "- pscp                   (secure copy client)"
-                }
-                if (Test-Path $psftpPath) {
-                    Write-Log "- psftp                  (secure FTP client)"
-                }
-                Write-Log "=========================================="
-                Write-Log "Usage Examples:"
-                Write-Log "- putty username@hostname"
-                Write-Log "- puttygen -t rsa -b 2048 -o mykey.ppk"
-                Write-Log "- pscp file.txt username@hostname:/path/"
-                Write-Log "- psftp username@hostname"
-                Write-Log "=========================================="
-            } elseif ($OPERATION -eq "install") {
-                Write-Log "PuTTY tools are not available. Installation may have failed."
-                Write-Log "Check the logs above for any error messages."
-                Write-Log "=========================================="
-            } else {
-                Write-Log "PuTTY has been successfully removed from the system."
-                Write-Log "=========================================="
-            }
-    precondition:
-        StringEquals:
-          - platformType
-          - Windows
+            }            Write-Log "You can now open PuTTY from Start Menu or by running putty.exe directly"
