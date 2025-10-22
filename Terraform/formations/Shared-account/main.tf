@@ -113,16 +113,18 @@ module "transit_gateway_propagation" {
     module.transit_gateway,
     module.transit_gateway_route_table
   ]
-  tgw_propagation = {
-    name = each.value.name
-    route_table_id = each.value.route_table_id != null ? each.value.route_table_id : (
-      each.value.route_table_key != null ?
-      module.transit_gateway_route_table[each.value.route_table_key].tgw_rtb_id :
-      each.value.route_table_name != null ?
-      module.transit_gateway_route_table[each.value.route_table_name].tgw_rtb_id :
-      values(module.transit_gateway_route_table)[0].tgw_rtb_id
-    )
-  }
+  tgw_propagation = merge(
+    each.value,
+    {
+      route_table_id = each.value.route_table_id != null ? each.value.route_table_id : (
+        each.value.route_table_key != null ?
+        module.transit_gateway_route_table[each.value.route_table_key].tgw_rtb_id :
+        each.value.route_table_name != null ?
+        module.transit_gateway_route_table[each.value.route_table_name].tgw_rtb_id :
+        values(module.transit_gateway_route_table)[0].tgw_rtb_id
+      )
+    }
+  )
 }
 
 #--------------------------------------------------------------------
