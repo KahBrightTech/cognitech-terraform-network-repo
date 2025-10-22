@@ -662,8 +662,21 @@ inputs = {
       principals                = include.cloud.locals.ntw_principals
     }
   }
-
   tgw_subnet_route = [ # Creates routes in subnet route tables to point to TGW
+    {
+      name               = "md-prod-sbnt1"
+      cidr_block         = local.cidr_blocks["mdpp"].segments.shared-services.vpc
+      subnet_name        = include.env.locals.subnet_prefix.primary
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+      vpc_name           = local.vpc_name_abr
+    },
+    {
+      name               = "md-prod-sbnt2"
+      cidr_block         = local.cidr_blocks["mdpp"].segments.shared-services.vpc
+      subnet_name        = include.env.locals.subnet_prefix.secondary
+      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
+      vpc_name           = local.vpc_name_abr
+    }
   ]
 }
 #-------------------------------------------------------
