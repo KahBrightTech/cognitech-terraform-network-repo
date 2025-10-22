@@ -59,7 +59,6 @@ module "transit_gateway_propagation" {
   for_each = var.tgw_propagations != null ? { for prop in var.tgw_propagations : prop.key => prop } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
     module.transit_gateway,
     module.transit_gateway_route_table
   ]
