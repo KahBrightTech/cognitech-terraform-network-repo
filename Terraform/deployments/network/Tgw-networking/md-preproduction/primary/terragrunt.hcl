@@ -54,7 +54,7 @@ terraform {
 inputs = {
   common = {
     global        = local.deploy_globally
-    account_name  = local.aws_account_name
+    account_name  = include.cloud.locals.account_info[include.env.locals.name_abr].name
     region_prefix = local.region_prefix
     tags          = local.tags
     region        = local.region
