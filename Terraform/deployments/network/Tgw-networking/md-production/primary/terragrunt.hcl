@@ -20,13 +20,13 @@ locals {
   region           = local.region_context == "primary" ? include.cloud.locals.regions.use1.name : include.cloud.locals.regions.usw2.name
   region_prefix    = local.region_context == "primary" ? include.cloud.locals.region_prefix.primary : include.cloud.locals.region_prefix.secondary
   region_blk       = local.region_context == "primary" ? include.cloud.locals.regions.use1 : include.cloud.locals.regions.usw2
-  deployment_name  = "terraform/${include.env.locals.repo_name}-${local.aws_account_name}-${local.deployment}-${local.aws_account_name}-${local.region_context}"
+  deployment_name  = "terraform/${include.env.locals.repo_name}-network-${local.deployment}-${local.aws_account_name}-${local.region_context}"
   cidr_blocks      = local.region_context == "primary" ? include.cloud.locals.cidr_block_use1 : include.cloud.locals.cidr_block_usw2
   state_bucket     = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table = include.env.locals.remote_dynamodb_table
   ## Updates these variables as per the product/service
   deployment       = "Tgw-networking"
-  aws_account_name = include.cloud.locals.account_info["mdpp"].name
+  aws_account_name = include.cloud.locals.account_info["mdp"].name
   # vpc_name_abr     = "shared"
   # Composite variables 
   tags = merge(
@@ -62,26 +62,35 @@ inputs = {
 
   tgw_route_table = [
     {
-      key  = "shared-rtb"
-      name = "${local.aws_account_name}-shared-rtb"
+      key    = "shared-rtb"
+      name   = "${local.aws_account_name}-shared-rtb"
+      tgw_id = dependency.shared_services.outputs.transit_gateway.transit_gateway_id
     }
   ]
-  tgw_association = [
+  tgw_associations = [
     {
       key             = "shared-assoc"
+      attachment_id   = local.cidr_blocks["mdp"].segments["shared-services"].tgw_attachment
+      route_table_key = "shared-rtb"
+    }
+  ]
+  tgw_propagations = [
+    {
+      key             = "shared-prop"
       attachment_id   = local.cidr_blocks["mdpp"].segments["shared-services"].tgw_attachment
       route_table_key = "shared-rtb"
     }
   ]
 
   tgw_routes = [
-    {
-      key                    = "shared-rt"
-      name                   = "shared-rt"
-      blackhole              = false
-      destination_cidr_block = local.cidr_blocks["mdp"].segments["shared-services"].vpc
-      route_table_key        = "shared-rtb"
-    }
+    # {
+    #   key                    = "shared-rt"
+    #   name                   = "shared-rt"
+    #   blackhole              = false
+    #   attachment_id          = local.cidr_blocks["mdp"].segments["shared-services"].tgw_attachment # Destination attachment
+    #   destination_cidr_block = local.cidr_blocks["mdp"].segments["shared-services"].vpc # Destination CIDR
+    #   route_table_key        = "shared-rtb"
+    # }
   ]
 }
 #-------------------------------------------------------

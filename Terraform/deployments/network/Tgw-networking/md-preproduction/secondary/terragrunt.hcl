@@ -74,15 +74,23 @@ inputs = {
       route_table_key = "shared-rtb"
     }
   ]
-  tgw_routes = [
+  tgw_propagations = [
     {
-      key                    = "shared-rt"
-      name                   = "shared-rt"
-      blackhole              = false
-      attachment_id          = local.cidr_blocks["mdp"].segments["shared-services"].tgw_attachment # Destination attachment
-      destination_cidr_block = local.cidr_blocks["mdp"].segments["shared-services"].vpc # Destination CIDR
-      route_table_key        = "shared-rtb"
+      key             = "shared-prop"
+      attachment_id   = local.cidr_blocks["mdp"].segments["shared-services"].tgw_attachment
+      route_table_key = "shared-rtb"
     }
+  ]
+
+  tgw_routes = [
+    # {
+    #   key                    = "shared-rt"
+    #   name                   = "shared-rt"
+    #   blackhole              = false
+    #   attachment_id          = local.cidr_blocks["mdp"].segments["shared-services"].tgw_attachment # Destination attachment
+    #   destination_cidr_block = local.cidr_blocks["mdp"].segments["shared-services"].vpc # Destination CIDR
+    #   route_table_key        = "shared-rtb"
+    # }
   ]
 }
 #-------------------------------------------------------
