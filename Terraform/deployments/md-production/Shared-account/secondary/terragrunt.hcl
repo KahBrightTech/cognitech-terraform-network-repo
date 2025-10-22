@@ -519,7 +519,7 @@ inputs = {
       }
     },
     {
-      key                     = "user" 
+      key                     = "user"
       name_prefix             = include.cloud.locals.secret_names.user
       description             = "User credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7
@@ -637,6 +637,18 @@ inputs = {
       content         = file("${include.cloud.locals.repo.root}/documents/NFSInstall.yaml")
       document_type   = "Command"
       document_format = "YAML"
+    },
+    {
+      name               = "Putty-Install"
+      content            = file("${include.cloud.locals.repo.root}/documents/Putty.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:PuttyInstall"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 9 ? * SUN *)" # Every Sunday at 9 AM
     }
   ]
   tgw_attachments = {
@@ -660,34 +672,6 @@ inputs = {
     # }
   ]
   tgw_subnet_route = [ # Creates routes in subnet route tables to point to TGW
-    {
-      name               = "dev-subnet_rt"
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
-      subnet_name        = include.env.locals.subnet_prefix.primary
-      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
-      vpc_name           = local.vpc_name_abr
-    },
-    {
-      name               = "dev-subnet_rt-secondary"
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.development.vpc
-      subnet_name        = include.env.locals.subnet_prefix.secondary
-      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
-      vpc_name           = local.vpc_name_abr
-    },
-    {
-      name               = "trn-subnet_rt"
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
-      subnet_name        = include.env.locals.subnet_prefix.primary
-      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
-      vpc_name           = local.vpc_name_abr
-    },
-    {
-      name               = "trn-subnet_rt-secondary"
-      cidr_block         = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc.training.vpc
-      subnet_name        = include.env.locals.subnet_prefix.secondary
-      transit_gateway_id = dependency.network.outputs.transit_gateway.transit_gateway_id
-      vpc_name           = local.vpc_name_abr
-    }
   ]
 }
 #-------------------------------------------------------

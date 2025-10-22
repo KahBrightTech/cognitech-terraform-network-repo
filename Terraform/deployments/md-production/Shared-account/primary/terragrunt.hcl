@@ -519,7 +519,7 @@ inputs = {
       }
     },
     {
-      key                     = "user" 
+      key                     = "user"
       name_prefix             = include.cloud.locals.secret_names.user
       description             = "User credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7
@@ -637,6 +637,18 @@ inputs = {
       content         = file("${include.cloud.locals.repo.root}/documents/NFSInstall.yaml")
       document_type   = "Command"
       document_format = "YAML"
+    },
+    {
+      name               = "Putty-Install"
+      content            = file("${include.cloud.locals.repo.root}/documents/Putty.yaml")
+      document_type      = "Command"
+      document_format    = "YAML"
+      create_association = true
+      targets = {
+        key    = "tag:PuttyInstall"
+        values = ["True"]
+      }
+      schedule_expression = "cron(0 9 ? * SUN *)" # Every Sunday at 9 AM
     }
   ]
   tgw_attachments = {

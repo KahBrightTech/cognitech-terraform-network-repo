@@ -4,7 +4,7 @@ locals {
       segments = {
         Account_cidr = "10.1.0.0/16"
         shared-services = {
-          tgw_attachment = "tgw-attach-06ee7a7614bec2ced" # Update this after account creation
+          tgw_attachment = "tgw-attach-03e06762122227d0d" # Update this after account creation
           vpc            = "10.1.2.0/24"
           public_subnets = {
             sbnt1 = {
@@ -81,7 +81,7 @@ locals {
       segments = {
         Account_cidr = "10.2.0.0/16"
         shared-services = {
-          tgw_attachment = "tgw-attach-0bea4ec77d6fc4424" # Update this after account creation
+          tgw_attachment = "tgw-attach-06014bb1593923b41" # Update this after account creation
           vpc            = "10.2.2.0/24"
           public_subnets = {
             sbnt1 = {
