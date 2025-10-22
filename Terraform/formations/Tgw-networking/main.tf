@@ -52,6 +52,30 @@ module "transit_gateway_association" {
 }
 
 #--------------------------------------------------------------------
+# Transit Gateway Propagation - Creates Transit Gateway propagations
+#--------------------------------------------------------------------
+module "transit_gateway_propagation" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-propagation?ref=v1.3.82"
+  for_each = var.tgw_propagations != null ? { for prop in var.tgw_propagations : prop.key => prop } : {}
+  common   = var.common
+  depends_on = [
+    module.shared_vpc,
+    module.transit_gateway,
+    module.transit_gateway_route_table
+  ]
+  tgw_propagation = {
+    name = each.value.name
+    route_table_id = each.value.route_table_id != null ? each.value.route_table_id : (
+      each.value.route_table_key != null ?
+      module.transit_gateway_route_table[each.value.route_table_key].tgw_rtb_id :
+      each.value.route_table_name != null ?
+      module.transit_gateway_route_table[each.value.route_table_name].tgw_rtb_id :
+      values(module.transit_gateway_route_table)[0].tgw_rtb_id
+    )
+  }
+}
+
+#--------------------------------------------------------------------
 # Transit Gateway routes - Creates Transit Gateway routes for shared services
 #--------------------------------------------------------------------
 module "transit_gateway_route" {

@@ -275,14 +275,30 @@ variable "tgw_attachments" {
   default = null
 }
 
-variable "tgw_association" {
+variable "tgw_associations" {
   description = "The transit gateway association variables"
-  type = object({
-    attachment_id  = string
-    route_table_id = string
-  })
+  type = list(object({
+    key              = optional(string)
+    attachment_id    = optional(string)
+    route_table_id   = optional(string)
+    route_table_name = optional(string) # Add this for referencing the route table by name
+    route_table_key  = optional(string) # Add this for referencing the route table by key
+  }))
   default = null
 }
+variable "tgw_propagations" {
+  description = "The transit gateway propagation variables"
+  type = list(object({
+    key              = optional(string)
+    attachment_id    = string
+    route_table_id   = string
+    route_table_name = optional(string) # Add this for referencing the route table by name
+    route_table_key  = optional(string)
+  }))
+  default = null
+}
+
+
 variable "tgw_route_table" {
   description = "The transit gateway route table variables"
   type = object({

@@ -285,6 +285,19 @@ variable "tgw_associations" {
   }))
   default = null
 }
+
+variable "tgw_propagations" {
+  description = "The transit gateway propagation variables"
+  type = list(object({
+    key              = optional(string)
+    attachment_id    = string
+    route_table_id   = string
+    route_table_name = optional(string) # Add this for referencing the route table by name
+    route_table_key  = optional(string)
+  }))
+  default = null
+}
+
 variable "tgw_route_table" {
   description = "The transit gateway route table variables"
   type = list(object({

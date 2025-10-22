@@ -20,6 +20,11 @@ output "transit_gateway_association" {
   description = "Transit Gateway association details"
   value       = length(module.transit_gateway_association) > 0 ? module.transit_gateway_association[0] : null
 }
+
+output "transit_gateway_propagation" {
+  description = "Transit Gateway propagation details"
+  value       = length(module.transit_gateway_propagation) > 0 ? module.transit_gateway_propagation[0] : null
+}
 output "s3_app_bucket" {
   description = "S3 bucket details"
   value       = module.s3_app_bucket

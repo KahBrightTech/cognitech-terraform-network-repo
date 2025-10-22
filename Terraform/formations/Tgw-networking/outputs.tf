@@ -7,3 +7,8 @@ output "transit_gateway_association" {
   description = "Transit Gateway association details"
   value       = length(module.transit_gateway_association) > 0 ? module.transit_gateway_association : null
 }
+
+output "transit_gateway_propagation" {
+  description = "Transit Gateway propagation details"
+  value       = length(module.transit_gateway_propagation) > 0 ? module.transit_gateway_propagation : null
+}
