@@ -1009,7 +1009,7 @@ inputs = {
           ip_set_key = "allowed-my-ip"
         },
         {
-          name = "block china"
+          name = "block-china"
           priority = 30
           action = "block"
           geo_match = {
