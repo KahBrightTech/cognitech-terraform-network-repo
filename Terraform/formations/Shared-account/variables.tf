@@ -947,7 +947,7 @@ variable "wafs" {
       description      = optional(string)
       capacity         = number
       rule_group_files = optional(list(string))
-      rules = list(object({
+      rules = optional(list(object({
         name                  = string
         priority              = number
         action                = string
@@ -964,7 +964,7 @@ variable "wafs" {
         text_transformation   = optional(string, "NONE")
         comparison_operator   = optional(string)
         size                  = optional(number)
-      }))
+      })))
     })))
     rule_group_references = optional(list(object({
       name            = string
