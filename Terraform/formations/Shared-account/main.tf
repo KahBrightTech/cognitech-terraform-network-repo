@@ -540,15 +540,15 @@ module "waf" {
     {
       association = each.value.association != null && each.value.association.associate_alb == true ? {
         associate_alb = each.value.association.associate_alb
-        alb_arns = concat(
+        alb_arns = tolist(concat(
           each.value.association.alb_arns != null ? each.value.association.alb_arns : [],
           each.value.association.alb_keys != null ? [
             for alb_key in each.value.association.alb_keys :
             module.load_balancers[alb_key].load_balancer_arn
           ] : []
-        )
+        ))
         web_acl_arn = each.value.association.web_acl_arn
-      } : each.value.association
+      } : (each.value.association != null ? each.value.association : null)
     }
   )
 }
