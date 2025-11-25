@@ -101,8 +101,38 @@ inputs = {
           vpc_name                    = local.vpc_name_abr
         }
       ]
+      private_subnets = [
+        {
+          key                         = include.env.locals.subnet_prefix.primary
+          name                        = include.env.locals.subnet_prefix.primary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name_abr
+        },
+        {
+          key                         = include.env.locals.subnet_prefix.secondary
+          name                        = include.env.locals.subnet_prefix.secondary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name_abr
+        }
+      ]
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
+      }
+      private_routes = {
+        destination_cidr_block = "0.0.0.0/0"
+      }
+      nat_gateway = {
+        name     = "nat"
+        type     = local.external
+        vpc_name = local.vpc_name_abr
       }
       security_groups = [
         {
