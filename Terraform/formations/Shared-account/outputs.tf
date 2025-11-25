@@ -150,9 +150,9 @@ output "ip_sets" {
 #-------------------------------------------------------
 # WAF Rule Groups outputs
 #-------------------------------------------------------
-output "waf_rule_groups" {
+output "rule_groups" {
   description = "Output for WAF Rule Groups"
-  value       = module.waf_rule_groups
+  value       = module.rule_groups
 }
 
 #-------------------------------------------------------
