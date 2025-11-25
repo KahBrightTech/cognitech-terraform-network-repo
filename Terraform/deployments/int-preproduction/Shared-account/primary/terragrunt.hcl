@@ -123,9 +123,6 @@ inputs = {
           vpc_name                    = local.vpc_name_abr
         }
       ]
-      public_routes = {
-        destination_cidr_block = "0.0.0.0/0"
-      }
       private_routes = {
         destination_cidr_block = "0.0.0.0/0"
       }
@@ -133,6 +130,9 @@ inputs = {
         name     = "nat"
         type     = local.external
         vpc_name = local.vpc_name_abr
+      }
+      public_routes = {
+        destination_cidr_block = "0.0.0.0/0"
       }
       security_groups = [
         {
@@ -1009,9 +1009,9 @@ inputs = {
           ip_set_key = "allowed-my-ip"
         },
         {
-          name = "block-china"
+          name     = "block-china"
           priority = 30
-          action = "block"
+          action   = "block"
           geo_match = {
             country_codes = ["CN"]
           }
@@ -1020,7 +1020,6 @@ inputs = {
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
