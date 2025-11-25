@@ -1008,14 +1008,14 @@ inputs = {
         #   action     = "allow"
         #   ip_set_key = "allowed-my-ip"
         # },
-        {
-          name     = "block-china"
-          priority = 30
-          action   = "block"
-          geo_match = {
-            country_codes = ["CN"]
-          }
-        }
+        # {
+        #   name     = "block-china"
+        #   priority = 30
+        #   action   = "block"
+        #   geo_match = {
+        #     country_codes = ["CN"]
+        #   }
+        # }
       ]
     }
   ]
