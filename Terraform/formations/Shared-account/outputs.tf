@@ -158,7 +158,7 @@ output "rule_groups" {
 #-------------------------------------------------------
 # WAF User outputs
 #-------------------------------------------------------
-output "wafs" {
+output "waf" {
   description = "Output for WAFs"
-  value       = module.wafs
+  value       = module.waf
 }
