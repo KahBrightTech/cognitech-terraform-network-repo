@@ -984,7 +984,6 @@ inputs = {
   #     }
   #   }
   # ]
-
   wafs = [
     {
       key         = "org"
@@ -992,8 +991,8 @@ inputs = {
       description = "Organization wide WAF"
       rule_groups = [
         {
-          key  = "aws-managed-rules"
-          name = "aws-managed-rules"
+          key      = "aws-managed-rules"
+          name     = "aws-managed-rules"
           capacity = 25000
           rule_group_files = [
             file("${include.cloud.locals.repo.root}/documents/wafmanagedrules.json")
@@ -1021,7 +1020,6 @@ inputs = {
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------

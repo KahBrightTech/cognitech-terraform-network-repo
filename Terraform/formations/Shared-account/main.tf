@@ -503,16 +503,16 @@ module "rule_groups" {
   common = var.common
   rule_group = merge(
     each.value,
-    each.value.rules != null ? {
-      rules = [
+    {
+      rules = each.value.rules != null ? [
         for rule in each.value.rules : merge(
           rule,
           {
             ip_set_arn = rule.ip_set_key != null ? module.ip_sets[rule.ip_set_key].ip_set_arn : rule.ip_set_arn
           }
         )
-      ]
-    } : {}
+      ] : []
+    }
   )
 }
 
