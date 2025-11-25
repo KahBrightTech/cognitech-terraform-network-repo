@@ -523,7 +523,7 @@ module "waf" {
         for rule in each.value.custom_rules : merge(
           rule,
           {
-            ip_set_arn = rule.ip_set_key != null ? module.ip_sets[rule.ip_set_key].ip_set_arn : each.value.ip_set_arn
+            ip_set_arn = rule.ip_set_key != null ? module.ip_sets[rule.ip_set_key].ip_set_arn : (rule.ip_set_arn != null ? rule.ip_set_arn : null)
           }
         )
       ] : []
