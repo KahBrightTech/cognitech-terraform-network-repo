@@ -476,7 +476,73 @@ module "iam_users" {
   iam_user = each.value
 }
 
+#--------------------------------------------------------------------
+# IP SET
+#--------------------------------------------------------------------
+module "ip_sets" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Waf-ipsets?ref=v1.3.87"
+  for_each = (var.wafs.ip_sets != null) ? { for item in var.wafs.ip_sets : item.key => item } : {}
+  common   = var.common
+  ip_set   = each.value
+}
 
+#--------------------------------------------------------------------
+# Rule Groups
+#--------------------------------------------------------------------
+module "rule_groups" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF-rulegroup?ref=v1.3.87"
+  for_each = (var.wafs.rule_groups != null) ? { for item in var.wafs.rule_groups : item.key => item } : {}
+  common   = var.common
+  rule_group = merge(
+    each.value,
+    {
+      ip_set_arn = each.value.rules.ip_set_key != null ? module.ip_sets[each.value.rules.ip_set_key].ip_set_arn : each.value.rules.ip_set_arn
+    }
+  )
+}
 
+#--------------------------------------------------------------------
+# WAF
+#--------------------------------------------------------------------
+module "waf" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF?ref=v1.3.92"
+  for_each = (var.wafs != null) ? { for item in var.wafs : item.key => item } : {}
+  common   = var.common
+  waf = merge(
+    each.value,
+    {
+      custom_rules = each.value.custom_rules != null ? [
+        for rule in each.value.custom_rules : merge(
+          rule,
+          {
+            ip_set_arn = rule.ip_set_key != null ? module.ip_sets[rule.ip_set_key].ip_set_arn : each.value.ip_set_arn
+          }
+        )
+      ] : []
+    },
+    {
+      rule_group_references = each.value.rule_group_references != null ? [
+        for rg in each.value.rule_group_references : {
+          arn             = rg.rule_group_key != null ? module.rule_groups[rg.rule_group_key].rule_group_arn : rg.arn
+          priority        = rg.priority
+          override_action = rg.override_action
+        }
+      ] : []
+    },
+    {
+      association = each.value.association != null && each.value.association.associate_alb == true ? {
+        associate_alb = each.value.association.associate_alb
+        alb_arns = concat(
+          each.value.association.alb_arns != null ? each.value.association.alb_arns : [],
+          each.value.association.alb_keys != null ? [
+            for alb_key in each.value.association.alb_keys :
+            module.load_balancers[alb_key].load_balancer_arn
+          ] : []
+        )
+        web_acl_arn = each.value.association.web_acl_arn
+      } : each.value.association
+    }
+  )
+}
 
 

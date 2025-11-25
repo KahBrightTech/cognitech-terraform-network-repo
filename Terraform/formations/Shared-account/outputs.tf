@@ -138,3 +138,27 @@ output "iam_users" {
   description = "Output for IAM Users"
   value       = module.iam_users
 }
+
+#-------------------------------------------------------
+# WAF IP Sets outputs
+#-------------------------------------------------------
+output "ip_sets" {
+  description = "Output for WAF IP Sets"
+  value       = module.ip_sets
+}
+
+#-------------------------------------------------------
+# WAF Rule Groups outputs
+#-------------------------------------------------------
+output "waf_rule_groups" {
+  description = "Output for WAF Rule Groups"
+  value       = module.waf_rule_groups
+}
+
+#-------------------------------------------------------
+# WAF User outputs
+#-------------------------------------------------------
+output "wafs" {
+  description = "Output for WAFs"
+  value       = module.wafs
+}

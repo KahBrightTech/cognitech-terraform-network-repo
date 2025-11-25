@@ -918,4 +918,112 @@ variable "datasync_locations" {
   default = null
 }
 
+#--------------------------------------------------------------------
+# WAF Configuration Variables (All-in-One)
+#--------------------------------------------------------------------
+variable "wafs" {
+  description = "Complete WAF configuration object"
+  type = list(object({
+    create_waf                 = optional(bool, true)
+    key                        = optional(string)
+    name                       = optional(string, null)
+    description                = optional(string, "WAF Web ACL for application protection")
+    scope                      = optional(string, "REGIONAL")
+    default_action             = optional(string, "allow")
+    cloudwatch_metrics_enabled = optional(bool, true)
+    sampled_requests_enabled   = optional(bool, true)
+    additional_tags            = optional(map(string))
+    ip_sets = optional(list(object({
+      key                = optional(string)
+      name               = optional(string)
+      description        = optional(string)
+      ip_address_version = optional(string, "IPV4")
+      addresses          = list(string)
+      additional_tags    = optional(map(string))
+    })))
+    rule_groups = optional(list(object({
+      key              = optional(string)
+      name             = optional(string)
+      description      = optional(string)
+      capacity         = number
+      rule_group_files = optional(list(string))
+      rules = list(object({
+        name                  = string
+        priority              = number
+        action                = string
+        statement_type        = string
+        ip_set_arn            = optional(string)
+        ip_set_key            = optional(string)
+        country_codes         = optional(list(string))
+        rate_limit            = optional(number)
+        aggregate_key_type    = optional(string)
+        field_to_match        = optional(string)
+        header_name           = optional(string)
+        positional_constraint = optional(string)
+        search_string         = optional(string)
+        text_transformation   = optional(string, "NONE")
+        comparison_operator   = optional(string)
+        size                  = optional(number)
+      }))
+    })))
+    rule_group_files = optional(list(string))
+    rule_group_references = optional(list(object({
+      name            = string
+      priority        = number
+      rule_group_key  = optional(string)
+      arn             = optional(string)
+      override_action = optional(string, "none")
+    })))
+    managed_rule_groups = optional(list(object({
+      name            = string
+      priority        = number
+      vendor_name     = optional(string, "AWS")
+      exclude_rules   = optional(list(string))
+      override_action = optional(string, "none")
+    })))
+    custom_rules = optional(list(object({
+      name                  = string
+      priority              = number
+      action                = string
+      statement_type        = string
+      ip_set_arn            = optional(string)
+      ip_set_key            = optional(string)
+      country_codes         = optional(list(string))
+      rate_limit            = optional(number)
+      aggregate_key_type    = optional(string)
+      field_to_match        = optional(string)
+      header_name           = optional(string)
+      positional_constraint = optional(string)
+      search_string         = optional(string)
+      text_transformation   = optional(string, "NONE")
+    })))
+    association = optional(object({
+      associate_alb = optional(bool, false)
+      alb_arns      = optional(list(string))
+      alb_keys      = optional(list(string))
+      web_acl_arn   = optional(string)
+    }))
+    logging = optional(object({
+      enabled             = optional(bool, false)
+      log_destination_arn = optional(string, null)
+      create_log_group    = optional(bool, false)
+      log_retention_days  = optional(number, 30)
+      redacted_fields     = optional(list(string))
+      logging_filter = optional(object({
+        default_behavior = string
+        filters = list(object({
+          behavior    = string
+          requirement = string
+          conditions = list(object({
+            type       = string
+            action     = optional(string)
+            label_name = optional(string)
+          }))
+        }))
+      }))
+    }))
+    rule_files = optional(list(string))
+  }))
+  default = null
+}
 

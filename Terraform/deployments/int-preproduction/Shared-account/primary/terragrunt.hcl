@@ -954,6 +954,32 @@ inputs = {
   #     }
   #   }
   # ]
+
+  wafs = [
+    {
+      key = "org"
+      name = "org"
+      description = "Organization wide WAF"
+      rule_group_files = file("${include.cloud.locals.repo.root}/documents/wafmanagedrules.json")
+      ip_sets = [
+        {
+          key         = "allowed-my-ip"
+          name        = "allowed-my-ip"
+          description = "Allowed my home IPs"
+          addresses   = ["69.143.134.56/32"]
+        }
+      ]
+      custom_rules = [
+        {
+          name       = "allow-my-ip"
+          priority   = 15
+          action     = "ALLOW"
+          ip_set_key = "allowed-my-ip"
+          statement_type = "IPSet"
+        }
+      ]
+    }
+  ]
 }
 #-------------------------------------------------------
 # State Configuration
