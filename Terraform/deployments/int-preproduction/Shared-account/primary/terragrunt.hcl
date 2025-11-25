@@ -990,8 +990,14 @@ inputs = {
       key         = "org"
       name        = "org"
       description = "Organization wide WAF"
-      rule_group_files = [
-        file("${include.cloud.locals.repo.root}/documents/wafmanagedrules.json")
+      rule_groups = [
+        {
+          key  = "aws-managed-rules"
+          name = "aws-managed-rules"
+          rule_group_files = [
+            file("${include.cloud.locals.repo.root}/documents/wafmanagedrules.json")
+          ]
+        }
       ]
       ip_sets = [
         {
@@ -1003,18 +1009,12 @@ inputs = {
       ]
       custom_rules = [
         # {
-        #   name       = "allow-my-ip"
-        #   priority   = 20
-        #   action     = "allow"
-        #   ip_set_key = "allowed-my-ip"
-        # },
-        # {
-        #   name     = "block-china"
-        #   priority = 30
-        #   action   = "block"
-        #   geo_match = {
-        #     country_codes = ["CN"]
-        #   }
+        #   name                = "allow-my-ip"
+        #   priority            = 20
+        #   action              = "allow"
+        #   statement_type      = "IPSet"
+        #   ip_set_key          = "allowed-my-ip"
+        #   text_transformation = "NONE"
         # }
       ]
     }

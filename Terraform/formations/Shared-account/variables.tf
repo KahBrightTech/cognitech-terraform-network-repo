@@ -966,7 +966,6 @@ variable "wafs" {
         size                  = optional(number)
       }))
     })))
-    rule_group_files = optional(list(string))
     rule_group_references = optional(list(object({
       name            = string
       priority        = number
