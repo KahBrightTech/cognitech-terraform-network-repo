@@ -1002,12 +1002,12 @@ inputs = {
         }
       ]
       custom_rules = [
-        {
-          name       = "allow-my-ip"
-          priority   = 20
-          action     = "allow"
-          ip_set_key = "allowed-my-ip"
-        },
+        # {
+        #   name       = "allow-my-ip"
+        #   priority   = 20
+        #   action     = "allow"
+        #   ip_set_key = "allowed-my-ip"
+        # },
         {
           name     = "block-china"
           priority = 30
