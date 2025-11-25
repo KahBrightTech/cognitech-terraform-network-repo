@@ -1003,11 +1003,18 @@ inputs = {
       ]
       custom_rules = [
         {
-          name           = "allow-my-ip"
-          priority       = 20
-          action         = "allow"
-          ip_set_key     = "allowed-my-ip"
-          statement_type = "IPSet"
+          name       = "allow-my-ip"
+          priority   = 20
+          action     = "allow"
+          ip_set_key = "allowed-my-ip"
+        },
+        {
+          name = "block china"
+          priority = 30
+          action = "block"
+          geo_match = {
+            country_codes = ["CN"]
+          }
         }
       ]
     }

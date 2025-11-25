@@ -985,7 +985,7 @@ variable "wafs" {
       name                  = string
       priority              = number
       action                = string
-      statement_type        = string
+      statement_type        = optional(string)
       ip_set_arn            = optional(string)
       ip_set_key            = optional(string)
       country_codes         = optional(list(string))
