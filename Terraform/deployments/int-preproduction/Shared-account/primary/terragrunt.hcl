@@ -984,41 +984,41 @@ inputs = {
   #     }
   #   }
   # ]
-  wafs = [
-    {
-      key         = "org"
-      name        = "org"
-      description = "Organization wide WAF"
-      rule_groups = [
-        {
-          key      = "aws-managed-rules"
-          name     = "aws-managed-rules"
-          capacity = 25000
-          rule_group_files = [
-            "${include.cloud.locals.repo.root}/documents/wafmanagedrules.json"
-          ]
-        }
-      ]
-      ip_sets = [
-        {
-          key         = "allowed-my-ip"
-          name        = "allowed-my-ip"
-          description = "Allowed my home IPs"
-          addresses   = ["69.143.134.56/32"]
-        }
-      ]
-      custom_rules = [
-        # {
-        #   name                = "allow-my-ip"
-        #   priority            = 20
-        #   action              = "allow"
-        #   statement_type      = "IPSet"
-        #   ip_set_key          = "allowed-my-ip"
-        #   text_transformation = "NONE"
-        # }
-      ]
-    }
-  ]
+  # wafs = [
+  #   {
+  #     key         = "org"
+  #     name        = "org"
+  #     description = "Organization wide WAF"
+  #     rule_groups = [
+  #       {
+  #         key      = "aws-managed-rules"
+  #         name     = "aws-managed-rules"
+  #         capacity = 25000
+  #         rule_group_files = [
+  #           "${include.cloud.locals.repo.root}/documents/wafmanagedrules.json"
+  #         ]
+  #       }
+  #     ]
+  #     ip_sets = [
+  #       {
+  #         key         = "allowed-my-ip"
+  #         name        = "allowed-my-ip"
+  #         description = "Allowed my home IPs"
+  #         addresses   = ["69.143.134.56/32"]
+  #       }
+  #     ]
+  #     custom_rules = [
+  #       # {
+  #       #   name                = "allow-my-ip"
+  #       #   priority            = 20
+  #       #   action              = "allow"
+  #       #   statement_type      = "IPSet"
+  #       #   ip_set_key          = "allowed-my-ip"
+  #       #   text_transformation = "NONE"
+  #       # }
+  #     ]
+  #   }
+  # ]
 }
 
 #-------------------------------------------------------
