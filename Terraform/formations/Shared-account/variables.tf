@@ -987,7 +987,7 @@ variable "wafs" {
     rule_group_references = optional(list(object({
       name            = string
       priority        = number
-      arn             = string
+      arn             = optional(string)
       rule_group_key  = optional(string)
       override_action = optional(string, "none")
     })))
