@@ -1,0 +1,32 @@
+[
+  {
+    "name": "AWSManagedRulesAdminProtectionRuleSet",
+    "priority": 1,
+    "action": "null",
+    "override_action": "none",
+    "statement_type": "managed_rule_group",
+    "vendor_name": "AWS",
+    "rule_overrides": [],
+    "scope_downs": null
+  },
+  {
+    "name": "AWSManagedRulesCommonRuleSet",
+    "priority": 5,
+    "action": "null",
+    "override_action": "none",
+    "statement_type": "managed_rule_group",
+    "vendor_name": "AWS",
+    "rule_overrides": [],
+    "scope_downs": null
+  },
+  {
+    "name": "AWSManagedRulesWordPressRuleSet",
+    "priority": 10,
+    "action": "null",
+    "override_action": "none",
+    "statement_type": "managed_rule_group",
+    "vendor_name": "AWS",
+    "rule_overrides": [],
+    "scope_downs": null
+  }
+]

@@ -924,36 +924,34 @@ variable "datasync_locations" {
 variable "wafs" {
   description = "Complete WAF configuration object"
   type = list(object({
-    create_waf                 = optional(bool, true)
-    key                        = optional(string)
+    key                        = string
     name                       = optional(string, null)
     description                = optional(string, "WAF Web ACL for application protection")
     scope                      = optional(string, "REGIONAL")
     default_action             = optional(string, "allow")
     cloudwatch_metrics_enabled = optional(bool, true)
+    rule_file                  = optional(string)
+    ip_set_arns                = optional(list(string))
     sampled_requests_enabled   = optional(bool, true)
-    additional_tags            = optional(map(string))
-    ip_sets = optional(list(object({
-      key                = optional(string)
-      name               = optional(string)
-      description        = optional(string)
+    ip_set = optional(list(object({
+      name               = string
+      description        = optional(string, null)
+      scope              = optional(string, "REGIONAL")
       ip_address_version = optional(string, "IPV4")
       addresses          = list(string)
-      additional_tags    = optional(map(string))
+      additional_tags    = optional(map(string), {})
     })))
     rule_groups = optional(list(object({
-      key              = optional(string)
-      name             = optional(string)
+      name             = string
       description      = optional(string)
       capacity         = number
       rule_group_files = optional(list(string))
-      rules = optional(list(object({
+      rules = list(object({
         name                  = string
         priority              = number
         action                = string
         statement_type        = string
         ip_set_arn            = optional(string)
-        ip_set_key            = optional(string)
         country_codes         = optional(list(string))
         rate_limit            = optional(number)
         aggregate_key_type    = optional(string)
@@ -964,29 +962,15 @@ variable "wafs" {
         text_transformation   = optional(string, "NONE")
         comparison_operator   = optional(string)
         size                  = optional(number)
-      })))
+      }))
+      additional_tags = optional(map(string), {})
     })))
-    rule_group_references = optional(list(object({
-      name            = string
-      priority        = number
-      rule_group_key  = optional(string)
-      arn             = optional(string)
-      override_action = optional(string, "none")
-    })))
-    managed_rule_groups = optional(list(object({
-      name            = string
-      priority        = number
-      vendor_name     = optional(string, "AWS")
-      exclude_rules   = optional(list(string))
-      override_action = optional(string, "none")
-    })))
+    # Custom Rules
     custom_rules = optional(list(object({
       name                  = string
       priority              = number
       action                = string
-      statement_type        = optional(string)
-      ip_set_arn            = optional(string)
-      ip_set_key            = optional(string)
+      statement_type        = string
       country_codes         = optional(list(string))
       rate_limit            = optional(number)
       aggregate_key_type    = optional(string)
@@ -995,17 +979,31 @@ variable "wafs" {
       positional_constraint = optional(string)
       search_string         = optional(string)
       text_transformation   = optional(string, "NONE")
+      ip_set_arn            = optional(string)
     })))
+
+    # Rule Group References (for custom rule groups)
+    rule_group_references = optional(list(object({
+      name            = string
+      priority        = number
+      arn             = string
+      rule_group_key  = optional(string)
+      override_action = optional(string, "none")
+    })))
+
+    # Association
     association = optional(object({
       associate_alb = optional(bool, false)
       alb_arns      = optional(list(string))
       alb_keys      = optional(list(string))
       web_acl_arn   = optional(string)
     }))
+
+    # Logging
     logging = optional(object({
       enabled             = optional(bool, false)
-      log_destination_arn = optional(string, null)
-      create_log_group    = optional(bool, false)
+      log_destination_arn = optional(string)
+      create_log_group    = optional(bool)
       log_retention_days  = optional(number, 30)
       redacted_fields     = optional(list(string))
       logging_filter = optional(object({
@@ -1021,8 +1019,8 @@ variable "wafs" {
         }))
       }))
     }))
-    rule_files = optional(list(string))
   }))
   default = null
 }
+
 
