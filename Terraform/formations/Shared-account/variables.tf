@@ -942,11 +942,11 @@ variable "wafs" {
       additional_tags    = optional(map(string), {})
     })))
     rule_groups = optional(list(object({
-      key              = string
-      name             = string
-      description      = optional(string)
-      capacity         = number
-      rule_group_files = optional(list(string))
+      key             = string
+      name            = string
+      description     = optional(string)
+      capacity        = number
+      rule_group_file = optional(list(string))
       rules = optional(list(object({
         name                  = string
         priority              = number
