@@ -953,6 +953,9 @@ inputs = {
           ip_set_key      = "my-ip"
         }
       ]
+      association = {
+        alb_keys = ["app"]
+      }
     }
   ]
 }
