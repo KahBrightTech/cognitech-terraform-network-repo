@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Block-Cameroon",
+    "priority": 15,
+    "action": "block",
+    "statement_type": "geo_match",
+    "country_codes": ["CM"]
+  },
+  {
+    "name": "Block-Nigeria",
+    "priority": 20,
+    "action": "block",
+    "statement_type": "geo_match",
+    "country_codes": ["NG"]
+  },
+  {
+    "name": "Block-China",
+    "priority": 25,
+    "action": "block",
+    "statement_type": "geo_match",
+    "country_codes": ["CN"]
+  }
+]

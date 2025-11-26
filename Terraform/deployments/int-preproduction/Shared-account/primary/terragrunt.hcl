@@ -994,6 +994,15 @@ inputs = {
         enabled   = true
         create_log_group = true
       }
+      rule_groups = [
+        {
+          key        = "country-based-blocking"
+          name       = "CountryBasedBlocking"
+          description = "Block requests from specific countries"
+          capacity  = 1000
+          rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/countrybasedblocking.json"
+        }
+      ]
       # ip_sets = [
       #   {
       #     key         = "allowed-my-ip"
