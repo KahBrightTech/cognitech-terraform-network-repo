@@ -958,15 +958,28 @@ inputs = {
           name        = "my-ip"
           description = "Block my home IPs"
           addresses   = ["69.143.134.56/32"]
+        },
+        {
+          key         = "josh-ip"
+          name        = "josh-ip"
+          description = "Block Josh's IPs"
+          addresses   = ["70.22.20.54/32"]
         }
       ]
       custom_rules = [
         {
-          name            = "allow-my-ip"
-          priority        = 65
-          action          = "block"
-          statement_type  = "ip_set"
-          ip_set_key      = "my-ip"
+          name           = "allow-my-ip"
+          priority       = 65
+          action         = "allow"
+          statement_type = "ip_set"
+          ip_set_key     = "my-ip"
+        },
+        {
+          name           = "block-josh-ip"
+          priority       = 70
+          action         = "block"
+          statement_type = "ip_set"
+          ip_set_key     = "josh-ip"
         }
       ]
       association = {
