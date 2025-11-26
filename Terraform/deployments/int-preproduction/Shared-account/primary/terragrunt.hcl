@@ -954,11 +954,13 @@ inputs = {
         }
       ]
       association = {
-        alb_keys = ["app"]
+        associate_alb = true
+        alb_keys      = ["app"]
       }
     }
   ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
