@@ -101,36 +101,36 @@ inputs = {
           vpc_name                    = local.vpc_name_abr
         }
       ]
-      # private_subnets = [
-      #   {
-      #     key                         = include.env.locals.subnet_prefix.primary
-      #     name                        = include.env.locals.subnet_prefix.primary
-      #     primary_availability_zone   = local.region_blk.availability_zones.primary
-      #     primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
-      #     secondary_availability_zone = local.region_blk.availability_zones.secondary
-      #     secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
-      #     subnet_type                 = local.internal
-      #     vpc_name                    = local.vpc_name_abr
-      #   },
-      #   {
-      #     key                         = include.env.locals.subnet_prefix.secondary
-      #     name                        = include.env.locals.subnet_prefix.secondary
-      #     primary_availability_zone   = local.region_blk.availability_zones.primary
-      #     primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
-      #     secondary_availability_zone = local.region_blk.availability_zones.secondary
-      #     secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
-      #     subnet_type                 = local.internal
-      #     vpc_name                    = local.vpc_name_abr
-      #   }
-      # ]
-      # private_routes = {
-      #   destination_cidr_block = "0.0.0.0/0"
-      # }
-      # nat_gateway = {
-      #   name     = "nat"
-      #   type     = local.external
-      #   vpc_name = local.vpc_name_abr
-      # }
+      private_subnets = [
+        {
+          key                         = include.env.locals.subnet_prefix.primary
+          name                        = include.env.locals.subnet_prefix.primary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name_abr
+        },
+        {
+          key                         = include.env.locals.subnet_prefix.secondary
+          name                        = include.env.locals.subnet_prefix.secondary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name_abr
+        }
+      ]
+      private_routes = {
+        destination_cidr_block = "0.0.0.0/0"
+      }
+      nat_gateway = {
+        name     = "nat"
+        type     = local.external
+        vpc_name = local.vpc_name_abr
+      }
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
       }
@@ -775,40 +775,40 @@ inputs = {
     }
   ]
   load_balancers = [
+    {
+      key             = "app"
+      name            = "app"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = false
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      vpc_name                   = local.vpc_name
+      create_default_listener    = true
+    },
     # {
-    #   key             = "app"
-    #   name            = "app"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   key             = "etl"
+    #   name            = "etl"
+    #   vpc_name_abr    = " ${ local.vpc_name_abr } "
     #   type            = "application"
     #   security_groups = ["alb"]
     #   subnets = [
     #     include.env.locals.subnet_prefix.primary
     #   ]
-    #   enable_deletion_protection = false
+    #   enable_deletion_protection = true
     #   enable_access_logs         = true
     #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
     #   vpc_name                   = local.vpc_name
-    #   create_default_listener    = true
     # },
     # {
-    #   key             = " etl "
-    #   name            = " etl "
-    #   vpc_name_abr    = " $ { local.vpc_name_abr } "
-    #   type            = " application "
-    #   security_groups = [" alb "]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
-    #   vpc_name                   = local.vpc_name
-    # },
-    # {
-    #   key             = " ssrs "
-    #   name            = " ssrs "
-    #   vpc_name_abr    = " $ { local.vpc_name_abr } "
-    #   type            = " network "
+    #   key             = "ssrs"
+    #   name            = "ssrs"
+    #   vpc_name_abr    = " ${local.vpc_name_abr} "
+    #   type            = "network"
     #   security_groups = [" nlb "]
     #   subnets = [
     #     include.env.locals.subnet_prefix.primary
