@@ -1012,8 +1012,7 @@ inputs = {
       #   #   text_transformation = "NONE"
       #   # }
       # ]
-    }
-    
+    }   
   ]
 }
 

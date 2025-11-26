@@ -480,7 +480,7 @@ module "iam_users" {
 # IP SET
 #--------------------------------------------------------------------
 module "ip_sets" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Waf-ipsets?ref=v1.4.1"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Waf-ipsets?ref=v1.4.4"
   for_each = var.wafs != null ? {
     for item in flatten([
       for waf in var.wafs : waf.ip_sets != null ? waf.ip_sets : []
@@ -494,7 +494,7 @@ module "ip_sets" {
 # Rule Groups
 #--------------------------------------------------------------------
 module "rule_groups" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF-rulegroup?ref=v1.4.3"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF-rulegroup?ref=v1.4.4"
   for_each = var.wafs != null ? {
     for item in flatten([
       for waf in var.wafs : waf.rule_groups != null ? waf.rule_groups : []
@@ -520,7 +520,7 @@ module "rule_groups" {
 # WAF
 #--------------------------------------------------------------------
 module "waf" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF?ref=v1.4.1"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF?ref=v1.4.4"
   for_each = (var.wafs != null) ? { for item in var.wafs : item.key => item } : {}
   common   = var.common
   waf = merge(
