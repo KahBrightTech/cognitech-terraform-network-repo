@@ -947,7 +947,7 @@ inputs = {
       custom_rules = [
         {
           name            = "allow-my-ip"
-          priority        = 60
+          priority        = 65
           action          = "allow"
           statement_type  = "ip_set"
           ip_set_key      = "my-ip"
