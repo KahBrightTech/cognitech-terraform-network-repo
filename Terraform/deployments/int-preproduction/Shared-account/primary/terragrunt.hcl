@@ -786,7 +786,7 @@ inputs = {
       ]
       enable_deletion_protection = false
       enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
       vpc_name                   = local.vpc_name_abr
       create_default_listener    = true
     },
@@ -801,7 +801,7 @@ inputs = {
     #   ]
     #   enable_deletion_protection = true
     #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-audit-bucket"
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
     #   vpc_name                   = local.vpc_name
     # },
     # {
