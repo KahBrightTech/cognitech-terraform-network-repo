@@ -984,7 +984,6 @@ inputs = {
   #     }
   #   }
   # ]
-  
   wafs = [
     {
       key         = "org"
