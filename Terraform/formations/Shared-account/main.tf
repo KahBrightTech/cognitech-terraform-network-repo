@@ -520,7 +520,7 @@ module "rule_groups" {
 # WAF
 #--------------------------------------------------------------------
 module "waf" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF?ref=v1.4.7"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF?ref=v1.4.8"
   for_each = (var.wafs != null) ? { for item in var.wafs : item.key => item } : {}
   common   = var.common
   waf = merge(
