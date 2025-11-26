@@ -250,6 +250,14 @@ inputs = {
                 from_port     = 8083
                 to_port       = 8083
                 ip_protocol   = "tcp"
+              },
+              {
+                key           = "egress-3000-app-sg"
+                target_sg_key = "app"
+                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 3000"
+                from_port     = 3000
+                to_port       = 3000
+                ip_protocol   = "tcp"
               }
             ]
           )
@@ -316,6 +324,14 @@ inputs = {
                 description   = "BASE - Inbound traffic from ALB SG to Internet on tcp port 8083"
                 from_port     = 8083
                 to_port       = 8083
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "ingress-3000-alb-sg"
+                source_sg_key = "alb"
+                description   = "BASE - Inbound traffic from ALB SG to Internet on tcp port 3000"
+                from_port     = 3000
+                to_port       = 3000
                 ip_protocol   = "tcp"
               },
               {
