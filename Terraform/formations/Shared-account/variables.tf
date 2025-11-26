@@ -981,6 +981,7 @@ variable "wafs" {
       search_string         = optional(string)
       text_transformation   = optional(string, "NONE")
       ip_set_arn            = optional(string)
+      ip_set_key            = optional(string)
     })))
 
     # Rule Group References (for custom rule groups)

@@ -919,7 +919,7 @@ inputs = {
         {
           key             = "rate-based"
           name            = "RateBasedBlocking"
-          description     = "Block requests from specific countries"
+          description     = "Block requests exceeding rate limit"
           capacity        = 1000
           rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/ratebasedblocking.json"
         }
@@ -936,24 +936,24 @@ inputs = {
           rule_group_key = "rate-based"
         }
       ]
-      # ip_sets = [
-      #   {
-      #     key         = "allowed-my-ip"
-      #     name        = "allowed-my-ip"
-      #     description = "Allowed my home IPs"
-      #     addresses   = ["69.143.134.56/32"]
-      #   }
-      # ]
-      # custom_rules = [
-      #   # {
-      #   #   name                = "allow-my-ip"
-      #   #   priority            = 20
-      #   #   action              = "allow"
-      #   #   statement_type      = "IPSet"
-      #   #   ip_set_key          = "allowed-my-ip"
-      #   #   text_transformation = "NONE"
-      #   # }
-      # ]
+      ip_sets = [
+        {
+          key         = "allowed-my-ip"
+          name        = "allowed-my-ip"
+          description = "Allowed my home IPs"
+          addresses   = ["69.143.134.56/32"]
+        }
+      ]
+      custom_rules = [
+        {
+          name            = "allow-my-ip"
+          priority        = 55
+          action          = "allow"
+          override_action = null
+          statement_type  = "ip_set"
+          ip_set_key      = "allowed-my-ip"
+        }
+      ]
     }
   ]
 }
