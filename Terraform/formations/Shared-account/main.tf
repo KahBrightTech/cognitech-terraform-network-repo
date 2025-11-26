@@ -494,7 +494,7 @@ module "ip_sets" {
 # Rule Groups
 #--------------------------------------------------------------------
 module "rule_groups" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF-rulegroup?ref=v1.4.1"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF-rulegroup?ref=v1.4.2"
   for_each = var.wafs != null ? {
     for item in flatten([
       for waf in var.wafs : waf.rule_groups != null ? waf.rule_groups : []
