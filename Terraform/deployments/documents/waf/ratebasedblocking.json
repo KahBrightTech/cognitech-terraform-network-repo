@@ -3,7 +3,7 @@
     "name": "Rate-based-blocking",
     "priority": 40,
     "action": "block",
-    "statement_type": "rate_based",
+    "statement_type": "rate_limit",
     "rate_limit": 1000,
     "aggregate_key_type": "IP"
   }

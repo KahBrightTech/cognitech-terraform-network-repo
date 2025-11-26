@@ -924,6 +924,18 @@ inputs = {
           rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/ratebasedblocking.json"
         }
       ]
+      rule_group_references = [
+        {
+          name           = "country-based-blocking"
+          priority       = 45
+          rule_group_key = "country-based-blocking"
+        },
+        {
+          name           = "rate-based"
+          priority       = 50
+          rule_group_key = "rate-based"
+        }
+      ]
       # ip_sets = [
       #   {
       #     key         = "allowed-my-ip"
