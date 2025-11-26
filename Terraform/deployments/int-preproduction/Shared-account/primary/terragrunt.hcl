@@ -962,7 +962,7 @@ inputs = {
         {
           key         = "josh-ip"
           name        = "josh-ip"
-          description = "Block Josh's IPs"
+          description = "Block Josh IPs"
           addresses   = ["70.22.20.54/32"]
         }
       ]
