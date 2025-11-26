@@ -938,8 +938,8 @@ inputs = {
       ]
       ip_sets = [
         {
-          key         = "allowed-my-ip"
-          name        = "allowed-my-ip"
+          key         = "my-ip"
+          name        = "my-ip"
           description = "Allowed my home IPs"
           addresses   = ["69.143.134.56/32"]
         }
@@ -951,13 +951,12 @@ inputs = {
           action          = "allow"
           override_action = null
           statement_type  = "ip_set"
-          ip_set_key      = "allowed-my-ip"
+          ip_set_key      = "my-ip"
         }
       ]
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
