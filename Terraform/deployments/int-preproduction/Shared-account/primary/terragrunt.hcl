@@ -101,36 +101,36 @@ inputs = {
           vpc_name                    = local.vpc_name_abr
         }
       ]
-      private_subnets = [
-        {
-          key                         = include.env.locals.subnet_prefix.primary
-          name                        = include.env.locals.subnet_prefix.primary
-          primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
-          secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
-          subnet_type                 = local.internal
-          vpc_name                    = local.vpc_name_abr
-        },
-        {
-          key                         = include.env.locals.subnet_prefix.secondary
-          name                        = include.env.locals.subnet_prefix.secondary
-          primary_availability_zone   = local.region_blk.availability_zones.primary
-          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
-          secondary_availability_zone = local.region_blk.availability_zones.secondary
-          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
-          subnet_type                 = local.internal
-          vpc_name                    = local.vpc_name_abr
-        }
-      ]
-      private_routes = {
-        destination_cidr_block = "0.0.0.0/0"
-      }
-      nat_gateway = {
-        name     = "nat"
-        type     = local.external
-        vpc_name = local.vpc_name_abr
-      }
+      # private_subnets = [
+      #   {
+      #     key                         = include.env.locals.subnet_prefix.primary
+      #     name                        = include.env.locals.subnet_prefix.primary
+      #     primary_availability_zone   = local.region_blk.availability_zones.primary
+      #     primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
+      #     secondary_availability_zone = local.region_blk.availability_zones.secondary
+      #     secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
+      #     subnet_type                 = local.internal
+      #     vpc_name                    = local.vpc_name_abr
+      #   },
+      #   {
+      #     key                         = include.env.locals.subnet_prefix.secondary
+      #     name                        = include.env.locals.subnet_prefix.secondary
+      #     primary_availability_zone   = local.region_blk.availability_zones.primary
+      #     primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
+      #     secondary_availability_zone = local.region_blk.availability_zones.secondary
+      #     secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
+      #     subnet_type                 = local.internal
+      #     vpc_name                    = local.vpc_name_abr
+      #   }
+      # ]
+      # private_routes = {
+      #   destination_cidr_block = "0.0.0.0/0"
+      # }
+      # nat_gateway = {
+      #   name     = "nat"
+      #   type     = local.external
+      #   vpc_name = local.vpc_name_abr
+      # }
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
       }
@@ -774,51 +774,51 @@ inputs = {
       schedule_expression = "cron(0 9 ? * SUN *)" # Every Sunday at 9 AM
     }
   ]
-  load_balancers = [
-    {
-      key             = "app"
-      name            = "app"
-      vpc_name_abr    = "${local.vpc_name_abr}"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = false
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-      vpc_name                   = local.vpc_name_abr
-      create_default_listener    = true
-    },
-    # {
-    #   key             = "etl"
-    #   name            = "etl"
-    #   vpc_name_abr    = " ${ local.vpc_name_abr } "
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = true
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-    #   vpc_name                   = local.vpc_name
-    # },
-    # {
-    #   key             = "ssrs"
-    #   name            = "ssrs"
-    #   vpc_name_abr    = " ${local.vpc_name_abr} "
-    #   type            = "network"
-    #   security_groups = [" nlb "]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = false
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
-    #   vpc_name                   = local.vpc_name
-    # }
-  ]
+  # load_balancers = [
+  #   {
+  #     key             = "app"
+  #     name            = "app"
+  #     vpc_name_abr    = "${local.vpc_name_abr}"
+  #     type            = "application"
+  #     security_groups = ["alb"]
+  #     subnets = [
+  #       include.env.locals.subnet_prefix.primary
+  #     ]
+  #     enable_deletion_protection = false
+  #     enable_access_logs         = true
+  #     access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+  #     vpc_name                   = local.vpc_name_abr
+  #     create_default_listener    = true
+  #   },
+  #   # {
+  #   #   key             = "etl"
+  #   #   name            = "etl"
+  #   #   vpc_name_abr    = " ${ local.vpc_name_abr } "
+  #   #   type            = "application"
+  #   #   security_groups = ["alb"]
+  #   #   subnets = [
+  #   #     include.env.locals.subnet_prefix.primary
+  #   #   ]
+  #   #   enable_deletion_protection = true
+  #   #   enable_access_logs         = true
+  #   #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+  #   #   vpc_name                   = local.vpc_name
+  #   # },
+  #   # {
+  #   #   key             = "ssrs"
+  #   #   name            = "ssrs"
+  #   #   vpc_name_abr    = " ${local.vpc_name_abr} "
+  #   #   type            = "network"
+  #   #   security_groups = [" nlb "]
+  #   #   subnets = [
+  #   #     include.env.locals.subnet_prefix.primary
+  #   #   ]
+  #   #   enable_deletion_protection = false
+  #   #   enable_access_logs         = true
+  #   #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
+  #   #   vpc_name                   = local.vpc_name
+  #   # }
+  # ]
   alb_listeners = [
     # {
     #   key      = " etl "
@@ -898,67 +898,67 @@ inputs = {
     # }
   ]
 
-  wafs = [
-    {
-      key         = "org"
-      name        = "org"
-      description = "Organization wide WAF"
-      rule_file   = "${include.cloud.locals.repo.root}/documents/waf/managedrules.json"
-      logging = {
-        enabled          = true
-        create_log_group = true
-      }
-      rule_groups = [
-        {
-          key             = "country-based-blocking"
-          name            = "CountryBasedBlocking"
-          description     = "Block requests from specific countries"
-          capacity        = 1000
-          rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/countrybasedblocking.json"
-        },
-        {
-          key             = "rate-based"
-          name            = "RateBasedBlocking"
-          description     = "Block requests exceeding rate limit"
-          capacity        = 1000
-          rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/ratebasedblocking.json"
-        }
-      ]
-      rule_group_references = [
-        {
-          name           = "country-based-blocking"
-          priority       = 45
-          rule_group_key = "country-based-blocking"
-        },
-        {
-          name           = "rate-based"
-          priority       = 50
-          rule_group_key = "rate-based"
-        }
-      ]
-      ip_sets = [
-        {
-          key         = "my-ip"
-          name        = "my-ip"
-          description = "Allowed my home IPs"
-          addresses   = ["69.143.134.56/32"]
-        }
-      ]
-      custom_rules = [
-        {
-          name            = "allow-my-ip"
-          priority        = 65
-          action          = "allow"
-          statement_type  = "ip_set"
-          ip_set_key      = "my-ip"
-        }
-      ]
-      association = {
-        associate_alb = true
-        alb_keys      = ["app"]
-      }
-    }
-  ]
+  # wafs = [
+  #   {
+  #     key         = "org"
+  #     name        = "org"
+  #     description = "Organization wide WAF"
+  #     rule_file   = "${include.cloud.locals.repo.root}/documents/waf/managedrules.json"
+  #     logging = {
+  #       enabled          = true
+  #       create_log_group = true
+  #     }
+  #     rule_groups = [
+  #       {
+  #         key             = "country-based-blocking"
+  #         name            = "CountryBasedBlocking"
+  #         description     = "Block requests from specific countries"
+  #         capacity        = 1000
+  #         rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/countrybasedblocking.json"
+  #       },
+  #       {
+  #         key             = "rate-based"
+  #         name            = "RateBasedBlocking"
+  #         description     = "Block requests exceeding rate limit"
+  #         capacity        = 1000
+  #         rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/ratebasedblocking.json"
+  #       }
+  #     ]
+  #     rule_group_references = [
+  #       {
+  #         name           = "country-based-blocking"
+  #         priority       = 45
+  #         rule_group_key = "country-based-blocking"
+  #       },
+  #       {
+  #         name           = "rate-based"
+  #         priority       = 50
+  #         rule_group_key = "rate-based"
+  #       }
+  #     ]
+  #     ip_sets = [
+  #       {
+  #         key         = "my-ip"
+  #         name        = "my-ip"
+  #         description = "Allowed my home IPs"
+  #         addresses   = ["69.143.134.56/32"]
+  #       }
+  #     ]
+  #     custom_rules = [
+  #       {
+  #         name            = "allow-my-ip"
+  #         priority        = 65
+  #         action          = "allow"
+  #         statement_type  = "ip_set"
+  #         ip_set_key      = "my-ip"
+  #       }
+  #     ]
+  #     association = {
+  #       associate_alb = true
+  #       alb_keys      = ["app"]
+  #     }
+  #   }
+  # ]
 }
 
 #-------------------------------------------------------
