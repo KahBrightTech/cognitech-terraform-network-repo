@@ -897,26 +897,33 @@ inputs = {
     #   vpc_name_abr = " $ { local.vpc_name_abr } "
     # }
   ]
-  
+
   wafs = [
     {
       key         = "org"
       name        = "org"
       description = "Organization wide WAF"
-      rule_file  = "${include.cloud.locals.repo.root}/documents/waf/managedrules.json"
+      rule_file   = "${include.cloud.locals.repo.root}/documents/waf/managedrules.json"
       logging = {
-        enabled   = true
+        enabled          = true
         create_log_group = true
       }
       rule_groups = [
         {
-          key        = "country-based-blocking"
-          name       = "CountryBasedBlocking"
-          description = "Block requests from specific countries"
-          capacity  = 1000
+          key             = "country-based-blocking"
+          name            = "CountryBasedBlocking"
+          description     = "Block requests from specific countries"
+          capacity        = 1000
           rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/countrybasedblocking.json"
+        },
+        {
+          key             = "rate-based"
+          name            = "RateBasedBlocking"
+          description     = "Block requests from specific countries"
+          capacity        = 1000
+          rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/ratebasedblocking.json"
         }
-      ]     
+      ]
       # ip_sets = [
       #   {
       #     key         = "allowed-my-ip"
@@ -935,7 +942,7 @@ inputs = {
       #   #   text_transformation = "NONE"
       #   # }
       # ]
-    }   
+    }
   ]
 }
 #-------------------------------------------------------
