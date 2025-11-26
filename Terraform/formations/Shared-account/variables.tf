@@ -933,7 +933,7 @@ variable "wafs" {
     rule_file                  = optional(string)
     ip_set_arns                = optional(list(string))
     sampled_requests_enabled   = optional(bool, true)
-    ip_set = optional(list(object({
+    ip_sets = optional(list(object({
       name               = string
       description        = optional(string, null)
       scope              = optional(string, "REGIONAL")
