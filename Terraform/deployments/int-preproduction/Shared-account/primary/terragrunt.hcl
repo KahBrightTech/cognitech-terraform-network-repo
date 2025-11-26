@@ -916,8 +916,7 @@ inputs = {
           capacity  = 1000
           rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/countrybasedblocking.json"
         }
-      ]
-      
+      ]     
       # ip_sets = [
       #   {
       #     key         = "allowed-my-ip"

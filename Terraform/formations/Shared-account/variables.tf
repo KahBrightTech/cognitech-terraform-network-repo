@@ -946,7 +946,7 @@ variable "wafs" {
       name            = string
       description     = optional(string)
       capacity        = number
-      rule_group_file = optional(list(string))
+      rule_group_file = optional(string)
       rules = optional(list(object({
         name                  = string
         priority              = number
