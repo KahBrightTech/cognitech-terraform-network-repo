@@ -2,7 +2,7 @@
   {
     "name": "AWSManagedRulesAdminProtectionRuleSet",
     "priority": 1,
-    "action": "null",
+    "action": null,
     "override_action": "none",
     "statement_type": "managed_rule_group",
     "vendor_name": "AWS",
@@ -12,7 +12,7 @@
   {
     "name": "AWSManagedRulesCommonRuleSet",
     "priority": 5,
-    "action": "null",
+    "action": null,
     "override_action": "none",
     "statement_type": "managed_rule_group",
     "vendor_name": "AWS",
@@ -22,7 +22,7 @@
   {
     "name": "AWSManagedRulesWordPressRuleSet",
     "priority": 10,
-    "action": "null",
+    "action": null,
     "override_action": "none",
     "statement_type": "managed_rule_group",
     "vendor_name": "AWS",
