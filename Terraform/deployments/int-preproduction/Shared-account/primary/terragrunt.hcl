@@ -914,67 +914,67 @@ inputs = {
     # }
   ]
 
-  # wafs = [
-  #   {
-  #     key         = "org"
-  #     name        = "org"
-  #     description = "Organization wide WAF"
-  #     rule_file   = "${include.cloud.locals.repo.root}/documents/waf/managedrules.json"
-  #     logging = {
-  #       enabled          = true
-  #       create_log_group = true
-  #     }
-  #     rule_groups = [
-  #       {
-  #         key             = "country-based-blocking"
-  #         name            = "CountryBasedBlocking"
-  #         description     = "Block requests from specific countries"
-  #         capacity        = 1000
-  #         rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/countrybasedblocking.json"
-  #       },
-  #       {
-  #         key             = "rate-based"
-  #         name            = "RateBasedBlocking"
-  #         description     = "Block requests exceeding rate limit"
-  #         capacity        = 1000
-  #         rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/ratebasedblocking.json"
-  #       }
-  #     ]
-  #     rule_group_references = [
-  #       {
-  #         name           = "country-based-blocking"
-  #         priority       = 45
-  #         rule_group_key = "country-based-blocking"
-  #       },
-  #       {
-  #         name           = "rate-based"
-  #         priority       = 50
-  #         rule_group_key = "rate-based"
-  #       }
-  #     ]
-  #     ip_sets = [
-  #       {
-  #         key         = "my-ip"
-  #         name        = "my-ip"
-  #         description = "Allowed my home IPs"
-  #         addresses   = ["69.143.134.56/32"]
-  #       }
-  #     ]
-  #     custom_rules = [
-  #       {
-  #         name            = "allow-my-ip"
-  #         priority        = 65
-  #         action          = "allow"
-  #         statement_type  = "ip_set"
-  #         ip_set_key      = "my-ip"
-  #       }
-  #     ]
-  #     association = {
-  #       associate_alb = true
-  #       alb_keys      = ["app"]
-  #     }
-  #   }
-  # ]
+  wafs = [
+    {
+      key         = "org"
+      name        = "org"
+      description = "Organization wide WAF"
+      rule_file   = "${include.cloud.locals.repo.root}/documents/waf/managedrules.json"
+      logging = {
+        enabled          = true
+        create_log_group = true
+      }
+      rule_groups = [
+        {
+          key             = "country-based-blocking"
+          name            = "CountryBasedBlocking"
+          description     = "Block requests from specific countries"
+          capacity        = 1000
+          rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/countrybasedblocking.json"
+        },
+        {
+          key             = "rate-based"
+          name            = "RateBasedBlocking"
+          description     = "Block requests exceeding rate limit"
+          capacity        = 1000
+          rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/ratebasedblocking.json"
+        }
+      ]
+      rule_group_references = [
+        {
+          name           = "country-based-blocking"
+          priority       = 45
+          rule_group_key = "country-based-blocking"
+        },
+        {
+          name           = "rate-based"
+          priority       = 50
+          rule_group_key = "rate-based"
+        }
+      ]
+      ip_sets = [
+        {
+          key         = "my-ip"
+          name        = "my-ip"
+          description = "Block my home IPs"
+          addresses   = ["69.143.134.56/32"]
+        }
+      ]
+      custom_rules = [
+        {
+          name            = "allow-my-ip"
+          priority        = 65
+          action          = "block"
+          statement_type  = "ip_set"
+          ip_set_key      = "my-ip"
+        }
+      ]
+      association = {
+        associate_alb = true
+        alb_keys      = ["app"]
+      }
+    }
+  ]
 }
 
 #-------------------------------------------------------
