@@ -1026,4 +1026,27 @@ variable "wafs" {
   default = null
 }
 
-
+variable "eks_clusters" {
+  description = "EKS cluster configuration object."
+  type = list(object({
+    create_eks_cluster     = bool
+    key                    = string
+    name                   = string
+    role_arn               = string
+    role_key               = optional(string)
+    subnet_ids             = list(string)
+    subnet_keys            = optional(list(string))
+    version                = optional(string, "1.32")
+    oidc_thumbprint        = optional(string, "06b25927c42a721631c1efd9431e648fa62e1e39")
+    is_this_ec2_node_group = optional(bool, false)
+    key_pair = object({
+      name               = optional(string)
+      name_prefix        = optional(string)
+      secret_name        = optional(string)
+      secret_description = optional(string)
+      policy             = optional(string)
+      create_secret      = bool
+    })
+  }))
+  default = null
+}

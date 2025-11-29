@@ -542,6 +542,16 @@ inputs = {
         description = "IAM policy for ${local.vpc_name_abr} DataSync"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_datasync.json"
       }
+    },
+    {
+      name               = "${local.vpc_name_abr}-eks"
+      description        = "IAM Role for ${local.vpc_name_abr} EKS"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
+        "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+      ]
     }
   ]
   iam_users = [
@@ -988,35 +998,55 @@ inputs = {
   #     }
   #   }
   # ]
+
+  eks_clusters = [
+    {
+      create_eks_cluster = false
+      key                = local.vpc_name_abr
+      name               = "${local.vpc_name_abr}-eks-cluster"
+      role_key           = "${local.vpc_name_abr}-eks"
+      subnet_keys = [
+        include.env.locals.subnet_prefix.primary,
+        include.env.locals.subnet_prefix.secondary
+      ]
+      is_this_ec2_node_group = true
+      key_pair = {
+        name_prefix        = "${local.vpc_name_abr}-eks-node-key"
+        secret_name        = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.eks_node}"
+        secret_description = "Private key for ${local.vpc_name_abr} EKS Nodes"
+        create_secret      = true
+      }
+    }
+  ]
 }
 
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
 remote_state {
-  backend = "s3"
+  backend = " s3 "
   generate = {
-    path      = "backend.tf"
-    if_exists = "overwrite"
+    path      = " backend.tf "
+    if_exists = " overwrite "
   }
   config = {
     bucket               = local.state_bucket
-    bucket_sse_algorithm = "AES256"
+    bucket_sse_algorithm = " AES256 "
     dynamodb_table       = local.state_lock_table
     encrypt              = true
-    key                  = "${local.deployment_name}/terraform.tfstate"
+    key                  = " $ { local.deployment_name } / terraform.tfstate "
     region               = local.region
   }
 }
 #-------------------------------------------------------
 # Providers 
 #-------------------------------------------------------
-generate "aws-providers" {
-  path      = "aws-provider.tf"
-  if_exists = "overwrite"
+generate " aws-providers " {
+  path      = " aws-provider.tf "
+  if_exists = " overwrite "
   contents  = <<-EOF
-  provider "aws" {
-    region = "${local.region}"
+  provider " aws " {
+    region = " $ { local.region } "
   }
   EOF
 }

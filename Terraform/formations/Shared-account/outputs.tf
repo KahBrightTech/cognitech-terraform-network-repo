@@ -162,3 +162,11 @@ output "waf" {
   description = "Output for WAFs"
   value       = module.waf
 }
+
+#-------------------------------------------------------
+# EKS Cluster outputs
+#-------------------------------------------------------
+output "eks_clusters" {
+  description = "Output for EKS Clusters"
+  value       = module.eks_clusters
+}
