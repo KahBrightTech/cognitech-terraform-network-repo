@@ -1032,9 +1032,9 @@ variable "eks_clusters" {
     create_eks_cluster     = bool
     key                    = string
     name                   = string
-    role_arn               = string
+    role_arn               = optional(string)
     role_key               = optional(string)
-    subnet_ids             = list(string)
+    subnet_ids             = optional(list(string))
     subnet_keys            = optional(list(string))
     version                = optional(string, "1.32")
     oidc_thumbprint        = optional(string, "06b25927c42a721631c1efd9431e648fa62e1e39")
