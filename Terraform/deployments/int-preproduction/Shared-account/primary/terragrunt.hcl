@@ -545,7 +545,7 @@ inputs = {
     },
     {
       name               = "${local.vpc_name_abr}-eks"
-      description        = "IAM Role for ${local.vpc_name_abr} EKS"
+      description        = "IAM Role for ${local.vpc_name_abr} EKS Nodes"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks_trust_policy.json"
       managed_policy_arns = [
