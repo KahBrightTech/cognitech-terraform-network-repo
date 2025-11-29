@@ -130,6 +130,7 @@ locals {
     docker   = "docker-auth"
     keys     = "ec2-private-key-pairs"
     iam_user = "user"
+    eks_node = "eks-node-private-key"
   }
   # RAM principals as a list of strings (Organization ARN)
   ram_principals = [
