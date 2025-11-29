@@ -552,6 +552,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
         "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
       ]
+      create_custom_policy = false
       # policy = {
       #   name        = "${local.vpc_name_abr}-eks"
       #   description = "IAM policy for ${local.vpc_name_abr} EKS Nodes"

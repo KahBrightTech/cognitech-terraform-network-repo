@@ -349,6 +349,7 @@ variable "iam_roles" {
     managed_policy_arns       = optional(list(string))
     max_session_duration      = optional(number, 3600)
     permissions_boundary      = optional(string)
+    create_custom_policy      = optional(bool, true)
     policy = optional(object({
       name          = optional(string)
       description   = optional(string)
