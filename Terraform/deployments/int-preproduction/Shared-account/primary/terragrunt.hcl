@@ -1041,12 +1041,12 @@ remote_state {
 #-------------------------------------------------------
 # Providers 
 #-------------------------------------------------------
-generate " aws-providers " {
-  path      = " aws-provider.tf "
-  if_exists = " overwrite "
+generate "aws-providers" {
+  path      = "aws-provider.tf"
+  if_exists = "overwrite"
   contents  = <<-EOF
-  provider " aws " {
-    region = " $ { local.region } "
+  provider "aws" {
+    region = "${local.region}"
   }
   EOF
 }
