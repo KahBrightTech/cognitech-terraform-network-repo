@@ -553,11 +553,6 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
       ]
       create_custom_policy = false
-      # policy = {
-      #   name        = "${local.vpc_name_abr}-eks"
-      #   description = "IAM policy for ${local.vpc_name_abr} EKS Nodes"
-      #   policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_eks.json"
-      # }
     }
   ]
 
@@ -1008,7 +1003,7 @@ inputs = {
 
   eks_clusters = [
     {
-      create_eks_cluster = false
+      create_eks_cluster = true
       key                = local.vpc_name_abr
       name               = "${local.vpc_name_abr}-eks-cluster"
       role_key           = "${local.vpc_name_abr}-eks"
