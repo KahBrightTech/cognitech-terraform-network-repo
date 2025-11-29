@@ -1011,6 +1011,7 @@ inputs = {
         include.env.locals.subnet_prefix.primary,
         include.env.locals.subnet_prefix.secondary
       ]
+      vpc_name               = "${local.vpc_name_abr}"
       is_this_ec2_node_group = true
       key_pair = {
         name_prefix        = "${local.vpc_name_abr}-eks-node-key"

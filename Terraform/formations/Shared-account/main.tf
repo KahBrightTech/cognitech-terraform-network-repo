@@ -577,12 +577,14 @@ module "eks_clusters" {
   eks_cluster = merge(
     each.value,
     {
-      role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].arn : each.value.role_arn
+      role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
     },
     {
       subnet_ids = each.value.subnet_keys != null ? flatten([
         for subnet_key in each.value.subnet_keys :
-        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids
+        (each.value.use_private_subnets == true) ?
+        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : each.value.subnet_ids
     }
   )
