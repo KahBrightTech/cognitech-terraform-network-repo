@@ -1014,6 +1014,7 @@ inputs = {
       vpc_name               = "${local.vpc_name_abr}"
       is_this_ec2_node_group = true
       key_pair = {
+        name               = "${local.vpc_name_abr}-eks-node-key"
         name_prefix        = "${local.vpc_name_abr}-eks-node-key"
         secret_name        = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.eks_node}"
         secret_description = "Private key for ${local.vpc_name_abr} EKS Nodes"
