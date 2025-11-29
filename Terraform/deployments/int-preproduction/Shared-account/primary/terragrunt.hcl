@@ -1003,7 +1003,7 @@ inputs = {
 
   eks_clusters = [
     {
-      create_eks_cluster = true
+      create_eks_cluster = false
       key                = local.vpc_name_abr
       name               = "${local.vpc_name_abr}-eks-cluster"
       role_key           = "${local.vpc_name_abr}-eks"
