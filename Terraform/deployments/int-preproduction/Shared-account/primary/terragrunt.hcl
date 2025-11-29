@@ -552,14 +552,14 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
         "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
       ]
-      # policy = {
-      #   name        = "${local.vpc_name_abr}-eks"
-      #   description = "IAM policy for ${local.vpc_name_abr} EKS Nodes"
-      #   policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_eks.json"
-      # }
+      policy = {
+        name        = "${local.vpc_name_abr}-eks"
+        description = "IAM policy for ${local.vpc_name_abr} EKS Nodes"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_eks.json"
+      }
     }
   ]
-  
+
   iam_users = [
     {
       name                = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.iam_user}"
