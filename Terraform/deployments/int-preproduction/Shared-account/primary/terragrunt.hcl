@@ -1007,7 +1007,7 @@ inputs = {
       key                = local.vpc_name_abr
       name               = "${local.vpc_name_abr}-eks-cluster"
       role_key           = "${local.vpc_name_abr}-eks"
-      oidc_thumprint    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      oidc_thumbprint    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
         include.env.locals.subnet_prefix.secondary
