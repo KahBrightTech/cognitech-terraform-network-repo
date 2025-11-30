@@ -1038,7 +1038,7 @@ variable "eks_clusters" {
     subnet_ids             = optional(list(string))
     subnet_keys            = optional(list(string))
     version                = optional(string, "1.32")
-    oidc_thumbprint        = optional(string, "06b25927c42a721631c1efd9431e648fa62e1e39")
+    oidc_thumbprint        = optional(string)
     is_this_ec2_node_group = optional(bool, false)
     use_private_subnets    = optional(bool, false)
     vpc_name               = optional(string)
