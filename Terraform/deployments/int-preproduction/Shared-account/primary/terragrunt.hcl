@@ -581,7 +581,8 @@ inputs = {
       }
     }
   ]
-  
+
+
   iam_users = [
     {
       name                = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.iam_user}"
@@ -627,6 +628,7 @@ inputs = {
       zone_name         = include.env.locals.public_domain
     }
   ]
+  
   secrets = [
     {
       key                     = "ansible"
