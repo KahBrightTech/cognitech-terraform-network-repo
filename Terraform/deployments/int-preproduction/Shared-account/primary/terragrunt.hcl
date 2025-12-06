@@ -553,6 +553,24 @@ inputs = {
         "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
       ]
       create_custom_policy = false
+    },
+    {
+      name               = "${local.vpc_name_abr}-ec2-nodes"
+      description        = "IAM Role for ${local.vpc_name_abr} EC2 Nodes"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser",
+        "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
+        "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+        "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      ]
+      policy = {
+        name        = "${local.vpc_name_abr}-ec2-nodes"
+        description = "IAM policy for ${local.vpc_name_abr} EC2 Nodes"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_ec2_nodes.json"
+      }
     }
   ]
 
