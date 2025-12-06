@@ -569,11 +569,11 @@ inputs = {
         "arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly",
         "arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess",
         "arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AWSCertificateManagerReadOnly,
+        "arn:aws:iam::aws:policy/AWSCertificateManagerReadOnly",
         "arn:aws:iam::aws:policy/AWSAppMeshFullAccess",
         "arn:aws:iam::aws:policy/AWSCloudMapFullAccess",
         "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-        
+
       ]
       policy = {
         name        = "${local.vpc_name_abr}-ec2-nodes"
