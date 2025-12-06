@@ -572,8 +572,7 @@ inputs = {
         "arn:aws:iam::aws:policy/AWSCertificateManagerReadOnly",
         "arn:aws:iam::aws:policy/AWSAppMeshFullAccess",
         "arn:aws:iam::aws:policy/AWSCloudMapFullAccess",
-        "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-
+        "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
       ]
       policy = {
         name        = "${local.vpc_name_abr}-ec2-nodes"
