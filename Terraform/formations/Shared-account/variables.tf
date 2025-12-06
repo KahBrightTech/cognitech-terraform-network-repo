@@ -1042,6 +1042,7 @@ variable "eks_clusters" {
     is_this_ec2_node_group = optional(bool, false)
     use_private_subnets    = optional(bool, false)
     vpc_name               = optional(string)
+    enable_addons          = optional(bool, true)
     key_pair = object({
       name               = optional(string)
       name_prefix        = optional(string)
