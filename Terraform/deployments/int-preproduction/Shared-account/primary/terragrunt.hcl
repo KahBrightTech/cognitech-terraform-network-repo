@@ -573,7 +573,6 @@ inputs = {
       }
     }
   ]
-
   iam_users = [
     {
       name                = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.iam_user}"
