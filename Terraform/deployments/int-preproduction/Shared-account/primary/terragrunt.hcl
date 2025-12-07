@@ -1048,42 +1048,47 @@ inputs = {
         secret_name        = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.eks_node}"
         secret_description = "Private key for ${local.vpc_name_abr} EKS Nodes"
         create_secret      = true
+        configmap_roles = [
+          {
+            rolearn  = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NetworkAdministrator_f92e2e2e6d5c22ca"
+            username = "Network"
+          }
+        ]
       }
+    ]
+  }
+
+  #-------------------------------------------------------
+  # State Configuration
+  #-------------------------------------------------------
+  remote_state {
+    backend = "s3"
+    generate = {
+      path      = "backend.tf"
+      if_exists = "overwrite"
     }
-  ]
-}
+    config = {
+      bucket               = local.state_bucket
+      bucket_sse_algorithm = "AES256"
+      dynamodb_table       = local.state_lock_table
+      encrypt              = true
+      key                  = "${local.deployment_name}/terraform.tfstate"
+      region               = local.region
+    }
+  }
 
-#-------------------------------------------------------
-# State Configuration
-#-------------------------------------------------------
-remote_state {
-  backend = "s3"
-  generate = {
-    path      = "backend.tf"
+  #-------------------------------------------------------
+  # Providers 
+  #-------------------------------------------------------
+  generate "aws-providers" {
+    path      = "aws-provider.tf"
     if_exists = "overwrite"
-  }
-  config = {
-    bucket               = local.state_bucket
-    bucket_sse_algorithm = "AES256"
-    dynamodb_table       = local.state_lock_table
-    encrypt              = true
-    key                  = "${local.deployment_name}/terraform.tfstate"
-    region               = local.region
-  }
-}
-
-#-------------------------------------------------------
-# Providers 
-#-------------------------------------------------------
-generate "aws-providers" {
-  path      = "aws-provider.tf"
-  if_exists = "overwrite"
-  contents  = <<-EOF
+    contents  = <<-EOF
   provider "aws" {
     region = "${local.region}"
   }
   EOF
-}
+  }
 
 
 
