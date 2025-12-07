@@ -1030,13 +1030,17 @@ variable "wafs" {
 variable "eks_clusters" {
   description = "EKS cluster configuration object."
   type = list(object({
-    create_eks_cluster                          = bool
-    key                                         = string
-    name                                        = string
-    role_arn                                    = optional(string)
-    role_key                                    = optional(string)
-    subnet_ids                                  = optional(list(string))
-    subnet_keys                                 = optional(list(string))
+    create_eks_cluster = bool
+    key                = string
+    name               = string
+    role_arn           = optional(string)
+    role_key           = optional(string)
+    subnet_ids         = optional(list(string))
+    subnet_keys        = optional(list(string))
+    access_entries = optional(map(object({
+      principal_arns = optional(list(string))
+      policy_arn     = optional(string)
+    })), {})
     version                                     = optional(string, "1.32")
     oidc_thumbprint                             = optional(string)
     is_this_ec2_node_group                      = optional(bool, false)
@@ -1051,16 +1055,6 @@ variable "eks_clusters" {
     bootstrap_cluster_creator_admin_permissions = optional(bool, true)
     enabled_cluster_log_types                   = optional(list(string), [])
     enable_configmap_auth                       = optional(bool, false)
-    configmap_roles = optional(list(object({
-      rolearn  = string
-      username = string
-      groups   = list(string)
-    })), [])
-    configmap_users = optional(list(object({
-      userarn  = string
-      username = string
-      groups   = list(string)
-    })), [])
     key_pair = object({
       name               = optional(string)
       name_prefix        = optional(string)

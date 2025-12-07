@@ -55,7 +55,7 @@ locals {
     }
     smb = {
       server_hostname = {
-        ec2 = "34.227.98.48"  
+        ec2 = "34.227.98.48"
       }
       subdirectory = {
         smb = "/Downloads/"
@@ -73,5 +73,10 @@ locals {
         smb             = "/SMB"
       }
     }
+  }
+
+  eks_roles = {
+    admin   = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_3d0f46907c18b968"
+    network = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NetworkAdministrator_f92e2e2e6d5c22ca"
   }
 }

@@ -1036,6 +1036,17 @@ inputs = {
       name               = "${local.vpc_name_abr}-eks-cluster"
       role_key           = "${local.vpc_name_abr}-eks"
       oidc_thumbprint    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      access_entries = [
+        admin = {
+          principal_arns = [include.env.locals.eks_roles.admin,]
+          policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+        },
+        readonly = {
+          principal_arns = [include.env.locals.eks_roles.network]
+          policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+        }
+        
+      ]
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
         include.env.locals.subnet_prefix.secondary
