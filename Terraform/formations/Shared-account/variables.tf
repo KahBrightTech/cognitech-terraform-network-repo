@@ -1054,7 +1054,7 @@ variable "eks_clusters" {
     authentication_mode                         = optional(string, "API_AND_CONFIG_MAP")
     bootstrap_cluster_creator_admin_permissions = optional(bool, true)
     enabled_cluster_log_types                   = optional(list(string), [])
-    enable_configmap_auth                       = optional(bool, false)
+    service_ipv4_cidr                           = optional(string, null)
     key_pair = object({
       name               = optional(string)
       name_prefix        = optional(string)
