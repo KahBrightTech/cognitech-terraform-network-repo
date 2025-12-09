@@ -1028,7 +1028,6 @@ inputs = {
   #     }
   #   }
   # ]
-
   eks_clusters = [
     {
       create_eks_cluster = true
