@@ -1030,7 +1030,7 @@ inputs = {
   # ]
   eks_clusters = [
     {
-      create_eks_cluster = false
+      create_eks_cluster = true 
       key                = local.vpc_name_abr
       name               = "${local.vpc_name_abr}-eks-cluster"
       role_key           = "${local.vpc_name_abr}-eks"
@@ -1040,8 +1040,8 @@ inputs = {
           principal_arns = [
             include.env.locals.eks_roles.admin,
             include.env.locals.eks_roles.system
-            ]
-          policy_arn     = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          ]
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
         },
         readonly = {
           principal_arns = [include.env.locals.eks_roles.network]
@@ -1053,6 +1053,9 @@ inputs = {
         include.env.locals.subnet_prefix.primary,
         include.env.locals.subnet_prefix.secondary
       ]
+      additional_security_group_keys = [
+
+      ]
       vpc_name               = "${local.vpc_name_abr}"
       is_this_ec2_node_group = true
       key_pair = {
@@ -1061,11 +1064,56 @@ inputs = {
         secret_name        = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.eks_node}"
         secret_description = "Private key for ${local.vpc_name_abr} EKS Nodes"
         create_secret      = true
-        configmap_roles = [
+        security_groups = [
           {
-            rolearn  = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NetworkAdministrator_f92e2e2e6d5c22ca"
-            username = "Network"
+            key         = "eks-nodes"
+            name        = "eks-nodes"
+            description = "standard ${local.vpc_name} bastion security group"
+            vpc_name    = local.vpc_name_abr
+          },
+          {
+            key         = "eks-cluster-secondary"
+            name        = "eks-cluster-secondary"
+            description = "standard ${local.vpc_name} eks cluster secondary security group"
+            vpc_name    = local.vpc_name_abr
           }
+        ]
+        security_group_rules = [
+          sg_key = "eks-nodes"
+          ingress = [
+            {
+              key           = "ingress-all-eks-sg"
+              source_sg_key = "eks_cluster_sg_id"
+              description   = "BASE - Inbound traffic from EKS Cluster SG to EKS Nodes SG"
+              ip_protocol   = "-1"
+            },
+            {
+              key           = "ingress-app-sg"
+              source_sg_key = "app"
+              description   = "BASE - Inbound traffic from App SG to EKS Nodes SG"
+              ip_protocol   = "-1"
+            },
+            {
+              key           = "ingress-self-sg"
+              source_sg_key = "eks-nodes"
+              description   = "BASE - Inbound traffic from EKS Nodes SG to itself"
+              ip_protocol   = "-1"
+            }
+          ]
+          egress = [
+            {
+              key           = "egress-all-eks-sg"
+              source_sg_key = "eks_cluster_sg_id"
+              description   = "BASE - Outbound traffic to EKS Nodes SG to EKS Cluster SG"
+              ip_protocol   = "-1"
+            },
+            {
+              key           = "egress-self-sg"
+              source_sg_key = "eks_cluster_sg_id"
+              description   = "BASE - Outbound traffic from EKS Nodes SG to itself"
+              ip_protocol   = "-1"
+            }
+          ]
         ]
       }
     }

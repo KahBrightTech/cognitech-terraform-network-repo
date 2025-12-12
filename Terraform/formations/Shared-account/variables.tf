@@ -1030,13 +1030,15 @@ variable "wafs" {
 variable "eks_clusters" {
   description = "EKS cluster configuration object."
   type = list(object({
-    create_eks_cluster = bool
-    key                = string
-    name               = string
-    role_arn           = optional(string)
-    role_key           = optional(string)
-    subnet_ids         = optional(list(string))
-    subnet_keys        = optional(list(string))
+    create_eks_cluster             = bool
+    key                            = string
+    name                           = string
+    role_arn                       = optional(string)
+    role_key                       = optional(string)
+    subnet_ids                     = optional(list(string))
+    subnet_keys                    = optional(list(string))
+    additional_security_group_ids  = optional(list(string))
+    additional_security_group_keys = optional(list(string))
     access_entries = optional(map(object({
       principal_arns = optional(list(string))
       policy_arn     = optional(string)
@@ -1063,6 +1065,61 @@ variable "eks_clusters" {
       policy             = optional(string)
       create_secret      = bool
     })
+    security_groups = optional(list((object({
+      key         = optional(string)
+      name        = optional(string)
+      name_prefix = optional(string)
+      vpc_id      = optional(string)
+      description = optional(string)
+      vpc_name    = string
+      security_group_egress_rules = optional(list(object({
+        description     = optional(string)
+        from_port       = optional(number)
+        to_port         = optional(number)
+        protocol        = optional(string)
+        security_groups = optional(list(string))
+        cidr_blocks     = list(string)
+        self            = optional(bool, false)
+      })))
+      security_group_ingress_rules = optional(list(object({
+        description     = optional(string)
+        from_port       = optional(number)
+        to_port         = optional(number)
+        protocol        = optional(string)
+        security_groups = optional(list(string))
+        cidr_blocks     = list(string)
+        self            = optional(bool, false)
+      })))
+    }))))
+    security_group_rules = optional(list(object({
+      key               = optional(string)
+      security_group_id = optional(string)
+      sg_key            = optional(string)
+      egress_rules = optional(list(object({
+        key            = string
+        cidr_ipv4      = optional(string)
+        cidr_ipv6      = optional(string)
+        prefix_list_id = optional(string)
+        description    = optional(string)
+        from_port      = optional(number)
+        to_port        = optional(number)
+        ip_protocol    = string
+        target_sg_id   = optional(string)
+        target_sg_key  = optional(string)
+      })))
+      ingress_rules = optional(list(object({
+        key            = string
+        cidr_ipv4      = optional(string)
+        cidr_ipv6      = optional(string)
+        prefix_list_id = optional(string)
+        description    = optional(string)
+        from_port      = optional(number)
+        to_port        = optional(number)
+        ip_protocol    = string
+        source_sg_id   = optional(string)
+        source_sg_key  = optional(string)
+      })))
+    })))
   }))
   default = null
 }
