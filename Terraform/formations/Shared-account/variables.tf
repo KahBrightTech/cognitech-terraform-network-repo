@@ -1065,7 +1065,7 @@ variable "eks_clusters" {
       policy             = optional(string)
       create_secret      = bool
     })
-    security_groups = optional(list((object({
+    security_groups = optional(list(object({
       key         = optional(string)
       name        = optional(string)
       name_prefix = optional(string)
@@ -1090,7 +1090,7 @@ variable "eks_clusters" {
         cidr_blocks     = list(string)
         self            = optional(bool, false)
       })))
-    }))))
+    })))
     security_group_rules = optional(list(object({
       key               = optional(string)
       security_group_id = optional(string)
