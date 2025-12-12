@@ -1064,60 +1064,60 @@ inputs = {
         secret_name        = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.eks_node}"
         secret_description = "Private key for ${local.vpc_name_abr} EKS Nodes"
         create_secret      = true
-        security_groups = [
-          {
-            key         = "eks-nodes"
-            name        = "eks-nodes"
-            description = "standard ${local.vpc_name} bastion security group"
-            vpc_name    = local.vpc_name_abr
-          },
-          {
-            key         = "eks-cluster-secondary"
-            name        = "eks-cluster-secondary"
-            description = "standard ${local.vpc_name} eks cluster secondary security group"
-            vpc_name    = local.vpc_name_abr
-          }
-        ]
-        security_group_rules = [
-          {
-            sg_key = "eks-nodes"
-            ingress = [
-              {
-                key           = "ingress-all-eks-sg"
-                source_sg_key = "eks_cluster_sg_id"
-                description   = "BASE - Inbound traffic from EKS Cluster SG to EKS Nodes SG"
-                ip_protocol   = "-1"
-              },
-              {
-                key           = "ingress-app-sg"
-                source_sg_key = "app"
-                description   = "BASE - Inbound traffic from App SG to EKS Nodes SG"
-                ip_protocol   = "-1"
-              },
-              {
-                key           = "ingress-self-sg"
-                source_sg_key = "eks-nodes"
-                description   = "BASE - Inbound traffic from EKS Nodes SG to itself"
-                ip_protocol   = "-1"
-              }
-            ]
-            egress = [
-              {
-                key           = "egress-all-eks-sg"
-                source_sg_key = "eks_cluster_sg_id"
-                description   = "BASE - Outbound traffic to EKS Nodes SG to EKS Cluster SG"
-                ip_protocol   = "-1"
-              },
-              {
-                key           = "egress-self-sg"
-                source_sg_key = "eks_cluster_sg_id"
-                description   = "BASE - Outbound traffic from EKS Nodes SG to itself"
-                ip_protocol   = "-1"
-              }
-            ]
-          }
-        ]
       }
+      security_groups = [
+        {
+          key         = "eks-nodes"
+          name        = "eks-nodes"
+          description = "standard ${local.vpc_name} bastion security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "eks-cluster-secondary"
+          name        = "eks-cluster-secondary"
+          description = "standard ${local.vpc_name} eks cluster secondary security group"
+          vpc_name    = local.vpc_name_abr
+        }
+      ]
+      security_group_rules = [
+        {
+          sg_key = "eks-nodes"
+          ingress = [
+            {
+              key           = "ingress-all-eks-sg"
+              source_sg_key = "eks_cluster_sg_id"
+              description   = "BASE - Inbound traffic from EKS Cluster SG to EKS Nodes SG"
+              ip_protocol   = "-1"
+            },
+            {
+              key           = "ingress-app-sg"
+              source_sg_key = "app"
+              description   = "BASE - Inbound traffic from App SG to EKS Nodes SG"
+              ip_protocol   = "-1"
+            },
+            {
+              key           = "ingress-self-sg"
+              source_sg_key = "eks-nodes"
+              description   = "BASE - Inbound traffic from EKS Nodes SG to itself"
+              ip_protocol   = "-1"
+            }
+          ]
+          egress = [
+            {
+              key           = "egress-all-eks-sg"
+              source_sg_key = "eks_cluster_sg_id"
+              description   = "BASE - Outbound traffic to EKS Nodes SG to EKS Cluster SG"
+              ip_protocol   = "-1"
+            },
+            {
+              key           = "egress-self-sg"
+              source_sg_key = "eks_cluster_sg_id"
+              description   = "BASE - Outbound traffic from EKS Nodes SG to itself"
+              ip_protocol   = "-1"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
