@@ -80,11 +80,10 @@ jobs:
       - name: Plan Terragrunt
         id: plan
         run: |
-          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-no-color > plan_output.txt 2>&1 || true
-          cat plan_output.txt
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-no-color | tee plan_output.txt
 
       - name: Generate Plan Summary
-        if: always()
+        if: success()
         run: |
           # Extract the plan summary line(s)
           SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1 || echo "Plan summary not found")

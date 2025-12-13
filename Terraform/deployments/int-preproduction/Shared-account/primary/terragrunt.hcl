@@ -1096,10 +1096,10 @@ inputs = {
               ip_protocol   = "-1"
             },
             {
-              key           = "ingress-app-sg"
-              source_sg_key = "app"
-              description   = "BASE - Inbound traffic from EKS Nodes SG to app SG"
-              ip_protocol   = "-1"
+              key               = "ingress-app-sg"
+              source_vpc_sg_key = "app"
+              description       = "BASE - Inbound traffic from EKS Nodes SG to app SG"
+              ip_protocol       = "-1"
             }
           ]
           egress_rules = [
