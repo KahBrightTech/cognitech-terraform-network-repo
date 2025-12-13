@@ -592,8 +592,8 @@ module "eks_clusters" {
         for rule in each.value.security_group_rules : merge(
           rule,
           {
-            source_sg_id = rule.source_sg_key != null ? module.shared_vpc[each.value.vpc_name].security_group[rule.source_sg_key].id : rule.source_sg_id
-            target_sg_id = rule.target_sg_key != null ? module.shared_vpc[each.value.vpc_name].security_group[rule.target_sg_key].id : rule.target_sg_id
+            source_sg_id = try(module.shared_vpc[each.value.vpc_name].security_group[rule.source_sg_key].id, try(rule.source_sg_id, null))
+            target_sg_id = try(module.shared_vpc[each.value.vpc_name].security_group[rule.target_sg_key].id, try(rule.target_sg_id, null))
           }
         )
       ] : null
