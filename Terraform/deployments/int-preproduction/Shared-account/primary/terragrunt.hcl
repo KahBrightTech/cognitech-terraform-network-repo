@@ -1054,7 +1054,7 @@ inputs = {
         include.env.locals.subnet_prefix.secondary
       ]
       additional_security_group_keys = [
-
+        "eks-cluster-secondary"
       ]
       vpc_name               = "${local.vpc_name_abr}"
       is_this_ec2_node_group = true
@@ -1082,7 +1082,7 @@ inputs = {
       security_group_rules = [
         {
           sg_key = "eks-nodes"
-          ingress = [
+          ingress_rules = [
             {
               key           = "ingress-all-eks-sg"
               source_sg_key = "eks_cluster_sg_id"
@@ -1102,7 +1102,7 @@ inputs = {
               ip_protocol   = "-1"
             }
           ]
-          egress = [
+          egress_rules = [
             {
               key           = "egress-all-eks-sg"
               source_sg_key = "eks_cluster_sg_id"
