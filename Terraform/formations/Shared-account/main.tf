@@ -592,11 +592,11 @@ module "eks_clusters" {
         for rule in each.value.security_group_rules : merge(
           rule,
           # Only resolve and nullify keys that exist in shared_vpc, otherwise leave them for EKS module to handle
-          try(rule.source_sg_key, null) != null && contains(keys(module.shared_vpc[each.value.vpc_name].security_group), rule.source_sg_key) ? {
+          can(rule.source_sg_key) && can(module.shared_vpc[each.value.vpc_name].security_group[rule.source_sg_key]) ? {
             source_sg_key = null
             source_sg_id  = module.shared_vpc[each.value.vpc_name].security_group[rule.source_sg_key].id
           } : {},
-          try(rule.target_sg_key, null) != null && contains(keys(module.shared_vpc[each.value.vpc_name].security_group), rule.target_sg_key) ? {
+          can(rule.target_sg_key) && can(module.shared_vpc[each.value.vpc_name].security_group[rule.target_sg_key]) ? {
             target_sg_key = null
             target_sg_id  = module.shared_vpc[each.value.vpc_name].security_group[rule.target_sg_key].id
           } : {}
