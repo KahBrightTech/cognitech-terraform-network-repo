@@ -87,7 +87,7 @@ jobs:
       - name: Plan Terragrunt
         id: plan
         run: |
-          terragrunt run-all plan --terragrunt-non-interactive > plan_output.txt 2>&1 || true
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-no-color > plan_output.txt 2>&1 || true
           cat plan_output.txt
 
       - name: Generate Plan Summary
