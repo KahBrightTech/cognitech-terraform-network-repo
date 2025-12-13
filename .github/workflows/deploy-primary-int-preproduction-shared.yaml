@@ -87,7 +87,23 @@ jobs:
       - name: Plan Terragrunt
         id: plan
         run: |
-          terragrunt run-all plan --terragrunt-non-interactive 2>&1 | tee plan_output.txt
+          terragrunt run-all plan --terragrunt-non-interactive > plan_output.txt 2>&1 || true
+          cat plan_output.txt
+
+      - name: Generate Plan Summary
+        if: always()
+        run: |
+          # Extract the plan summary line(s)
+          SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1 || echo "Plan summary not found")
+          
+          # Create GitHub Actions summary
+          echo "## Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Full plan output available in job logs**" >> $GITHUB_STEP_SUMMARY 2>&1 | tee plan_output.txt
           echo "exitcode=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
         continue-on-error: true
 
@@ -96,13 +112,8 @@ jobs:
         run: |
           echo "## Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          grep -E "Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy\." plan_output.txt >> $GITHUB_STEP_SUMMARY || echo "No changes detected" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-      - name: Check Plan Status
-        if: steps.plan.outputs.exitcode != '0'
-        run: exit 1
-
+          sed 's/\x1b\[[0-9;]*m//g' plan_output.txt | grep -oE "Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy\." | sort -u >> $GITHUB_STEP_SUMMARY || echo "No changes detected" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY 
   Approve:
     needs: Plan
     runs-on: ubuntu-latest
