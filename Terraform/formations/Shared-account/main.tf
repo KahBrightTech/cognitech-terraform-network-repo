@@ -586,6 +586,17 @@ module "eks_clusters" {
         module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
         module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : each.value.subnet_ids
+    },
+    {
+      security_groups = each.value.security_groups != null ? [
+        for sg in each.value.security_groups : merge(
+          sg,
+          {
+            vpc_id   = module.shared_vpc[each.value.vpc_name].vpc_id
+            vpc_name = each.value.vpc_name
+          }
+        )
+      ] : null
     }
   )
 }
