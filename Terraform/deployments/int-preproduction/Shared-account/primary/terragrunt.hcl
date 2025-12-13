@@ -1120,16 +1120,10 @@ inputs = {
           ]
           egress_rules = [
             {
-              key           = "egress-all-eks-sg"
-              target_sg_key = "eks_cluster_sg_id"
-              description   = "BASE - Outbound traffic to EKS Nodes SG to EKS Cluster SG"
-              ip_protocol   = "-1"
-            },
-            {
-              key           = "egress-self-sg"
-              target_sg_key = "eks-nodes"
-              description   = "BASE - Outbound traffic from EKS Nodes SG to itself"
-              ip_protocol   = "-1"
+              key         = "egress-all-traffic-bastion-sg"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "BASE - Outbound all traffic from eks node SG to Internet"
+              ip_protocol = "-1"
             }
           ]
         }
