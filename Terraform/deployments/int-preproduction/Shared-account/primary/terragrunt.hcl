@@ -1120,9 +1120,9 @@ inputs = {
           ]
           egress_rules = [
             {
-              key         = "egress-all-traffic-bastion-sg"
+              key         = "egress-all-traffic-internet"
               cidr_ipv4   = "0.0.0.0/0"
-              description = "BASE - Outbound all traffic from eks node SG to Internet"
+              description = "BASE - Outbound all traffic from EKS Nodes SG to Internet"
               ip_protocol = "-1"
             }
           ]
