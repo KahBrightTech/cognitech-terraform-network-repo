@@ -1100,6 +1100,22 @@ inputs = {
               source_vpc_sg_key = "app"
               description       = "BASE - Inbound traffic from EKS Nodes SG to app SG"
               ip_protocol       = "-1"
+            },
+            {
+              key               = "ingress-22-bastion-sg"
+              source_vpc_sg_key = "bastion"
+              description       = "BASE - Inbound traffic from bastion SG on tcp port 22"
+              from_port         = 22
+              to_port           = 22
+              ip_protocol       = "tcp"
+            },
+            {
+              key               = "ingress-3389-bastion-sg"
+              source_vpc_sg_key = "bastion"
+              description       = "BASE - Inbound traffic from bastion SG on tcp port 3389"
+              from_port         = 3389
+              to_port           = 3389
+              ip_protocol       = "tcp"
             }
           ]
           egress_rules = [
