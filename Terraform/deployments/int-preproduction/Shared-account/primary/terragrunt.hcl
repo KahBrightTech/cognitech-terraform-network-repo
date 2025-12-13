@@ -1096,9 +1096,9 @@ inputs = {
               ip_protocol   = "-1"
             },
             {
-              key           = "ingress-self-sg"
-               = "eks-nodes"
-              description   = "BASE - Inbound traffic from EKS Nodes SG to itself"
+              key           = "ingress-app-sg"
+              source_sg_key = "app"
+              description   = "BASE - Inbound traffic from EKS Nodes SG to app SG"
               ip_protocol   = "-1"
             }
           ]
