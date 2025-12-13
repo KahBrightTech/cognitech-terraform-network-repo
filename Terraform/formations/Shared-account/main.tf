@@ -606,9 +606,9 @@ module "eks_clusters" {
             ingress_rules = rule.ingress_rules != null ? [
               for ing_rule in rule.ingress_rules : merge(
                 ing_rule,
-                {
-                  source_vpc_sg_id = ing_rule.source_vpc_sg_key != null ? module.shared_vpc[each.value.vpc_name].security_group[ing_rule.source_vpc_sg_key].id : ing_rule.source_vpc_sg_id
-                }
+                ing_rule.source_vpc_sg_key != null ? {
+                  source_sg_id = module.shared_vpc[each.value.vpc_name].security_group[ing_rule.source_vpc_sg_key].id
+                } : {}
               )
             ] : null
           },
@@ -616,9 +616,9 @@ module "eks_clusters" {
             egress_rules = rule.egress_rules != null ? [
               for egr_rule in rule.egress_rules : merge(
                 egr_rule,
-                {
-                  target_vpc_sg_id = egr_rule.target_vpc_sg_key != null ? module.shared_vpc[each.value.vpc_name].security_group[egr_rule.target_vpc_sg_key].id : egr_rule.target_vpc_sg_id
-                }
+                egr_rule.target_vpc_sg_key != null ? {
+                  target_sg_id = module.shared_vpc[each.value.vpc_name].security_group[egr_rule.target_vpc_sg_key].id
+                } : {}
               )
             ] : null
           }
