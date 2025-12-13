@@ -1105,7 +1105,7 @@ inputs = {
             },
             {
               key           = "egress-self-sg"
-              target_sg_key = "eks_cluster_sg_id"
+              target_sg_key = "eks-nodes"
               description   = "BASE - Outbound traffic from EKS Nodes SG to itself"
               ip_protocol   = "-1"
             }
