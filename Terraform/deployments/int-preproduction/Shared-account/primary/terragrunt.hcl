@@ -1099,13 +1099,13 @@ inputs = {
           egress_rules = [
             {
               key           = "egress-all-eks-sg"
-              source_sg_key = "eks_cluster_sg_id"
+              target_sg_key = "eks_cluster_sg_id"
               description   = "BASE - Outbound traffic to EKS Nodes SG to EKS Cluster SG"
               ip_protocol   = "-1"
             },
             {
               key           = "egress-self-sg"
-              source_sg_key = "eks_cluster_sg_id"
+              target_sg_key = "eks_cluster_sg_id"
               description   = "BASE - Outbound traffic from EKS Nodes SG to itself"
               ip_protocol   = "-1"
             }
