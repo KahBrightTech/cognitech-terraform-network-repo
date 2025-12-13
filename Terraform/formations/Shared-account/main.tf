@@ -586,22 +586,6 @@ module "eks_clusters" {
         module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
         module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : each.value.subnet_ids
-    },
-    {
-      security_group_rules = each.value.security_group_rules != null ? [
-        for rule in each.value.security_group_rules : merge(
-          rule,
-          # Only resolve and nullify keys that exist in shared_vpc, otherwise leave them for EKS module to handle
-          can(rule.source_sg_key) && can(module.shared_vpc[each.value.vpc_name].security_group[rule.source_sg_key]) ? {
-            source_sg_key = null
-            source_sg_id  = module.shared_vpc[each.value.vpc_name].security_group[rule.source_sg_key].id
-          } : {},
-          can(rule.target_sg_key) && can(module.shared_vpc[each.value.vpc_name].security_group[rule.target_sg_key]) ? {
-            target_sg_key = null
-            target_sg_id  = module.shared_vpc[each.value.vpc_name].security_group[rule.target_sg_key].id
-          } : {}
-        )
-      ] : null
     }
   )
 }
