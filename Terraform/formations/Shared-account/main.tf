@@ -571,7 +571,7 @@ module "waf" {
 # Creates EKS clusters
 #--------------------------------------------------------------------
 module "eks_clusters" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster?ref=v1.4.51"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster?ref=v1.4.52"
   for_each = (var.eks_clusters != null) ? { for item in var.eks_clusters : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks_cluster = merge(
@@ -586,6 +586,22 @@ module "eks_clusters" {
         module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
         module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : each.value.subnet_ids
+    },
+    {
+      security_group_rules = each.value.security_group_rules != null ? [
+        for rule in each.value.security_group_rules : merge(
+          rule,
+          # Only resolve and nullify keys that exist in shared_vpc, otherwise leave them for EKS module to handle
+          try(rule.source_sg_key, null) != null && contains(keys(module.shared_vpc[each.value.vpc_name].security_group), rule.source_sg_key) ? {
+            source_sg_key = null
+            source_sg_id  = module.shared_vpc[each.value.vpc_name].security_group[rule.source_sg_key].id
+          } : {},
+          try(rule.target_sg_key, null) != null && contains(keys(module.shared_vpc[each.value.vpc_name].security_group), rule.target_sg_key) ? {
+            target_sg_key = null
+            target_sg_id  = module.shared_vpc[each.value.vpc_name].security_group[rule.target_sg_key].id
+          } : {}
+        )
+      ] : null
     }
   )
 }
