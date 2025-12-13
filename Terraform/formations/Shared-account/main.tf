@@ -597,6 +597,33 @@ module "eks_clusters" {
           }
         )
       ] : null
+    },
+    {
+      security_group_rules = each.value.security_group_rules != null ? [
+        for rule in each.value.security_group_rules : merge(
+          rule,
+          {
+            ingress_rules = rule.ingress_rules != null ? [
+              for ing_rule in rule.ingress_rules : merge(
+                ing_rule,
+                {
+                  source_vpc_sg_id = rule.vpc_sg_key != null ? module.shared_vpc[each.value.vpc_name].security_group[rule.vpc_sg_key].id : rule.vpc_security_group_id
+                }
+              )
+            ] : null
+          },
+          {
+            egress_rules = rule.egress_rules != null ? [
+              for egr_rule in rule.egress_rules : merge(
+                egr_rule,
+                {
+                  source_vpc_sg_id = rule.vpc_sg_key != null ? module.shared_vpc[each.value.vpc_name].security_group[rule.vpc_sg_key].id : rule.vpc_security_group_id
+                }
+              )
+            ] : null
+          }
+        )
+      ] : null
     }
   )
 }

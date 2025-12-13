@@ -1096,28 +1096,32 @@ variable "eks_clusters" {
       security_group_id = optional(string)
       sg_key            = optional(string)
       egress_rules = optional(list(object({
-        key            = string
-        cidr_ipv4      = optional(string)
-        cidr_ipv6      = optional(string)
-        prefix_list_id = optional(string)
-        description    = optional(string)
-        from_port      = optional(number)
-        to_port        = optional(number)
-        ip_protocol    = string
-        target_sg_id   = optional(string)
-        target_sg_key  = optional(string)
+        key              = string
+        cidr_ipv4        = optional(string)
+        cidr_ipv6        = optional(string)
+        prefix_list_id   = optional(string)
+        description      = optional(string)
+        from_port        = optional(number)
+        to_port          = optional(number)
+        ip_protocol      = string
+        target_sg_id     = optional(string)
+        target_sg_key    = optional(string)
+        target_vpc_sg_id = optional(string)
+        taget_vpc_sg_key = optional(string)
       })))
       ingress_rules = optional(list(object({
-        key            = string
-        cidr_ipv4      = optional(string)
-        cidr_ipv6      = optional(string)
-        prefix_list_id = optional(string)
-        description    = optional(string)
-        from_port      = optional(number)
-        to_port        = optional(number)
-        ip_protocol    = string
-        source_sg_id   = optional(string)
-        source_sg_key  = optional(string)
+        key               = string
+        cidr_ipv4         = optional(string)
+        cidr_ipv6         = optional(string)
+        prefix_list_id    = optional(string)
+        description       = optional(string)
+        from_port         = optional(number)
+        to_port           = optional(number)
+        ip_protocol       = string
+        source_sg_id      = optional(string)
+        source_sg_key     = optional(string)
+        source_vpc_sg_id  = optional(string)
+        source_vpc_sg_key = optional(string)
       })))
     })))
   }))

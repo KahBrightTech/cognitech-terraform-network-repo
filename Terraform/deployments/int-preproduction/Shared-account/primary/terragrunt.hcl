@@ -1094,6 +1094,12 @@ inputs = {
               source_sg_key = "eks-nodes"
               description   = "BASE - Inbound traffic from EKS Nodes SG to itself"
               ip_protocol   = "-1"
+            },
+            {
+              key           = "ingress-self-sg"
+               = "eks-nodes"
+              description   = "BASE - Inbound traffic from EKS Nodes SG to itself"
+              ip_protocol   = "-1"
             }
           ]
           egress_rules = [
