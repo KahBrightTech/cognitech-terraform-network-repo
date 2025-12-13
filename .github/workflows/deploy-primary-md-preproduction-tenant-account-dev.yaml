@@ -85,7 +85,24 @@ jobs:
 
       - name: Plan Terragrunt
         id: plan
-        run: terragrunt run-all plan --terragrunt-non-interactive
+        run: |
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-no-color > plan_output.txt 2>&1 || true
+          cat plan_output.txt
+
+      - name: Generate Plan Summary
+        if: always()
+        run: |
+          # Extract the plan summary line(s)
+          SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1 || echo "Plan summary not found")
+          
+          # Create GitHub Actions summary
+          echo "## Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Full plan output available in job logs**" >> $GITHUB_STEP_SUMMARY
 
   Approve:
     needs: Plan
