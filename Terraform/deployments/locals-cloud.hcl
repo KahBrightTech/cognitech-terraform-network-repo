@@ -70,11 +70,6 @@ locals {
       name     = "us-east-1"
       name_abr = "use1"
     }
-    external_cidrs = {
-      internet = "0.0.0.0/0"
-      org_ip   = "69.143.134.56/32"
-    }
-
     usw2 = {
       availability_zones = {
         primary    = "us-west-2a"
@@ -98,7 +93,10 @@ locals {
       secondary = ["snata", "snatb"]
     }
   }
-
+  external_cidrs = {
+    internet = "0.0.0.0/0"
+    org_ip   = "69.143.134.56/32"
+  }
   lambda = {
     start_instance = {
       runtime              = "python3.9"
