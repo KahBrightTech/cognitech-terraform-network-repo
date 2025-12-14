@@ -1156,12 +1156,12 @@ inputs = {
           sg_key = "eks-cluster-secondary"
           ingress_rules = [
             {
-              key               = "ingress-all-eks-nodes"
-              source_vpc_sg_key = "eks-nodes"
-              description       = "BASE - Inbound traffic from EKS Nodes SG on all ports"
-              from_port         = 0
-              to_port           = 0
-              ip_protocol       = "-1"
+              key           = "ingress-all-eks-nodes"
+              source_sg_key = "eks-nodes"
+              description   = "BASE - Inbound traffic from EKS Nodes SG on all ports"
+              from_port     = 0
+              to_port       = 0
+              ip_protocol   = "-1"
             }
           ]
           egress_rules = []
