@@ -579,7 +579,18 @@ inputs = {
         description = "IAM policy for ${local.vpc_name_abr} EC2 Nodes"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_ec2_nodes.json"
       }
-    }
+    },
+    # {
+    #   name               = "${local.vpc_name_abr}-cw-observability"
+    #   description        = "IAM Role for ${local.vpc_name_abr} CloudWatch Observability"
+    #   path               = "/"
+    #   assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-trust-policy.json"
+    #    policy = {
+    #     name        = "${local.vpc_name_abr}-cw-observability"
+    #     description = "IAM policy for ${local.vpc_name_abr} CloudWatch Observability"
+    #     policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-policy.json"
+    #   }
+    # }
   ]
 
 

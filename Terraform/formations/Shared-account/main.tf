@@ -571,13 +571,16 @@ module "waf" {
 # Creates EKS clusters
 #--------------------------------------------------------------------
 module "eks_clusters" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster?ref=v1.4.54"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster?ref=v1.4.55"
   for_each = (var.eks_clusters != null) ? { for item in var.eks_clusters : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks_cluster = merge(
     each.value,
     {
       role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
+    },
+    {
+      cloudwatch_observability_role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
     },
     {
       subnet_ids = each.value.subnet_keys != null ? flatten([
