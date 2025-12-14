@@ -1030,9 +1030,9 @@ inputs = {
   # ]
   eks_clusters = [
     {
-      create_eks_cluster = false
-      key                = local.vpc_name_abr
-      name               = "${local.vpc_name_abr}-eks-cluster"
+      create_eks_cluster = true
+      key                = "InfoGrid"
+      name               = "${local.vpc_name_abr}-InfoGrid"
       role_key           = "${local.vpc_name_abr}-eks"
       oidc_thumbprint    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
       access_entries = {
@@ -1116,6 +1116,22 @@ inputs = {
               from_port         = 3389
               to_port           = 3389
               ip_protocol       = "tcp"
+            },
+            {
+              key         = "ingress-80-my-ip"
+              cidr_ipv4   = include.cloud.locals.external_cidrs.org_ip
+              description = "BASE - Inbound traffic from org IP on tcp port 80"
+              from_port   = 80
+              to_port     = 80
+              ip_protocol = "tcp"
+            },
+            {
+              key         = "ingress-443-my-ip"
+              cidr_ipv4   = include.cloud.locals.external_cidrs.org_ip
+              description = "BASE - Inbound traffic from org IP on tcp port 443"
+              from_port   = 443
+              to_port     = 443
+              ip_protocol = "tcp"
             }
           ]
           egress_rules = [

@@ -72,6 +72,7 @@ locals {
     }
     external_cidrs = {
       internet = "0.0.0.0/0"
+      org_ip   = "69.143.134.56/32"
     }
 
     usw2 = {
