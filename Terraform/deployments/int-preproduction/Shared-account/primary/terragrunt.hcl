@@ -1030,11 +1030,12 @@ inputs = {
   # ]
   eks_clusters = [
     {
-      create_eks_cluster = true
-      key                = "InfoGrid"
-      name               = "${local.vpc_name_abr}-InfoGrid"
-      role_key           = "${local.vpc_name_abr}-eks"
-      oidc_thumbprint    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      create_eks_cluster        = true
+      key                       = "InfoGrid"
+      name                      = "${local.vpc_name_abr}-InfoGrid"
+      role_key                  = "${local.vpc_name_abr}-eks"
+      oidc_thumbprint           = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      enable_application_addons = true
       access_entries = {
         admin = {
           principal_arns = [
