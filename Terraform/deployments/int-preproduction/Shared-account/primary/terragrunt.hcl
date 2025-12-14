@@ -1133,6 +1133,14 @@ inputs = {
               from_port   = 443
               to_port     = 443
               ip_protocol = "tcp"
+            },
+            {
+              key         = "ingress-30000-32767-my-ip"
+              cidr_ipv4   = include.cloud.locals.external_cidrs.org_ip
+              description = "BASE - Inbound traffic from org IP on tcp port range 30000-32767 for nodeport test"
+              from_port   = 30000
+              to_port     = 32767
+              ip_protocol = "tcp"
             }
           ]
           egress_rules = [
