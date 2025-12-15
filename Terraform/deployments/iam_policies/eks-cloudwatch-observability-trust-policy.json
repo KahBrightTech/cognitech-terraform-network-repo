@@ -4,13 +4,13 @@
     {
       "Effect": "Allow",
       "Principal": {
-        "Federated": "arn:aws:iam::[[account_number]]:oidc-provider/oidc.eks.[[region]].amazonaws.com/id/[[oidc_provider_id]]"
+        "Federated": "arn:aws:iam::[[account_number]]:oidc-provider/oidc.eks.[[region]].amazonaws.com/id/https://oidc.eks.us-east-1.amazonaws.com/id/84F52C0151D0D2396EE6A7748494EDD8"
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "oidc.eks.[[region]].amazonaws.com/id/[[oidc_provider_id]]:sub": "system:serviceaccount:amazon-cloudwatch:cloudwatch-agent",
-          "oidc.eks.[[region]].amazonaws.com/id/[[oidc_provider_id]]:aud": "sts.amazonaws.com"
+          "oidc.eks.[[region]].amazonaws.com/id/https://oidc.eks.us-east-1.amazonaws.com/id/84F52C0151D0D2396EE6A7748494EDD8:sub": "system:serviceaccount:amazon-cloudwatch:cloudwatch-agent",
+          "oidc.eks.[[region]].amazonaws.com/id/https://oidc.eks.us-east-1.amazonaws.com/id/84F52C0151D0D2396EE6A7748494EDD8:aud": "sts.amazonaws.com"
         }
       }
     }
