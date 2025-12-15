@@ -1049,6 +1049,7 @@ inputs = {
       enable_application_addons = true 
       cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
       enable_secrets_manager_csi_driver = true
+      secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
       access_entries = {
         admin = {
           principal_arns = [
