@@ -110,8 +110,8 @@ jobs:
     needs: Approve
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terragrunt_action == 'apply' && github.ref == 'refs/heads/main'
-    environment:
-      name: production
+    # environment:
+    #   name: production
     env:
       IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
       REGION: us-east-1
