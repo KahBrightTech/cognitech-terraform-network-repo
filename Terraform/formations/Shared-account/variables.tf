@@ -1051,6 +1051,7 @@ variable "eks_clusters" {
     enable_networking_addons                    = optional(bool, true)
     enable_application_addons                   = optional(bool, false)
     enable_secrets_manager_csi_driver           = optional(bool, false)
+    enable_cloudwatch_observability             = optional(bool, false)
     enable_privateca_issuer                     = optional(bool, false)
     vpc_cni_version                             = optional(string)
     kube_proxy_version                          = optional(string)
