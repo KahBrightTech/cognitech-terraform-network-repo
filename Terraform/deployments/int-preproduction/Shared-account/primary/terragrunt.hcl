@@ -1172,8 +1172,6 @@ inputs = {
               key           = "ingress-all-eks-nodes"
               source_sg_key = "eks-nodes"
               description   = "BASE - Inbound traffic from EKS Nodes SG on all ports"
-              from_port     = 0
-              to_port       = 0
               ip_protocol   = "-1"
             }
           ]
