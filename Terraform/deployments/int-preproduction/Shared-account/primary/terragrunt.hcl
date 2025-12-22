@@ -585,7 +585,7 @@ inputs = {
       description        = "IAM Role for ${local.vpc_name_abr} CloudWatch Observability"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-trust-policy.json"
-       policy = {
+      policy = {
         name        = "${local.vpc_name_abr}-cw-observability"
         description = "IAM policy for ${local.vpc_name_abr} CloudWatch Observability"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-policy.json"
@@ -1041,14 +1041,14 @@ inputs = {
   # ]
   eks_clusters = [
     {
-      create_eks_cluster        = true
+      create_eks_cluster        = false
       key                       = "InfoGrid"
       name                      = "${local.vpc_name_abr}-InfoGrid"
       role_key                  = "${local.vpc_name_abr}-eks"
       oidc_thumbprint           = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
       enable_application_addons = false
       # cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
-      enable_secrets_manager_csi_driver = false
+      enable_secrets_manager_csi_driver  = false
       secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
       access_entries = {
         admin = {
