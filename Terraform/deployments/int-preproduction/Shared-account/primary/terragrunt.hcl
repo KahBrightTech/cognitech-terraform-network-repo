@@ -1041,7 +1041,7 @@ inputs = {
   # ]
   eks_clusters = [
     {
-      create_eks_cluster        = true
+      create_eks_cluster        = false
       key                       = "InfoGrid"
       name                      = "${local.vpc_name_abr}-InfoGrid"
       role_key                  = "${local.vpc_name_abr}-eks"
