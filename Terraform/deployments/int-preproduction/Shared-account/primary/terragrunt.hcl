@@ -682,10 +682,10 @@ inputs = {
       description             = "EKS DB Service Account credentials for ${local.aws_account_name} environment"
       recovery_window_in_days = 7
       policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      value = {
-        username = "${get_env("TF_VAR_EKS_DB_SA_USERNAME")}"
-        password = "${get_env("TF_VAR_EKS_DB_SA_PASSWORD")}"
-      }
+      # value = {
+      #   username = "${get_env("TF_VAR_EKS_DB_SA_USERNAME")}"
+      #   password = "${get_env("TF_VAR_EKS_DB_SA_PASSWORD")}"
+      # }
     }
   ]
   ssm_parameters = [
