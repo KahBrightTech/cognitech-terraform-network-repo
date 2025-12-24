@@ -1062,7 +1062,6 @@ inputs = {
           principal_arns = [include.env.locals.eks_roles.network]
           policy_arn     = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
         }
-
       }
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
