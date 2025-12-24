@@ -1189,22 +1189,22 @@ inputs = {
           egress_rules = []
         }
       ]
-      service_accounts = [
-        {
-          key  = "secrets-sa"
-          name = "secrets-manager"
-          iam_role = {
-            key         = "secrets-manager"
-            name        = "secrets-manager"
-            description = "IAM Role for EKS Secrets Manager CSI Driver"
-            policy = {
-              name        = "secrets-manager-service-account"
-              description = "IAM policy for EKS Secrets Manager CSI Driver"
-              policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy_eks_sa.json"
-            }
-          }
-        }
-      ]
+      # service_accounts = [
+      #   {
+      #     key  = "secrets-sa"
+      #     name = "secrets-manager"
+      #     iam_role = {
+      #       key         = "secrets-manager"
+      #       name        = "secrets-manager"
+      #       description = "IAM Role for EKS Secrets Manager CSI Driver"
+      #       policy = {
+      #         name        = "secrets-manager-service-account"
+      #         description = "IAM policy for EKS Secrets Manager CSI Driver"
+      #         policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy_eks_sa.json"
+      #       }
+      #     }
+      #   }
+      # ]
     }
   ]
 }
