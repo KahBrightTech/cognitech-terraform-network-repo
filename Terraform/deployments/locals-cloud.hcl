@@ -130,6 +130,7 @@ locals {
     keys     = "ec2-private-key-pairs"
     iam_user = "user"
     eks_node = "eks-node-private-key"
+    eks_db_sa = "eks-db-service-account"
   }
   # RAM principals as a list of strings (Organization ARN)
   ram_principals = [

@@ -675,6 +675,17 @@ inputs = {
         username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
         password = "${get_env("TF_VAR_DOCKER_PASSWORD")}"
       }
+    },
+    {
+      key                     = "eks-db-sa"
+      name_prefix             = include.cloud.locals.secret_names.eks_db_sa
+      description             = "EKS DB Service Account credentials for ${local.aws_account_name} environment"
+      recovery_window_in_days = 7
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username = "${get_env("TF_VAR_EKS_DB_SA_USERNAME")}"
+        password = "${get_env("TF_VAR_EKS_DB_SA_PASSWORD")}"
+      }
     }
   ]
   ssm_parameters = [
@@ -1189,7 +1200,7 @@ inputs = {
             policy = {
               name        = "secrets-manager-service-account"
               description = "IAM policy for EKS Secrets Manager CSI Driver"
-              policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json"
+              policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy_eks_sa.json"
             }
           }
         }
