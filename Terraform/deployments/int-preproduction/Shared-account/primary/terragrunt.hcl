@@ -1255,6 +1255,7 @@ generate "kubernetes-provider" {
   }
 
   provider "kubernetes" {
+    alias                  = "eks"
     host                   = module.eks_clusters.eks_cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks_clusters.eks_cluster_certificate_authority)
     token                  = data.aws_eks_cluster_auth.eks.token
