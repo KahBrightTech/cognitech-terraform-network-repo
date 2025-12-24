@@ -1197,6 +1197,9 @@ inputs = {
             key         = "secrets-manager"
             name        = "secrets-manager"
             description = "IAM Role for EKS Secrets Manager CSI Driver"
+            managed_policy_arns = [
+              "arn:aws:iam::aws:policy/ReadOnlyAccess"
+            ]
             policy = {
               name        = "secrets-manager-service-account"
               description = "IAM policy for EKS Secrets Manager CSI Driver"
