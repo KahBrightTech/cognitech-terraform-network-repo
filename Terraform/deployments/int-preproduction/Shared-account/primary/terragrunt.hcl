@@ -591,19 +591,18 @@ inputs = {
         policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-policy.json"
       }
     },
-    # {
-    #   name               = "${local.vpc_name_abr}-infogrid-sa"
-    #   description        = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
-    #   path               = "/"
-    #   assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks_infogrid_trust_policy.json"
-    #   policy = {
-    #     name        = "${local.vpc_name_abr}-infogrid-sa"
-    #     description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
-    #     policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
-    #   }
-    # }
+    {
+      name               = "${local.vpc_name_abr}-infogrid-sa"
+      description        = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks_infogrid_trust_policy.json"
+      policy = {
+        name        = "${local.vpc_name_abr}-infogrid-sa"
+        description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+      }
+    }
   ]
-
 
   iam_users = [
     {

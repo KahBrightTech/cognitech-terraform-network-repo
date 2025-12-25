@@ -4,13 +4,13 @@
         {
             "Effect": "Allow",
             "Principal": {
-                "Federated": "arn:aws:iam::730335294148:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/F1D0B9DC380DCD5A95F91F5D90E41FA3"
+                "Federated": "arn:aws:iam::730335294148:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/670CDDE1EDCAA123671C15182039D900"
             },
             "Action": "sts:AssumeRoleWithWebIdentity",
             "Condition": {
                 "StringEquals": {
-                    "oidc.eks.us-east-1.amazonaws.com/id/F1D0B9DC380DCD5A95F91F5D90E41FA3:sub": "system:serviceaccount:default:secrets-manager",
-                    "oidc.eks.us-east-1.amazonaws.com/id/F1D0B9DC380DCD5A95F91F5D90E41FA3:aud": "sts.amazonaws.com"
+                    "oidc.eks.us-east-1.amazonaws.com/id/670CDDE1EDCAA123671C15182039D900:sub": "system:serviceaccount:default:secrets-manager",
+                    "oidc.eks.us-east-1.amazonaws.com/id/670CDDE1EDCAA123671C15182039D900:aud": "sts.amazonaws.com"
                 }
             }
         }
