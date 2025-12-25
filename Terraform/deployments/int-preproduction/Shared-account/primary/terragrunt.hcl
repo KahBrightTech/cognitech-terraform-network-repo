@@ -1201,9 +1201,11 @@ inputs = {
         }
       ]
       eks_service_accounts = [
-        key      = "secrets-manager"
-        name     = "secrets-manager"
-        role_key = "${local.vpc_name_abr}-infogrid-sa"
+        {
+          key      = "secrets-manager"
+          name     = "secrets-manager"
+          role_key = "${local.vpc_name_abr}-infogrid-sa"
+        }
       ]
     }
   ]
