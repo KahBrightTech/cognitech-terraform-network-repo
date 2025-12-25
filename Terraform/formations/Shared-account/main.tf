@@ -635,25 +635,25 @@ module "eks_clusters" {
 }
 
 
-#--------------------------------------------------------------------
-# EKS Service Accounts
-#--------------------------------------------------------------------
-module "eks_service_accounts" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Service-account?ref=v1.4.70"
-  for_each = merge([
-    for cluster in var.eks_clusters :
-    cluster.eks_service_accounts != null ? {
-      for item in cluster.eks_service_accounts :
-      "${cluster.name}-${item.key}" => merge(item, { cluster_name = cluster.name })
-    } : {}
-  ]...)
-  common = var.common
-  eks_service_account = merge(
-    each.value,
-    {
-      role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
-    }
-  )
-}
+# #--------------------------------------------------------------------
+# # EKS Service Accounts
+# #--------------------------------------------------------------------
+# module "eks_service_accounts" {
+#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Service-account?ref=v1.4.70"
+#   for_each = merge([
+#     for cluster in var.eks_clusters :
+#     cluster.eks_service_accounts != null ? {
+#       for item in cluster.eks_service_accounts :
+#       "${cluster.name}-${item.key}" => merge(item, { cluster_name = cluster.name })
+#     } : {}
+#   ]...)
+#   common = var.common
+#   eks_service_account = merge(
+#     each.value,
+#     {
+#       role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
+#     }
+#   )
+# }
 
 

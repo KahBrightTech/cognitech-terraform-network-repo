@@ -172,10 +172,10 @@ output "eks_clusters" {
 }
 
 
-#-------------------------------------------------------
-# EKS Cluster Services Accounts outputs
-#-------------------------------------------------------
-output "eks_service_accounts" {
-  description = "Output for EKS Cluster Service Accounts"
-  value       = module.eks_service_accounts
-}
+# #-------------------------------------------------------
+# # EKS Cluster Services Accounts outputs
+# #-------------------------------------------------------
+# output "eks_service_accounts" {
+#   description = "Output for EKS Cluster Service Accounts"
+#   value       = module.eks_service_accounts
+# }

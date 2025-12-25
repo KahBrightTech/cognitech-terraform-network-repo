@@ -1242,20 +1242,20 @@ generate "aws-providers" {
   EOF
 }
 
-#-------------------------------------------------------
-# Kubernetes Provider (using data sources)
-#-------------------------------------------------------
-generate "kubernetes-provider" {
-  path      = "kubernetes-provider.tf"
-  if_exists = "overwrite"
-  contents  = <<-EOF
-  provider "kubernetes" {
-    host                   = data.aws_eks_cluster.InfoGrid.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.InfoGrid.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.InfoGrid.token
-  }
-  EOF
-}
+# #-------------------------------------------------------
+# # Kubernetes Provider (using data sources)
+# #-------------------------------------------------------
+# generate "kubernetes-provider" {
+#   path      = "kubernetes-provider.tf"
+#   if_exists = "overwrite"
+#   contents  = <<-EOF
+#   provider "kubernetes" {
+#     host                   = data.aws_eks_cluster.InfoGrid.endpoint
+#     cluster_ca_certificate = base64decode(data.aws_eks_cluster.InfoGrid.certificate_authority[0].data)
+#     token                  = data.aws_eks_cluster_auth.InfoGrid.token
+#   }
+#   EOF
+# }
 
 
 
