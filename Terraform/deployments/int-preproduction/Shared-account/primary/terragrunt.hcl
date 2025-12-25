@@ -1251,13 +1251,13 @@ generate "kubernetes-provider" {
   if_exists = "overwrite"
   contents  = <<-EOF
   data "aws_eks_cluster_auth" "eks" {
-    name = module.eks_clusters.eks_cluster_name
+    name = module.eks_clusters.eks_cluster_id
   }
 
   provider "kubernetes" {
     alias                  = "eks"
     host                   = module.eks_clusters.eks_cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks_clusters.eks_cluster_certificate_authority)
+    cluster_ca_certificate = base64decode(module.eks_clusters.eks_cluster_certificate_authority_data)
     token                  = data.aws_eks_cluster_auth.eks.token
     load_config_file       = false
   }
