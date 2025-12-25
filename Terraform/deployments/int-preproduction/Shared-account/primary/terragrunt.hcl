@@ -1251,11 +1251,10 @@ generate "kubernetes-provider" {
   if_exists = "overwrite"
   contents  = <<-EOF
   provider "kubernetes" {
-    alias                  = "InfoGrid"
+    alias                  = include.env.eks_provider_alias.primary_cluster
     host                   = module.eks_clusters[each.key]["eks_cluster_endpoint"]
     cluster_ca_certificate = base64decode(module.eks_clusters[each.key]["eks_cluster_certificate_authority_data"])
   }
-  EOF
 }
 
 
