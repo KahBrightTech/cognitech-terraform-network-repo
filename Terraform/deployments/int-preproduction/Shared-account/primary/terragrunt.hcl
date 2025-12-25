@@ -1189,25 +1189,6 @@ inputs = {
           egress_rules = []
         }
       ]
-      service_accounts = [
-        {
-          key  = "secrets-sa"
-          name = "secrets-manager"
-          iam_role = {
-            key         = "secrets-manager"
-            name        = "secrets-manager"
-            description = "IAM Role for EKS Secrets Manager CSI Driver"
-            managed_policy_arns = [
-              "arn:aws:iam::aws:policy/ReadOnlyAccess"
-            ]
-            policy = {
-              name        = "secrets-manager-service-account"
-              description = "IAM policy for EKS Secrets Manager CSI Driver"
-              policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy_eks_sa.json"
-            }
-          }
-        }
-      ]
     }
   ]
 }
@@ -1240,33 +1221,6 @@ generate "aws-providers" {
   contents  = <<-EOF
   provider "aws" {
     region = "${local.region}"
-  }
-  EOF
-}
-#-------------------------------------------------------
-# Kubernetes Provider (generated)
-#-------------------------------------------------------
-generate "kubernetes-provider" {
-  path      = "kubernetes-provider.tf"
-  if_exists = "overwrite"
-  contents  = <<-EOF
-  provider "kubernetes" {
-    alias                  = "InfoGrid"
-    host                   = module.eks_clusters["InfoGrid"]["eks_cluster_endpoint"]
-    cluster_ca_certificate = base64decode(module.eks_clusters["InfoGrid"]["eks_cluster_certificate_authority_data"])
-    
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args = [
-        "eks",
-        "get-token",
-        "--cluster-name",
-        module.eks_clusters["InfoGrid"]["eks_cluster_name"],
-        "--region",
-        "${local.region}"
-      ]
-    }
   }
   EOF
 }
