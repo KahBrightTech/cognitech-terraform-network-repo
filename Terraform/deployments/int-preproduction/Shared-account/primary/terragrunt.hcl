@@ -1269,4 +1269,3 @@ generate "kubernetes-provider" {
 
 
 
-
