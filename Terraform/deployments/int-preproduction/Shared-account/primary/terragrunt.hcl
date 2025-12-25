@@ -1251,7 +1251,7 @@ generate "kubernetes-provider" {
   if_exists = "overwrite"
   contents  = <<-EOF
   data "aws_eks_cluster_auth" "eks" {
-    name = module.eks_clusters.eks_cluster_id
+    name = module.eks_clusters.eks_cluster_name
   }
 
   provider "kubernetes" {
