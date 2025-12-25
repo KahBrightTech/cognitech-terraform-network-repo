@@ -1051,14 +1051,14 @@ inputs = {
   # ]
   eks_clusters = [
     {
-      create_eks_cluster        = true
-      key                       = "InfoGrid"
-      name                      = "${local.vpc_name_abr}-InfoGrid"
-      role_key                  = "${local.vpc_name_abr}-eks"
-      oidc_thumbprint           = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
-      enable_application_addons = false
-      # cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
-      enable_secrets_manager_csi_driver  = false
+      create_eks_cluster                 = true
+      key                                = "InfoGrid"
+      name                               = "${local.vpc_name_abr}-InfoGrid"
+      role_key                           = "${local.vpc_name_abr}-eks"
+      oidc_thumbprint                    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      enable_application_addons          = true
+      cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
+      enable_secrets_manager_csi_driver  = true
       secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
       access_entries = {
         admin = {
@@ -1230,20 +1230,6 @@ generate "aws-providers" {
   EOF
 }
 
-# #-------------------------------------------------------
-# # Kubernetes Provider (using data sources)
-# #-------------------------------------------------------
-# generate "kubernetes-provider" {
-#   path      = "kubernetes-provider.tf"
-#   if_exists = "overwrite"
-#   contents  = <<-EOF
-#   provider "kubernetes" {
-#     host                   = data.aws_eks_cluster.InfoGrid.endpoint
-#     cluster_ca_certificate = base64decode(data.aws_eks_cluster.InfoGrid.certificate_authority[0].data)
-#     token                  = data.aws_eks_cluster_auth.InfoGrid.token
-#   }
-#   EOF
-# }
 
 
 
