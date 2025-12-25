@@ -1243,29 +1243,16 @@ generate "aws-providers" {
 }
 
 #-------------------------------------------------------
-# Kubernetes Provider (generated)
+# Kubernetes Provider (using data sources)
 #-------------------------------------------------------
 generate "kubernetes-provider" {
   path      = "kubernetes-provider.tf"
   if_exists = "overwrite"
   contents  = <<-EOF
   provider "kubernetes" {
-    alias                  = "InfoGrid"
-    host                   = module.eks_clusters["InfoGrid"]["eks_cluster_endpoint"]
-    cluster_ca_certificate = base64decode(module.eks_clusters["InfoGrid"]["eks_cluster_certificate_authority_data"])
-    
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args = [
-        "eks",
-        "get-token",
-        "--cluster-name",
-        module.eks_clusters["InfoGrid"]["eks_cluster_name"],
-        "--region",
-        "${local.region}"
-      ]
-    }
+    host                   = data.aws_eks_cluster.InfoGrid.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.InfoGrid.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.InfoGrid.token
   }
   EOF
 }
