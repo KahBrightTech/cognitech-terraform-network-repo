@@ -1252,8 +1252,10 @@ generate "kubernetes-provider" {
   contents  = <<-EOF
   provider "kubernetes" {
     alias                  = "InfoGrid"  # This is thesame as the eks_clusters key
-    host                   = module.eks_clusters[each.key]["eks_cluster_endpoint"]
-    cluster_ca_certificate = base64decode(module.eks_clusters[each.key]["eks_cluster_certificate_authority_data"])
+    host                   = module.eks_clusters["InfoGrid"]["eks_cluster_endpoint"]
+    cluster_ca_certificate = base64decode(module.eks_clusters["InfoGrid"]["eks_cluster_certificate_authority_data"])
+    token                  = data.aws_eks_cluster_auth["InfoGrid"].token
+    load_config_file       = false
   }
   EOF
 }
