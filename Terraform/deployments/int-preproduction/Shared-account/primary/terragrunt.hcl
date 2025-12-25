@@ -591,17 +591,17 @@ inputs = {
         policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-policy.json"
       }
     },
-    {
-      name               = "${local.vpc_name_abr}-infogrid-sa"
-      description        = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
-      path               = "/"
-      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks_infogrid_trust_policy.json"
-      policy = {
-        name        = "${local.vpc_name_abr}-infogrid-sa"
-        description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
-      }
-    }
+    # {
+    #   name               = "${local.vpc_name_abr}-infogrid-sa"
+    #   description        = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+    #   path               = "/"
+    #   assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks_infogrid_trust_policy.json"
+    #   policy = {
+    #     name        = "${local.vpc_name_abr}-infogrid-sa"
+    #     description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+    #     policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+    #   }
+    # }
   ]
 
 
@@ -686,17 +686,6 @@ inputs = {
         username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
         password = "${get_env("TF_VAR_DOCKER_PASSWORD")}"
       }
-    },
-    {
-      key                     = "eks-db-sa"
-      name_prefix             = include.cloud.locals.secret_names.eks_db_sa
-      description             = "EKS DB Service Account credentials for ${local.aws_account_name} environment"
-      recovery_window_in_days = 7
-      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
-      # value = {
-      #   username = "${get_env("TF_VAR_EKS_DB_SA_USERNAME")}"
-      #   password = "${get_env("TF_VAR_EKS_DB_SA_PASSWORD")}"
-      # }
     }
   ]
   ssm_parameters = [
