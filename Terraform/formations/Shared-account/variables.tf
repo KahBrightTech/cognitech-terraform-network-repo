@@ -1136,6 +1136,13 @@ variable "eks_clusters" {
         source_vpc_sg_key = optional(string)
       })))
     })))
+    eks_service_accounts = optional(list(object({
+      key       = string
+      name      = optional(string)
+      namespace = optional(string, "default")
+      role_arn  = optional(string)
+      role_key  = optional(string)
+    })))
   }))
   default = null
 }

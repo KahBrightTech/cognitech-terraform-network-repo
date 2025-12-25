@@ -590,6 +590,17 @@ inputs = {
         description = "IAM policy for ${local.vpc_name_abr} CloudWatch Observability"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-policy.json"
       }
+    },
+    {
+      name               = "${local.vpc_name_abr}-infogrid-sa"
+      description        = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks_infogrid_trust_policy.json"
+      policy = {
+        name        = "${local.vpc_name_abr}-infogrid-sa"
+        description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+      }
     }
   ]
 
@@ -1189,6 +1200,11 @@ inputs = {
           egress_rules = []
         }
       ]
+      eks_service_accounts = [
+        key      = "secrets-manager"
+        name     = "secrets-manager"
+        role_key = "${local.vpc_name_abr}-infogrid-sa"
+      ]
     }
   ]
 }
@@ -1221,6 +1237,34 @@ generate "aws-providers" {
   contents  = <<-EOF
   provider "aws" {
     region = "${local.region}"
+  }
+  EOF
+}
+
+#-------------------------------------------------------
+# Kubernetes Provider (generated)
+#-------------------------------------------------------
+generate "kubernetes-provider" {
+  path      = "kubernetes-provider.tf"
+  if_exists = "overwrite"
+  contents  = <<-EOF
+  provider "kubernetes" {
+    alias                  = "InfoGrid"
+    host                   = module.eks_clusters["InfoGrid"]["eks_cluster_endpoint"]
+    cluster_ca_certificate = base64decode(module.eks_clusters["InfoGrid"]["eks_cluster_certificate_authority_data"])
+    
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        module.eks_clusters["InfoGrid"]["eks_cluster_name"],
+        "--region",
+        "${local.region}"
+      ]
+    }
   }
   EOF
 }
