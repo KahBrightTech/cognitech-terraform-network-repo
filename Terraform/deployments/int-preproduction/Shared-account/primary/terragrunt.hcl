@@ -1251,8 +1251,8 @@ generate "kubernetes-provider" {
   if_exists = "overwrite"
   contents  = <<-EOF
   provider "kubernetes" {
-    host                   = module.eks_clusters.eks_cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks_clusters.eks_cluster_certificate_authority_data)
+    host                   = module.eks_clusters["eks_cluster_endpoint"]
+    cluster_ca_certificate = base64decode(module.eks_clusters["eks_cluster_certificate_authority_data"])
   }
   EOF
 }
