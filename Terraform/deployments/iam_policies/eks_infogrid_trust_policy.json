@@ -9,7 +9,7 @@
             "Action": "sts:AssumeRoleWithWebIdentity",
             "Condition": {
                 "StringEquals": {
-                    "oidc.eks.us-east-1.amazonaws.com/id/670CDDE1EDCAA123671C15182039D900:sub": "system:serviceaccount:default:secrets-manager",
+                    "oidc.eks.us-east-1.amazonaws.com/id/670CDDE1EDCAA123671C15182039D900:sub": "system:serviceaccount:default:secrets-manager-sa",
                     "oidc.eks.us-east-1.amazonaws.com/id/670CDDE1EDCAA123671C15182039D900:aud": "sts.amazonaws.com"
                 }
             }
