@@ -1142,7 +1142,7 @@ variable "eks_clusters" {
         source_vpc_sg_key = optional(string)
       })))
     })))
-    eks_node_groups = optional(map(object({
+    eks_node_groups = optional(list(object({
       key                        = string
       cluster_name               = optional(string)
       cluster_key                = optional(string)
