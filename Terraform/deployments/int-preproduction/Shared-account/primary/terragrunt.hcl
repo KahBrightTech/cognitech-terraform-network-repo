@@ -592,12 +592,12 @@ inputs = {
       }
     },
     {
-      name               = "${local.vpc_name_abr}-infogrid-sa"
+      name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
       description        = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
       path               = "/"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks_infogrid_trust_policy.json"
       policy = {
-        name        = "${local.vpc_name_abr}-infogrid-sa"
+        name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
         description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
       }
