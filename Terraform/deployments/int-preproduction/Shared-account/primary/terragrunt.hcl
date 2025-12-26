@@ -1280,5 +1280,3 @@ generate "helm-provider" {
 
 
 
-
-
