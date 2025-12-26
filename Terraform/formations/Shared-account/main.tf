@@ -692,38 +692,56 @@ module "launch_templates" {
 # EKS Worker nodes
 #--------------------------------------------------------------------
 module "eks_worker_nodes" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Node-group?ref=v1.4.85"
-  for_each = (var.eks_clusters.eks_node_groups != null) ? { for item in var.eks_clusters.eks_node_groups : item.key => item } : {}
-  common   = var.common
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Node-group?ref=v1.4.85"
+  for_each = {
+    for pair in flatten([
+      for cluster in var.eks_clusters : [
+        for ng in(cluster.eks_node_groups != null ? cluster.eks_node_groups : []) : {
+          key         = "${cluster.key}-${ng.key}"
+          cluster_key = cluster.key
+          node_group  = ng
+        }
+      ]
+    ]) : pair.key => pair
+  }
+
+  common = var.common
   eks_node_group = merge(
-    each.value,
-    each.value.use_launch_template ? {
+    each.value.node_group,
+    each.value.node_group.use_launch_template ? {
       launch_template = {
-        id      = module.launch_templates[each.value.launch_template_name].id
+        id      = module.launch_templates[each.value.node_group.launch_template_name].id
         version = "$Latest"
       }
     } : {},
     {
-      subnet_ids = each.value.subnet_keys != null ? flatten([
-        for subnet_key in each.value.subnet_keys :
-        (each.value.use_private_subnets == true) ?
-        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-      ]) : each.value.subnet_ids
+      subnet_ids = each.value.node_group.subnet_keys != null ? flatten([
+        for subnet_key in each.value.node_group.subnet_keys :
+        (each.value.node_group.use_private_subnets == true) ?
+        module.shared_vpc[each.value.node_group.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[each.value.node_group.vpc_name].public_subnet[subnet_key].subnet_ids
+      ]) : each.value.node_group.subnet_ids
     },
     {
       cluster_name = each.value.cluster_key != null ? module.eks_clusters[each.value.cluster_key].eks_cluster_name : null
     },
     {
-      node_role_arn = each.value.node_role_key != null ? module.iam_roles[each.value.node_role_key].iam_role_arn : each.value.node_role_arn
+      node_role_arn = each.value.node_group.node_role_key != null ? module.iam_roles[each.value.node_group.node_role_key].iam_role_arn : each.value.node_group.node_role_arn
     },
     {
-      source_security_group_ids = each.value.source_security_group_keys != null ? [
-        for sg_key in each.value.source_security_group_keys :
-        module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
-      ] : each.value.source_security_group_ids
+      source_security_group_ids = each.value.node_group.source_security_group_keys != null ? [
+        for sg_key in each.value.node_group.source_security_group_keys :
+        module.shared_vpc[each.value.node_group.vpc_name].security_group[sg_key].id
+      ] : each.value.node_group.source_security_group_ids
     }
   )
+
+  depends_on = [
+    module.eks_clusters,
+    module.launch_templates,
+    module.iam_roles,
+    module.shared_vpc
+  ]
 }
 # #--------------------------------------------------------------------
 # # EKS Service Accounts
