@@ -689,7 +689,7 @@ module "launch_templates" {
 # EKS Worker nodes
 #--------------------------------------------------------------------
 module "eks_worker_nodes" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Node-group?ref=v1.4.85"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Node-group?ref=v1.4.89"
   for_each = {
     for pair in flatten([
       for cluster in var.eks_clusters : [
