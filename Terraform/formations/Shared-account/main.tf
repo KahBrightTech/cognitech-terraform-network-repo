@@ -680,12 +680,12 @@ module "launch_templates" {
     }
   )
 
-  depends_on = concat(
-    lookup(each.value, "depends_on_eks", false) ? [module.eks_clusters] : [],
-    [module.ec2_profiles],
-    [module.ec2_key_pairs],
-    [module.shared_vpc]
-  )
+  depends_on = [
+    module.eks_clusters,
+    module.ec2_profiles,
+    module.ec2_key_pairs,
+    module.shared_vpc
+  ]
 }
 
 #--------------------------------------------------------------------

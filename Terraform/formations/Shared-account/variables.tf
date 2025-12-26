@@ -1185,7 +1185,6 @@ variable "launch_templates" {
   type = list(object({
     name                     = string
     key                      = string
-    depends_on_eks           = optional(bool, true)
     eks_cluster_key          = optional(string)
     instance_profile         = optional(string)
     iam_instance_profile_key = optional(string)
