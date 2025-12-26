@@ -704,32 +704,32 @@ module "eks_worker_nodes" {
 
   common = var.common
   eks_node_group = merge(
-    each.value.node_group,
-    each.value.node_group.use_launch_template ? {
+    each.value.eks_node_groups,
+    each.value.eks_node_groups.use_launch_template ? {
       launch_template = {
         id      = module.launch_templates[each.value.node_group.launch_template_name].id
         version = "$Latest"
       }
     } : {},
     {
-      subnet_ids = each.value.node_group.subnet_keys != null ? flatten([
-        for subnet_key in each.value.node_group.subnet_keys :
-        (each.value.node_group.use_private_subnets == true) ?
-        module.shared_vpc[each.value.node_group.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[each.value.node_group.vpc_name].public_subnet[subnet_key].subnet_ids
-      ]) : each.value.node_group.subnet_ids
+      subnet_ids = each.value.eks_node_groups.subnet_keys != null ? flatten([
+        for subnet_key in each.value.eks_node_groups.subnet_keys :
+        (each.value.eks_node_groups.use_private_subnets == true) ?
+        module.shared_vpc[each.value.eks_node_groups.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[each.value.eks_node_groups.vpc_name].public_subnet[subnet_key].subnet_ids
+      ]) : each.value.eks_node_groups.subnet_ids
     },
     {
-      cluster_name = each.value.cluster_key != null ? module.eks_clusters[each.value.cluster_key].eks_cluster_name : null
+      cluster_name = each.value.cluster_key != null ? module.eks_clusters[each.value.cluster_key].eks_cluster_name : each.value.eks_node_groups.cluster_name
     },
     {
-      node_role_arn = each.value.node_group.node_role_key != null ? module.iam_roles[each.value.node_group.node_role_key].iam_role_arn : each.value.node_group.node_role_arn
+      node_role_arn = each.value.eks_node_groups.node_role_key != null ? module.iam_roles[each.value.eks_node_groups.node_role_key].iam_role_arn : each.value.eks_node_groups.node_role_arn
     },
     {
-      source_security_group_ids = each.value.node_group.source_security_group_keys != null ? [
-        for sg_key in each.value.node_group.source_security_group_keys :
-        module.shared_vpc[each.value.node_group.vpc_name].security_group[sg_key].id
-      ] : each.value.node_group.source_security_group_ids
+      source_security_group_ids = each.value.eks_node_groups.source_security_group_keys != null ? [
+        for sg_key in each.value.eks_node_groups.source_security_group_keys :
+        module.shared_vpc[each.value.eks_node_groups.vpc_name].security_group[sg_key].id
+      ] : each.value.eks_node_groups.source_security_group_ids
     }
   )
 
