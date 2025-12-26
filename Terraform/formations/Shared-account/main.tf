@@ -648,17 +648,14 @@ module "launch_templates" {
     },
     {
       vpc_security_group_ids = concat(
-        # Security groups from shared VPC
         each.value.vpc_security_group_keys != null ? [
           for sg_key in each.value.vpc_security_group_keys :
           module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
         ] : [],
-        # Security groups from EKS cluster (if eks_cluster_key is provided)
         lookup(each.value, "eks_cluster_key", null) != null && lookup(each.value, "eks_security_group_keys", null) != null ? [
           for sg_key in each.value.eks_security_group_keys :
           module.eks_clusters[each.value.eks_cluster_key].security_group[sg_key].security_group_id
         ] : [],
-        # Add EKS cluster's main security group if flag is set
         lookup(each.value, "include_eks_cluster_sg", false) && lookup(each.value, "eks_cluster_key", null) != null ? [
           module.eks_clusters[each.value.eks_cluster_key].eks_cluster_security_group_id
         ] : []

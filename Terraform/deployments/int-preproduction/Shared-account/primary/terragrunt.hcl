@@ -1211,7 +1211,7 @@ inputs = {
           cluster_key     = include.env.locals.eks_cluster_keys.primary_cluster
           node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-groups"
           node_role_key   = "${local.vpc_name_abr}-ec2-nodes"
-          subnet_key = [
+          subnet_keys = [
             include.env.locals.subnet_prefix.primary
           ]
           desired_size        = 2
