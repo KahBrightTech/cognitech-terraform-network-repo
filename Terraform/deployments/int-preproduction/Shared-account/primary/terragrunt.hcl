@@ -1237,6 +1237,7 @@ generate "kubernetes-provider" {
   if_exists = "overwrite"
   contents  = <<-EOF
   provider "kubernetes" {
+    alias                  = "${include.env.locals.eks_cluster_keys.primary_cluster}"
     host                   = try(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_endpoint, "")
     cluster_ca_certificate = try(base64decode(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_certificate_authority_data), "")
     
@@ -1247,7 +1248,7 @@ generate "kubernetes-provider" {
         "eks",
         "get-token",
         "--cluster-name",
-        try(module.eks_clusters["InfoGrid"].eks_cluster_name, ""),
+        try(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_name, ""),
         "--region",
         "${local.region}"
       ]
@@ -1257,21 +1258,22 @@ generate "kubernetes-provider" {
 }
 
 #-------------------------------------------------------
-# Helm Provider (CORRECTED - using = instead of block)
+# Helm Provider 
 #-------------------------------------------------------
 generate "helm-provider" {
   path      = "helm-provider.tf"
   if_exists = "overwrite"
   contents  = <<-EOF
-  data "aws_eks_cluster_auth" "cluster" {
+  data "aws_eks_cluster_auth" "${include.env.locals.eks_cluster_keys.primary_cluster}" {
     name = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name, "")
   }
   
   provider "helm" {
+    alias                    = "${include.env.locals.eks_cluster_keys.primary_cluster}"
     kubernetes = {
       host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
       cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
-      token                  = try(data.aws_eks_cluster_auth.cluster.token, "")
+      token                  = try(data.aws_eks_cluster_auth["${include.env.locals.eks_cluster_keys.primary_cluster}"].token, "")
     }
   }
   EOF
