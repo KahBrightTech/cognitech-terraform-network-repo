@@ -1049,22 +1049,7 @@ inputs = {
     #     }
     #   }
   ]
-  launch_templates = [
-    {
-      key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
-      name            = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-      key_name        = "${local.vpc_name_abr}-key-pair"
-      eks_cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
-      ami_config = {
-        os_release_date = "EKSAL2023"
-      }
-      associate_public_ip_address = true
-      instance_type               = "t3.medium"
-      root_device_name            = "/dev/xvda"
-      volume_size                 = 20
-      vpc_security_group_ids      = ["eks-nodes"]
-    }
-  ]
+
   eks_clusters = [
     {
       create_eks_cluster                 = true
@@ -1205,6 +1190,22 @@ inputs = {
           egress_rules = []
         }
       ]
+      launch_templates = [
+        {
+          key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
+          name            = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          key_name        = "${local.vpc_name_abr}-key-pair"
+          eks_cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
+          ami_config = {
+            os_release_date = "EKSAL2023"
+          }
+          associate_public_ip_address = true
+          instance_type               = "t3.medium"
+          root_device_name            = "/dev/xvda"
+          volume_size                 = 20
+          vpc_security_group_ids      = ["eks-nodes"]
+        }
+      ]
       eks_node_groups = [
         {
           key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
@@ -1214,9 +1215,9 @@ inputs = {
           subnet_keys = [
             include.env.locals.subnet_prefix.primary
           ]
-          desired_size        = 2
-          max_size            = 4
-          min_size            = 1
+          desired_size         = 2
+          max_size             = 4
+          min_size             = 1
           launch_template_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
         }
       ]
