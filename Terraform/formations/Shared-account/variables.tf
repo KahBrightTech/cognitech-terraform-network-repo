@@ -1036,9 +1036,10 @@ variable "eks_clusters" {
     role_arn                       = optional(string)
     role_key                       = optional(string)
     subnet_ids                     = optional(list(string))
-    subnet_keys                    = optional(list(string))
+    subnet_key                     = optional(list(string))
     additional_security_group_ids  = optional(list(string))
     additional_security_group_keys = optional(list(string))
+    create_ec2_node_group          = optional(bool, true)
     access_entries = optional(map(object({
       principal_arns = optional(list(string))
       policy_arn     = optional(string)
@@ -1141,13 +1142,69 @@ variable "eks_clusters" {
         source_vpc_sg_key = optional(string)
       })))
     })))
-    # eks_service_accounts = optional(list(object({
-    #   key       = string
-    #   name      = optional(string)
-    #   namespace = optional(string, "default")
-    #   role_arn  = optional(string)
-    #   role_key  = optional(string)
-    # })))
+    eks_node_groups = optional(map(object({
+      key                        = string
+      cluster_name               = optional(string)
+      cluster_key                = optional(string)
+      node_group_name            = optional(string)
+      node_role_arn              = optional(string)
+      node_role_key              = optional(string)
+      use_launch_template        = optional(bool, true)
+      subnet_key                 = optional(string)
+      subnet_ids                 = optional(list(string))
+      use_private_subnets        = optional(bool, false)
+      desired_size               = number
+      max_size                   = number
+      min_size                   = number
+      instance_types             = list(string)
+      enable_remote_access       = optional(bool, false)
+      ec2_ssh_key                = optional(string, "")
+      source_security_group_ids  = optional(list(string))
+      source_security_group_keys = optional(list(string))
+      ami_type                   = optional(string)
+      disk_size                  = optional(number)
+      labels                     = optional(map(string), {})
+      tags                       = optional(map(string), {})
+      version                    = optional(string)
+      force_update_version       = optional(bool, false)
+      capacity_type              = optional(string, "ON_DEMAND")
+      ec2_instance_name          = optional(string, "eks_node_group")
+      launch_template_name       = optional(string)
+      launch_template = optional(object({
+        id      = string
+        version = optional(string, "$Latest")
+      }))
+    })))
+  }))
+  default = null
+}
+
+
+variable "launch_templates" {
+  description = "Launch Template configuration"
+  type = list(object({
+    name                     = string
+    key                      = string
+    depends_on_eks           = optional(bool, true)
+    eks_cluster_key          = optional(string)
+    instance_profile         = optional(string)
+    iam_instance_profile_key = optional(string)
+    custom_ami               = optional(string)
+    ami_config = object({
+      os_release_date  = optional(string)
+      os_base_packages = optional(string)
+    })
+    instance_type               = optional(string)
+    key_name                    = optional(string)
+    associate_public_ip_address = optional(bool)
+    vpc_security_group_ids      = optional(list(string))
+    vpc_security_group_keys     = optional(list(string))
+    vpc_name                    = optional(string)
+    tags                        = optional(map(string))
+    user_data                   = optional(string)
+    volume_size                 = optional(number)
+    root_device_name            = optional(string)
+    is_eks_node_template        = optional(bool, true)
   }))
   default = null
 }

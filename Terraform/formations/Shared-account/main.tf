@@ -634,7 +634,97 @@ module "eks_clusters" {
   )
 }
 
+module "launch_templates" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Launch_template?ref=v1.4.78"
+  for_each = (var.launch_templates != null) ? { for item in var.launch_templates : item.name => item } : {}
+  common   = var.common
+  launch_template = merge(
+    each.value,
+    {
+      iam_instance_profile = each.value.iam_instance_profile_key != null ? module.ec2_profiles[each.value.iam_instance_profile_key].ec2_instance_profile_name : each.value.iam_instance_profile
+    },
+    {
+      key_name = module.ec2_key_pairs[each.value.key_pair_name].name
+    },
+    {
+      vpc_security_group_ids = concat(
+        # Security groups from shared VPC
+        each.value.vpc_security_group_keys != null ? [
+          for sg_key in each.value.vpc_security_group_keys :
+          module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
+        ] : [],
+        # Security groups from EKS cluster (if eks_cluster_key is provided)
+        lookup(each.value, "eks_cluster_key", null) != null && lookup(each.value, "eks_security_group_keys", null) != null ? [
+          for sg_key in each.value.eks_security_group_keys :
+          module.eks_clusters[each.value.eks_cluster_key].security_group[sg_key].security_group_id
+        ] : [],
+        # Add EKS cluster's main security group if flag is set
+        lookup(each.value, "include_eks_cluster_sg", false) && lookup(each.value, "eks_cluster_key", null) != null ? [
+          module.eks_clusters[each.value.eks_cluster_key].eks_cluster_security_group_id
+        ] : []
+      )
+    },
+    {
+      user_data = lookup(each.value, "eks_cluster_key", null) != null ? base64encode(yamlencode({
+        apiVersion = "node.eks.aws/v1alpha1"
+        kind       = "NodeConfig"
+        spec = {
+          cluster = {
+            name                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_id
+            apiServerEndpoint    = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_endpoint
+            certificateAuthority = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_certificate_authority_data
+            cidr                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_service_ipv4_cidr
+          }
+        }
+      })) : lookup(each.value, "user_data", "")
+    }
+  )
 
+  depends_on = concat(
+    lookup(each.value, "depends_on_eks", false) ? [module.eks_clusters] : [],
+    [module.ec2_profiles],
+    [module.ec2_key_pairs],
+    [module.shared_vpc]
+  )
+}
+
+#--------------------------------------------------------------------
+# EKS Worker nodes
+#--------------------------------------------------------------------
+module "eks_worker_nodes" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Node-group?ref=v1.4.85"
+  for_each = (var.eks_clusters.eks_node_groups != null) ? { for item in var.eks_clusters.eks_node_groups : item.key => item } : {}
+  common   = var.common
+  eks_node_group = merge(
+    each.value,
+    each.value.use_launch_template ? {
+      launch_template = {
+        id      = module.launch_templates[each.value.launch_template_name].id
+        version = "$Latest"
+      }
+    } : {},
+    {
+      subnet_ids = each.value.subnet_keys != null ? flatten([
+        for subnet_key in each.value.subnet_keys :
+        (each.value.use_private_subnets == true) ?
+        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+      ]) : each.value.subnet_ids
+    },
+    {
+      cluster_name = each.value.cluster_key != null ? module.eks_clusters[each.value.cluster_key].eks_cluster_name : null
+    },
+    {
+      node_role_arn = each.value.node_role_key != null ? module.iam_roles[each.value.node_role_key].iam_role_arn : each.value.node_role_arn
+    },
+    {
+      source_security_group_ids = each.value.source_security_group_keys != null ? [
+        for sg_key in each.value.source_security_group_keys :
+        module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+      ] : each.value.source_security_group_ids
+    }
+  )
+}
 # #--------------------------------------------------------------------
 # # EKS Service Accounts
 # #--------------------------------------------------------------------

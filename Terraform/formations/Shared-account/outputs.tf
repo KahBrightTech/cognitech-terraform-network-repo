@@ -171,6 +171,21 @@ output "eks_clusters" {
   value       = module.eks_clusters
 }
 
+#-------------------------------------------------------
+# Launch Template outputs
+#-------------------------------------------------------
+output "launch_templates" {
+  description = "Output for Launch Templates"
+  value       = module.launch_templates
+}
+
+#-------------------------------------------------------
+# EKS Worker nodes outputs
+#-------------------------------------------------------
+output "eks_worker_nodes" {
+  description = "Output for EKS Worker Nodes"
+  value       = module.eks_worker_nodes
+}
 
 # #-------------------------------------------------------
 # # EKS Cluster Services Accounts outputs

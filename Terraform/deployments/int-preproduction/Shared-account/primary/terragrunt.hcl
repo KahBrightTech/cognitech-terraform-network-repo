@@ -975,91 +975,108 @@ inputs = {
     # }
   ]
 
-  # wafs = [
-  #   {
-  #     key         = "org"
-  #     name        = "org"
-  #     description = "Organization wide WAF"
-  #     rule_file   = "${include.cloud.locals.repo.root}/documents/waf/managedrules.json"
-  #     logging = {
-  #       enabled          = true
-  #       create_log_group = true
-  #     }
-  #     rule_groups = [
-  #       {
-  #         key             = "country-based-blocking"
-  #         name            = "CountryBasedBlocking"
-  #         description     = "Block requests from specific countries"
-  #         capacity        = 1000
-  #         rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/countrybasedblocking.json"
-  #       },
-  #       {
-  #         key             = "rate-based"
-  #         name            = "RateBasedBlocking"
-  #         description     = "Block requests exceeding rate limit"
-  #         capacity        = 1000
-  #         rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/ratebasedblocking.json"
-  #       }
-  #     ]
-  #     rule_group_references = [
-  #       {
-  #         name           = "country-based-blocking"
-  #         priority       = 45
-  #         rule_group_key = "country-based-blocking"
-  #       },
-  #       {
-  #         name           = "rate-based"
-  #         priority       = 50
-  #         rule_group_key = "rate-based"
-  #       }
-  #     ]
-  #     ip_sets = [
-  #       {
-  #         key         = "my-ip"
-  #         name        = "my-ip"
-  #         description = "Block my home IPs"
-  #         addresses   = ["69.143.134.56/32"]
-  #       },
-  #       {
-  #         key         = "josh-ip"
-  #         name        = "josh-ip"
-  #         description = "Block Josh IPs"
-  #         addresses   = ["70.22.20.54/32"]
-  #       }
-  #     ]
-  #     custom_rules = [
-  #       {
-  #         name           = "allow-my-ip"
-  #         priority       = 65
-  #         action         = "allow"
-  #         statement_type = "ip_set"
-  #         ip_set_key     = "my-ip"
-  #       },
-  #       {
-  #         name           = "block-josh-ip"
-  #         priority       = 70
-  #         action         = "block"
-  #         statement_type = "ip_set"
-  #         ip_set_key     = "josh-ip"
-  #       }
-  #     ]
-  #     association = {
-  #       associate_alb = true
-  #       alb_keys      = ["app"]
-  #     }
-  #   }
-  # ]
+  wafs = [
+    #   {
+    #     key         = "org"
+    #     name        = "org"
+    #     description = "Organization wide WAF"
+    #     rule_file   = "${include.cloud.locals.repo.root}/documents/waf/managedrules.json"
+    #     logging = {
+    #       enabled          = true
+    #       create_log_group = true
+    #     }
+    #     rule_groups = [
+    #       {
+    #         key             = "country-based-blocking"
+    #         name            = "CountryBasedBlocking"
+    #         description     = "Block requests from specific countries"
+    #         capacity        = 1000
+    #         rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/countrybasedblocking.json"
+    #       },
+    #       {
+    #         key             = "rate-based"
+    #         name            = "RateBasedBlocking"
+    #         description     = "Block requests exceeding rate limit"
+    #         capacity        = 1000
+    #         rule_group_file = "${include.cloud.locals.repo.root}/documents/waf/ratebasedblocking.json"
+    #       }
+    #     ]
+    #     rule_group_references = [
+    #       {
+    #         name           = "country-based-blocking"
+    #         priority       = 45
+    #         rule_group_key = "country-based-blocking"
+    #       },
+    #       {
+    #         name           = "rate-based"
+    #         priority       = 50
+    #         rule_group_key = "rate-based"
+    #       }
+    #     ]
+    #     ip_sets = [
+    #       {
+    #         key         = "my-ip"
+    #         name        = "my-ip"
+    #         description = "Block my home IPs"
+    #         addresses   = ["69.143.134.56/32"]
+    #       },
+    #       {
+    #         key         = "josh-ip"
+    #         name        = "josh-ip"
+    #         description = "Block Josh IPs"
+    #         addresses   = ["70.22.20.54/32"]
+    #       }
+    #     ]
+    #     custom_rules = [
+    #       {
+    #         name           = "allow-my-ip"
+    #         priority       = 65
+    #         action         = "allow"
+    #         statement_type = "ip_set"
+    #         ip_set_key     = "my-ip"
+    #       },
+    #       {
+    #         name           = "block-josh-ip"
+    #         priority       = 70
+    #         action         = "block"
+    #         statement_type = "ip_set"
+    #         ip_set_key     = "josh-ip"
+    #       }
+    #     ]
+    #     association = {
+    #       associate_alb = true
+    #       alb_keys      = ["app"]
+    #     }
+    #   }
+  ]
+  launch_templates = [
+    {
+      key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
+      name            = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+      key_name        = "${local.vpc_name_abr}-key-pair"
+      eks_cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
+      ami_config = {
+        os_release_date = "EKSAL2023"
+      }
+      associate_public_ip_address = true
+      instance_type               = "t3.medium"
+      root_device_name            = "/dev/xvda"
+      volume_size                 = 20
+      vpc_security_group_ids      = ["eks-nodes"]
+    }
+  ]
+
   eks_clusters = [
     {
-      create_eks_cluster        = false 
-      key                       = include.env.locals.eks_cluster_keys.primary_cluster
-      name                      = "${local.vpc_name_abr}-InfoGrid"
-      role_key                  = "${local.vpc_name_abr}-eks"
-      oidc_thumbprint           = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
-      enable_application_addons = false
-      # cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
-      # enable_secrets_manager_csi_driver  = true
-      # secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
+      create_eks_cluster                 = false
+      key                                = include.env.locals.eks_cluster_keys.primary_cluster
+      name                               = "${local.vpc_name_abr}-InfoGrid"
+      role_key                           = "${local.vpc_name_abr}-eks"
+      oidc_thumbprint                    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      enable_application_addons          = false
+      cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
+      enable_secrets_manager_csi_driver  = true
+      secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
       access_entries = {
         admin = {
           principal_arns = [
@@ -1188,11 +1205,19 @@ inputs = {
           egress_rules = []
         }
       ]
-      eks_service_accounts = [
+      eks_node_groups = [
         {
-          key      = "secrets-manager"
-          name     = "secrets-manager"
-          role_key = "${local.vpc_name_abr}-infogrid-sa"
+          key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
+          cluster_key     = include.env.locals.eks_cluster_keys.primary_cluster
+          node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-groups"
+          node_role_key   = "${local.vpc_name_abr}-ec2-nodes"
+          subnet_key = [
+            include.env.locals.subnet_prefix.primary
+          ]
+          desired_size        = 2
+          max_size            = 4
+          min_size            = 1
+          launch_template_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
         }
       ]
     }
