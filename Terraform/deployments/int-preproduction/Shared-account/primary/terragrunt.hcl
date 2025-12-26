@@ -1274,7 +1274,7 @@ generate "helm-provider" {
     kubernetes = {
       host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
       cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
-      token                  = try(data.aws_eks_cluster_auth."${include.env.locals.eks_cluster_keys.primary_cluster}".token, "")
+      token                  = try(data.aws_eks_cluster_auth.${include.env.locals.eks_cluster_keys.primary_cluster}.token, "")
     }
   }
   EOF
