@@ -1230,32 +1230,15 @@ generate "aws-providers" {
 }
 
 #-------------------------------------------------------
-# Data Sources for EKS Cluster 
-#-------------------------------------------------------
-generate "eks-data-sources" {
-  path      = "eks-data-sources.tf"
-  if_exists = "overwrite"
-  contents  = <<-EOF
-  data "aws_eks_cluster" "InfoGrid" {
-    name = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-  }
-  
-  data "aws_eks_cluster_auth" "InfoGrid" {
-    name = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-  }
-  EOF
-}
-#-------------------------------------------------------
-# Kubernetes Provider
+# Kubernetes Provider (using module outputs)
 #-------------------------------------------------------
 generate "kubernetes-provider" {
   path      = "kubernetes-provider.tf"
   if_exists = "overwrite"
   contents  = <<-EOF
   provider "kubernetes" {
-    host                   = data.aws_eks_cluster.${include.env.locals.eks_cluster_keys.primary_cluster}.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.${include.env.locals.eks_cluster_keys.primary_cluster}.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.${include.env.locals.eks_cluster_keys.primary_cluster}.token
+    host                   = try(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_endpoint, "")
+    cluster_ca_certificate = try(base64decode(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_certificate_authority_data), "")
     
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
@@ -1264,7 +1247,7 @@ generate "kubernetes-provider" {
         "eks",
         "get-token",
         "--cluster-name",
-        "${local.vpc_name_abr}-InfoGrid",
+        try(module.eks_clusters["InfoGrid"].eks_cluster_name, ""),
         "--region",
         "${local.region}"
       ]
@@ -1274,25 +1257,25 @@ generate "kubernetes-provider" {
 }
 
 #-------------------------------------------------------
-# Helm Provider
+# Helm Provider (using module outputs)
 #-------------------------------------------------------
 generate "helm-provider" {
   path      = "helm-provider.tf"
   if_exists = "overwrite"
   contents  = <<-EOF
   provider "helm" {
-    kubernetes = {
-      host                   = data.aws_eks_cluster.${include.env.locals.eks_cluster_keys.primary_cluster}.endpoint
-      cluster_ca_certificate = base64decode(data.aws_eks_cluster.${include.env.locals.eks_cluster_keys.primary_cluster}.certificate_authority[0].data)
-      token                  = data.aws_eks_cluster_auth.${include.env.locals.eks_cluster_keys.primary_cluster}.token
-      exec = {
+    kubernetes {
+      host                   = try(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_endpoint, "")
+      cluster_ca_certificate = try(base64decode(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_certificate_authority_data), "")
+      
+      exec {
         api_version = "client.authentication.k8s.io/v1beta1"
         command     = "aws"
         args = [
           "eks",
           "get-token",
           "--cluster-name",
-          "${local.vpc_name_abr}-InfoGrid",
+          try(module.eks_clusters["InfoGrid"].eks_cluster_name, ""),
           "--region",
           "${local.region}"
         ]
