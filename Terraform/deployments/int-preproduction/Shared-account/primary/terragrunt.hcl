@@ -1058,8 +1058,9 @@ inputs = {
       oidc_thumbprint           = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
       enable_application_addons = false
       # cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
-      enable_secrets_manager_csi_driver  = true
-      secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
+      enable_helm_secrets_store_csi_driver = false 
+      # enable_secrets_manager_csi_driver  = true
+      # secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
       access_entries = {
         admin = {
           principal_arns = [
@@ -1238,8 +1239,8 @@ generate "kubernetes-provider" {
   contents  = <<-EOF
   provider "kubernetes" {
     alias                  = "${include.env.locals.eks_cluster_keys.primary_cluster}"
-    host                   = try(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_endpoint, "")
-    cluster_ca_certificate = try(base64decode(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_certificate_authority_data), "")
+    host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
+    cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
     
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
@@ -1273,7 +1274,7 @@ generate "helm-provider" {
     kubernetes = {
       host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
       cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
-      token                  = try(data.aws_eks_cluster_auth["${include.env.locals.eks_cluster_keys.primary_cluster}"].token, "")
+      token                  = try(data.aws_eks_cluster_auth."${include.env.locals.eks_cluster_keys.primary_cluster}".token, "")
     }
   }
   EOF
