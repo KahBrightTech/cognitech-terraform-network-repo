@@ -1270,7 +1270,7 @@ generate "helm-provider" {
   }
   
   provider "helm" {
-    counter = var.create_eks_cluster ? 1 : 0
+    count = var.create_eks_cluster ? 1 : 0
     kubernetes = {
       host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
       cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
