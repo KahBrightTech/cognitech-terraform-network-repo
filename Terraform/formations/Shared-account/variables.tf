@@ -1150,7 +1150,7 @@ variable "eks_clusters" {
       node_role_arn              = optional(string)
       node_role_key              = optional(string)
       use_launch_template        = optional(bool, true)
-      subnet_key                 = optional(string)
+      subnet_key                 = optional(list(string))
       subnet_ids                 = optional(list(string))
       use_private_subnets        = optional(bool, false)
       desired_size               = number
