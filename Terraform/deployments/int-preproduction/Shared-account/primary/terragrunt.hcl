@@ -1257,7 +1257,7 @@ generate "kubernetes-provider" {
 }
 
 #-------------------------------------------------------
-# Helm Provider (using module outputs)
+# Helm Provider (NEW SYNTAX for v2.13+)
 #-------------------------------------------------------
 generate "helm-provider" {
   path      = "helm-provider.tf"
@@ -1265,8 +1265,8 @@ generate "helm-provider" {
   contents  = <<-EOF
   provider "helm" {
     kubernetes {
-      host                   = try(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_endpoint, "")
-      cluster_ca_certificate = try(base64decode(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_certificate_authority_data), "")
+      host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
+      cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
       
       exec {
         api_version = "client.authentication.k8s.io/v1beta1"
@@ -1275,7 +1275,7 @@ generate "helm-provider" {
           "eks",
           "get-token",
           "--cluster-name",
-          try(module.eks_clusters["InfoGrid"].eks_cluster_name, ""),
+          try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name, ""),
           "--region",
           "${local.region}"
         ]
