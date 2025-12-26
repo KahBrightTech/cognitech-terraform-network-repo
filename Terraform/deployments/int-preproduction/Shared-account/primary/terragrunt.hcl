@@ -1257,29 +1257,21 @@ generate "kubernetes-provider" {
 }
 
 #-------------------------------------------------------
-# Helm Provider (NEW SYNTAX for v2.13+)
+# Helm Provider (CORRECTED - using = instead of block)
 #-------------------------------------------------------
 generate "helm-provider" {
   path      = "helm-provider.tf"
   if_exists = "overwrite"
   contents  = <<-EOF
+  data "aws_eks_cluster_auth" "cluster" {
+    name = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name, "")
+  }
+  
   provider "helm" {
-    kubernetes {
+    kubernetes = {
       host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
       cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
-      
-      exec {
-        api_version = "client.authentication.k8s.io/v1beta1"
-        command     = "aws"
-        args = [
-          "eks",
-          "get-token",
-          "--cluster-name",
-          try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name, ""),
-          "--region",
-          "${local.region}"
-        ]
-      }
+      token                  = try(data.aws_eks_cluster_auth.cluster.token, "")
     }
   }
   EOF
