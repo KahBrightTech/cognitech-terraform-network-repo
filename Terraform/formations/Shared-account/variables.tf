@@ -1156,7 +1156,7 @@ variable "eks_clusters" {
       desired_size               = number
       max_size                   = number
       min_size                   = number
-      instance_types             = list(string)
+      instance_types             = optional(list(string))
       enable_remote_access       = optional(bool, false)
       ec2_ssh_key                = optional(string, "")
       source_security_group_ids  = optional(list(string))
