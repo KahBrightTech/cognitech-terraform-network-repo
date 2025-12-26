@@ -1238,7 +1238,6 @@ generate "kubernetes-provider" {
   if_exists = "overwrite"
   contents  = <<-EOF
   provider "kubernetes" {
-    alias                  = "${include.env.locals.eks_cluster_keys.primary_cluster}"
     host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
     cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
     
@@ -1270,7 +1269,6 @@ generate "helm-provider" {
   }
   
   provider "helm" {
-    alias                    = "${include.env.locals.eks_cluster_keys.primary_cluster}"
     kubernetes = {
       host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
       cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
