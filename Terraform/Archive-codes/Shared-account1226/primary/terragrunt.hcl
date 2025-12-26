@@ -1058,6 +1058,7 @@ inputs = {
       oidc_thumbprint           = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
       enable_application_addons = false
       # cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
+      enable_helm_secrets_store_csi_driver = false
       # enable_secrets_manager_csi_driver  = true
       # secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
       access_entries = {
@@ -1225,6 +1226,56 @@ generate "aws-providers" {
   contents  = <<-EOF
   provider "aws" {
     region = "${local.region}"
+  }
+  EOF
+}
+
+#-------------------------------------------------------
+# Kubernetes Provider (using module outputs)
+#-------------------------------------------------------
+generate "kubernetes-provider" {
+  path      = "kubernetes-provider.tf"
+  if_exists = "overwrite"
+  contents  = <<-EOF
+  provider "kubernetes" {
+    host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
+    cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
+    
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        try(module.eks_clusters[${include.env.locals.eks_cluster_keys.primary_cluster}].eks_cluster_name, ""),
+        "--region",
+        "${local.region}"
+      ]
+    }
+  }
+  EOF
+}
+
+#-------------------------------------------------------
+# Helm Provider 
+#-------------------------------------------------------
+generate "helm-provider" {
+  path      = "helm-provider.tf"
+  if_exists = "overwrite"
+  contents  = <<-EOF
+  data "aws_eks_cluster_auth" "${include.env.locals.eks_cluster_keys.primary_cluster}" {
+    count = var.create_eks_cluster ? 1 : 0
+    name = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name, "")
+  }
+  
+  provider "helm" {
+    count = var.create_eks_cluster ? 1 : 0
+    kubernetes = {
+      host                   = try(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
+      cluster_ca_certificate = try(base64decode(module.eks_clusters["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
+      token                  = try(data.aws_eks_cluster_auth.${include.env.locals.eks_cluster_keys.primary_cluster}.token, "")
+    }
   }
   EOF
 }
