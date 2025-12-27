@@ -1224,6 +1224,7 @@ variable "eks_clusters" {
       associate_public_ip_address = optional(bool)
       vpc_security_group_ids      = optional(list(string))
       vpc_security_group_keys     = optional(list(string))
+      eks_cluster_sg_keys         = optional(list(string))
       vpc_name                    = optional(string)
       tags                        = optional(map(string))
       user_data                   = optional(string)
