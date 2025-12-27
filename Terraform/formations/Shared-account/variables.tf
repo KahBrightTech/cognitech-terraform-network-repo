@@ -1207,37 +1207,61 @@ variable "eks_clusters" {
       cloudwatch_observability_version   = optional(string)
       secrets_manager_csi_driver_version = optional(string)
     })))
+    launch_templates = optional(list(object({
+      key                      = string
+      name                     = string
+      eks_cluster_key          = optional(string)
+      instance_profile         = optional(string)
+      iam_instance_profile_key = optional(string)
+      custom_ami               = optional(string)
+      ami_config = object({
+        os_release_date  = optional(string)
+        os_base_packages = optional(string)
+      })
+      instance_type               = optional(string)
+      key_name                    = optional(string)
+      key_pair_key                = optional(string)
+      associate_public_ip_address = optional(bool)
+      vpc_security_group_ids      = optional(list(string))
+      vpc_security_group_keys     = optional(list(string))
+      vpc_name                    = optional(string)
+      tags                        = optional(map(string))
+      user_data                   = optional(string)
+      volume_size                 = optional(number)
+      root_device_name            = optional(string)
+      is_eks_node_template        = optional(bool, true)
+    })))
   }))
   default = null
 }
 
 
-variable "launch_templates" {
-  description = "Launch Template configuration"
-  type = list(object({
-    name                     = string
-    key                      = string
-    create_node_group        = optional(bool, true)
-    eks_cluster_key          = optional(string)
-    instance_profile         = optional(string)
-    iam_instance_profile_key = optional(string)
-    custom_ami               = optional(string)
-    ami_config = object({
-      os_release_date  = optional(string)
-      os_base_packages = optional(string)
-    })
-    instance_type               = optional(string)
-    key_name                    = optional(string)
-    key_pair_key                = optional(string)
-    associate_public_ip_address = optional(bool)
-    vpc_security_group_ids      = optional(list(string))
-    vpc_security_group_keys     = optional(list(string))
-    vpc_name                    = optional(string)
-    tags                        = optional(map(string))
-    user_data                   = optional(string)
-    volume_size                 = optional(number)
-    root_device_name            = optional(string)
-    is_eks_node_template        = optional(bool, true)
-  }))
-  default = null
-}
+# variable "launch_templates" {
+#   description = "Launch Template configuration"
+#   type = list(object({
+#     name                     = string
+#     key                      = string
+#     create_node_group        = optional(bool, true)
+#     eks_cluster_key          = optional(string)
+#     instance_profile         = optional(string)
+#     iam_instance_profile_key = optional(string)
+#     custom_ami               = optional(string)
+#     ami_config = object({
+#       os_release_date  = optional(string)
+#       os_base_packages = optional(string)
+#     })
+#     instance_type               = optional(string)
+#     key_name                    = optional(string)
+#     key_pair_key                = optional(string)
+#     associate_public_ip_address = optional(bool)
+#     vpc_security_group_ids      = optional(list(string))
+#     vpc_security_group_keys     = optional(list(string))
+#     vpc_name                    = optional(string)
+#     tags                        = optional(map(string))
+#     user_data                   = optional(string)
+#     volume_size                 = optional(number)
+#     root_device_name            = optional(string)
+#     is_eks_node_template        = optional(bool, true)
+#   }))
+#   default = null
+# }

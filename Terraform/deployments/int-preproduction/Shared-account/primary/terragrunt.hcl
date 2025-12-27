@@ -1049,27 +1049,27 @@ inputs = {
     #     }
     #   }
   ]
-  launch_templates = [
-    {
-      key               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-      name              = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-      create_node_group = false
-      key_pair_key      = "${local.vpc_name_abr}-key-pair"
-      eks_cluster_key   = include.env.locals.eks_cluster_keys.primary_cluster
-      ami_config = {
-        os_release_date = "EKSAL2023"
-      }
-      associate_public_ip_address = true
-      instance_type               = "t3.medium"
-      root_device_name            = "/dev/xvda"
-      volume_size                 = 20
-      vpc_security_group_ids      = ["eks-nodes"]
-    }
-  ]
+  # launch_templates = [
+  #   {
+  #     key               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+  #     name              = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+  #     create_node_group = false
+  #     key_pair_key      = "${local.vpc_name_abr}-key-pair"
+  #     eks_cluster_key   = include.env.locals.eks_cluster_keys.primary_cluster
+  #     ami_config = {
+  #       os_release_date = "EKSAL2023"
+  #     }
+  #     associate_public_ip_address = true
+  #     instance_type               = "t3.medium"
+  #     root_device_name            = "/dev/xvda"
+  #     volume_size                 = 20
+  #     vpc_security_group_ids      = ["eks-nodes"]
+  #   }
+  # ]
   eks_clusters = [
     {
       create_eks_cluster = true
-      create_node_group  = false
+      create_node_group  = false 
       key                = include.env.locals.eks_cluster_keys.primary_cluster
       name               = "${local.vpc_name_abr}-InfoGrid"
       role_key           = "${local.vpc_name_abr}-eks"
@@ -1204,6 +1204,23 @@ inputs = {
             }
           ]
           egress_rules = []
+        }
+      ]
+      launch_templates = [
+        {
+          key               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          name              = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          create_node_group = false
+          key_pair_key      = "${local.vpc_name_abr}-key-pair"
+          eks_cluster_key   = include.env.locals.eks_cluster_keys.primary_cluster
+          ami_config = {
+            os_release_date = "EKSAL2023"
+          }
+          associate_public_ip_address = true
+          instance_type               = "t3.medium"
+          root_device_name            = "/dev/xvda"
+          volume_size                 = 20
+          vpc_security_group_ids      = ["eks-nodes"]
         }
       ]
       eks_node_groups = [

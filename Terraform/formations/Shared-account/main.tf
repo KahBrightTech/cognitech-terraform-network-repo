@@ -636,18 +636,40 @@ module "eks_clusters" {
 
 module "launch_templates" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Launch_template?ref=v1.4.78"
-  for_each = (var.launch_templates != null) ? {
-    for item in var.launch_templates : item.key => item
-    if coalesce(item.create_node_group, true)
-  } : {}
+  for_each = {
+    for pair in flatten([
+      for cluster in var.eks_clusters : [
+        for ng in coalesce(cluster.eks_node_groups, []) : {
+          key                      = "${cluster.key}-${ng.key}"
+          cluster_key              = cluster.key
+          vpc_name                 = cluster.vpc_name
+          eks_cluster_key          = cluster.key
+          node_group               = ng
+          iam_instance_profile_key = ng.iam_instance_profile_key
+          instance_profile         = ng.instance_profile
+          key_pair_key             = ng.key_pair_key
+          key_name                 = ng.key_name
+          vpc_security_group_keys  = ng.vpc_security_group_keys
+          eks_security_group_keys  = ng.eks_security_group_keys
+          include_eks_cluster_sg   = coalesce(ng.include_eks_cluster_sg, false)
+          user_data                = ng.user_data
+        } if coalesce(ng.create_node_group, true)
+      ] if coalesce(cluster.create_node_group, true)
+    ]) : pair.key => pair
+  }
+
   common = var.common
   launch_template = merge(
-    each.value,
+    each.value.node_group,
     {
-      instance_profile = each.value.iam_instance_profile_key != null ? module.ec2_profiles[each.value.iam_instance_profile_key].instance_profile_name : each.value.instance_profile
+      instance_profile = each.value.iam_instance_profile_key != null ? (
+        module.ec2_profiles[each.value.iam_instance_profile_key].instance_profile_name
+      ) : each.value.instance_profile
     },
     {
-      key_name = each.value.key_pair_key != null ? module.ec2_key_pairs[each.value.key_pair_key].name : each.value.key_name
+      key_name = each.value.key_pair_key != null ? (
+        module.ec2_key_pairs[each.value.key_pair_key].name
+      ) : each.value.key_name
     },
     {
       vpc_security_group_ids = concat(
@@ -655,17 +677,17 @@ module "launch_templates" {
           for sg_key in each.value.vpc_security_group_keys :
           module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
         ] : [],
-        lookup(each.value, "eks_cluster_key", null) != null && lookup(each.value, "eks_security_group_keys", null) != null ? [
+        each.value.eks_security_group_keys != null ? [
           for sg_key in each.value.eks_security_group_keys :
           module.eks_clusters[each.value.eks_cluster_key].security_group[sg_key].security_group_id
         ] : [],
-        lookup(each.value, "include_eks_cluster_sg", false) && lookup(each.value, "eks_cluster_key", null) != null ? [
+        each.value.include_eks_cluster_sg ? [
           module.eks_clusters[each.value.eks_cluster_key].eks_cluster_security_group_id
         ] : []
       )
     },
     {
-      user_data = lookup(each.value, "eks_cluster_key", null) != null ? base64encode(yamlencode({
+      user_data = each.value.eks_cluster_key != null ? base64encode(yamlencode({
         apiVersion = "node.eks.aws/v1alpha1"
         kind       = "NodeConfig"
         spec = {
@@ -676,7 +698,7 @@ module "launch_templates" {
             cidr                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_service_ipv4_cidr
           }
         }
-      })) : lookup(each.value, "user_data", "")
+      })) : coalesce(each.value.user_data, "")
     }
   )
 
@@ -693,7 +715,6 @@ module "launch_templates" {
 #--------------------------------------------------------------------
 module "eks_worker_nodes" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Node-group?ref=v1.4.89"
-
   for_each = {
     for pair in flatten([
       for cluster in var.eks_clusters : [
