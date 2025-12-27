@@ -779,7 +779,7 @@ module "eks_worker_nodes" {
 # EKS Addons
 #--------------------------------------------------------------------
 module "eks_cluster_addons" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster-Addons?ref=v1.5.2"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster-Addons?ref=v1.5.3"
 
   for_each = {
     for pair in flatten([
