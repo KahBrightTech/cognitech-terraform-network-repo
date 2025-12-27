@@ -630,214 +630,163 @@ module "eks_clusters" {
           }
         )
       ] : null
-    },
-    {
-      eks_node_groups = each.value.eks_node_groups != null ? [
-        for ng in each.value.eks_node_groups : merge(
-          ng,
-          {
-            node_role_arn = ng.node_role_key != null ? module.iam_roles[ng.node_role_key].iam_role_arn : ng.node_role_arn
-          },
-          {
-            subnet_ids = coalesce(
-              each.value.node_group.subnet_keys != null
-              ? flatten([
-                for subnet_key in each.value.node_group.subnet_keys :
-                each.value.node_group.use_private_subnets
-                ? module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids
-                : module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-              ])
-              : null,
-              each.value.node_group.subnet_ids
-            )
-          },
-          {
-            source_security_group_ids = coalesce(
-              each.value.node_group.source_security_group_keys != null
-              ? [
-                for sg_key in each.value.node_group.source_security_group_keys :
-                module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
-              ]
-              : null,
-              each.value.node_group.source_security_group_ids
-            )
-          }
-        )
-      ] : null
-    },
-    {
-      launch_template = each.value.use_launch_template && each.value.launch_template_name != null ? [
-        for lt in each.value.launch_template : merge(
-          lt,
-          {
-            iam_instance_profile = each.value.iam_instance_profile_key != null ? module.ec2_profiles[each.value.iam_instance_profile_key].ec2_instance_profile_name : each.value.iam_instance_profile
-          },
-          {
-            key_name = module.ec2_key_pairs[each.value.key_pair_name].name
-          },
-          {
-            vpc_security_group_ids = concat(
-              each.value.vpc_security_group_keys != null ? [
-                for sg_key in each.value.vpc_security_group_keys :
-                module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
-              ] : [],
-              lookup(each.value, "eks_cluster_key", null) != null && lookup(each.value, "eks_security_group_keys", null) != null ? [
-                for sg_key in each.value.eks_security_group_keys :
-                module.eks_clusters[each.value.eks_cluster_key].security_group[sg_key].security_group_id
-              ] : [],
-              lookup(each.value, "include_eks_cluster_sg", false) && lookup(each.value, "eks_cluster_key", null) != null ? [
-                module.eks_clusters[each.value.eks_cluster_key].eks_cluster_security_group_id
-              ] : []
-            )
-          },
-          {
-            user_data = lookup(each.value, "eks_cluster_key", null) != null ? base64encode(yamlencode({
-              apiVersion = "node.eks.aws/v1alpha1"
-              kind       = "NodeConfig"
-              spec = {
-                cluster = {
-                  name                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_id
-                  apiServerEndpoint    = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_endpoint
-                  certificateAuthority = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_certificate_authority_data
-                  cidr                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_service_ipv4_cidr
-                }
-              }
-            })) : lookup(each.value, "user_data", "")
-          }
-        )
-      ] : null
-    },
+    }
   )
 }
 
-# module "launch_templates" {
-#   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Launch_template?ref=v1.4.78"
-#   for_each = (var.launch_templates != null) ? { for item in var.launch_templates : item.name => item } : {}
-#   common   = var.common
-#   launch_template = merge(
-#     each.value,
-#     {
-#       iam_instance_profile = each.value.iam_instance_profile_key != null ? module.ec2_profiles[each.value.iam_instance_profile_key].ec2_instance_profile_name : each.value.iam_instance_profile
-#     },
-#     {
-#       key_name = module.ec2_key_pairs[each.value.key_pair_name].name
-#     },
-#     {
-#       vpc_security_group_ids = concat(
-#         each.value.vpc_security_group_keys != null ? [
-#           for sg_key in each.value.vpc_security_group_keys :
-#           module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
-#         ] : [],
-#         lookup(each.value, "eks_cluster_key", null) != null && lookup(each.value, "eks_security_group_keys", null) != null ? [
-#           for sg_key in each.value.eks_security_group_keys :
-#           module.eks_clusters[each.value.eks_cluster_key].security_group[sg_key].security_group_id
-#         ] : [],
-#         lookup(each.value, "include_eks_cluster_sg", false) && lookup(each.value, "eks_cluster_key", null) != null ? [
-#           module.eks_clusters[each.value.eks_cluster_key].eks_cluster_security_group_id
-#         ] : []
-#       )
-#     },
-#     {
-#       user_data = lookup(each.value, "eks_cluster_key", null) != null ? base64encode(yamlencode({
-#         apiVersion = "node.eks.aws/v1alpha1"
-#         kind       = "NodeConfig"
-#         spec = {
-#           cluster = {
-#             name                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_id
-#             apiServerEndpoint    = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_endpoint
-#             certificateAuthority = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_certificate_authority_data
-#             cidr                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_service_ipv4_cidr
-#           }
-#         }
-#       })) : lookup(each.value, "user_data", "")
-#     }
-#   )
+module "launch_templates" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Launch_template?ref=v1.4.78"
+  for_each = (var.eks_clusters.launch_templates != null) ? { for item in var.eks_clusters.launch_templates : item.key => item } : {}
+  common   = var.common
+  launch_template = merge(
+    each.value,
+    {
+      iam_instance_profile = each.value.iam_instance_profile_key != null ? module.ec2_profiles[each.value.iam_instance_profile_key].ec2_instance_profile_name : each.value.iam_instance_profile
+    },
+    {
+      key_name = module.ec2_key_pairs[each.value.key_pair_name].name
+    },
+    {
+      vpc_security_group_ids = concat(
+        each.value.vpc_security_group_keys != null ? [
+          for sg_key in each.value.vpc_security_group_keys :
+          module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
+        ] : [],
+        lookup(each.value, "eks_cluster_key", null) != null && lookup(each.value, "eks_security_group_keys", null) != null ? [
+          for sg_key in each.value.eks_security_group_keys :
+          module.eks_clusters[each.value.eks_cluster_key].security_group[sg_key].security_group_id
+        ] : [],
+        lookup(each.value, "include_eks_cluster_sg", false) && lookup(each.value, "eks_cluster_key", null) != null ? [
+          module.eks_clusters[each.value.eks_cluster_key].eks_cluster_security_group_id
+        ] : []
+      )
+    },
+    {
+      user_data = lookup(each.value, "eks_cluster_key", null) != null ? base64encode(yamlencode({
+        apiVersion = "node.eks.aws/v1alpha1"
+        kind       = "NodeConfig"
+        spec = {
+          cluster = {
+            name                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_id
+            apiServerEndpoint    = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_endpoint
+            certificateAuthority = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_certificate_authority_data
+            cidr                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_service_ipv4_cidr
+          }
+        }
+      })) : lookup(each.value, "user_data", "")
+    }
+  )
 
-#   depends_on = [
-#     module.eks_clusters,
-#     module.ec2_profiles,
-#     module.ec2_key_pairs,
-#     module.shared_vpc
-#   ]
-# }
+  depends_on = [
+    module.eks_clusters,
+    module.ec2_profiles,
+    module.ec2_key_pairs,
+    module.shared_vpc
+  ]
+}
 
-# #--------------------------------------------------------------------
-# # EKS Worker Nodes (Managed Node Groups)
-# #--------------------------------------------------------------------
-# module "eks_worker_nodes" {
-#   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Node-group?ref=v1.4.89"
+#--------------------------------------------------------------------
+# EKS Worker Nodes (Managed Node Groups)
+#--------------------------------------------------------------------
+module "eks_worker_nodes" {
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Node-group?ref=v1.4.89"
 
-#   for_each = {
-#     for pair in flatten([
-#       for cluster in var.eks_clusters : [
-#         for ng in coalesce(cluster.eks_node_groups, []) : {
-#           key         = "${cluster.key}-${ng.key}"
-#           cluster_key = cluster.key
-#           vpc_name    = cluster.vpc_name
-#           node_group  = ng
-#         }
-#       ]
-#     ]) : pair.key => pair
-#   }
-#   common = var.common
-#   eks_node_group = merge(
-#     each.value.node_group,
-#     {
-#       cluster_name = coalesce(
-#         each.value.node_group.cluster_name,
-#         module.eks_clusters[each.value.cluster_key].eks_cluster_name
-#       )
-#     },
-#     {
-#       node_role_arn = coalesce(
-#         each.value.node_group.node_role_key != null
-#         ? module.iam_roles[each.value.node_group.node_role_key].iam_role_arn
-#         : null,
-#         each.value.node_group.node_role_arn
-#       )
-#     },
-#     {
-#       subnet_ids = coalesce(
-#         each.value.node_group.subnet_keys != null
-#         ? flatten([
-#           for subnet_key in each.value.node_group.subnet_keys :
-#           each.value.node_group.use_private_subnets
-#           ? module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids
-#           : module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-#         ])
-#         : null,
-#         each.value.node_group.subnet_ids
-#       )
-#     },
-#     {
-#       source_security_group_ids = coalesce(
-#         each.value.node_group.source_security_group_keys != null
-#         ? [
-#           for sg_key in each.value.node_group.source_security_group_keys :
-#           module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
-#         ]
-#         : null,
-#         each.value.node_group.source_security_group_ids
-#       )
-#     },
-#     each.value.node_group.use_launch_template && each.value.node_group.launch_template_name != null
-#     ? {
-#       launch_template = {
-#         id      = module.launch_templates[each.value.node_group.launch_template_name].id
-#         version = "$Latest"
-#       }
-#     }
-#     : {}
-#   )
+  for_each = {
+    for pair in flatten([
+      for cluster in var.eks_clusters : [
+        for ng in coalesce(cluster.eks_node_groups, []) : {
+          key         = "${cluster.key}-${ng.key}"
+          cluster_key = cluster.key
+          vpc_name    = cluster.vpc_name
+          node_group  = ng
+        }
+      ]
+    ]) : pair.key => pair
+  }
+  common = var.common
+  eks_node_group = merge(
+    each.value.node_group,
+    {
+      cluster_name = coalesce(
+        each.value.node_group.cluster_name,
+        module.eks_clusters[each.value.cluster_key].eks_cluster_name
+      )
+    },
+    {
+      node_role_arn = coalesce(
+        each.value.node_group.node_role_key != null
+        ? module.iam_roles[each.value.node_group.node_role_key].iam_role_arn
+        : null,
+        each.value.node_group.node_role_arn
+      )
+    },
+    {
+      subnet_ids = coalesce(
+        each.value.node_group.subnet_keys != null
+        ? flatten([
+          for subnet_key in each.value.node_group.subnet_keys :
+          each.value.node_group.use_private_subnets
+          ? module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids
+          : module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+        ])
+        : null,
+        each.value.node_group.subnet_ids
+      )
+    },
+    {
+      source_security_group_ids = coalesce(
+        each.value.node_group.source_security_group_keys != null
+        ? [
+          for sg_key in each.value.node_group.source_security_group_keys :
+          module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+        ]
+        : null,
+        each.value.node_group.source_security_group_ids
+      )
+    },
+    each.value.node_group.use_launch_template && each.value.node_group.launch_template_name != null
+    ? {
+      launch_template = {
+        id      = module.launch_templates[each.value.node_group.launch_template_name].id
+        version = "$Latest"
+      }
+    }
+    : {}
+  )
 
-#   depends_on = [
-#     module.eks_clusters,
-#     module.launch_templates,
-#     module.iam_roles,
-#     module.shared_vpc
-#   ]
-# }
+  depends_on = [
+    module.eks_clusters,
+    module.launch_templates,
+    module.iam_roles,
+    module.shared_vpc
+  ]
+}
 
+
+#--------------------------------------------------------------------
+# EKS Addons
+#--------------------------------------------------------------------
+module "eks_cluster_addons" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster-Addons?ref=v1.4.95"
+  for_each = (var.eks_clusters.eks_addons != null && var.eks_clusters.create_node_group) ? { for item in var.eks_clusters.eks_addons : item.key => item } : {}
+  common   = var.common
+  eks_addons = merge(
+    each.value,
+    {
+      cluster_name = each.value.cluster_key != null ? module.eks_clusters[each.value.cluster_key].eks_cluster_name : each.value.cluster_name
+    },
+    {
+      cloudwatch_observability_role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
+    }
+  )
+  depends_on = [
+    module.eks_clusters,
+    module.launch_templates,
+    module.iam_roles,
+    module.shared_vpc,
+    module.eks_worker_nodes
+  ]
+}
 
 # #--------------------------------------------------------------------
 # # EKS Service Accounts

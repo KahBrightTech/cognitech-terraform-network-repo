@@ -1031,6 +1031,7 @@ variable "eks_clusters" {
   description = "EKS cluster configuration object."
   type = list(object({
     create_eks_cluster             = bool
+    create_node_group              = optional(bool, true)
     key                            = string
     name                           = string
     role_arn                       = optional(string)
@@ -1192,6 +1193,19 @@ variable "eks_clusters" {
         id      = string
         version = optional(string, "$Latest")
       }))
+    })))
+    eks_addons = optional(list(object({
+      key                                = optional(string)
+      cluster_name                       = optional(string)
+      cluster_key                        = optional(string)
+      addon_names                        = optional(string)
+      create_cw_role                     = optional(bool, false)
+      cloudwatch_observability_role_arn  = optional(string)
+      cloudwatch_observability_role_key  = optional(string)
+      coredns_version                    = optional(string)
+      metrics_server_version             = optional(string)
+      cloudwatch_observability_version   = optional(string)
+      secrets_manager_csi_driver_version = optional(string)
     })))
   }))
   default = null

@@ -1058,10 +1058,10 @@ inputs = {
       name                               = "${local.vpc_name_abr}-InfoGrid"
       role_key                           = "${local.vpc_name_abr}-eks"
       oidc_thumbprint                    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
-      enable_application_addons          = false
-      cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
-      enable_secrets_manager_csi_driver  = true
-      secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
+      # enable_application_addons          = false
+      # cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
+      # enable_secrets_manager_csi_driver  = true
+      # secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
       access_entries = {
         admin = {
           principal_arns = [
@@ -1219,6 +1219,31 @@ inputs = {
           max_size             = 4
           min_size             = 1
           launch_template_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+        }
+      ]
+      eks_addons = [
+        {
+          key         = "coredns"
+          cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
+          addon_names = "coredns"
+        },
+        {
+          key         = "metrics-server"
+          cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
+          addon_names = "metrics-server"
+        },
+        {
+          key                               = "amazon-cloudwatch-observability"
+          cluster_key                       = include.env.locals.eks_cluster_keys.primary_cluster
+          addon_names                       = "amazon-cloudwatch-observability"
+          create_cw_role                    = true
+          cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
+        },
+        {
+          key                               = "aws-secrets-store-csi-driver-provider"
+          cluster_key                       = include.env.locals.eks_cluster_keys.primary_cluster
+          addon_names                       = "aws-secrets-store-csi-driver-provider"
+          secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
         }
       ]
     }
