@@ -1066,7 +1066,7 @@ inputs = {
   #     vpc_security_group_ids      = ["eks-nodes"]
   #   }
   # ]
-  
+
   eks_clusters = [
     {
       create_eks_cluster = true
@@ -1286,7 +1286,6 @@ remote_state {
     region               = local.region
   }
 }
-
 #-------------------------------------------------------
 # Providers 
 #-------------------------------------------------------

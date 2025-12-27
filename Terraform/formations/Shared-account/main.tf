@@ -651,34 +651,31 @@ module "launch_templates" {
   }
   common = var.common
   launch_template = merge(
-    each.value.node_group,
+    each.value.launch_template, # Changed from each.value.node_group
     {
-      instance_profile = each.value.iam_instance_profile_key != null ? (
-        module.ec2_profiles[each.value.iam_instance_profile_key].instance_profile_name
-      ) : each.value.instance_profile
+      instance_profile = each.value.launch_template.iam_instance_profile_key != null ? (
+        module.ec2_profiles[each.value.launch_template.iam_instance_profile_key].instance_profile_name
+      ) : each.value.launch_template.instance_profile
     },
     {
-      key_name = each.value.key_pair_key != null ? (
-        module.ec2_key_pairs[each.value.key_pair_key].name
-      ) : each.value.key_name
+      key_name = each.value.launch_template.key_pair_key != null ? (
+        module.ec2_key_pairs[each.value.launch_template.key_pair_key].name
+      ) : each.value.launch_template.key_name
     },
     {
       vpc_security_group_ids = concat(
-        each.value.vpc_security_group_keys != null ? [
-          for sg_key in each.value.vpc_security_group_keys :
+        each.value.launch_template.vpc_security_group_keys != null ? [
+          for sg_key in each.value.launch_template.vpc_security_group_keys :
           module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
         ] : [],
-        each.value.eks_security_group_keys != null ? [
-          for sg_key in each.value.eks_security_group_keys :
-          module.eks_clusters[each.value.eks_cluster_key].security_group[sg_key].security_group_id
-        ] : [],
-        each.value.include_eks_cluster_sg ? [
-          module.eks_clusters[each.value.eks_cluster_key].eks_cluster_security_group_id
-        ] : []
+        # Removed eks_security_group_keys - doesn't exist in launch_templates
+        # Removed include_eks_cluster_sg - doesn't exist in launch_templates
+        each.value.launch_template.vpc_security_group_ids != null ?
+        each.value.launch_template.vpc_security_group_ids : []
       )
     },
     {
-      user_data = each.value.eks_cluster_key != null ? base64encode(yamlencode({
+      user_data = coalesce(each.value.launch_template.is_eks_node_template, true) ? base64encode(yamlencode({
         apiVersion = "node.eks.aws/v1alpha1"
         kind       = "NodeConfig"
         spec = {
@@ -689,7 +686,7 @@ module "launch_templates" {
             cidr                 = module.eks_clusters[each.value.eks_cluster_key].eks_cluster_service_ipv4_cidr
           }
         }
-      })) : coalesce(each.value.user_data, "")
+      })) : coalesce(each.value.launch_template.user_data, "")
     }
   )
 
