@@ -639,25 +639,16 @@ module "launch_templates" {
   for_each = {
     for pair in flatten([
       for cluster in var.eks_clusters : [
-        for ng in coalesce(cluster.eks_node_groups, []) : {
-          key                      = "${cluster.key}-${ng.key}"
-          cluster_key              = cluster.key
-          vpc_name                 = cluster.vpc_name
-          eks_cluster_key          = cluster.key
-          node_group               = ng
-          iam_instance_profile_key = ng.iam_instance_profile_key
-          instance_profile         = ng.instance_profile
-          key_pair_key             = ng.key_pair_key
-          key_name                 = ng.key_name
-          vpc_security_group_keys  = ng.vpc_security_group_keys
-          eks_security_group_keys  = ng.eks_security_group_keys
-          include_eks_cluster_sg   = coalesce(ng.include_eks_cluster_sg, false)
-          user_data                = ng.user_data
-        } if coalesce(ng.create_node_group, true)
+        for lt in coalesce(cluster.launch_templates, []) : {
+          key             = "${cluster.key}-${lt.key}"
+          cluster_key     = cluster.key
+          vpc_name        = coalesce(lt.vpc_name, cluster.vpc_name)
+          eks_cluster_key = coalesce(lt.eks_cluster_key, cluster.key)
+          launch_template = lt
+        }
       ] if coalesce(cluster.create_node_group, true)
     ]) : pair.key => pair
   }
-
   common = var.common
   launch_template = merge(
     each.value.node_group,
@@ -723,7 +714,7 @@ module "eks_worker_nodes" {
           cluster_key = cluster.key
           vpc_name    = cluster.vpc_name
           node_group  = ng
-        } if coalesce(ng.create_node_group, true)
+        }
       ] if coalesce(cluster.create_node_group, true)
     ]) : pair.key => pair
   }
