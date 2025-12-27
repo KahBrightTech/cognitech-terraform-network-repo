@@ -767,7 +767,7 @@ module "eks_worker_nodes" {
 # EKS Addons
 #--------------------------------------------------------------------
 module "eks_cluster_addons" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster-Addons?ref=v1.4.96"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster-Addons?ref=v1.4.97"
   for_each = merge([
     for cluster in var.eks_clusters :
     (cluster.eks_addons != null && lookup(cluster, "create_node_group", true)) ?
