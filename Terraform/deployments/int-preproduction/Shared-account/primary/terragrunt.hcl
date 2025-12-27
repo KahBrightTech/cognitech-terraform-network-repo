@@ -1224,7 +1224,6 @@ inputs = {
           eks_cluster_sg_keys         = ["eks-nodes"]
         }
       ]
-      
       eks_node_groups = [
         {
           key             = "test"

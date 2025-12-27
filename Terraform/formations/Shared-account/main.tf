@@ -664,15 +664,18 @@ module "launch_templates" {
     },
     {
       vpc_security_group_ids = concat(
-        # Security groups from security_group module (existing logic)
+        # Security groups from security_group module
         each.value.launch_template.vpc_security_group_keys != null ? [
           for sg_key in each.value.launch_template.vpc_security_group_keys :
           module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
         ] : [],
-        each.value.launch_template.eks_cluster_sg_keys != null ? [
-          for cluster_key in each.value.launch_template.eks_cluster_sg_keys :
-          module.eks_clusters[each.value.launch_template.eks_cluster_key].eks_sg_id
+
+        # Security group from the EKS cluster this launch template belongs to
+        each.value.eks_cluster_key != null ? [
+          module.eks_clusters[each.value.eks_cluster_key].eks_sg_id
         ] : [],
+
+        # Direct security group IDs
         each.value.launch_template.vpc_security_group_ids != null ?
         each.value.launch_template.vpc_security_group_ids : []
       )
