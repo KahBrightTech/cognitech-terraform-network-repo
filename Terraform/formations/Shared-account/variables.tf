@@ -1227,6 +1227,7 @@ variable "launch_templates" {
     })
     instance_type               = optional(string)
     key_name                    = optional(string)
+    key_pair_key                = optional(string)
     associate_public_ip_address = optional(bool)
     vpc_security_group_ids      = optional(list(string))
     vpc_security_group_keys     = optional(list(string))

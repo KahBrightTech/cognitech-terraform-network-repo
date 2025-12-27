@@ -644,7 +644,7 @@ module "launch_templates" {
       iam_instance_profile = each.value.iam_instance_profile_key != null ? module.ec2_profiles[each.value.iam_instance_profile_key].ec2_instance_profile_name : each.value.iam_instance_profile
     },
     {
-      key_name = module.ec2_key_pairs[each.value.key_pair_name].name
+      key_name = module.ec2_key_pairs[each.value.key_pair_key].name
     },
     {
       vpc_security_group_ids = concat(

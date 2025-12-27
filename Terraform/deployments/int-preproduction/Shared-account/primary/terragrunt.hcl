@@ -1053,7 +1053,7 @@ inputs = {
     {
       key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
       name            = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-      key_name        = "${local.vpc_name_abr}-key-pair"
+      key_pair_key    = "${local.vpc_name_abr}-key-pair"
       eks_cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
       ami_config = {
         os_release_date = "EKSAL2023"
