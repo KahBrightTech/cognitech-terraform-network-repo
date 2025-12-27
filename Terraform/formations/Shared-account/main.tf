@@ -671,7 +671,7 @@ module "launch_templates" {
         ] : [],
         each.value.launch_template.eks_cluster_sg_keys != null ? [
           for cluster_key in each.value.launch_template.eks_cluster_sg_keys :
-          module.eks_clusters[cluster_key].cluster_security_group_id
+          module.eks_clusters[each.value.launch_template.eks_cluster_key].eks_sg_id
         ] : [],
         each.value.launch_template.vpc_security_group_ids != null ?
         each.value.launch_template.vpc_security_group_ids : []
