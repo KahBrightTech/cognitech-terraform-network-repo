@@ -702,8 +702,8 @@ module "eks_worker_nodes" {
           cluster_key = cluster.key
           vpc_name    = cluster.vpc_name
           node_group  = ng
-        }
-      ]
+        } if coalesce(ng.create_node_group, true)
+      ] if coalesce(cluster.create_node_group, true)
     ]) : pair.key => pair
   }
   common = var.common
