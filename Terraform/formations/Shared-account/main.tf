@@ -722,8 +722,9 @@ module "eks_worker_nodes" {
     each.value.node_group,
     {
       cluster_name = coalesce(
-        each.value.node_group.cluster_name,
-        module.eks_clusters[each.value.cluster_key].eks_cluster_name
+        each.value.node_group.cluster_key != null
+        ? module.eks_clusters[each.value.node_group.cluster_key].eks_cluster_name
+        : module.eks_clusters[each.value.cluster_key].eks_cluster_name
       )
     },
     {
