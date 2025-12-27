@@ -1049,7 +1049,6 @@ inputs = {
     #     }
     #   }
   ]
-
   launch_templates = [
     {
       key             = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"

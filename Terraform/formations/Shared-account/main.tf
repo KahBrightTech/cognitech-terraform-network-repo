@@ -740,8 +740,10 @@ module "eks_worker_nodes" {
           for sg_key in each.value.node_group.source_security_group_keys :
           module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
         ]
-        : null,
-        each.value.node_group.source_security_group_ids
+        : [],
+        each.value.node_group.source_security_group_ids != null
+        ? each.value.node_group.source_security_group_ids
+        : []
       )
     },
     each.value.node_group.use_launch_template && each.value.node_group.launch_template_name != null
