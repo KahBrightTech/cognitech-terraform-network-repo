@@ -1070,7 +1070,7 @@ inputs = {
   eks_clusters = [
     {
       create_eks_cluster = true
-      create_node_group  = true 
+      create_node_group  = true
       key                = include.env.locals.eks_cluster_keys.primary_cluster
       name               = "${local.vpc_name_abr}-InfoGrid"
       role_key           = "${local.vpc_name_abr}-eks"
@@ -1226,7 +1226,7 @@ inputs = {
       ]
       eks_node_groups = [
         {
-          key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
+          key             = "test"
           cluster_key     = include.env.locals.eks_cluster_keys.primary_cluster
           node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-groups"
           node_role_key   = "${local.vpc_name_abr}-ec2-nodes"
