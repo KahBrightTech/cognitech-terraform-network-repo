@@ -1221,13 +1221,14 @@ inputs = {
           instance_type               = "t3.medium"
           root_device_name            = "/dev/xvda"
           volume_size                 = 20
-          eks_additional_sg_keys         = ["eks-nodes"]
+          eks_additional_sg_keys      = ["eks-nodes"]
         }
       ]
       eks_node_groups = [
         {
-          key             = "test"
-          cluster_key     = include.env.locals.eks_cluster_keys.primary_cluster
+          key = "test"
+          # cluster_key     = include.env.locals.eks_cluster_keys.primary_cluster
+          cluster_name    = "int-preproduction-use1-shared-InfoGrid-eks-cluster"
           node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-groups"
           node_role_arn   = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-ec2-nodes-role"
           subnet_keys = [
