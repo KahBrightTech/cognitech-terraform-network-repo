@@ -1068,7 +1068,7 @@ inputs = {
   eks_clusters = [
     {
       create_eks_cluster    = true
-      create_ec2_node_group = true
+      create_ec2_node_group = false
       key                   = include.env.locals.eks_cluster_keys.primary_cluster
       name                  = "${local.vpc_name_abr}-InfoGrid"
       role_key              = "${local.vpc_name_abr}-eks"
