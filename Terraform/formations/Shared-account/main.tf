@@ -668,8 +668,6 @@ module "launch_templates" {
           for sg_key in each.value.launch_template.vpc_security_group_keys :
           module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
         ] : [],
-        # Removed eks_security_group_keys - doesn't exist in launch_templates
-        # Removed include_eks_cluster_sg - doesn't exist in launch_templates
         each.value.launch_template.vpc_security_group_ids != null ?
         each.value.launch_template.vpc_security_group_ids : []
       )
@@ -761,7 +759,7 @@ module "eks_worker_nodes" {
     each.value.node_group.use_launch_template && each.value.node_group.launch_template_name != null
     ? {
       launch_template = {
-        id      = module.launch_templates[each.value.node_group.launch_template_name].id
+        id      = module.launch_templates[each.value.node_group.launch_template_name].name
         version = "$Latest"
       }
     }
