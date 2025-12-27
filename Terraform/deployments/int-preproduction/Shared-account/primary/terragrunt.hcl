@@ -1049,15 +1049,30 @@ inputs = {
     #     }
     #   }
   ]
-
+  launch_templates = [
+    {
+      key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
+      name            = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+      key_name        = "${local.vpc_name_abr}-key-pair"
+      eks_cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
+      ami_config = {
+        os_release_date = "EKSAL2023"
+      }
+      associate_public_ip_address = true
+      instance_type               = "t3.medium"
+      root_device_name            = "/dev/xvda"
+      volume_size                 = 20
+      vpc_security_group_ids      = ["eks-nodes"]
+    }
+  ]
   eks_clusters = [
     {
-      create_eks_cluster                 = true
-      create_ec2_node_group              = true
-      key                                = include.env.locals.eks_cluster_keys.primary_cluster
-      name                               = "${local.vpc_name_abr}-InfoGrid"
-      role_key                           = "${local.vpc_name_abr}-eks"
-      oidc_thumbprint                    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      create_eks_cluster    = true
+      create_ec2_node_group = true
+      key                   = include.env.locals.eks_cluster_keys.primary_cluster
+      name                  = "${local.vpc_name_abr}-InfoGrid"
+      role_key              = "${local.vpc_name_abr}-eks"
+      oidc_thumbprint       = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
       # enable_application_addons          = false
       # cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
       # enable_secrets_manager_csi_driver  = true
@@ -1190,22 +1205,6 @@ inputs = {
           egress_rules = []
         }
       ]
-      launch_templates = [
-        {
-          key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
-          name            = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-          key_name        = "${local.vpc_name_abr}-key-pair"
-          eks_cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
-          ami_config = {
-            os_release_date = "EKSAL2023"
-          }
-          associate_public_ip_address = true
-          instance_type               = "t3.medium"
-          root_device_name            = "/dev/xvda"
-          volume_size                 = 20
-          vpc_security_group_ids      = ["eks-nodes"]
-        }
-      ]
       eks_node_groups = [
         {
           key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
@@ -1240,9 +1239,9 @@ inputs = {
           cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
         },
         {
-          key                               = "aws-secrets-store-csi-driver-provider"
-          cluster_key                       = include.env.locals.eks_cluster_keys.primary_cluster
-          addon_names                       = "aws-secrets-store-csi-driver-provider"
+          key                                = "aws-secrets-store-csi-driver-provider"
+          cluster_key                        = include.env.locals.eks_cluster_keys.primary_cluster
+          addon_names                        = "aws-secrets-store-csi-driver-provider"
           secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
         }
       ]

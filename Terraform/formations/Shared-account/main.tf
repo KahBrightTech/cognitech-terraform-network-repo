@@ -636,7 +636,7 @@ module "eks_clusters" {
 
 module "launch_templates" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Launch_template?ref=v1.4.78"
-  for_each = (var.eks_clusters.launch_templates != null) ? { for item in var.eks_clusters.launch_templates : item.key => item } : {}
+  for_each = (var.launch_templates != null) ? { for item in var.launch_templates : item.key => item } : {}
   common   = var.common
   launch_template = merge(
     each.value,
