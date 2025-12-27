@@ -640,7 +640,7 @@ module "launch_templates" {
     for pair in flatten([
       for cluster in var.eks_clusters : [
         for lt in coalesce(cluster.launch_templates, []) : {
-          key             = "${cluster.key}-${lt.key}"
+          key             = lt.key
           cluster_key     = cluster.key
           vpc_name        = coalesce(lt.vpc_name, cluster.vpc_name)
           eks_cluster_key = coalesce(lt.eks_cluster_key, cluster.key)
@@ -759,7 +759,7 @@ module "eks_worker_nodes" {
     each.value.node_group.use_launch_template && each.value.node_group.launch_template_name != null
     ? {
       launch_template = {
-        id      = module.launch_templates[each.value.node_group.launch_template_name].name
+        id      = module.launch_templates[each.value.node_group.launch_template_name].id
         version = "$Latest"
       }
     }
