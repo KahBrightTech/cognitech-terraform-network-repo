@@ -770,12 +770,18 @@ module "eks_worker_nodes" {
 #--------------------------------------------------------------------
 module "eks_cluster_addons" {
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EKS-Cluster-Addons?ref=v1.5.2"
-  for_each = merge([
-    for cluster in var.eks_clusters :
-    (cluster.eks_addons != null && lookup(cluster, "create_node_group", true)) ?
-    { for addon in cluster.eks_addons : addon.key => merge(addon, { cluster_name = cluster.name }) } :
-    {}
-  ]...)
+  for_each = {
+    for pair in flatten([
+      for cluster in var.eks_clusters : [
+        for ng in coalesce(cluster.eks_node_groups, []) : {
+          key         = "${cluster.key}-${ng.key}"
+          cluster_key = cluster.key
+          vpc_name    = cluster.vpc_name
+          node_group  = ng
+        } if coalesce(cluster.create_node_group, true)
+      ]
+    ]) : pair.key => pair
+  }
   common = var.common
   eks_addons = merge(
     each.value,
