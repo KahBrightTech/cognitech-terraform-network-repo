@@ -1209,7 +1209,7 @@ inputs = {
       ]
       launch_templates = [
         {
-          key               = "${include.env.locals.eks_cluster_keys.primary_cluster}"
+          key               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
           name              = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
           create_node_group = false
           key_pair_key      = "${local.vpc_name_abr}-key-pair"
