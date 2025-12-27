@@ -233,7 +233,7 @@ module "iam_roles" {
 # EC2 instance profiles
 #--------------------------------------------------------------------
 module "ec2_profiles" {
-  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.1.77"
+  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.5.1"
   for_each     = (var.ec2_profiles != null) ? { for item in var.ec2_profiles : item.name => item } : {}
   common       = var.common
   ec2_profiles = each.value
@@ -641,10 +641,10 @@ module "launch_templates" {
   launch_template = merge(
     each.value,
     {
-      iam_instance_profile = each.value.iam_instance_profile_key != null ? module.ec2_profiles[each.value.iam_instance_profile_key].ec2_instance_profile_name : each.value.iam_instance_profile
+      instance_profile = each.value.iam_instance_profile_key != null ? module.ec2_profiles[each.value.iam_instance_profile_key].instance_profile_name : each.value.instance_profile
     },
     {
-      key_name = module.ec2_key_pairs[each.value.key_pair_key].name
+      key_name = each.value.key_pair_key != null ? module.ec2_key_pairs[each.value.key_pair_key].name : each.value.key_name
     },
     {
       vpc_security_group_ids = concat(

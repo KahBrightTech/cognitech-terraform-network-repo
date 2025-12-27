@@ -1049,6 +1049,7 @@ inputs = {
     #     }
     #   }
   ]
+  
   launch_templates = [
     {
       key             = "${include.env.locals.eks_cluster_keys.primary_cluster}"
