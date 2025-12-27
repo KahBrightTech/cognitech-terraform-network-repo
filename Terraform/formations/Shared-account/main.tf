@@ -668,9 +668,6 @@ module "launch_templates" {
           for sg_key in each.value.launch_template.vpc_security_group_keys :
           module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
         ] : [],
-        each.value.eks_cluster_key != null ? [
-          module.eks_clusters[each.value.eks_cluster_key].eks_cluster_security_group_id
-        ] : [],
         each.value.launch_template.eks_additional_sg_keys != null ? [
           for sg_key in each.value.launch_template.eks_additional_sg_keys :
           module.eks_clusters[each.value.eks_cluster_key].eks_sg_id[sg_key]
