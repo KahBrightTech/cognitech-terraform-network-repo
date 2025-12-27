@@ -1229,7 +1229,8 @@ inputs = {
           key             = "test"
           cluster_key     = include.env.locals.eks_cluster_keys.primary_cluster
           node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-groups"
-          node_role_arn   = "arn:aws:iam::730335294148:role/int-preproduction-use1-shared-ec2-nodes-role"
+          # node_role_arn   = "arn:aws:iam::730335294148:role/int-preproduction-use1-shared-ec2-nodes-role"
+          node_role_key = "${local.vpc_name_abr}-ec2-nodes"
           subnet_keys = [
             include.env.locals.subnet_prefix.primary
           ]

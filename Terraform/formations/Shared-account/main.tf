@@ -723,17 +723,12 @@ module "eks_worker_nodes" {
     {
       cluster_name = coalesce(
         each.value.node_group.cluster_key != null
-        ? module.eks_clusters[each.value.node_group.cluster_key].eks_cluster_name
+        ? module.eks_clusters[each.value.node_group.cluster_key].name
         : module.eks_clusters[each.value.cluster_key].eks_cluster_name
       )
     },
     {
-      node_role_arn = coalesce(
-        each.value.node_group.node_role_key != null
-        ? module.iam_roles[each.value.node_group.node_role_key].iam_role_arn
-        : null,
-        each.value.node_group.node_role_arn
-      )
+      node_role_arn = each.value.node_group.node_role_key != null ? module.iam_roles[each.value.node_group.node_role_key].iam_role_arn : each.value.node_group.node_role_arn
     },
     {
       subnet_ids = coalesce(
