@@ -675,8 +675,6 @@ module "launch_templates" {
           for sg_key in each.value.launch_template.eks_additional_sg_keys :
           module.eks_clusters[each.value.eks_cluster_key].eks_sg_id[sg_key]
         ] : [],
-
-        # Direct security group IDs
         each.value.launch_template.vpc_security_group_ids != null ?
         each.value.launch_template.vpc_security_group_ids : []
       ))
