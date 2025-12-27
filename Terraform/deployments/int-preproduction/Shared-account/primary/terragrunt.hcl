@@ -1221,7 +1221,7 @@ inputs = {
           instance_type               = "t3.medium"
           root_device_name            = "/dev/xvda"
           volume_size                 = 20
-          eks_cluster_sg_keys         = ["eks-nodes"]
+          eks_additional_sg_keys         = ["eks-nodes"]
         }
       ]
       eks_node_groups = [

@@ -666,13 +666,19 @@ module "launch_templates" {
       vpc_security_group_ids = compact(concat(
         each.value.launch_template.vpc_security_group_keys != null ? [
           for sg_key in each.value.launch_template.vpc_security_group_keys :
-          tostring(module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id)
+          module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
         ] : [],
         each.value.eks_cluster_key != null ? [
-          tostring(module.eks_clusters[each.value.eks_cluster_key].eks_sg_id)
+          module.eks_clusters[each.value.eks_cluster_key].eks_cluster_security_group_id
         ] : [],
+        each.value.launch_template.eks_additional_sg_keys != null ? [
+          for sg_key in each.value.launch_template.eks_additional_sg_keys :
+          module.eks_clusters[each.value.eks_cluster_key].eks_sg_id[sg_key]
+        ] : [],
+
+        # Direct security group IDs
         each.value.launch_template.vpc_security_group_ids != null ?
-        [for sg_id in each.value.launch_template.vpc_security_group_ids : tostring(sg_id)] : []
+        each.value.launch_template.vpc_security_group_ids : []
       ))
     },
     {
