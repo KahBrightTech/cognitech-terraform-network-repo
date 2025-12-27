@@ -663,22 +663,17 @@ module "launch_templates" {
       ) : each.value.launch_template.key_name
     },
     {
-      vpc_security_group_ids = concat(
-        # Security groups from security_group module
+      vpc_security_group_ids = compact(concat(
         each.value.launch_template.vpc_security_group_keys != null ? [
           for sg_key in each.value.launch_template.vpc_security_group_keys :
-          module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id
+          tostring(module.shared_vpc[each.value.vpc_name].security_group[sg_key].security_group_id)
         ] : [],
-
-        # Security group from the EKS cluster this launch template belongs to
         each.value.eks_cluster_key != null ? [
-          module.eks_clusters[each.value.eks_cluster_key].eks_sg_id
+          tostring(module.eks_clusters[each.value.eks_cluster_key].eks_sg_id)
         ] : [],
-
-        # Direct security group IDs
         each.value.launch_template.vpc_security_group_ids != null ?
-        each.value.launch_template.vpc_security_group_ids : []
-      )
+        [for sg_id in each.value.launch_template.vpc_security_group_ids : tostring(sg_id)] : []
+      ))
     },
     {
       user_data = coalesce(each.value.launch_template.is_eks_node_template, true) ? base64encode(yamlencode({
