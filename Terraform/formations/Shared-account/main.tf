@@ -797,10 +797,10 @@ module "eks_cluster_addons" {
   eks_addons = merge(
     each.value.addon,
     {
-      cluster_name = each.value.cluster_key != null ? module.eks_clusters[each.value.cluster_key].eks_cluster_name : each.value.cluster_name
+      cluster_name = each.value.cluster_key != null ? module.eks_clusters[each.value.cluster_key].eks_cluster_name : each.value.addon.cluster_name
     },
     {
-      cloudwatch_observability_role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
+      cloudwatch_observability_role_arn = each.value.addon.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.addon.cloudwatch_observability_role_key].iam_role_arn : each.value.addon.cloudwatch_observability_role_arn
     }
   )
   depends_on = [
