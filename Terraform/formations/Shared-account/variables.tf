@@ -1035,6 +1035,7 @@ variable "eks" {
   type = list(object({
     key                                         = string
     name                                        = string
+    create_eks_cluster                          = optional(bool, false)
     role_arn                                    = optional(string)
     role_key                                    = optional(string)
     subnet_ids                                  = optional(list(string))
