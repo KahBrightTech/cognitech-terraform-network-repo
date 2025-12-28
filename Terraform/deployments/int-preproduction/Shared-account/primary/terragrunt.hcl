@@ -1051,7 +1051,7 @@ inputs = {
   ]
   eks = [
     {
-      create_eks_cluster = true
+      create_eks_cluster = false
       create_node_group  = false
       key                = include.env.locals.eks_cluster_keys.primary_cluster
       name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
@@ -1207,21 +1207,21 @@ inputs = {
           subnet_keys = [
             include.env.locals.subnet_prefix.primary
           ]
-          desired_size               = 2
-          max_size                   = 4
-          min_size                   = 1
-          launch_template_key        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          desired_size        = 2
+          max_size            = 4
+          min_size            = 1
+          launch_template_key = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
         }
       ]
       eks_addons = {
-        enable_vpc_cni                     = true
-        enable_kube_proxy                  = true
-        enable_coredns                     = true
-        enable_cloudwatch_observability    = true
+        enable_vpc_cni                  = true
+        enable_kube_proxy               = true
+        enable_coredns                  = true
+        enable_cloudwatch_observability = true
         # enable_privateca_issuer            = true
-        enable_secrets_manager_csi_driver  = true
+        enable_secrets_manager_csi_driver = true
         # secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
-        cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
+        cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
       }
     }
   ]
