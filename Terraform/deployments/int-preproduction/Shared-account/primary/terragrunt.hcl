@@ -1052,7 +1052,7 @@ inputs = {
   eks = [
     {
       create_eks_cluster = true
-      create_node_group  = false
+      create_node_group  = true
       key                = include.env.locals.eks_cluster_keys.primary_cluster
       name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key           = "${local.vpc_name_abr}-eks"
