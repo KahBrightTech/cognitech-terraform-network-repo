@@ -635,22 +635,6 @@ module "eks" {
       ) : null
     },
     {
-      launch_templates = each.value.launch_templates != null ? [
-        for lt in each.value.launch_templates : merge(
-          lt,
-          {
-            vpc_security_group_ids = lt.vpc_security_group_keys != null ? [
-              for sg_key in lt.vpc_security_group_keys :
-              try(
-                module.shared_vpc[each.value.vpc_name].security_group[sg_key].id,
-                null
-              )
-            ] : lt.vpc_security_group_ids
-          }
-        )
-      ] : null
-    },
-    {
       eks_node_groups = each.value.eks_node_groups != null ? [
         for ng in each.value.eks_node_groups : merge(
           ng,
