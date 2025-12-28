@@ -1066,15 +1066,16 @@ inputs = {
   #     vpc_security_group_ids      = ["eks-nodes"]
   #   }
   # ]
-  
+
   eks = [
     {
-      create_eks_cluster = true 
+      create_eks_cluster = true
       create_node_group  = false
       key                = include.env.locals.eks_cluster_keys.primary_cluster
       name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key           = "${local.vpc_name_abr}-eks"
       oidc_thumbprint    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      vpc_name           = local.vpc_name_abr
       access_entries = {
         admin = {
           principal_arns = [
