@@ -635,7 +635,7 @@ module "eks" {
                 for sg_key in lt.account_security_group_keys : module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
               ] : [],
               lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
-            )
+            ),
             vpc_security_group_keys = lt.vpc_security_group_keys
           }
         )
