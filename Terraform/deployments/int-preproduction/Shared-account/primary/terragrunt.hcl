@@ -1213,6 +1213,7 @@ inputs = {
           root_device_name            = "/dev/xvda"
           volume_size                 = 20
           vpc_security_group_keys     = ["eks-nodes"]
+          account_security_group_keys = ["app"]
         }
       ]
       eks_node_groups = [
