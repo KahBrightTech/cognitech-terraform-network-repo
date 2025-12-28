@@ -641,7 +641,10 @@ module "eks" {
           {
             vpc_security_group_ids = lt.vpc_security_group_keys != null ? [
               for sg_key in lt.vpc_security_group_keys :
-              module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+              try(
+                module.shared_vpc[each.value.vpc_name].security_group[sg_key].id,
+                null
+              )
             ] : lt.vpc_security_group_ids
           }
         )
