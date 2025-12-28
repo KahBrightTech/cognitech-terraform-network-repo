@@ -1066,6 +1066,7 @@ inputs = {
   #     vpc_security_group_ids      = ["eks-nodes"]
   #   }
   # ]
+  
   eks = [
     {
       create_eks_cluster = true 

@@ -626,14 +626,13 @@ module "eks" {
       ] : null
     },
     {
-      eks_addons = each.value.eks_addons != null ? [
-        for addon in each.value.eks_addons : merge(
-          addon,
-          each.value.cloudwatch_observability_role_key != null || each.value.cloudwatch_observability_role_arn != null ? {
-            cloudwatch_observability_role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
-          } : {}
-        )
-      ] : null
+      eks_addons = each.value.eks_addons != null ? merge(
+        each.value.eks_addons,
+        (each.value.cloudwatch_observability_role_key != null || each.value.cloudwatch_observability_role_arn != null) ?
+        {
+          cloudwatch_observability_role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
+        } : {}
+      ) : null
     },
     {
       launch_templates = each.value.launch_templates != null ? [
