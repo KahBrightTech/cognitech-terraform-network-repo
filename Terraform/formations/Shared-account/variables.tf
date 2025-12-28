@@ -1162,6 +1162,7 @@ variable "eks" {
       associate_public_ip_address = optional(bool)
       vpc_security_group_ids      = optional(list(string))
       vpc_security_group_keys     = optional(list(string))
+      account_security_group_keys = optional(list(string))
       tags                        = optional(map(string))
       user_data                   = optional(string)
       volume_size                 = optional(number)

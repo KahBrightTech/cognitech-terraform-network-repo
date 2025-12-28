@@ -571,7 +571,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.5.25"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.5.27"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -621,6 +621,22 @@ module "eks" {
                 } : {}
               )
             ] : null
+          }
+        )
+      ] : null
+    },
+    {
+      launch_templates = each.value.launch_templates != null ? [
+        for lt in each.value.launch_templates : merge(
+          lt,
+          {
+            vpc_security_group_ids = concat(
+              lt.account_security_group_keys != null ? [
+                for sg_key in lt.account_security_group_keys : module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+              ] : [],
+              lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
+            )
+            vpc_security_group_keys = lt.vpc_security_group_keys
           }
         )
       ] : null
