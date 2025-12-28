@@ -1051,8 +1051,8 @@ inputs = {
   ]
   eks = [
     {
-      create_eks_cluster = false
-      create_node_group  = false
+      create_eks_cluster = true
+      create_node_group  = true
       key                = include.env.locals.eks_cluster_keys.primary_cluster
       name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key           = "${local.vpc_name_abr}-eks"
@@ -1214,11 +1214,10 @@ inputs = {
         }
       ]
       eks_addons = {
-        enable_vpc_cni                  = true
-        enable_kube_proxy               = true
-        enable_coredns                  = true
-        enable_cloudwatch_observability = true
-        # enable_privateca_issuer            = true
+        enable_vpc_cni                    = true
+        enable_kube_proxy                 = true
+        enable_coredns                    = true
+        enable_cloudwatch_observability   = true
         enable_secrets_manager_csi_driver = true
         # secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
         cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
@@ -1257,5 +1256,51 @@ generate "aws-providers" {
   EOF
 }
 
+generate "k8s-providers" {
+  path      = "k8s-provider.tf"
+  if_exists = "overwrite"
+  contents  = <<-EOF
+  data "aws_eks_cluster" "cluster" {
+    name = module.eks.eks_cluster_name
+  }
 
+  provider "helm" {
+    kubernetes {
+      host                   = data.aws_eks_cluster.cluster.endpoint
+      cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+      
+      exec {
+        api_version = "client.authentication.k8s.io/v1beta1"
+        command     = "aws"
+        args = [
+          "eks",
+          "get-token",
+          "--cluster-name",
+          var.cluster_name,
+          "--region",
+          "${local.region}"
+        ]
+      }
+    }
+  }
+
+  provider "kubernetes" {
+    host                   = data.aws_eks_cluster.cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+    
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        var.cluster_name,
+        "--region",
+        "${local.region}"
+      ]
+    }
+  }
+  EOF
+}
 
