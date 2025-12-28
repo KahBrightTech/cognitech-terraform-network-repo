@@ -1224,10 +1224,12 @@ inputs = {
           subnet_keys = [
             include.env.locals.subnet_prefix.primary
           ]
-          desired_size        = 2
-          max_size            = 4
-          min_size            = 1
-          launch_template_key = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          desired_size              = 2
+          max_size                  = 4
+          min_size                  = 1
+          launch_template_key       = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          enable_remote_access      = true
+          source_security_group_ids = ["app"]
         }
       ]
       eks_addons = {
