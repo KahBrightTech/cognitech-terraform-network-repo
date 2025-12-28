@@ -1049,27 +1049,10 @@ inputs = {
     #     }
     #   }
   ]
-  # launch_templates = [
-  #   {
-  #     key               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-  #     name              = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-  #     create_node_group = false
-  #     key_pair_key      = "${local.vpc_name_abr}-key-pair"
-  #     eks_cluster_key   = include.env.locals.eks_cluster_keys.primary_cluster
-  #     ami_config = {
-  #       os_release_date = "EKSAL2023"
-  #     }
-  #     associate_public_ip_address = true
-  #     instance_type               = "t3.medium"
-  #     root_device_name            = "/dev/xvda"
-  #     volume_size                 = 20
-  #     vpc_security_group_ids      = ["eks-nodes"]
-  #   }
-  # ]
   eks = [
     {
       create_eks_cluster = true
-      create_node_group  = true
+      create_node_group  = false
       key                = include.env.locals.eks_cluster_keys.primary_cluster
       name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key           = "${local.vpc_name_abr}-eks"
@@ -1237,7 +1220,7 @@ inputs = {
         enable_cloudwatch_observability    = true
         # enable_privateca_issuer            = true
         enable_secrets_manager_csi_driver  = true
-        secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
+        # secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
         cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
       }
     }
