@@ -571,7 +571,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.5.16"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.5.17"
   for_each = (var.var.eks != null) ? { for item in var.var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
