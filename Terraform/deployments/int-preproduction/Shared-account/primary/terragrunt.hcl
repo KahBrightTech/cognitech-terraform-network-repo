@@ -1276,7 +1276,7 @@ generate "k8s-providers" {
           "eks",
           "get-token",
           "--cluster-name",
-          var.cluster_name,
+          module.eks.eks_cluster_name,
           "--region",
           "${local.region}"
         ]
@@ -1295,7 +1295,7 @@ generate "k8s-providers" {
         "eks",
         "get-token",
         "--cluster-name",
-        var.cluster_name,
+        module.eks.eks_cluster_name,
         "--region",
         "${local.region}"
       ]
