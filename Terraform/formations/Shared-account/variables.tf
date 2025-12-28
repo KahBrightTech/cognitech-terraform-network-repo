@@ -1056,7 +1056,7 @@ variable "eks" {
       principal_arns = optional(list(string))
       policy_arn     = optional(string)
     })), {})
-    version                = optional(string, "1.32")
+    version                = optional(string, "1.33")
     oidc_thumbprint        = optional(string)
     is_this_ec2_node_group = optional(bool, false)
     use_private_subnets    = optional(bool, false)
