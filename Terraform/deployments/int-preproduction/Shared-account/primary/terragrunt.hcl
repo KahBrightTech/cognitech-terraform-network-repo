@@ -1074,7 +1074,6 @@ inputs = {
       name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key           = "${local.vpc_name_abr}-eks"
       oidc_thumbprint    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
-      vpc_name           = local.vpc_name_abr
       access_entries = {
         admin = {
           principal_arns = [
