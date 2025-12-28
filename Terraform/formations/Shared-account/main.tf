@@ -632,7 +632,7 @@ module "eks" {
           {
             vpc_security_group_ids = concat(
               lt.account_security_group_keys != null ? [
-                for sg_key in lt.account_security_group_keys : module.shared_vpc[var.eks.vpc_name].security_group[sg_key].id
+                for sg_key in lt.account_security_group_keys : module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
               ] : [],
               lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
             ),
@@ -668,7 +668,7 @@ module "eks" {
           {
             source_security_group_ids = ng.source_security_group_keys != null ? [
               for sg_key in ng.source_security_group_keys :
-              module.shared_vpc[var.eks.vpc_name].security_group[sg_key].id
+              module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
             ] : ng.source_security_group_ids
           }
         )
