@@ -1067,14 +1067,18 @@ inputs = {
   #   }
   # ]
 
-  eks = [
+  eks_clusters = [
     {
       create_eks_cluster = false
       create_node_group  = false
       key                = include.env.locals.eks_cluster_keys.primary_cluster
-      name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+      name               = "${local.vpc_name_abr}-InfoGrid"
       role_key           = "${local.vpc_name_abr}-eks"
       oidc_thumbprint    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      # enable_application_addons          = false
+      # cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
+      # enable_secrets_manager_csi_driver  = true
+      # secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
       access_entries = {
         admin = {
           principal_arns = [
@@ -1095,7 +1099,8 @@ inputs = {
       additional_security_group_keys = [
         "eks-cluster-secondary"
       ]
-      vpc_name = "${local.vpc_name_abr}"
+      vpc_name               = "${local.vpc_name_abr}"
+      is_this_ec2_node_group = true
       key_pair = {
         name               = "${local.vpc_name_abr}-eks-node-key"
         name_prefix        = "${local.vpc_name_abr}-eks-node-key"
@@ -1204,8 +1209,11 @@ inputs = {
       ]
       launch_templates = [
         {
-          key  = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-          name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          key               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          name              = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          create_node_group = false
+          key_pair_key      = "${local.vpc_name_abr}-key-pair"
+          eks_cluster_key   = include.env.locals.eks_cluster_keys.primary_cluster
           ami_config = {
             os_release_date = "EKSAL2023"
           }
@@ -1213,33 +1221,50 @@ inputs = {
           instance_type               = "t3.medium"
           root_device_name            = "/dev/xvda"
           volume_size                 = 20
-          vpc_security_group_keys     = ["eks-nodes"]
+          eks_additional_sg_keys      = ["eks-nodes"]
         }
       ]
       eks_node_groups = [
         {
-          key             = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          key = "test"
+          # cluster_key     = include.env.locals.eks_cluster_keys.primary_cluster
+          cluster_name    = "int-preproduction-use1-shared-InfoGrid-eks-cluster"
           node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-groups"
-          node_role_key   = "${local.vpc_name_abr}-ec2-nodes"
+          node_role_arn   = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-ec2-nodes-role"
           subnet_keys = [
             include.env.locals.subnet_prefix.primary
           ]
-          desired_size        = 2
-          max_size            = 4
-          min_size            = 1
-          launch_template_key = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          desired_size         = 2
+          max_size             = 4
+          min_size             = 1
+          launch_template_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
         }
       ]
-      eks_addons = {
-        enable_vpc_cni                     = true
-        enable_kube_proxy                  = true
-        enable_coredns                     = true
-        enable_cloudwatch_observability    = true
-        enable_privateca_issuer            = true
-        enable_secrets_manager_csi_driver  = true
-        secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
-        cloudwatch_observability_role_key  = "${local.vpc_name_abr}-cw-observability"
-      }
+      eks_addons = [
+        {
+          key         = "coredns"
+          cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
+          addon_names = "coredns"
+        },
+        {
+          key         = "metrics-server"
+          cluster_key = include.env.locals.eks_cluster_keys.primary_cluster
+          addon_names = "metrics-server"
+        },
+        {
+          key                               = "amazon-cloudwatch-observability"
+          cluster_key                       = include.env.locals.eks_cluster_keys.primary_cluster
+          addon_names                       = "amazon-cloudwatch-observability"
+          create_cw_role                    = true
+          cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
+        },
+        {
+          key                                = "aws-secrets-store-csi-driver-provider"
+          cluster_key                        = include.env.locals.eks_cluster_keys.primary_cluster
+          addon_names                        = "aws-secrets-store-csi-driver-provider"
+          secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
+        }
+      ]
     }
   ]
 }

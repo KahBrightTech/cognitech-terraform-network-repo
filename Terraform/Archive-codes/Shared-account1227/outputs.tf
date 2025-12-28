@@ -166,10 +166,31 @@ output "waf" {
 #-------------------------------------------------------
 # EKS Cluster outputs
 #-------------------------------------------------------
-output "eks" {
-  description = "Output for all eks resources"
-  value       = module.eks
+output "eks_clusters" {
+  description = "Output for EKS Clusters"
+  value       = module.eks_clusters
 }
 
+#-------------------------------------------------------
+# Launch Template outputs
+#-------------------------------------------------------
+output "launch_templates" {
+  description = "Output for Launch Templates"
+  value       = module.launch_templates
+}
 
+#-------------------------------------------------------
+# EKS Worker nodes outputs
+#-------------------------------------------------------
+output "eks_worker_nodes" {
+  description = "Output for EKS Worker Nodes"
+  value       = module.eks_worker_nodes
+}
 
+# #-------------------------------------------------------
+# # EKS Cluster Services Accounts outputs
+# #-------------------------------------------------------
+# output "eks_service_accounts" {
+#   description = "Output for EKS Cluster Service Accounts"
+#   value       = module.eks_service_accounts
+# }
