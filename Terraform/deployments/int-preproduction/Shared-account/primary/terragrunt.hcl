@@ -1220,6 +1220,7 @@ inputs = {
         enable_cloudwatch_observability   = true
         enable_secrets_manager_csi_driver = true
         enable_metrics_server             = true
+        enableSecretRotation              = true
         rotationPollInterval              = "2m"
         cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
       }

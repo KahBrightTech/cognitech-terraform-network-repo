@@ -1080,6 +1080,8 @@ variable "eks" {
       create_cloudwatch_role             = optional(bool, false)
       cloudwatch_observability_role_arn  = optional(string)
       cloudwatch_observability_role_key  = optional(string)
+      enableSecretRotation               = optional(bool, false)
+      rotationPollInterval               = optional(number)
     }))
     key_pair = object({
       name               = optional(string)
