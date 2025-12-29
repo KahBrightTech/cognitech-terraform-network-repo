@@ -1273,6 +1273,7 @@ generate "aws-providers" {
 }
 
 generate "k8s-providers" {
+  count     = var.create_eks_cluster ? 1 : 0 
   path      = "k8s-provider.tf"
   if_exists = "overwrite"
   contents  = <<-EOF
