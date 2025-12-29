@@ -32,9 +32,9 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Shared-account"
   ## Updates these variables as per the product/service
-  vpc_name     = "shared-services"
-  vpc_name_abr = "shared"
-   create_eks_cluster = false 
+  vpc_name           = "shared-services"
+  vpc_name_abr       = "shared"
+  create_eks_cluster = false
 
   # Composite variables 
   tags = merge(
@@ -1273,15 +1273,16 @@ generate "aws-providers" {
   EOF
 }
 
-%{if local.create_eks_cluster}
 generate "k8s-providers" {
   path      = "k8s-provider.tf"
-  if_exists = "overwrite"
+  if_exists = "overwrite" 
   contents  = <<-EOF
+  %{ if local.create_eks_cluster }
   provider "helm" {
     kubernetes = {
       host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
       cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
+      
       exec = {
         api_version = "client.authentication.k8s.io/v1beta1"
         command     = "aws"
@@ -1300,6 +1301,7 @@ generate "k8s-providers" {
   provider "kubernetes" {
     host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
+    
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
@@ -1313,7 +1315,7 @@ generate "k8s-providers" {
       ]
     }
   }
+  %{ endif }
   EOF
 }
-%{endif}
 
