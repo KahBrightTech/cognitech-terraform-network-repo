@@ -34,7 +34,6 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = true 
 
   # Composite variables 
   tags = merge(
@@ -1041,7 +1040,7 @@ inputs = {
   ]
   eks = [
     {
-      create_eks_cluster      = local.create_eks_cluster
+      create_eks_cluster      = false
       create_node_group       = false
       create_service_accounts = false
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
@@ -1275,9 +1274,8 @@ generate "aws-providers" {
 
 generate "k8s-providers" {
   path      = "k8s-provider.tf"
-  if_exists = "overwrite" 
+  if_exists = "overwrite"
   contents  = <<-EOF
-  %{ if local.create_eks_cluster }
   provider "helm" {
     kubernetes = {
       host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
@@ -1315,7 +1313,6 @@ generate "k8s-providers" {
       ]
     }
   }
-  %{ endif }
   EOF
 }
 
