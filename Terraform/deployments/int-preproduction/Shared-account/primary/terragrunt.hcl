@@ -34,6 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name     = "shared-services"
   vpc_name_abr = "shared"
+   create_eks_cluster = false 
 
   # Composite variables 
   tags = merge(
@@ -1040,7 +1041,7 @@ inputs = {
   ]
   eks = [
     {
-      create_eks_cluster      = false
+      create_eks_cluster      = local.create_eks_cluster
       create_node_group       = false
       create_service_accounts = false
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
@@ -1271,35 +1272,17 @@ generate "aws-providers" {
   }
   EOF
 }
-
+%{if local.create_eks_cluster}
 generate "k8s-providers" {
   path      = "k8s-provider.tf"
   if_exists = "overwrite"
-  contents  = var.create_eks_cluster ? (
-    <<-EOF
-    provider "helm" {
-      kubernetes = {
-        host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
-        cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
-        exec = {
-          api_version = "client.authentication.k8s.io/v1beta1"
-          command     = "aws"
-          args = [
-            "eks",
-            "get-token",
-            "--cluster-name",
-            module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name,
-            "--region",
-            "${local.region}"
-          ]
-        }
-      }
-    }
-
-    provider "kubernetes" {
+  contents  = <<-EOF
+  provider "helm" {
+    kubernetes = {
       host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
       cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
-      exec {
+      
+      exec = {
         api_version = "client.authentication.k8s.io/v1beta1"
         command     = "aws"
         args = [
@@ -1312,8 +1295,26 @@ generate "k8s-providers" {
         ]
       }
     }
-EOF
-  ) : ""
-}
+  }
 
+  provider "kubernetes" {
+    host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
+    
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name,
+        "--region",
+        "${local.region}"
+      ]
+    }
+  }
+  %{endif}
+  EOF
+}
 
