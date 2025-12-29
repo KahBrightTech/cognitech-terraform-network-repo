@@ -1226,6 +1226,7 @@ inputs = {
           key         = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
           name        = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
           description = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+          assume_role_policy = null
           path        = "/"
           service_account_namespace = "default"  
           service_account_name      = "secrets"
