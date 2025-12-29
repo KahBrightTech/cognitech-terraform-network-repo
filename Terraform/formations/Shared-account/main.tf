@@ -675,14 +675,7 @@ module "eks" {
       ] : null
     },
     {
-      service_accounts = each.value.service_accounts != null ? [
-        for sa in each.value.service_accounts : merge(
-          sa,
-          {
-            role_arn = sa.role_key != null ? module.iam_roles[sa.role_key].iam_role_arn : sa.role_arn
-          }
-        )
-      ] : null
+      service_accounts = each.value.service_accounts != null ? each.value.service_accounts : null
     },
     {
       iam_roles = each.value.iam_roles != null ? each.value.iam_roles : null
