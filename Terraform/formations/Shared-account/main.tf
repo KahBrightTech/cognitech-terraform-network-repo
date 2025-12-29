@@ -673,13 +673,13 @@ module "eks" {
           }
         )
       ] : null
-    },
-    {
-      service_accounts = each.value.service_accounts != null ? each.value.service_accounts : null
-    },
-    {
-      iam_roles = each.value.iam_roles != null ? each.value.iam_roles : null
     }
+    # {
+    #   service_accounts = each.value.service_accounts != null ? each.value.service_accounts : null
+    # },
+    # {
+    #   iam_roles = each.value.iam_roles != null ? each.value.iam_roles : null
+    # }
   )
 }
 
