@@ -1201,6 +1201,33 @@ variable "eks" {
         version = optional(string, "$Latest")
       }))
     })))
+    service_accounts = optional(list(object({
+      key       = optional(string)
+      name      = string
+      namespace = optional(string, "default")
+      role_arn  = optional(string)
+      role_key  = optional(string)
+    })))
+    iam_roles = optional(list(object({
+      key                       = optional(string)
+      name                      = string
+      description               = optional(string)
+      path                      = optional(string, "/")
+      assume_role_policy        = string
+      custom_assume_role_policy = optional(bool, true)
+      force_detach_policies     = optional(bool, false)
+      managed_policy_arns       = optional(list(string))
+      max_session_duration      = optional(number, 3600)
+      permissions_boundary      = optional(string)
+      create_custom_policy      = optional(bool, true)
+      policy = optional(object({
+        name          = optional(string)
+        description   = optional(string)
+        policy        = optional(string)
+        path          = optional(string, "/")
+        custom_policy = optional(bool, true)
+      }))
+    })))
   }))
   default = null
 }
