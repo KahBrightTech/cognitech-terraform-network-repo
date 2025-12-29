@@ -1188,6 +1188,30 @@ inputs = {
           account_security_group_keys = ["app"]
         }
       ]
+      service_accounts = [
+        {
+          key       = "infogrid"
+          name      = "secrets"
+          namespace = "default"
+          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+        }
+      ]
+      iam_roles = [
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+          description               = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+          assume_role_policy        = null
+          path                      = "/"
+          service_account_namespace = "default"
+          service_account_name      = "secrets"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+            description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+          }
+        }
+      ]
       eks_node_groups = [
         {
           key             = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
@@ -1213,30 +1237,6 @@ inputs = {
         rotationPollInterval              = "2m"
         cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
       }
-      service_accounts = [
-        {
-          key       = "infogrid"
-          name      = "secrets"
-          namespace = "default"
-          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
-        }
-      ]
-      iam_roles = [
-        {
-          key         = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
-          name        = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
-          description = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
-          assume_role_policy = null
-          path        = "/"
-          service_account_namespace = "default"  
-          service_account_name      = "secrets"
-          policy = {
-            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
-            description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
-            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
-          }
-        }
-      ]
     }
   ]
 }
