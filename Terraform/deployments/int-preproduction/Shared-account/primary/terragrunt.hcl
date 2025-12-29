@@ -1273,10 +1273,9 @@ generate "aws-providers" {
 }
 
 generate "k8s-providers" {
-  count     = var.create_eks_cluster ? 1 : 0 
   path      = "k8s-provider.tf"
   if_exists = "overwrite"
-  contents  = <<-EOF
+  contents  = var.create_eks_cluster ? <<-EOF
   provider "helm" {
     kubernetes = {
       host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
@@ -1315,5 +1314,6 @@ generate "k8s-providers" {
     }
   }
   EOF
+  : ""
 }
 
