@@ -1213,29 +1213,29 @@ inputs = {
         rotationPollInterval              = "2m"
         cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
       }
-      service_accounts = [
-        {
-          key       = "infogrid"
-          name      = "secrets"
-          namespace = "default"
-          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
-        }
-      ]
-      iam_roles = [
-        {
-          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
-          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
-          description               = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
-          path                      = "/"
-          service_account_namespace = "default"
-          service_account_name      = "secrets"
-          policy = {
-            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
-            description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
-            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
-          }
-        }
-      ]
+      # service_accounts = [
+      #   {
+      #     key       = "infogrid"
+      #     name      = "secrets"
+      #     namespace = "default"
+      #     role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+      #   }
+      # ]
+      # iam_roles = [
+      #   {
+      #     key         = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+      #     name        = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+      #     description = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+      #     path        = "/"
+      #     service_account_namespace = "default"  
+      #     service_account_name      = "secrets"
+      #     policy = {
+      #       name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+      #       description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+      #       policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+      #     }
+      #   }
+      # ]
     }
   ]
 }
@@ -1280,7 +1280,7 @@ generate "k8s-providers" {
       host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
       cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
       
-      exec {
+      exec = {
         api_version = "client.authentication.k8s.io/v1beta1"
         command     = "aws"
         args = [
@@ -1294,11 +1294,12 @@ generate "k8s-providers" {
       }
     }
   }
+
   provider "kubernetes" {
     host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
     
-    exec {
+    exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
       args = [
