@@ -1215,24 +1215,22 @@ inputs = {
       }
       service_accounts = [
         {
-          key                = "infogrid"
-          name               = "secrets"
-          namespace          = "default"
-          role_key           = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+          key       = "infogrid"
+          name      = "secrets"
+          namespace = "default"
+          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
         }
       ]
       iam_roles = [
         {
-          {
-            key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
-            name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
-            description        = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
-            path               = "/"
-            policy = {
-              name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
-              description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
-              policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
-            }
+          key         = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+          name        = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+          description = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+          path        = "/"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+            description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
           }
         }
       ]
