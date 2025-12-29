@@ -1040,7 +1040,7 @@ inputs = {
   ]
   eks = [
     {
-      create_eks_cluster      = true
+      create_eks_cluster      = false
       create_node_group       = false
       create_service_accounts = false
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
