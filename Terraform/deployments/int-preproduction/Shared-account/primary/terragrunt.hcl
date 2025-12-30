@@ -1213,8 +1213,8 @@ inputs = {
         },
         {
           key                       = "ebs-csi-driver"
-          service_account_namespace = "kube-system"
-          service_account_name      = "ebs-csi-controller-sa"
+          service_account_namespace = "kube-system"           # This is the default namespace used by the EBS CSI Driver
+          service_account_name      = "ebs-csi-controller-sa" # This is the default name used by the EBS CSI Driver
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
         }
       ]
