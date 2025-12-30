@@ -1192,10 +1192,23 @@ inputs = {
       ]
       service_accounts = [
         {
-          key       = "infogrid"
-          name      = "secrets"
+          key            = "infogrid"
+          name           = "secrets"
+          namespace      = "default"
+          role_key       = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+          enable_eks_pia = true
+        },
+        {
+          key       = "s3"
+          name      = "s3-access"
           namespace = "default"
-          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+        }
+      ]
+      eks_pia = [
+        {
+          service_account_namespace = "default"
+          service_account_keys      = "s3-access"
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3-role"
         }
       ]
       iam_roles = [
@@ -1210,6 +1223,20 @@ inputs = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
             description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
             policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+          }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3-role"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3"
+          description               = "IAM Role for ${local.vpc_name_abr} S3 Access"
+          path                      = "/"
+          assume_role_policy        = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          service_account_namespace = "default"
+          service_account_name      = "secrets"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-s3"
+            description = "IAM policy for ${local.vpc_name_abr} S3 Access"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_s3_access_policy.json"
           }
         }
       ]
@@ -1235,6 +1262,7 @@ inputs = {
         enable_secrets_manager_csi_driver = true
         enable_metrics_server             = true
         enableSecretRotation              = true
+        enable_pod_identity_agent         = true
         rotationPollInterval              = "2m"
         cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
       }
