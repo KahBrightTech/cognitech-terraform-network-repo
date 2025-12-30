@@ -2,10 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "Allow s3 access to admin role only",
-      "Principal": {
-        "AWS": "*"
-      },
+      "Sid": "AllowS3AccessForeksPod",
       "Effect": "Allow",
       "Action": [
         "s3:ListBucket",
@@ -14,8 +11,8 @@
         "s3:DeleteObject"
       ],
       "Resource": [
-        "int-preproduction-use1-shared-config-bucket",
-        "int-preproduction-use1-shared-config-bucket/*"
+        "arn:aws:s3:::int-preproduction-use1-shared-config-bucket",
+        "arn:aws:s3:::int-preproduction-use1-shared-config-bucket/*"
       ],
       "Condition": {
         "StringEquals": {
