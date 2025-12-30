@@ -1085,6 +1085,8 @@ variable "eks" {
       create_cloudwatch_role             = optional(bool, false)
       cloudwatch_observability_role_arn  = optional(string)
       cloudwatch_observability_role_key  = optional(string)
+      ebs_csi_driver_role_arn            = optional(string)
+      ebs_csi_driver_role_key            = optional(string)
       enableSecretRotation               = optional(bool, false)
       rotationPollInterval               = optional(string)
     }))
@@ -1216,6 +1218,7 @@ variable "eks" {
     eks_pia = optional(list(object({
       key                       = optional(string)
       service_account_keys      = optional(list(string), [])
+      service_account_names     = optional(list(string), [])
       service_account_namespace = optional(string)
       role_arn                  = optional(string)
       role_key                  = optional(string)

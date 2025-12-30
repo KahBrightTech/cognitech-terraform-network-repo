@@ -1210,6 +1210,12 @@ inputs = {
           service_account_namespace = "default"
           service_account_keys      = ["s3-access"]
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3-role"
+        },
+        {
+          key                       = "ebs-csi-driver"
+          service_account_namespace = "kube-system"
+          service_account_names      = ["ebs-csi-controller-sa"]
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
         }
       ]
       iam_roles = [
@@ -1239,6 +1245,20 @@ inputs = {
             description = "IAM policy for ${local.vpc_name_abr} S3 Access"
             policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_s3_access_policy.json"
           }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+          description               = "IAM Role for ${local.vpc_name_abr} EBS CSI Driver"
+          path                      = "/"
+          assume_role_policy        = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          service_account_namespace = "default"
+          service_account_name      = "secrets"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+            description = "IAM policy for ${local.vpc_name_abr} EBS CSI Driver"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_ebs_csi_driver_policy.json"
+          }
         }
       ]
       eks_node_groups = [
@@ -1267,6 +1287,7 @@ inputs = {
         enable_ebs_csi_driver             = true
         rotationPollInterval              = "2m"
         cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
+        ebs_csi_driver_role_key           = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-drive"
       }
     }
   ]
