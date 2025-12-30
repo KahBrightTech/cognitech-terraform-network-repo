@@ -1206,8 +1206,9 @@ inputs = {
       ]
       eks_pia = [
         {
+          key                       = "s3-access"
           service_account_namespace = "default"
-          service_account_keys      = "s3-access"
+          service_account_keys      = ["s3-access"]
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3-role"
         }
       ]
