@@ -1072,6 +1072,7 @@ variable "eks" {
       enable_cloudwatch_observability    = optional(bool, false)
       enable_secrets_manager_csi_driver  = optional(bool, false)
       enable_privateca_issuer            = optional(bool, false)
+      enable_pod_identity_agent          = optional(bool, false)
       vpc_cni_version                    = optional(string)
       kube_proxy_version                 = optional(string)
       coredns_version                    = optional(string)
