@@ -6,12 +6,10 @@
       "Principal": {
         "Service": "pods.eks.amazonaws.com"
       },
-      "Action": "sts:AssumeRole",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["us-east-1", "us-west-2"]
-        }
-      }
+      "Action": [
+        "sts:AssumeRole",
+        "sts:TagSession"
+      ]
     }
   ]
 }
