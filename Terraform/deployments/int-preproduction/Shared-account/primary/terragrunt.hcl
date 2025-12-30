@@ -1214,7 +1214,7 @@ inputs = {
         {
           key                       = "ebs-csi-driver"
           service_account_namespace = "kube-system"
-          service_account_names      = ["ebs-csi-controller-sa"]
+          service_account_name      = "ebs-csi-controller-sa"
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
         }
       ]
@@ -1287,7 +1287,7 @@ inputs = {
         enable_ebs_csi_driver             = true
         rotationPollInterval              = "2m"
         cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
-        ebs_csi_driver_role_key           = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-drive"
+        ebs_csi_driver_role_key           = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
       }
     }
   ]
