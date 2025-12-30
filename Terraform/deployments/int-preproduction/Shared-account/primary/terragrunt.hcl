@@ -1199,7 +1199,7 @@ inputs = {
           role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
         },
         {
-          key       = "s3"
+          key       = "s3-access"
           name      = "s3-access"
           namespace = "default"
         }
