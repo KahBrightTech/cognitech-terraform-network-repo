@@ -1044,6 +1044,7 @@ inputs = {
       create_eks_cluster      = local.create_eks_cluster
       create_node_group       = true
       create_service_accounts = true
+      enable_eks_pia          = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key                = "${local.vpc_name_abr}-eks"
@@ -1192,11 +1193,10 @@ inputs = {
       ]
       service_accounts = [
         {
-          key            = "infogrid"
-          name           = "secrets"
-          namespace      = "default"
-          role_key       = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
-          enable_eks_pia = true
+          key       = "infogrid"
+          name      = "secrets"
+          namespace = "default"
+          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
         },
         {
           key       = "s3"
