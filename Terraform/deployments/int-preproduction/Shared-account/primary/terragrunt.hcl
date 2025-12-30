@@ -1264,6 +1264,7 @@ inputs = {
         enable_metrics_server             = true
         enableSecretRotation              = true
         enable_pod_identity_agent         = true
+        enable_ebs_csi_driver             = true
         rotationPollInterval              = "2m"
         cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
       }
