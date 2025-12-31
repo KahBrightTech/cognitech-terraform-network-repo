@@ -1202,7 +1202,7 @@ inputs = {
           key       = "s3-access"
           name      = "s3-access"
           namespace = "default"
-        }
+        },
         {
           key       = "secrets-pia"
           name      = "secrets-pia"
