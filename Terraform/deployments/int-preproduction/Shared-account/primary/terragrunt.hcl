@@ -1275,13 +1275,11 @@ inputs = {
           description               = "IAM Role for ${local.vpc_name_abr} EBS CSI Driver"
           path                      = "/"
           assume_role_policy        = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
-          service_account_namespace = "default"
-          service_account_name      = "secrets"
-          policy = {
-            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
-            description = "IAM policy for ${local.vpc_name_abr} EBS CSI Driver"
-            policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_ebs_csi_driver_policy.json"
-          }
+          create_custom_policy     = false 
+          managed_policy_arns = [
+            "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy",
+            "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+          ]
         }
       ]
       eks_node_groups = [
