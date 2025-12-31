@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = true
+  create_eks_cluster = false
 
   # Composite variables 
   tags = merge(
