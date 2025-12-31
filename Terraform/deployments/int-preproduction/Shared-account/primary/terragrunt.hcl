@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = false
+  create_eks_cluster = true
 
   # Composite variables 
   tags = merge(
@@ -1042,9 +1042,9 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = false
-      create_service_accounts = false
-      enable_eks_pia          = false
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key                = "${local.vpc_name_abr}-eks"
@@ -1203,6 +1203,11 @@ inputs = {
           name      = "s3-access"
           namespace = "default"
         }
+        {
+          key       = "secrets-pia"
+          name      = "secrets-pia"
+          namespace = "default"
+        }
       ]
       eks_pia = [
         {
@@ -1216,7 +1221,13 @@ inputs = {
           service_account_namespace = "kube-system"           # This is the default namespace used by the EBS CSI Driver
           service_account_name      = "ebs-csi-controller-sa" # This is the default name used by the EBS CSI Driver
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
-        }
+        },
+        {
+          key                       = "secrets-pia"
+          service_account_namespace = "default"
+          service_account_keys      = ["secrets-pia"]
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
+        },
       ]
       iam_roles = [
         {
@@ -1226,6 +1237,18 @@ inputs = {
           path                      = "/"
           service_account_namespace = "default"
           service_account_name      = "secrets"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+            description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+          }
+        },
+        {
+          key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
+          name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
+          description        = "IAM Role for ${local.vpc_name_abr} Secrets PIA Service Account"
+          path               = "/"
+          assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
             description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
