@@ -1250,7 +1250,7 @@ inputs = {
           path               = "/"
           assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
           policy = {
-            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
             description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
             policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
           }
