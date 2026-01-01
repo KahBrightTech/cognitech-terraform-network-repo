@@ -1289,7 +1289,7 @@ variable "rds_instances" {
     backup_window                         = optional(string)
     maintenance_window                    = optional(string)
     auto_minor_version_upgrade            = optional(bool, true)
-    deletion_protection                   = optional(bool, true)
+    deletion_protection                   = optional(bool, false)
     skip_final_snapshot                   = optional(bool, false)
     copy_tags_to_snapshot                 = optional(bool, true)
     enabled_cloudwatch_logs_exports       = optional(list(string), [])
