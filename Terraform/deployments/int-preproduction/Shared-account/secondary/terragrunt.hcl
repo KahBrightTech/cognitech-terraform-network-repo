@@ -379,9 +379,8 @@ inputs = {
           egress = []
         },
         {
-          sg_key  = "db"
-          ingress =
-          [
+          sg_key = "db"
+          ingress = [
             {
               key         = "ingress-3306-shared-vp"
               cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
@@ -389,7 +388,15 @@ inputs = {
               from_port   = 3306
               to_port     = 3306
               ip_protocol = "tcp"
-            }
+            },
+            {
+              key         = "ingress-3306-vpn_ip"
+              cidr_ipv4   = local.vpn_ip
+              description = "BASE - Inbound MySQL traffic from the VPN on tcp port 3306"
+              from_port   = 3306
+              to_port     = 3306
+              ip_protocol = "tcp"
+            },
           ]
           egress = []
         }
@@ -1326,6 +1333,7 @@ inputs = {
       }
     }
   ]
+
   rds_instances = [
     {
       key                   = "eksmysql"
@@ -1333,6 +1341,7 @@ inputs = {
       engine                = "mysql"
       engine_version        = "8.0.35"
       instance_class        = "db.t3.micro"
+      vpc_name             = local.vpc_name_abr
       allocated_storage     = 20
       max_allocated_storage = 20
       storage_type          = "gp3"
@@ -1346,7 +1355,6 @@ inputs = {
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------

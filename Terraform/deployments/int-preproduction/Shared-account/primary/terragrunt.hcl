@@ -35,6 +35,7 @@ locals {
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
   create_eks_cluster = true
+  vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
   tags = merge(
@@ -389,7 +390,15 @@ inputs = {
               from_port   = 3306
               to_port     = 3306
               ip_protocol = "tcp"
-            }
+            },
+            {
+              key         = "ingress-3306-vpn_ip"
+              cidr_ipv4   = local.vpn_ip
+              description = "BASE - Inbound MySQL traffic from the VPN on tcp port 3306"
+              from_port   = 3306
+              to_port     = 3306
+              ip_protocol = "tcp"
+            },
           ]
           egress = []
         }
@@ -1334,6 +1343,7 @@ inputs = {
       engine                = "mysql"
       engine_version        = "8.0.35"
       instance_class        = "db.t3.micro"
+      vpc_name             = local.vpc_name_abr
       allocated_storage     = 20
       max_allocated_storage = 20
       storage_type          = "gp3"
