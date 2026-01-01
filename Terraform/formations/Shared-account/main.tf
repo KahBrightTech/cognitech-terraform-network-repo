@@ -682,7 +682,7 @@ module "eks" {
 # Creates RDS instances
 #--------------------------------------------------------------------
 module "rds" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RDS?ref=v1.5.74"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RDS?ref=v1.5.76"
   for_each = (var.rds_instances != null) ? { for item in var.rds_instances : item.key => item } : {}
   common   = var.common
   rds_instance = merge(
