@@ -1249,3 +1249,56 @@ variable "eks" {
   }))
   default = null
 }
+
+variable "rds_instance" {
+  description = "RDS instance configuration"
+  type = list(object({
+    key                    = string
+    name                   = string
+    engine                 = string
+    engine_version         = string
+    instance_class         = string
+    allocated_storage      = number
+    max_allocated_storage  = optional(number)
+    storage_type           = optional(string, "gp3")
+    storage_encrypted      = optional(bool, true)
+    kms_key_id             = optional(string)
+    iops                   = optional(number)
+    database_name          = optional(string)
+    master_username        = optional(string)
+    port                   = optional(number)
+    subnet_ids             = list(string)
+    vpc_security_group_ids = list(string)
+    publicly_accessible    = optional(bool, false)
+    multi_az               = optional(bool, false)
+    availability_zone      = optional(string)
+    parameter_group_name   = optional(string)
+    option_group_name      = optional(string)
+    create_parameter_group = optional(bool, false)
+    parameter_group_family = optional(string)
+    parameters = optional(list(object({
+      name         = string
+      value        = string
+      apply_method = optional(string, "immediate")
+    })))
+    backup_retention_period               = optional(number, 7)
+    backup_window                         = optional(string)
+    maintenance_window                    = optional(string)
+    auto_minor_version_upgrade            = optional(bool, true)
+    deletion_protection                   = optional(bool, true)
+    skip_final_snapshot                   = optional(bool, false)
+    copy_tags_to_snapshot                 = optional(bool, true)
+    enabled_cloudwatch_logs_exports       = optional(list(string), [])
+    monitoring_interval                   = optional(number, 0)
+    monitoring_role_arn                   = optional(string)
+    performance_insights_enabled          = optional(bool, false)
+    performance_insights_kms_key_id       = optional(string)
+    performance_insights_retention_period = optional(number, 7)
+    apply_immediately                     = optional(bool, false)
+    secrets_kms_key_id                    = optional(string)
+    secret_recovery_window_days           = optional(number, 7)
+    create_read_replica                   = optional(bool, false)
+    replica_instance_class                = optional(string)
+  }))
+  default = null
+}

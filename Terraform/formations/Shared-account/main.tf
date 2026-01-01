@@ -678,4 +678,113 @@ module "eks" {
 }
 
 
+#--------------------------------------------------------------------
+# Creates RDS instances
+#--------------------------------------------------------------------
+module "rds" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RDS?ref=v1.5.73"
+  for_each = (var.rds_instance != null) ? { for item in var.rds_instance : item.create_rds_instance ? item.key : null => item if item.create_rds_instance } : {}
+  common   = var.common
+  eks = merge(
+    each.value,
+    {
+      role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
+    },
+    {
+      subnet_ids = each.value.subnet_keys != null ? flatten([
+        for subnet_key in each.value.subnet_keys :
+        (each.value.use_private_subnets == true) ?
+        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+      ]) : each.value.subnet_ids
+    },
+    {
+      security_groups = each.value.security_groups != null ? [
+        for sg in each.value.security_groups : merge(
+          sg,
+          {
+            vpc_id   = module.shared_vpc[each.value.vpc_name].vpc_id
+            vpc_name = each.value.vpc_name
+          }
+        )
+      ] : null
+    },
+    {
+      security_group_rules = each.value.security_group_rules != null ? [
+        for rule in each.value.security_group_rules : merge(
+          rule,
+          {
+            ingress_rules = rule.ingress_rules != null ? [
+              for ing_rule in rule.ingress_rules : merge(
+                ing_rule,
+                ing_rule.source_vpc_sg_key != null ? {
+                  source_sg_id = module.shared_vpc[each.value.vpc_name].security_group[ing_rule.source_vpc_sg_key].id
+                } : {}
+              )
+            ] : null
+          },
+          {
+            egress_rules = rule.egress_rules != null ? [
+              for egr_rule in rule.egress_rules : merge(
+                egr_rule,
+                egr_rule.target_vpc_sg_key != null ? {
+                  target_sg_id = module.shared_vpc[each.value.vpc_name].security_group[egr_rule.target_vpc_sg_key].id
+                } : {}
+              )
+            ] : null
+          }
+        )
+      ] : null
+    },
+    {
+      launch_templates = each.value.launch_templates != null ? [
+        for lt in each.value.launch_templates : merge(
+          lt,
+          {
+            vpc_security_group_ids = concat(
+              lt.account_security_group_keys != null ? [
+                for sg_key in lt.account_security_group_keys : module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+              ] : [],
+              lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
+            ),
+            vpc_security_group_keys = lt.vpc_security_group_keys
+          }
+        )
+      ] : null
+    },
+    {
+      eks_addons = each.value.eks_addons != null ? merge(
+        each.value.eks_addons,
+        (each.value.cloudwatch_observability_role_key != null || each.value.cloudwatch_observability_role_arn != null) ?
+        {
+          cloudwatch_observability_role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
+        } : {}
+      ) : null
+    },
+    {
+      eks_node_groups = each.value.eks_node_groups != null ? [
+        for ng in each.value.eks_node_groups : merge(
+          ng,
+          {
+            node_role_arn = ng.node_role_key != null ? module.iam_roles[ng.node_role_key].iam_role_arn : ng.node_role_arn
+          },
+          {
+            subnet_ids = ng.subnet_keys != null ? flatten([
+              for subnet_key in ng.subnet_keys :
+              (each.value.use_private_subnets == true) ?
+              module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+              module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+            ]) : ng.subnet_ids
+          },
+          {
+            source_security_group_ids = ng.source_security_group_keys != null ? [
+              for sg_key in ng.source_security_group_keys :
+              module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+            ] : ng.source_security_group_ids
+          }
+        )
+      ] : null
+    }
+  )
+}
 

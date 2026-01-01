@@ -377,6 +377,21 @@ inputs = {
             }
           ]
           egress = []
+        },
+        {
+          sg_key  = "db"
+          ingress =
+          [
+            {
+              key         = "ingress-3306-shared-vp"
+              cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
+              description = "BASE - Inbound NFS traffic from the internet on tcp port 3306"
+              from_port   = 3306
+              to_port     = 3306
+              ip_protocol = "tcp"
+            }
+          ]
+          egress = []
         }
       ]
       s3 = {
@@ -590,18 +605,7 @@ inputs = {
         description = "IAM policy for ${local.vpc_name_abr} CloudWatch Observability"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-policy.json"
       }
-    },
-    # {
-    #   name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
-    #   description        = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
-    #   path               = "/"
-    #   assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks_infogrid_trust_policy.json"
-    #   policy = {
-    #     name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
-    #     description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
-    #     policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
-    #   }
-    # }
+    }
   ]
 
   iam_users = [
@@ -851,51 +855,51 @@ inputs = {
       schedule_expression = "cron(0 9 ? * SUN *)" # Every Sunday at 9 AM
     }
   ]
-  # load_balancers = [
-  #   {
-  #     key             = "app"
-  #     name            = "app"
-  #     vpc_name_abr    = "${local.vpc_name_abr}"
-  #     type            = "application"
-  #     security_groups = ["alb"]
-  #     subnets = [
-  #       include.env.locals.subnet_prefix.primary
-  #     ]
-  #     enable_deletion_protection = false
-  #     enable_access_logs         = true
-  #     access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-  #     vpc_name                   = local.vpc_name_abr
-  #     create_default_listener    = true
-  #   },
-  #   #   # {
-  #   #   #   key             = "etl"
-  #   #   #   name            = "etl"
-  #   #   #   vpc_name_abr    = " ${ local.vpc_name_abr } "
-  #   #   #   type            = "application"
-  #   #   #   security_groups = ["alb"]
-  #   #   #   subnets = [
-  #   #   #     include.env.locals.subnet_prefix.primary
-  #   #   #   ]
-  #   #   #   enable_deletion_protection = true
-  #   #   #   enable_access_logs         = true
-  #   #   #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-  #   #   #   vpc_name                   = local.vpc_name
-  #   #   # },
-  #   #   # {
-  #   #   #   key             = "ssrs"
-  #   #   #   name            = "ssrs"
-  #   #   #   vpc_name_abr    = " ${local.vpc_name_abr} "
-  #   #   #   type            = "network"
-  #   #   #   security_groups = [" nlb "]
-  #   #   #   subnets = [
-  #   #   #     include.env.locals.subnet_prefix.primary
-  #   #   #   ]
-  #   #   #   enable_deletion_protection = false
-  #   #   #   enable_access_logs         = true
-  #   #   #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
-  #   #   #   vpc_name                   = local.vpc_name
-  #   #   # }
-  # ]
+  load_balancers = [
+    #   {
+    #     key             = "app"
+    #     name            = "app"
+    #     vpc_name_abr    = "${local.vpc_name_abr}"
+    #     type            = "application"
+    #     security_groups = ["alb"]
+    #     subnets = [
+    #       include.env.locals.subnet_prefix.primary
+    #     ]
+    #     enable_deletion_protection = false
+    #     enable_access_logs         = true
+    #     access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+    #     vpc_name                   = local.vpc_name_abr
+    #     create_default_listener    = true
+    #   },
+    #   #   # {
+    #   #   #   key             = "etl"
+    #   #   #   name            = "etl"
+    #   #   #   vpc_name_abr    = " ${ local.vpc_name_abr } "
+    #   #   #   type            = "application"
+    #   #   #   security_groups = ["alb"]
+    #   #   #   subnets = [
+    #   #   #     include.env.locals.subnet_prefix.primary
+    #   #   #   ]
+    #   #   #   enable_deletion_protection = true
+    #   #   #   enable_access_logs         = true
+    #   #   #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+    #   #   #   vpc_name                   = local.vpc_name
+    #   #   # },
+    #   #   # {
+    #   #   #   key             = "ssrs"
+    #   #   #   name            = "ssrs"
+    #   #   #   vpc_name_abr    = " ${local.vpc_name_abr} "
+    #   #   #   type            = "network"
+    #   #   #   security_groups = [" nlb "]
+    #   #   #   subnets = [
+    #   #   #     include.env.locals.subnet_prefix.primary
+    #   #   #   ]
+    #   #   #   enable_deletion_protection = false
+    #   #   #   enable_access_logs         = true
+    #   #   #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
+    #   #   #   vpc_name                   = local.vpc_name
+    #   #   # }
+  ]
   alb_listeners = [
     # {
     #   key      = " etl "
@@ -1051,12 +1055,14 @@ inputs = {
   ]
   eks = [
     {
-      create_eks_cluster = true
-      create_node_group  = true
-      key                = include.env.locals.eks_cluster_keys.primary_cluster
-      name               = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-      role_key           = "${local.vpc_name_abr}-eks"
-      oidc_thumbprint    = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
+      create_eks_cluster      = local.create_eks_cluster
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
+      key                     = include.env.locals.eks_cluster_keys.primary_cluster
+      name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+      role_key                = "${local.vpc_name_abr}-eks"
+      oidc_thumbprint         = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
       access_entries = {
         admin = {
           principal_arns = [
@@ -1199,6 +1205,97 @@ inputs = {
           account_security_group_keys = ["app"]
         }
       ]
+      service_accounts = [
+        {
+          key       = "infogrid"
+          name      = "secrets"
+          namespace = "default"
+          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+        },
+        {
+          key       = "s3-access"
+          name      = "s3-access"
+          namespace = "default"
+        },
+        {
+          key       = "secrets-pia"
+          name      = "secrets-pia"
+          namespace = "default"
+        }
+      ]
+      eks_pia = [
+        {
+          key                       = "s3-access"
+          service_account_namespace = "default"
+          service_account_keys      = ["s3-access"]
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3-role"
+        },
+        {
+          key                       = "ebs-csi-driver"
+          service_account_namespace = "kube-system"           # This is the default namespace used by the EBS CSI Driver
+          service_account_name      = "ebs-csi-controller-sa" # This is the default name used by the EBS CSI Driver
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+        },
+        {
+          key                       = "secrets-pia"
+          service_account_namespace = "default"
+          service_account_keys      = ["secrets-pia"]
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
+        },
+      ]
+      iam_roles = [
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa-role"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+          description               = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+          path                      = "/"
+          service_account_namespace = "default"
+          service_account_name      = "secrets"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
+            description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+          }
+        },
+        {
+          key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
+          name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
+          description        = "IAM Role for ${local.vpc_name_abr} Secrets PIA Service Account"
+          path               = "/"
+          assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
+            description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+          }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3-role"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3"
+          description               = "IAM Role for ${local.vpc_name_abr} S3 Access"
+          path                      = "/"
+          assume_role_policy        = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          service_account_namespace = "default"
+          service_account_name      = "secrets"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-s3"
+            description = "IAM policy for ${local.vpc_name_abr} S3 Access"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_s3_access_policy.json"
+          }
+        },
+        {
+          key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+          name                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+          description          = "IAM Role for ${local.vpc_name_abr} EBS CSI Driver"
+          path                 = "/"
+          assume_role_policy   = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          create_custom_policy = false
+          managed_policy_arns = [
+            "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy",
+            "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+          ]
+        }
+      ]
       eks_node_groups = [
         {
           key             = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
@@ -1219,12 +1316,18 @@ inputs = {
         enable_coredns                    = true
         enable_cloudwatch_observability   = true
         enable_secrets_manager_csi_driver = true
-        # secrets_manager_csi_driver_version = "v2.1.1-eksbuild.1"
+        enable_metrics_server             = true
+        enableSecretRotation              = true
+        enable_pod_identity_agent         = true
+        enable_ebs_csi_driver             = true
+        rotationPollInterval              = "2m"
         cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
+        ebs_csi_driver_role_key           = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
       }
     }
   ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
@@ -1260,6 +1363,7 @@ generate "k8s-providers" {
   path      = "k8s-provider.tf"
   if_exists = "overwrite"
   contents  = <<-EOF
+  %{if local.create_eks_cluster}
   provider "helm" {
     kubernetes = {
       host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
@@ -1284,7 +1388,7 @@ generate "k8s-providers" {
     host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
     
-    exec = {
+    exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
       args = [
@@ -1297,6 +1401,7 @@ generate "k8s-providers" {
       ]
     }
   }
+  %{endif}
   EOF
 }
 

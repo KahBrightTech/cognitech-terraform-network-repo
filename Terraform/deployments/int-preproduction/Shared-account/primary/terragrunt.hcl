@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = true 
+  create_eks_cluster = true
 
   # Composite variables 
   tags = merge(
@@ -375,6 +375,21 @@ inputs = {
               from_port     = 2049
               to_port       = 2049
               ip_protocol   = "tcp"
+            }
+          ]
+          egress = []
+        },
+        {
+          sg_key  = "db"
+          ingress =
+          [
+            {
+              key         = "ingress-3306-shared-vp"
+              cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
+              description = "BASE - Inbound NFS traffic from the internet on tcp port 3306"
+              from_port   = 3306
+              to_port     = 3306
+              ip_protocol = "tcp"
             }
           ]
           egress = []
