@@ -1268,6 +1268,7 @@ variable "rds_instances" {
     database_name           = optional(string)
     master_username         = optional(string)
     port                    = optional(number)
+    use_private_subnets     = optional(bool, false)
     subnet_ids              = optional(list(string))
     subnet_keys             = optional(list(string))
     vpc_security_group_ids  = optional(list(string))
