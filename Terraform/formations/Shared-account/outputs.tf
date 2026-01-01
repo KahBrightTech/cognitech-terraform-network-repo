@@ -176,5 +176,5 @@ output "eks" {
 #-------------------------------------------------------
 output "rds_instances" {
   description = "Output for all RDS instances"
-  value       = module.rds_instances
+  value       = module.rds
 }
