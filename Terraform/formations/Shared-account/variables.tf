@@ -1250,7 +1250,7 @@ variable "eks" {
   default = null
 }
 
-variable "rds_instance" {
+variable "rds_instances" {
   description = "RDS instance configuration"
   type = list(object({
     key                     = string
