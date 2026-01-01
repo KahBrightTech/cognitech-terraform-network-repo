@@ -177,4 +177,5 @@ output "eks" {
 output "rds_instances" {
   description = "Output for all RDS instances"
   value       = module.rds
+  sensitive   = true
 }
