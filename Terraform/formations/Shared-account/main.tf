@@ -696,7 +696,7 @@ module "rds" {
       ]) : each.value.subnet_ids
     },
     {
-      vpc_security_group_ids = each.value.vpc_security_group_keys != null ? module.shared_vpc[each.value.vpc_name].security_group[sg_key].id : each.value.vpc_security_group_ids
+      vpc_security_group_ids = each.value.vpc_security_group_keys != null ? [module.shared_vpc[each.value.vpc_name].security_group[each.value.vpc_security_group_keys].id] : each.value.vpc_security_group_ids
     }
   )
 }
