@@ -380,9 +380,8 @@ inputs = {
           egress = []
         },
         {
-          sg_key  = "db"
-          ingress =
-          [
+          sg_key = "db"
+          ingress = [
             {
               key         = "ingress-3306-shared-vp"
               cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc

@@ -688,9 +688,6 @@ module "rds" {
   eks = merge(
     each.value,
     {
-      role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
-    },
-    {
       subnet_ids = each.value.subnet_keys != null ? flatten([
         for subnet_key in each.value.subnet_keys :
         (each.value.use_private_subnets == true) ?
@@ -699,7 +696,7 @@ module "rds" {
       ]) : each.value.subnet_ids
     },
     {
-      security_groups = each.value.security_groups != null ? [
+      vpc_security_group_ids = each.value.security_groups != null ? [
         for sg in each.value.security_groups : merge(
           sg,
           {
