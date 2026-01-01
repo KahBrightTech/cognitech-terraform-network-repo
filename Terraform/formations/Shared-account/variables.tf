@@ -1297,7 +1297,7 @@ variable "rds_instances" {
     monitoring_role_arn                   = optional(string)
     performance_insights_enabled          = optional(bool, false)
     performance_insights_kms_key_id       = optional(string)
-    performance_insights_retention_period = optional(number, 7)
+    performance_insights_retention_period = optional(number)
     apply_immediately                     = optional(bool, false)
     secrets_kms_key_id                    = optional(string)
     secret_recovery_window_days           = optional(number, 7)
