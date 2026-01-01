@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = false
+  create_eks_cluster = true
 
   # Composite variables 
   tags = merge(
@@ -841,51 +841,51 @@ inputs = {
       schedule_expression = "cron(0 9 ? * SUN *)" # Every Sunday at 9 AM
     }
   ]
-  # load_balancers = [
-  #   {
-  #     key             = "app"
-  #     name            = "app"
-  #     vpc_name_abr    = "${local.vpc_name_abr}"
-  #     type            = "application"
-  #     security_groups = ["alb"]
-  #     subnets = [
-  #       include.env.locals.subnet_prefix.primary
-  #     ]
-  #     enable_deletion_protection = false
-  #     enable_access_logs         = true
-  #     access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-  #     vpc_name                   = local.vpc_name_abr
-  #     create_default_listener    = true
-  #   },
-  #   #   # {
-  #   #   #   key             = "etl"
-  #   #   #   name            = "etl"
-  #   #   #   vpc_name_abr    = " ${ local.vpc_name_abr } "
-  #   #   #   type            = "application"
-  #   #   #   security_groups = ["alb"]
-  #   #   #   subnets = [
-  #   #   #     include.env.locals.subnet_prefix.primary
-  #   #   #   ]
-  #   #   #   enable_deletion_protection = true
-  #   #   #   enable_access_logs         = true
-  #   #   #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-  #   #   #   vpc_name                   = local.vpc_name
-  #   #   # },
-  #   #   # {
-  #   #   #   key             = "ssrs"
-  #   #   #   name            = "ssrs"
-  #   #   #   vpc_name_abr    = " ${local.vpc_name_abr} "
-  #   #   #   type            = "network"
-  #   #   #   security_groups = [" nlb "]
-  #   #   #   subnets = [
-  #   #   #     include.env.locals.subnet_prefix.primary
-  #   #   #   ]
-  #   #   #   enable_deletion_protection = false
-  #   #   #   enable_access_logs         = true
-  #   #   #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
-  #   #   #   vpc_name                   = local.vpc_name
-  #   #   # }
-  # ]
+  load_balancers = [
+    #   {
+    #     key             = "app"
+    #     name            = "app"
+    #     vpc_name_abr    = "${local.vpc_name_abr}"
+    #     type            = "application"
+    #     security_groups = ["alb"]
+    #     subnets = [
+    #       include.env.locals.subnet_prefix.primary
+    #     ]
+    #     enable_deletion_protection = false
+    #     enable_access_logs         = true
+    #     access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+    #     vpc_name                   = local.vpc_name_abr
+    #     create_default_listener    = true
+    #   },
+    #   #   # {
+    #   #   #   key             = "etl"
+    #   #   #   name            = "etl"
+    #   #   #   vpc_name_abr    = " ${ local.vpc_name_abr } "
+    #   #   #   type            = "application"
+    #   #   #   security_groups = ["alb"]
+    #   #   #   subnets = [
+    #   #   #     include.env.locals.subnet_prefix.primary
+    #   #   #   ]
+    #   #   #   enable_deletion_protection = true
+    #   #   #   enable_access_logs         = true
+    #   #   #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+    #   #   #   vpc_name                   = local.vpc_name
+    #   #   # },
+    #   #   # {
+    #   #   #   key             = "ssrs"
+    #   #   #   name            = "ssrs"
+    #   #   #   vpc_name_abr    = " ${local.vpc_name_abr} "
+    #   #   #   type            = "network"
+    #   #   #   security_groups = [" nlb "]
+    #   #   #   subnets = [
+    #   #   #     include.env.locals.subnet_prefix.primary
+    #   #   #   ]
+    #   #   #   enable_deletion_protection = false
+    #   #   #   enable_access_logs         = true
+    #   #   #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
+    #   #   #   vpc_name                   = local.vpc_name
+    #   #   # }
+  ]
   alb_listeners = [
     # {
     #   key      = " etl "
@@ -1042,9 +1042,9 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = false
-      create_service_accounts = false
-      enable_eks_pia          = false
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key                = "${local.vpc_name_abr}-eks"
@@ -1270,12 +1270,12 @@ inputs = {
           }
         },
         {
-          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
-          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
-          description               = "IAM Role for ${local.vpc_name_abr} EBS CSI Driver"
-          path                      = "/"
-          assume_role_policy        = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
-          create_custom_policy     = false 
+          key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+          name                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+          description          = "IAM Role for ${local.vpc_name_abr} EBS CSI Driver"
+          path                 = "/"
+          assume_role_policy   = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          create_custom_policy = false
           managed_policy_arns = [
             "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy",
             "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
