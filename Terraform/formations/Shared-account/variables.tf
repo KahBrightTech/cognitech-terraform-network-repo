@@ -1260,6 +1260,7 @@ variable "rds_instances" {
     instance_class          = string
     allocated_storage       = number
     vpc_name                = string
+    create_rds_instance     = optional(bool, false)
     max_allocated_storage   = optional(number)
     storage_type            = optional(string, "gp3")
     storage_encrypted       = optional(bool, true)

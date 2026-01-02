@@ -1337,24 +1337,25 @@ inputs = {
   ]
 
   rds_instances = [
-    # {
-    #   key                   = "eksmysql"
-    #   name                  = "${local.vpc_name_abr}-eks-mysql-db"
-    #   engine                = "mysql"
-    #   engine_version        = "8.0.43"
-    #   instance_class        = "db.t3.micro"
-    #   vpc_name             = local.vpc_name_abr
-    #   allocated_storage     = 20
-    #   max_allocated_storage = 20
-    #   storage_type          = "gp3"
-    #   database_name         = "eksdb"
-    #   port                  = 3306
-    #   subnet_keys = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   vpc_security_group_keys = ["db"]
-    #   publicly_accessible     = true
-    # }
+    {
+      key                   = "eksmysql"
+      name                  = "${local.vpc_name_abr}-eks-mysql-db"
+      engine                = "mysql"
+      engine_version        = "8.0.43"
+      instance_class        = "db.t3.micro"
+      vpc_name              = local.vpc_name_abr
+      create_rds_instance   = true
+      allocated_storage     = 20
+      max_allocated_storage = 20
+      storage_type          = "gp3"
+      database_name         = "eksdb"
+      port                  = 3306
+      subnet_keys = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      vpc_security_group_keys = ["db"]
+      publicly_accessible     = true
+    }
   ]
 }
 
