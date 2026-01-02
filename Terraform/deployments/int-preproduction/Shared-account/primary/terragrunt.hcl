@@ -1210,7 +1210,7 @@ inputs = {
           instance_type               = "t3.medium"
           root_device_name            = "/dev/xvda"
           volume_size                 = 20
-          vpc_security_group_keys     = ["eks-nodes"]
+          vpc_security_group_keys     = ["eks-nodes", "eks_cluster_sg_id"]
           account_security_group_keys = ["app"]
         }
       ]
