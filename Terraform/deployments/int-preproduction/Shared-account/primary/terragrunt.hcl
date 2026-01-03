@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = false  
+  create_eks_cluster = false
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
@@ -1065,9 +1065,9 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = false
-      create_service_accounts = false
-      enable_eks_pia          = false
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key                = "${local.vpc_name_abr}-eks"
@@ -1338,13 +1338,13 @@ inputs = {
 
   rds_instances = [
     {
+      create_rds_instance   = true
       key                   = "eksmysql"
       name                  = "${local.vpc_name_abr}-eks-mysql-db"
       engine                = "mysql"
       engine_version        = "8.0.43"
       instance_class        = "db.t3.micro"
       vpc_name              = local.vpc_name_abr
-      create_rds_instance   = false
       allocated_storage     = 20
       max_allocated_storage = 20
       storage_type          = "gp3"
