@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = true
+  create_eks_cluster = false
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
@@ -1338,7 +1338,7 @@ inputs = {
 
   rds_instances = [
     {
-      create_rds_instance   = false 
+      create_rds_instance   = false
       key                   = "eksmysql"
       name                  = "${local.vpc_name_abr}-eks-mysql-db"
       engine                = "mysql"
