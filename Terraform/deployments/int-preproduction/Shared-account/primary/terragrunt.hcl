@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = false
+  create_eks_cluster = true
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
