@@ -1275,7 +1275,7 @@ inputs = {
           service_account_name      = "aws-load-balancer-controller"
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
-            description = "IAM policy for ${local.vpc_name_abr} ELB Controller Service Account"
+            description = "IAM policy for ${local.vpc_name_abr} ELB Controller Service Account."
             policy      = "${include.cloud.locals.repo.root}/iam_policies/Terraform/deployments/iam_policies/iam_ingress_controller_policy.json"
           }
         },
