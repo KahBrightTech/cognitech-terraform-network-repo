@@ -1065,9 +1065,9 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = true  
-      create_service_accounts = true  
-      enable_eks_pia          = true  
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key                = "${local.vpc_name_abr}-eks"
@@ -1267,6 +1267,19 @@ inputs = {
           }
         },
         {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+          description               = "IAM Role for ${local.vpc_name_abr} ELB Controller Service Account"
+          path                      = "/"
+          service_account_namespace = "kube-system"
+          service_account_name      = "aws-load-balancer-controller"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+            description = "IAM policy for ${local.vpc_name_abr} ELB Controller Service Account"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/Terraform/deployments/iam_policies/iam_ingress_controller_policy.json"
+          }
+        },
+        {
           key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
           name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
           description        = "IAM Role for ${local.vpc_name_abr} Secrets PIA Service Account"
@@ -1320,25 +1333,27 @@ inputs = {
         }
       ]
       eks_addons = {
-        enable_vpc_cni                    = true
-        enable_kube_proxy                 = true
-        enable_coredns                    = true
-        enable_cloudwatch_observability   = true
-        enable_secrets_manager_csi_driver = true
-        enable_metrics_server             = true
-        enableSecretRotation              = true
-        enable_pod_identity_agent         = true
-        enable_ebs_csi_driver             = true
-        rotationPollInterval              = "2m"
-        cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
-        ebs_csi_driver_role_key           = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+        enable_vpc_cni                        = true
+        enable_kube_proxy                     = true
+        enable_coredns                        = true
+        enable_cloudwatch_observability       = true
+        enable_secrets_manager_csi_driver     = true
+        enable_metrics_server                 = true
+        enableSecretRotation                  = true
+        enable_pod_identity_agent             = true
+        enable_ebs_csi_driver                 = true
+        rotationPollInterval                  = "2m"
+        cloudwatch_observability_role_key     = "${local.vpc_name_abr}-cw-observability"
+        ebs_csi_driver_role_key               = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+        enable_aws_load_balancer_controller   = true
+        aws_load_balancer_controller_role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
       }
     }
   ]
 
   rds_instances = [
     {
-      create_rds_instance   = true 
+      create_rds_instance   = true
       key                   = "eksmysql"
       name                  = "${local.vpc_name_abr}-eks-mysql-db"
       engine                = "mysql"
