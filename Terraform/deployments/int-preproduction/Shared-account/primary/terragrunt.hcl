@@ -1353,7 +1353,7 @@ inputs = {
 
   rds_instances = [
     {
-      create_rds_instance   = true
+      create_rds_instance   = false
       key                   = "eksmysql"
       name                  = "${local.vpc_name_abr}-eks-mysql-db"
       engine                = "mysql"
