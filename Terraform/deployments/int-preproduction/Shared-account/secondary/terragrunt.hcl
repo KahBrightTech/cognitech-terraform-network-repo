@@ -32,8 +32,10 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Shared-account"
   ## Updates these variables as per the product/service
-  vpc_name     = "shared-services"
-  vpc_name_abr = "shared"
+  vpc_name           = "shared-services"
+  vpc_name_abr       = "shared"
+  create_eks_cluster = true
+  vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
   tags = merge(
@@ -230,7 +232,7 @@ inputs = {
               {
                 key           = "egress-8081-app-sg"
                 target_sg_key = "app"
-                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8081"
+                description   = "BASE - Outbound traffic to App SG on tcp port 8081"
                 from_port     = 8081
                 to_port       = 8081
                 ip_protocol   = "tcp"
@@ -238,7 +240,7 @@ inputs = {
               {
                 key           = "egress-8082-app-sg"
                 target_sg_key = "app"
-                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8082"
+                description   = "BASE - Outbound traffic to App SG on tcp port 8082"
                 from_port     = 8082
                 to_port       = 8082
                 ip_protocol   = "tcp"
@@ -246,17 +248,17 @@ inputs = {
               {
                 key           = "egress-8083-app-sg"
                 target_sg_key = "app"
-                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8083"
+                description   = "BASE - Outbound traffic to App SG on tcp port 8083"
                 from_port     = 8083
                 to_port       = 8083
                 ip_protocol   = "tcp"
               },
               {
-                key           = "egress-3000-app-sg"
+                key           = "egress-30000-32767-app-sg"
                 target_sg_key = "app"
-                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 3000"
-                from_port     = 3000
-                to_port       = 3000
+                description   = "BASE - Outbound traffic to App SG on tcp port 30000-32767"
+                from_port     = 30000
+                to_port       = 32767
                 ip_protocol   = "tcp"
               }
             ]
@@ -349,6 +351,14 @@ inputs = {
                 from_port   = 445
                 to_port     = 445
                 ip_protocol = "tcp"
+              },
+              {
+                key           = "ingress-30000-32767-alb-sg"
+                source_sg_key = "alb"
+                description   = "BASE - Inbound traffic from ALB SG on tcp port 30000-32767"
+                from_port     = 30000
+                to_port       = 32767
+                ip_protocol   = "tcp"
               }
             ]
           )
@@ -1208,7 +1218,7 @@ inputs = {
           instance_type               = "t3.medium"
           root_device_name            = "/dev/xvda"
           volume_size                 = 20
-          vpc_security_group_keys     = ["eks-nodes"]
+          vpc_security_group_keys     = ["eks-nodes", "eks_cluster_sg_id"]
           account_security_group_keys = ["app"]
         }
       ]
@@ -1265,6 +1275,19 @@ inputs = {
           }
         },
         {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+          description               = "IAM Role for ${local.vpc_name_abr} ELB Controller Service Account"
+          path                      = "/"
+          service_account_namespace = "kube-system"
+          service_account_name      = "aws-load-balancer-controller"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+            description = "IAM policy for ${local.vpc_name_abr} ELB Controller Service Account."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_ingress_controller_policy.json"
+          }
+        },
+        {
           key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
           name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
           description        = "IAM Role for ${local.vpc_name_abr} Secrets PIA Service Account"
@@ -1318,30 +1341,33 @@ inputs = {
         }
       ]
       eks_addons = {
-        enable_vpc_cni                    = true
-        enable_kube_proxy                 = true
-        enable_coredns                    = true
-        enable_cloudwatch_observability   = true
-        enable_secrets_manager_csi_driver = true
-        enable_metrics_server             = true
-        enableSecretRotation              = true
-        enable_pod_identity_agent         = true
-        enable_ebs_csi_driver             = true
-        rotationPollInterval              = "2m"
-        cloudwatch_observability_role_key = "${local.vpc_name_abr}-cw-observability"
-        ebs_csi_driver_role_key           = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+        enable_vpc_cni                        = true
+        enable_kube_proxy                     = true
+        enable_coredns                        = true
+        enable_cloudwatch_observability       = true
+        enable_secrets_manager_csi_driver     = true
+        enable_metrics_server                 = true
+        enableSecretRotation                  = true
+        enable_pod_identity_agent             = true
+        enable_ebs_csi_driver                 = true
+        rotationPollInterval                  = "2m"
+        cloudwatch_observability_role_key     = "${local.vpc_name_abr}-cw-observability"
+        ebs_csi_driver_role_key               = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+        enable_aws_load_balancer_controller   = true
+        aws_load_balancer_controller_role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
       }
     }
   ]
 
   rds_instances = [
     {
+      create_rds_instance   = false
       key                   = "eksmysql"
       name                  = "${local.vpc_name_abr}-eks-mysql-db"
       engine                = "mysql"
-      engine_version        = "8.0.35"
+      engine_version        = "8.0.43"
       instance_class        = "db.t3.micro"
-      vpc_name             = local.vpc_name_abr
+      vpc_name              = local.vpc_name_abr
       allocated_storage     = 20
       max_allocated_storage = 20
       storage_type          = "gp3"

@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = true 
+  create_eks_cluster = true
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
@@ -232,7 +232,7 @@ inputs = {
               {
                 key           = "egress-8081-app-sg"
                 target_sg_key = "app"
-                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8081"
+                description   = "BASE - Outbound traffic to App SG on tcp port 8081"
                 from_port     = 8081
                 to_port       = 8081
                 ip_protocol   = "tcp"
@@ -240,7 +240,7 @@ inputs = {
               {
                 key           = "egress-8082-app-sg"
                 target_sg_key = "app"
-                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8082"
+                description   = "BASE - Outbound traffic to App SG on tcp port 8082"
                 from_port     = 8082
                 to_port       = 8082
                 ip_protocol   = "tcp"
@@ -248,17 +248,17 @@ inputs = {
               {
                 key           = "egress-8083-app-sg"
                 target_sg_key = "app"
-                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 8083"
+                description   = "BASE - Outbound traffic to App SG on tcp port 8083"
                 from_port     = 8083
                 to_port       = 8083
                 ip_protocol   = "tcp"
               },
               {
-                key           = "egress-3000-app-sg"
+                key           = "egress-30000-32767-app-sg"
                 target_sg_key = "app"
-                description   = "BASE - Outbound traffic to App SG to Internet on tcp port 3000"
-                from_port     = 3000
-                to_port       = 3000
+                description   = "BASE - Outbound traffic to App SG on tcp port 30000-32767"
+                from_port     = 30000
+                to_port       = 32767
                 ip_protocol   = "tcp"
               }
             ]
@@ -351,6 +351,14 @@ inputs = {
                 from_port   = 445
                 to_port     = 445
                 ip_protocol = "tcp"
+              },
+              {
+                key           = "ingress-30000-32767-alb-sg"
+                source_sg_key = "alb"
+                description   = "BASE - Inbound traffic from ALB SG on tcp port 30000-32767"
+                from_port     = 30000
+                to_port       = 32767
+                ip_protocol   = "tcp"
               }
             ]
           )
