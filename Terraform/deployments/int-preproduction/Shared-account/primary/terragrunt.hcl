@@ -1358,8 +1358,8 @@ inputs = {
       }
     }
   ]
-
-  rds_instances = [
+  
+  xx-rds_instances = [
     {
       create_rds_instance   = false
       key                   = "eksmysql"
