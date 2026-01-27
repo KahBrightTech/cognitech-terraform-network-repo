@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = false
+  create_eks_cluster = true
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
@@ -1073,9 +1073,9 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = false
-      create_service_accounts = false
-      enable_eks_pia          = false
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key                = "${local.vpc_name_abr}-eks"
@@ -1314,6 +1314,20 @@ inputs = {
           }
         },
         {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns"
+          description               = "IAM Role for ${local.vpc_name_abr} External DNS Access"
+          path                      = "/"
+          assume_role_policy        = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          service_account_namespace = "default"
+          service_account_name      = "external-dns"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns"
+            description = "IAM policy for ${local.vpc_name_abr} External DNS Access"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/external_dns_policy.json"
+          }
+        },
+        {
           key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
           name                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
           description          = "IAM Role for ${local.vpc_name_abr} EBS CSI Driver"
@@ -1349,12 +1363,14 @@ inputs = {
         enable_metrics_server                 = true
         enableSecretRotation                  = true
         enable_pod_identity_agent             = true
+        enable_external_dns                   = true
         enable_ebs_csi_driver                 = true
         rotationPollInterval                  = "2m"
         cloudwatch_observability_role_key     = "${local.vpc_name_abr}-cw-observability"
         ebs_csi_driver_role_key               = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
         enable_aws_load_balancer_controller   = true
         aws_load_balancer_controller_role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+        external_dns_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
       }
     }
   ]
