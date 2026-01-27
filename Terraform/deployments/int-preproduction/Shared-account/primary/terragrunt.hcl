@@ -1370,8 +1370,8 @@ inputs = {
         enable_aws_load_balancer_controller   = true
         aws_load_balancer_controller_role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
         external_dns_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
-        external_dns_policy                   = "sync" # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
-        external_dns_domain_filters           = ["${local.public_hosted_zone}"] # Add your Route53 hosted zone domain
+        external_dns_policy                   = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
+        external_dns_domain_filters           = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
         external_dns_version                  = "1.14.3"
       }
     }
