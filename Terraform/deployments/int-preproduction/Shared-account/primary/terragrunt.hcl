@@ -1279,7 +1279,7 @@ inputs = {
           name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
           description               = "IAM Role for ${local.vpc_name_abr} ELB Controller Service Account"
           path                      = "/"
-          service_account_namespace = "kube-system"  # No assume role policy provided so automatically uses OIDC for federation
+          service_account_namespace = "kube-system" # No assume role policy provided so automatically uses OIDC for federation
           service_account_name      = "aws-load-balancer-controller"
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
@@ -1370,6 +1370,7 @@ inputs = {
         enable_aws_load_balancer_controller   = true
         aws_load_balancer_controller_role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
         external_dns_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
+        external_dns_policy                   = "sync"
       }
     }
   ]
