@@ -1375,7 +1375,7 @@ inputs = {
     }
   ]
 
-  xx-rds_instances = [
+  rds_instances = [
     {
       create_rds_instance   = false
       key                   = "eksmysql"
