@@ -1370,7 +1370,7 @@ inputs = {
         enable_aws_load_balancer_controller   = true
         aws_load_balancer_controller_role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
         external_dns_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
-        external_dns_policy                   = "sync"
+        external_dns_policy                   = "sync" # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
       }
     }
   ]
