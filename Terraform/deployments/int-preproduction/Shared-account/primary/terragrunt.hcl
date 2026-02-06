@@ -1087,7 +1087,7 @@ inputs = {
             include.env.locals.eks_roles.system
           ]
           policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          kubernetes_groups = ["admins"] # Allows binding of the IAM role to Kubernetes RBAC groups for admin access
+          kubernetes_groups = ["system:masters"] #This automatically gives rbac admin access to the cluster. Its a k8s built in group that has superuser access to the cluster, so use with caution and only assign trusted IAM roles to this group.
         },
         readonly = {
           principal_arns = [
@@ -1101,17 +1101,6 @@ inputs = {
       auth = {
         cluster_roles = [
           {
-            key  = "admin"
-            name = "admin"
-            rules = [
-              {
-                api_groups = ["*"]
-                resources  = ["*"]
-                verbs      = ["*"]
-              }
-            ]
-          },
-          {
             key  = "view"
             name = "view"
             rules = [
@@ -1124,18 +1113,6 @@ inputs = {
           }
         ]
         cluster_role_bindings = [
-          {
-            key              = "admin-binding"
-            name             = "admin-binding"
-            cluster_role_key = "admin" # above cluster role key
-            subjects = [
-              {
-                kind      = "Group"
-                name      = "admins"
-                api_group = "rbac.authorization.k8s.io"
-              }
-            ]
-          },
           {
             key              = "view-binding"
             name             = "view-binding"
