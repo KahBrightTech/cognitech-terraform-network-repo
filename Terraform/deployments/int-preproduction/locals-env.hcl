@@ -76,9 +76,10 @@ locals {
   }
 
   eks_roles = {
-    admin   = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_3d0f46907c18b968"
-    network = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NetworkAdministrator_f92e2e2e6d5c22ca"
-    system  = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_SystemAdministrator_b35b627bf9ab22c9"
+    admin    = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_3d0f46907c18b968"
+    network  = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NetworkAdministrator_f92e2e2e6d5c22ca"
+    system   = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_SystemAdministrator_b35b627bf9ab22c9"
+    readonly = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_ReadOnlyAccess_d76c36f99265abf4"
   }
 
   eks_cluster_keys = {

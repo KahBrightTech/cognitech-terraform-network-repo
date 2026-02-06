@@ -1090,7 +1090,10 @@ inputs = {
           kubernetes_groups = ["admins"] # Allows binding of the IAM role to Kubernetes RBAC groups for admin access
         },
         readonly = {
-          principal_arns    = [include.env.locals.eks_roles.network]
+          principal_arns = [
+            include.env.locals.eks_roles.network,
+            include.env.locals.eks_roles.readonly
+          ]
           policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
           kubernetes_groups = ["viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
         }
@@ -1102,8 +1105,19 @@ inputs = {
             name = "admin"
             rules = [
               {
+                api_groups = ["*"]
+                resources  = ["*"]
+                verbs      = ["*"]
+              }
+            ]
+          },
+          {
+            key  = "view"
+            name = "view"
+            rules = [
+              {
                 api_groups = ["apps"]
-                resources  = ["pods"]
+                resources  = ["deployments", "pods", "services"]
                 verbs      = ["get", "list", "watch"]
               }
             ]
@@ -1121,9 +1135,20 @@ inputs = {
                 api_group = "rbac.authorization.k8s.io"
               }
             ]
+          },
+          {
+            key              = "view-binding"
+            name             = "view-binding"
+            cluster_role_key = "view" # above cluster role key
+            subjects = [
+              {
+                kind      = "Group"
+                name      = "viewers"
+                api_group = "rbac.authorization.k8s.io"
+              }
+            ]
           }
         ]
-
       }
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
