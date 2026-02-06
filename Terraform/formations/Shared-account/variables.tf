@@ -1159,6 +1159,7 @@ variable "eks" {
       name_prefix        = optional(string)
       secret_name        = optional(string)
       secret_description = optional(string)
+      create_secret      = optional(bool, false)
       policy             = optional(string)
     })
     security_groups = optional(list(object({
