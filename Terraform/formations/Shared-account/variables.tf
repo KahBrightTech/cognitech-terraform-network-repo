@@ -1053,9 +1053,60 @@ variable "eks" {
     enabled_cluster_log_types                   = optional(list(string), [])
     service_ipv4_cidr                           = optional(string, null)
     access_entries = optional(map(object({
-      principal_arns = optional(list(string))
-      policy_arn     = optional(string)
+      principal_arns    = optional(list(string))
+      policy_arn        = optional(string)
+      kubernetes_groups = optional(list(string), [])
     })), {})
+    auth = optional(object({
+      cluster_roles = optional(list(object({
+        key  = string
+        name = string
+        rules = list(object({
+          api_groups = list(string)
+          resources  = list(string)
+          verbs      = list(string)
+        }))
+        labels = optional(map(string), {})
+      })), [])
+      cluster_role_bindings = optional(list(object({
+        key               = string
+        name              = string
+        cluster_role_key  = optional(string)
+        cluster_role_name = optional(string)
+        subjects = list(object({
+          kind      = string
+          name      = string
+          namespace = optional(string)
+          api_group = optional(string, "rbac.authorization.k8s.io")
+        }))
+        labels = optional(map(string), {})
+      })), [])
+      roles = optional(list(object({
+        key       = string
+        name      = string
+        namespace = optional(string, "default")
+        rules = list(object({
+          api_groups = list(string)
+          resources  = list(string)
+          verbs      = list(string)
+        }))
+        labels = optional(map(string), {})
+      })), [])
+      role_bindings = optional(list(object({
+        key       = string
+        name      = string
+        namespace = optional(string, "default")
+        role_key  = optional(string)
+        role_name = optional(string)
+        subjects = list(object({
+          kind      = string
+          name      = string
+          namespace = optional(string)
+          api_group = optional(string, "rbac.authorization.k8s.io")
+        }))
+        labels = optional(map(string), {})
+      })), [])
+    }))
     version                 = optional(string, "1.33")
     oidc_thumbprint         = optional(string)
     is_this_ec2_node_group  = optional(bool, false)

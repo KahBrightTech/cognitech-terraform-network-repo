@@ -34,7 +34,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
-  create_eks_cluster = false
+  create_eks_cluster = true
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
@@ -1073,9 +1073,9 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = false
-      create_service_accounts = false
-      enable_eks_pia          = false
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key                = "${local.vpc_name_abr}-eks"
@@ -1086,12 +1086,44 @@ inputs = {
             include.env.locals.eks_roles.admin,
             include.env.locals.eks_roles.system
           ]
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          kubernetes_groups = ["admins"] # Allows binding of the IAM role to Kubernetes RBAC groups for admin access
         },
         readonly = {
-          principal_arns = [include.env.locals.eks_roles.network]
-          policy_arn     = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+          principal_arns    = [include.env.locals.eks_roles.network]
+          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+          kubernetes_groups = ["viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
         }
+      }
+      auth = {
+        cluster_roles = [
+          {
+            key  = "admin"
+            name = "admin"
+            rules = [
+              {
+                api_groups = ["apps"]
+                resources  = ["pods"]
+                verbs      = ["get", "list", "watch"]
+              }
+            ]
+          }
+        ]
+        cluster_role_bindings = [
+          {
+            key              = "admin-binding"
+            name             = "admin-binding"
+            cluster_role_key = "admin" # above cluster role key
+            subjects = [
+              {
+                kind      = "Group"
+                name      = "admins"
+                api_group = "rbac.authorization.k8s.io"
+              }
+            ]
+          }
+        ]
+
       }
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
