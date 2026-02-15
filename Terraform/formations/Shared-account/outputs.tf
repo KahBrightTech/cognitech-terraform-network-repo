@@ -179,3 +179,13 @@ output "rds_instances" {
   value       = module.rds
   sensitive   = true
 }
+
+
+#-------------------------------------------------------
+# ECR outputs
+#-------------------------------------------------------
+output "ecr_repos" {
+  description = "Output for all ECR repositories"
+  value       = module.ecr
+  sensitive   = true
+}

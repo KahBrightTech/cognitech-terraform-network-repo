@@ -1371,3 +1371,36 @@ variable "rds_instances" {
   }))
   default = null
 }
+
+
+variable "ecr_repos" {
+  description = "Elastic Container Registry configuration"
+  type = list(object({
+    key                      = string
+    name                     = string
+    image_tag_mutability     = optional(string, "MUTABLE")
+    scan_on_push             = optional(bool, true)
+    encryption_type          = optional(string, "AES256")
+    kms_key_arn              = optional(string, null)
+    force_delete             = optional(bool, false)
+    lifecycle_policy         = optional(string, null)
+    lifecycle_policy_file    = optional(string, null)
+    custom_lifecycle_policy  = optional(bool, false)
+    repository_policy        = optional(string, null)
+    repository_policy_file   = optional(string, null)
+    custom_repository_policy = optional(bool, false)
+    replication_configuration = optional(object({
+      rules = list(object({
+        destinations = list(object({
+          region      = string
+          registry_id = string
+        }))
+        repository_filter = optional(object({
+          filter      = string
+          filter_type = string
+        }))
+      }))
+    }))
+  }))
+  default = null
+}

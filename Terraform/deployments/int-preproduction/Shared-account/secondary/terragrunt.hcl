@@ -1073,9 +1073,9 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = true
-      create_service_accounts = true
-      enable_eks_pia          = true
+      create_node_group       = false
+      create_service_accounts = false
+      enable_eks_pia          = false
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key                = "${local.vpc_name_abr}-eks"
@@ -1086,12 +1086,46 @@ inputs = {
             include.env.locals.eks_roles.admin,
             include.env.locals.eks_roles.system
           ]
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          kubernetes_groups = ["system:masters"] #This automatically gives rbac admin access to the cluster. Its a k8s built in group that has superuser access to the cluster, so use with caution and only assign trusted IAM roles to this group.
         },
         readonly = {
-          principal_arns = [include.env.locals.eks_roles.network]
-          policy_arn     = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+          principal_arns = [
+            include.env.locals.eks_roles.network,
+            include.env.locals.eks_roles.readonly
+          ]
+          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+          kubernetes_groups = ["viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
         }
+      }
+      auth = {
+        cluster_roles = [
+          {
+            key  = "view"
+            name = "view"
+            rules = [
+              {
+                api_groups = ["apps"]
+                resources  = ["deployments", "pods", "services"]
+                verbs      = ["get", "list", "watch"]
+              }
+            ]
+          }
+        ]
+        cluster_role_bindings = [
+          {
+            key              = "view-binding"
+            name             = "view-binding"
+            cluster_role_key = "view" # above cluster role key
+            subjects = [
+              {
+                kind      = "Group"
+                name      = "viewers"
+                api_group = "rbac.authorization.k8s.io"
+              }
+            ]
+          }
+        ]
       }
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
@@ -1279,7 +1313,7 @@ inputs = {
           name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
           description               = "IAM Role for ${local.vpc_name_abr} ELB Controller Service Account"
           path                      = "/"
-          service_account_namespace = "kube-system"
+          service_account_namespace = "kube-system" # No assume role policy provided so automatically uses OIDC for federation
           service_account_name      = "aws-load-balancer-controller"
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
@@ -1311,6 +1345,19 @@ inputs = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-s3"
             description = "IAM policy for ${local.vpc_name_abr} S3 Access"
             policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_s3_access_policy.json"
+          }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns"
+          description               = "IAM Role for ${local.vpc_name_abr} External DNS Access"
+          path                      = "/"
+          service_account_namespace = "kube-system"
+          service_account_name      = "external-dns"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns"
+            description = "IAM policy for ${local.vpc_name_abr} External DNS Access"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/external_dns_policy.json"
           }
         },
         {
@@ -1349,12 +1396,17 @@ inputs = {
         enable_metrics_server                 = true
         enableSecretRotation                  = true
         enable_pod_identity_agent             = true
+        enable_external_dns                   = true
         enable_ebs_csi_driver                 = true
         rotationPollInterval                  = "2m"
         cloudwatch_observability_role_key     = "${local.vpc_name_abr}-cw-observability"
         ebs_csi_driver_role_key               = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
         enable_aws_load_balancer_controller   = true
         aws_load_balancer_controller_role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+        external_dns_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
+        external_dns_policy                   = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
+        external_dns_domain_filters           = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
+        external_dns_version                  = "1.14.3"
       }
     }
   ]
@@ -1380,6 +1432,20 @@ inputs = {
       publicly_accessible     = true
     }
   ]
+
+  ecr_repos = [
+    {
+      key                      = "ecs"
+      name                     = "ecs"
+      image_tag_mutability     = "MUTABLE"
+      scan_on_push             = true
+      custom_lifecycle_policy  = true
+      custom_repository_policy = true
+      lifecycle_policy_file    = "${include.cloud.locals.repo.root}/iam_policies/ecr/ecs_repo_lifecycle_policy.json"
+      repository_policy_file   = "${include.cloud.locals.repo.root}/iam_policies/ecr/ecs_repo_repository_policy.json"
+    }
+  ]
+
 }
 #-------------------------------------------------------
 # State Configuration

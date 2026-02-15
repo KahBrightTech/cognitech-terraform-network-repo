@@ -704,3 +704,12 @@ module "rds" {
   )
 }
 
+#--------------------------------------------------------------------
+# Creates ECR repositories
+#--------------------------------------------------------------------
+module "ecr_repos" {
+  source    = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/ECR?ref=v1.5.84"
+  for_each  = (var.ecr_repos != null) ? { for item in var.ecr_repos : item.key => item } : {}
+  common    = var.common
+  ecr_repos = each.value
+}
