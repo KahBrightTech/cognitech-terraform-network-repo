@@ -1445,7 +1445,6 @@ inputs = {
       repository_policy_file   = "${include.cloud.locals.repo.root}/iam_policies/ecr/ecs_repo_repository_policy.json"
     }
   ]
-
 }
 #-------------------------------------------------------
 # State Configuration
