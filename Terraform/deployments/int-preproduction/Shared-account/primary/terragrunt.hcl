@@ -1875,7 +1875,7 @@ inputs = {
       ]
       ec2_autoscaling = {
         launch_templates = [
-          {`
+          {
             key              = "${local.vpc_name_abr}-ecs-lt"
             name             = "${local.vpc_name_abr}-ecs-lt"
             instance_profile = "${local.vpc_name_abr}-ecs-instance"
