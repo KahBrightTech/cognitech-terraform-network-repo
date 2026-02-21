@@ -1765,13 +1765,13 @@ inputs = {
       }
       task_definitions = [
         {
-          family                     = "${local.vpc_name_abr}-frontend"
-          task_role_key              = "${local.vpc_name_abr}-ecs-task"
-          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
-          network_mode               = "awsvpc"
-          requires_compatibilities   = ["EC2"]
-          cpu                        = "512"
-          memory                     = "1024"
+          family                   = "${local.vpc_name_abr}-frontend"
+          task_role_key            = "${local.vpc_name_abr}-ecs-task"
+          execution_role_key       = "${local.vpc_name_abr}-ecs-execution"
+          network_mode             = "awsvpc"
+          requires_compatibilities = ["EC2"]
+          cpu                      = "512"
+          memory                   = "1024"
           container_definitions_file = templatefile("${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json", {
             load_balancer_key = "ecs-backend"
           })
@@ -1795,7 +1795,7 @@ inputs = {
           execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json"
-          
+
         }
       ]
       services = [
@@ -1916,28 +1916,28 @@ inputs = {
               launch_template_key = "${local.vpc_name_abr}-ecs-lt"
             }
           ]
-        }
-        capacity_provider = {
-          name                           = "${local.vpc_name_abr}-ecs-cp"
-          managed_termination_protection = "DISABLED"
-          managed_scaling = {
-            maximum_scaling_step_size = 3
-            minimum_scaling_step_size = 1
-            status                    = "ENABLED"
-            target_capacity           = 80
-            instance_warmup_period    = 300
+          capacity_provider = {
+            name                           = "${local.vpc_name_abr}-ecs-cp"
+            managed_termination_protection = "DISABLED"
+            managed_scaling = {
+              maximum_scaling_step_size = 3
+              minimum_scaling_step_size = 1
+              status                    = "ENABLED"
+              target_capacity           = 80
+              instance_warmup_period    = 300
+            }
           }
-        }
-        scaling_policies = {
-          scale_up = {
-            scaling_adjustment = 1
-            adjustment_type    = "ChangeInCapacity"
-            cooldown           = 300
-          }
-          scale_down = {
-            scaling_adjustment = -1
-            adjustment_type    = "ChangeInCapacity"
-            cooldown           = 300
+          scaling_policies = {
+            scale_up = {
+              scaling_adjustment = 1
+              adjustment_type    = "ChangeInCapacity"
+              cooldown           = 300
+            }
+            scale_down = {
+              scaling_adjustment = -1
+              adjustment_type    = "ChangeInCapacity"
+              cooldown           = 300
+            }
           }
         }
       ]
