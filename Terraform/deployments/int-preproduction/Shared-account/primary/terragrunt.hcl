@@ -1886,7 +1886,7 @@ inputs = {
           {
             key                      = "${local.vpc_name_abr}-ecs-lt"
             name                     = "${local.vpc_name_abr}-ecs-lt"
-            iam_instance_profile_key = "${local.vpc_name_abr}-ecs-instance"
+            iam_instance_profile_key = "${local.vpc_name_abr}-ecs"
             ami_config = {
               os_release_date = "ECSAL2023"
             }

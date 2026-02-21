@@ -804,7 +804,7 @@ module "ecs_clusters" {
             for lt in each.value.ec2_autoscaling.launch_templates : merge(
               lt,
               {
-                key_name         = lt.key_name != null ? module.ec2_key_pairs[lt.key_name].key_name : lt.key_name
+                key_name         = lt.key_name != null ? module.ec2_key_pairs[lt.key_name].name : lt.key_name
                 instance_profile = lt.iam_instance_profile_key != null ? module.ec2_profiles[lt.iam_instance_profile_key].instance_profile_name : lt.iam_instance_profile
                 vpc_security_group_ids = lt.vpc_security_group_keys != null ? [
                   for sg_key in lt.vpc_security_group_keys :
