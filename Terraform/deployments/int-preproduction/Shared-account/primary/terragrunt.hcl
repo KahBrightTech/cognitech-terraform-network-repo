@@ -293,24 +293,24 @@ inputs = {
                 ip_protocol   = "tcp"
               },
               {
-                key           = "egress-80-ecs-service-sg"
-                target_sg_key = "ecs-service"
+                key           = "egress-80-ecs-frontend-sg"
+                target_sg_key = "ecs-frontend"
                 description   = "ECS - Outbound HTTP traffic to ECS Service SG on tcp port 80"
                 from_port     = 80
                 to_port       = 80
                 ip_protocol   = "tcp"
               },
               {
-                key           = "egress-443-ecs-service-sg"
-                target_sg_key = "ecs-service"
+                key           = "egress-443-ecs-frontend-sg"
+                target_sg_key = "ecs-frontend"
                 description   = "ECS - Outbound HTTPS traffic to ECS Service SG on tcp port 443"
                 from_port     = 443
                 to_port       = 443
                 ip_protocol   = "tcp"
               },
               {
-                key           = "egress-dynamic-ports-ecs-service-sg"
-                target_sg_key = "ecs-service"
+                key           = "egress-dynamic-ports-ecs-frontend-sg"
+                target_sg_key = "ecs-frontend"
                 description   = "ECS - Outbound traffic to ECS Service SG on dynamic ports 32768-65535"
                 from_port     = 32768
                 to_port       = 65535
@@ -1206,12 +1206,7 @@ inputs = {
       certificate_key = "${local.vpc_name_abr}"
       port            = 443
       action          = "forward"
-      target_group = [
-        {
-          tg_name = "ecs-frontend"
-          weight  = 5
-        }
-      ]
+      tg_name         = "ecs-frontend"
     }
   ]
   alb_listener_rules = [
@@ -1249,9 +1244,7 @@ inputs = {
       ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
       action     = "forward"
       vpc_name   = local.vpc_name
-      target_group = {
-        tg_name = "ecs-backend"
-      }
+      tg_name    = "ecs-backend"
     }
   ]
   target_groups = [
@@ -1882,11 +1875,11 @@ inputs = {
       ]
       ec2_autoscaling = {
         launch_templates = [
-          {
+          {`
             key              = "${local.vpc_name_abr}-ecs-lt"
             name             = "${local.vpc_name_abr}-ecs-lt"
             instance_profile = "${local.vpc_name_abr}-ecs-instance"
-            custom_ami = {
+            ami_config = {
               os_release_date = "ECSAL2023"
             }
             instance_type               = "t3.large"

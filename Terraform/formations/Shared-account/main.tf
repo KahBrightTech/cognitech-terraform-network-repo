@@ -233,7 +233,7 @@ module "iam_roles" {
 # EC2 instance profiles
 #--------------------------------------------------------------------
 module "ec2_profiles" {
-  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.5.1"
+  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.6.2"
   for_each     = (var.ec2_profiles != null) ? { for item in var.ec2_profiles : item.name => item } : {}
   common       = var.common
   ec2_profiles = each.value
@@ -382,7 +382,7 @@ module "target_groups" {
 # ALB listeners
 #--------------------------------------------------------------------
 module "alb_listeners" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.2.98"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.6.1"
   for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.key => item } : {}
   common   = var.common
   alb_listener = merge(
@@ -399,14 +399,14 @@ module "alb_listeners" {
         : try(module.certificates[each.value.vpc_name].arn, each.value.certificate_arn)
       )
       vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      target_group_arn = (
+        each.value.target_group.tg_name != null && each.value.target_group.tg_name != ""
+        ? module.target_groups[each.value.target_group.tg_name].target_group_arn
+        : each.value.target_group.arn
+      )
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {
-          target_group_arn = (
-            each.value.target_group.tg_name != null && each.value.target_group.tg_name != ""
-            ? module.target_groups[each.value.target_group.tg_name].target_group_arn
-            : each.value.target_group.arn
-          )
           attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
         }
       ) : null
@@ -442,7 +442,7 @@ module "alb_listener_rules" {
 # NLB listeners
 #--------------------------------------------------------------------
 module "nlb_listeners" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.5.90"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.6.1"
   for_each = (var.nlb_listeners != null) ? { for item in var.nlb_listeners : item.key => item } : {}
   common   = var.common
   nlb_listener = merge(
@@ -458,15 +458,15 @@ module "nlb_listeners" {
         : try(module.certificates[each.value.vpc_name].arn, each.value.certificate_arn)
       )
       vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      target_group_arn = (
+        each.value.target_group.tg_name != null && each.value.target_group.tg_name != ""
+        ? module.target_groups[each.value.target_group.tg_name].target_group_arn
+        : each.value.target_group.arn
+      )
       target_group = (
         each.value.target_group != null ? merge(
           each.value.target_group,
           {
-            target_group_arn = (
-              each.value.target_group.tg_name != null && each.value.target_group.tg_name != ""
-              ? module.target_groups[each.value.target_group.tg_name].target_group_arn
-              : each.value.target_group.arn
-            )
             attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
           }
         ) : null
@@ -732,7 +732,7 @@ module "ecr_repos" {
 # Creates ECS clusters and supporting resources
 #--------------------------------------------------------------------
 module "ecs_clusters" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.6.0"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.6.1"
   for_each = (var.ecs_clusters != null) ? { for item in var.ecs_clusters : item.create_ecs_cluster ? item.key : null => item if item.create_ecs_cluster } : {}
   common   = var.common
   ecs = merge(

@@ -374,6 +374,7 @@ variable "ec2_profiles" {
     managed_policy_arns       = optional(list(string))
     max_session_duration      = optional(number, 3600)
     permissions_boundary      = optional(string)
+    create_custom_policy      = optional(bool, true)
     policy = optional(object({
       name          = string
       description   = optional(string)
@@ -555,14 +556,14 @@ variable "alb_listeners" {
       domain_name     = string
       certificate_arn = string
     })))
+    target_group_arn = optional(string)
     target_group = optional(object({
-      target_group_arn = optional(string)
-      tg_name          = optional(string)
-      name             = optional(string)
-      port             = optional(number)
-      protocol         = optional(string)
-      target_type      = optional(string, "instance")
-      vpc_name_abr     = optional(string)
+      tg_name      = optional(string)
+      name         = optional(string)
+      port         = optional(number)
+      protocol     = optional(string)
+      target_type  = optional(string, "instance")
+      vpc_name_abr = optional(string)
       attachments = optional(list(object({
         target_id = optional(string)
         port      = optional(number)
@@ -636,14 +637,14 @@ variable "nlb_listeners" {
       domain_name     = optional(string)
       certificate_arn = optional(string)
     })))
+    target_group_arn = optional(string)
     target_group = optional(object({
-      target_group_arn = optional(string)
-      tg_name          = optional(string)
-      name             = optional(string)
-      port             = optional(number)
-      protocol         = optional(string)
-      vpc_name_abr     = optional(string)
-      target_type      = optional(string, "instance")
+      tg_name      = optional(string)
+      name         = optional(string)
+      port         = optional(number)
+      protocol     = optional(string)
+      vpc_name_abr = optional(string)
+      target_type  = optional(string, "instance")
       attachments = optional(list(object({
         target_id      = optional(string)
         port           = optional(number)
@@ -656,13 +657,13 @@ variable "nlb_listeners" {
         cookie_duration = optional(number)
         cookie_name     = optional(string)
       }))
-      health_check = object({
+      health_check = optional(object({
         enabled  = optional(bool, true)
         protocol = optional(string)
         port     = optional(number)
         path     = optional(string)
         matcher  = optional(string, "200")
-      })
+      }))
     }))
   }))
   default = null
