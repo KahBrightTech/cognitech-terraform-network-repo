@@ -746,7 +746,7 @@ module "ecs_clusters" {
         {
           execution_role_arn = each.value.task_definitions.execution_role_key != null ? module.iam_roles[each.value.task_definitions.execution_role_key].iam_role_arn : each.value.task_definitions.execution_role_arn,
           task_role_arn      = each.value.task_definitions.task_role_key != null ? module.iam_roles[each.value.task_definitions.task_role_key].iam_role_arn : each.value.task_definitions.task_role_arn
-          container_definitions = each.value.task_definitions.container_definitions != null ? [
+          container_definitions = each.value.task_definitions.container_definitions != null ? jsonencode([
             for container in each.value.task_definitions.container_definitions : merge(
               container,
               {
@@ -761,23 +761,7 @@ module "ecs_clusters" {
                 )
               }
             )
-          ] : each.value.task_definitions.container_definitions
-          container_definitions_file = each.value.task_definitions.container_definitions_file != null ? [
-            for container in each.value.task_definitions.container_definitions_file : merge(
-              container,
-              {
-                environment = concat(
-                  container.environment != null ? container.environment : [],
-                  each.value.backend_url != null ? [
-                    {
-                      name  = "BACKEND_URL"
-                      value = each.value.load_balancer_key != null ? module.load_balancers[each.value.load_balancer_key].dns_name : each.value.backend_url
-                    }
-                  ] : []
-                )
-              }
-            )
-          ] : each.value.task_definitions.container_definitions_file
+          ]) : each.value.task_definitions.container_definitions_file
         }
       ) : null
     },

@@ -1273,7 +1273,6 @@ inputs = {
       health_check = {
         protocol = "TCP"
         port     = 3000
-        path     = "/"
       }
       vpc_name     = local.vpc_name_abr
       vpc_name_abr = "${local.vpc_name_abr}"
