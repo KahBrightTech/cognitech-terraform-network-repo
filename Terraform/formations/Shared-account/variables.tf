@@ -1599,7 +1599,7 @@ variable "ecs_clusters" {
         container_port = optional(number)
       }))
     })))
-    ec2_autoscaling = optional(list(object({
+    ec2_autoscaling = optional(object({
       launch_templates = optional(list(object({
         key              = optional(string)
         name             = optional(string)
@@ -1670,7 +1670,7 @@ variable "ecs_clusters" {
           cooldown           = optional(number, 300)
         })
       }))
-    })))
+    }))
   }))
   default = null
 }
