@@ -763,7 +763,7 @@ inputs = {
       ]
     }
   ]
-  
+
   ec2_profiles = [
     {
       name               = "${local.vpc_name_abr}"
@@ -782,7 +782,7 @@ inputs = {
       }
     },
     {
-      name               = "${local.vpc_name_abr}-ecs-instance"
+      name               = "${local.vpc_name_abr}-ecs"
       description        = "EC2 Instance Profile for ECS Container Instances"
       assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
       managed_policy_arns = [
@@ -1766,10 +1766,12 @@ inputs = {
           requires_compatibilities = ["EC2"]
           cpu                      = "512"
           memory                   = "1024"
-          container_definitions_file = templatefile("${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json", {
-            load_balancer_key = "ecs-backend"
-          })
-        },
+          container_definitions_file = {
+            templatefile("${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json", {
+              load_balancer_key = "ecs-backend"
+            })
+          },
+        }
         {
           family                     = "${local.vpc_name_abr}-backend"
           network_mode               = "awsvpc"
