@@ -763,6 +763,7 @@ inputs = {
       ]
     }
   ]
+  
   ec2_profiles = [
     {
       name               = "${local.vpc_name_abr}"
