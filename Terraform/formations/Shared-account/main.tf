@@ -760,7 +760,8 @@ module "ecs_clusters" {
                   )
                 }
               )
-            ]) : td.container_definitions_file
+            ]) : null
+            container_definitions_file = td.container_definitions == null ? td.container_definitions_file : null
           }
         )
       ] : null
