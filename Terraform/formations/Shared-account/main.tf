@@ -393,14 +393,20 @@ module "alb_listeners" {
         module.load_balancers[each.value.alb_key].arn,
         each.value.alb_arn
       )
-      certificate_arn = each.value.protocol == "HTTPS" ? try(
-        module.certificates[each.value.vpc_name].arn,
-        each.value.certificate_arn
-      ) : null
+      certificate_arn = each.value.protocol != "HTTPS" ? null : (
+        (each.value.certificate_key != null && each.value.certificate_key != "")
+        ? try(module.certificates[each.value.certificate_key].arn, null)
+        : try(module.certificates[each.value.vpc_name].arn, each.value.certificate_arn)
+      )
       vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group = each.value.target_group != null ? merge(
         each.value.target_group,
         {
+          target_group_arn = (
+            each.value.target_group.tg_name != null && each.value.target_group.tg_name != ""
+            ? module.target_groups[each.value.target_group.tg_name].target_group_arn
+            : each.value.target_group.arn
+          )
           attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
         }
       ) : null
@@ -436,7 +442,7 @@ module "alb_listener_rules" {
 # NLB listeners
 #--------------------------------------------------------------------
 module "nlb_listeners" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.2.98"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.5.90"
   for_each = (var.nlb_listeners != null) ? { for item in var.nlb_listeners : item.key => item } : {}
   common   = var.common
   nlb_listener = merge(
@@ -446,17 +452,25 @@ module "nlb_listeners" {
         module.load_balancers[each.value.nlb_key].arn,
         each.value.nlb_arn
       )
-      certificate_arn = each.value.protocol == "TLS" ? try(
-        module.certificates[each.value.vpc_name].arn,
-        each.value.certificate_arn
-      ) : null
+      certificate_arn = each.value.protocol != "TLS" ? null : (
+        (each.value.certificate_key != null && each.value.certificate_key != "")
+        ? try(module.certificates[each.value.certificate_key].arn, null)
+        : try(module.certificates[each.value.vpc_name].arn, each.value.certificate_arn)
+      )
       vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
-      target_group = each.value.target_group != null ? merge(
-        each.value.target_group,
-        {
-          attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
-        }
-      ) : null
+      target_group = (
+        each.value.target_group != null ? merge(
+          each.value.target_group,
+          {
+            target_group_arn = (
+              each.value.target_group.tg_name != null && each.value.target_group.tg_name != ""
+              ? module.target_groups[each.value.target_group.tg_name].target_group_arn
+              : each.value.target_group.arn
+            )
+            attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
+          }
+        ) : null
+      )
     }
   )
 }
@@ -713,3 +727,125 @@ module "ecr_repos" {
   common   = var.common
   ecr      = each.value
 }
+
+#--------------------------------------------------------------------
+# Creates ECS clusters and supporting resources
+#--------------------------------------------------------------------
+module "ecs_clusters" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.5.97"
+  for_each = (var.ecs_clusters != null) ? { for item in var.ecs_clusters : item.create_ecs_cluster ? item.key : null => item if item.create_ecs_cluster } : {}
+  common   = var.common
+  ecs = merge(
+    each.value,
+    {
+      key = each.value.service_group_key
+    },
+    {
+      task_definitions = each.value.task_definitions != null ? merge(
+        each.value.task_definitions,
+        {
+          execution_role_arn = each.value.task_definitions.execution_role_key != null ? module.iam_roles[each.value.task_definitions.execution_role_key].iam_role_arn : each.value.task_definitions.execution_role_arn,
+          task_role_arn      = each.value.task_definitions.task_role_key != null ? module.iam_roles[each.value.task_definitions.task_role_key].iam_role_arn : each.value.task_definitions.task_role_arn
+          container_definitions = each.value.task_definitions.container_definitions != null ? [
+            for container in each.value.task_definitions.container_definitions : merge(
+              container,
+              {
+                environment = concat(
+                  container.environment != null ? container.environment : [],
+                  [
+                    {
+                      name  = "BACKEND_URL"
+                      value = lb.load_balancer_key != null ? module.load_balancers[lb.load_balancer_key].dns_name : lb.dns_name
+                    }
+                  ]
+                )
+              }
+            )
+          ] : each.value.task_definitions.container_definitions
+          container_definitions_file = each.value.task_definitions.container_definitions_file != null ? [
+            for container in each.value.task_definitions.container_definitions_file : merge(
+              container,
+              {
+                environment = concat(
+                  container.environment != null ? container.environment : [],
+                  [
+                    {
+                      name  = "BACKEND_URL"
+                      value = lb.load_balancer_key != null ? module.load_balancers[lb.load_balancer_key].dns_name : lb.dns_name
+                    }
+                  ]
+                )
+              }
+            )
+          ] : each.value.task_definitions.container_definitions_file
+        }
+      ) : null
+    },
+    {
+      services = each.value.services != null ? merge(
+        each.value.services,
+        {
+          load_balancers = each.value.services.load_balancers != null ? [
+            for lb in each.value.services.load_balancers :
+            {
+              target_group_arn = lb.target_group_key != null ? module.target_groups[lb.target_group_key].target_group_arn : lb.target_group_arn
+              container_name   = lb.container_name
+              container_port   = lb.container_port
+            }
+          ] : []
+        },
+        {
+          network_configuration = each.value.services.network_configuration != null ? merge(
+            each.value.services.network_configuration,
+            {
+              subnets = each.value.services.network_configuration.subnet_keys != null ? flatten([
+                for subnet_key in each.value.services.network_configuration.subnet_keys :
+                (each.value.use_private_subnets == true) ?
+                module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+              ]) : each.value.services.network_configuration.subnets,
+              security_groups = each.value.services.network_configuration.security_group_keys != null ? [
+                for sg_key in each.value.services.network_configuration.security_group_keys :
+                module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+              ] : each.value.services.network_configuration.security_group_ids
+            }
+          ) : null
+        }
+      ) : null
+    },
+    {
+      ec2_autoscaling = each.value.ec2_autoscaling != null ? merge(
+        each.value.ec2_autoscaling,
+        {
+          launch_template = each.value.ec2_autoscaling.launch_templates != null ? merge(
+            each.value.ec2_autoscaling.launch_templates,
+            {
+              key_name             = each.value.ec2_autoscaling.launch_templates.key_name != null ? module.ec2_key_pairs[each.value.ec2_autoscaling.launch_templates.key_name].key_name : each.value.ec2_autoscaling.launch_templates.key_name,
+              iam_instance_profile = each.value.ec2_autoscaling.launch_templates.iam_instance_profile_key != null ? module.ec2_profiles[each.value.ec2_autoscaling.launch_templates.iam_instance_profile_key].instance_profile_name : each.value.ec2_autoscaling.launch_templates.iam_instance_profile,
+              vpc_security_group_ids = each.value.ec2_autoscaling.launch_templates.vpc_security_group_keys != null ? [
+                for sg_key in each.value.ec2_autoscaling.launch_templates.vpc_security_group_keys :
+                module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+              ] : each.value.ec2_autoscaling.launch_templates.vpc_security_group_ids
+            }
+          ) : null,
+          autoscaling_group = each.value.ec2_autoscaling.autoscaling_group != null ? merge(
+            each.value.ec2_autoscaling.autoscaling_group,
+            {
+              subnet_ids = each.value.ec2_autoscaling.autoscaling_group.subnet_keys != null ? flatten([
+                for subnet_key in each.value.ec2_autoscaling.autoscaling_group.subnet_keys :
+                (each.value.use_private_subnets == true) ?
+                module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+              ]) : each.value.ec2_autoscaling.autoscaling_group.subnet_ids,
+              attach_target_groups = each.value.ec2_autoscaling.autoscaling_group.target_group_keys != null ? [
+                for tg_key in each.value.ec2_autoscaling.autoscaling_group.target_group_keys :
+                module.target_groups[tg_key].target_group_arn
+              ] : each.value.ec2_autoscaling.autoscaling_group.attach_target_groups
+            }
+          ) : null
+        }
+      ) : null
+    }
+  )
+}
+

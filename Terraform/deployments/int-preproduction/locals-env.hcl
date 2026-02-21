@@ -85,4 +85,8 @@ locals {
   eks_cluster_keys = {
     primary_cluster = "InfoGrid"
   }
+
+  ecs_cluster_keys = {
+    primary_cluster = "letsconnect"
+  }
 }

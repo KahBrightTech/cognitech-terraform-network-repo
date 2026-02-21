@@ -189,3 +189,13 @@ output "ecr_repos" {
   value       = module.ecr_repos
   sensitive   = true
 }
+
+
+#-------------------------------------------------------
+# ECS outputs
+#-------------------------------------------------------
+output "ecs_clusters" {
+  description = "Output for all ECS clusters"
+  value       = module.ecs_clusters
+  sensitive   = true
+}

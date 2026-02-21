@@ -1,0 +1,34 @@
+[
+  {
+    "name": "frontend",
+    "image": "730335294148.dkr.ecr.us-east-1.amazonaws.com/int-preproduction-use1-ecs:frontend-latest",
+    "cpu": 512,
+    "memory": 1024,
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "protocol": "tcp"
+      }
+    ],
+    "environment": [
+      {
+        "name": "BACKEND_URL",
+        "value": "http://${load_balancer_key}"
+      },
+      {
+        "name": "NODE_ENV",
+        "value": "production"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/frontend",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-create-group": "true"
+      }
+    }
+  }
+]
