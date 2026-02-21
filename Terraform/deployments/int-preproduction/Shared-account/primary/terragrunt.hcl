@@ -1880,67 +1880,63 @@ inputs = {
           }
         }
       ]
-      ec2_autoscaling = [
-        {
-          launch_templates = [
-            {
-              key              = "${local.vpc_name_abr}-ecs-lt"
-              name             = "${local.vpc_name_abr}-ecs-lt"
-              instance_profile = "${local.vpc_name_abr}-ecs-instance"
-              custom_ami = {
-                os_release_date = "ECSAL2023"
-              }
-              instance_type               = "t3.large"
-              key_name                    = "${local.vpc_name_abr}-ec2"
-              associate_public_ip_address = true
-              vpc_security_group_keys     = ["ecs-instance"]
-              user_data = base64encode(<<-EOF
+      ec2_autoscaling = {
+        launch_templates = [
+          {
+            key              = "${local.vpc_name_abr}-ecs-lt"
+            name             = "${local.vpc_name_abr}-ecs-lt"
+            instance_profile = "${local.vpc_name_abr}-ecs-instance"
+            custom_ami = {
+              os_release_date = "ECSAL2023"
+            }
+            instance_type               = "t3.large"
+            key_name                    = "${local.vpc_name_abr}-ec2"
+            associate_public_ip_address = true
+            vpc_security_group_keys     = ["ecs-instance"]
+            user_data = base64encode(<<-EOF
                 #!/bin/bash
                 echo ECS_CLUSTER=${local.vpc_name_abr}-${include.env.locals.ecs_cluster_keys.primary_cluster} >> /etc/ecs/ecs.config
                 echo ECS_ENABLE_CONTAINER_METADATA=true >> /etc/ecs/ecs.config
             EOF
-              )
-            }
-          ]
-          autoscaling_group = [
-            {
-              name                      = "${local.vpc_name_abr}-ecs-asg"
-              max_size                  = 6
-              min_size                  = 3
-              desired_capacity          = 3
-              health_check_grace_period = 300
-              subnet_keys = [
-                include.env.locals.subnet_prefix.primary,
-                include.env.locals.subnet_prefix.secondary
-              ]
-              launch_template_key = "${local.vpc_name_abr}-ecs-lt"
-            }
-          ]
-          capacity_provider = {
-            name                           = "${local.vpc_name_abr}-ecs-cp"
-            managed_termination_protection = "DISABLED"
-            managed_scaling = {
-              maximum_scaling_step_size = 3
-              minimum_scaling_step_size = 1
-              status                    = "ENABLED"
-              target_capacity           = 80
-              instance_warmup_period    = 300
-            }
+            )
           }
-          scaling_policies = {
-            scale_up = {
-              scaling_adjustment = 1
-              adjustment_type    = "ChangeInCapacity"
-              cooldown           = 300
-            }
-            scale_down = {
-              scaling_adjustment = -1
-              adjustment_type    = "ChangeInCapacity"
-              cooldown           = 300
-            }
+        ]
+        autoscaling_group = {
+          name                      = "${local.vpc_name_abr}-ecs-asg"
+          max_size                  = 6
+          min_size                  = 3
+          desired_capacity          = 3
+          health_check_grace_period = 300
+          subnet_keys = [
+            include.env.locals.subnet_prefix.primary,
+            include.env.locals.subnet_prefix.secondary
+          ]
+          launch_template_key = "${local.vpc_name_abr}-ecs-lt"
+        }
+        capacity_provider = {
+          name                           = "${local.vpc_name_abr}-ecs-cp"
+          managed_termination_protection = "DISABLED"
+          managed_scaling = {
+            maximum_scaling_step_size = 3
+            minimum_scaling_step_size = 1
+            status                    = "ENABLED"
+            target_capacity           = 80
+            instance_warmup_period    = 300
           }
         }
-      ]
+        scaling_policies = {
+          scale_up = {
+            scaling_adjustment = 1
+            adjustment_type    = "ChangeInCapacity"
+            cooldown           = 300
+          }
+          scale_down = {
+            scaling_adjustment = -1
+            adjustment_type    = "ChangeInCapacity"
+            cooldown           = 300
+          }
+        }
+      }
     }
   ]
 }
