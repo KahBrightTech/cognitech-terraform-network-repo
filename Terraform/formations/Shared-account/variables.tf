@@ -1227,11 +1227,10 @@ variable "eks" {
       })))
     })))
     launch_templates = optional(list(object({
-      key                      = optional(string)
-      name                     = optional(string)
-      instance_profile         = optional(string)
-      iam_instance_profile_key = optional(string)
-      custom_ami               = optional(string)
+      key              = optional(string)
+      name             = optional(string)
+      instance_profile = optional(string)
+      custom_ami       = optional(string)
       ami_config = object({
         os_release_date  = optional(string)
         os_base_packages = optional(string)
@@ -1574,10 +1573,11 @@ variable "ecs_clusters" {
     })))
     ec2_autoscaling = optional(object({
       launch_templates = optional(list(object({
-        key              = optional(string)
-        name             = optional(string)
-        instance_profile = optional(string)
-        custom_ami       = optional(string)
+        key                      = optional(string)
+        name                     = optional(string)
+        instance_profile         = optional(string)
+        iam_instance_profile_key = optional(string)
+        custom_ami               = optional(string)
         ami_config = object({
           os_release_date  = optional(string)
           os_base_packages = optional(string)

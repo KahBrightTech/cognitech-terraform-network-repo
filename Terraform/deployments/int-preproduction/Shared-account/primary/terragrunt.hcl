@@ -1891,7 +1891,7 @@ inputs = {
               os_release_date = "ECSAL2023"
             }
             instance_type               = "t3.large"
-            key_name                    = "${local.vpc_name_abr}-ec2"
+            key_name                    = "${local.vpc_name_abr}-key-pair"
             associate_public_ip_address = true
             vpc_security_group_keys     = ["ecs-instance"]
             user_data = base64encode(<<-EOF

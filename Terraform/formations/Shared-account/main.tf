@@ -382,7 +382,7 @@ module "target_groups" {
 # ALB listeners
 #--------------------------------------------------------------------
 module "alb_listeners" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.6.7"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.6.8"
   for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.key => item } : {}
   common   = var.common
   alb_listener = merge(
@@ -460,8 +460,8 @@ module "nlb_listeners" {
       )
       vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group_arn = (
-        each.value.target_group.tg_name != null && each.value.target_group.tg_name != ""
-        ? module.target_groups[each.value.target_group.tg_name].target_group_arn
+        each.value.tg_name != null && each.value.tg_name != ""
+        ? module.target_groups[each.value.tg_name].target_group_arn
         : each.value.target_group.arn
       )
       target_group = (
