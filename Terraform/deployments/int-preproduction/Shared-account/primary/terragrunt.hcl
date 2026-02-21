@@ -1772,7 +1772,7 @@ inputs = {
               load_balancer_key = "ecs-backend"
             }
           )
-        }
+        },
         {
           family                     = "${local.vpc_name_abr}-backend"
           network_mode               = "awsvpc"
