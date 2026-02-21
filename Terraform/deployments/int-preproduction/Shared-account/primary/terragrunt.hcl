@@ -1884,9 +1884,9 @@ inputs = {
       ec2_autoscaling = {
         launch_templates = [
           {
-            key              = "${local.vpc_name_abr}-ecs-lt"
-            name             = "${local.vpc_name_abr}-ecs-lt"
-            instance_profile = "${local.vpc_name_abr}-ecs-instance"
+            key                      = "${local.vpc_name_abr}-ecs-lt"
+            name                     = "${local.vpc_name_abr}-ecs-lt"
+            iam_instance_profile_key = "${local.vpc_name_abr}-ecs-instance"
             ami_config = {
               os_release_date = "ECSAL2023"
             }

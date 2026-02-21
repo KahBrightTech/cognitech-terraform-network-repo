@@ -382,13 +382,12 @@ module "target_groups" {
 # ALB listeners
 #--------------------------------------------------------------------
 module "alb_listeners" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.6.1"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.6.7"
   for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.key => item } : {}
   common   = var.common
   alb_listener = merge(
     each.value,
     {
-      # Resolve load balancer ARN from the load balancer key
       alb_arn = try(
         module.load_balancers[each.value.alb_key].arn,
         each.value.alb_arn
@@ -402,14 +401,16 @@ module "alb_listeners" {
       target_group_arn = (
         each.value.tg_name != null && each.value.tg_name != ""
         ? module.target_groups[each.value.tg_name].target_group_arn
-        : each.value.target_group.arn
+        : each.value.target_group_arn
       )
-      target_group = each.value.target_group != null ? merge(
-        each.value.target_group,
-        {
-          attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
-        }
-      ) : null
+      target_group = each.value.tg_name != null && each.value.tg_name != "" ? null : (
+        each.value.target_group != null ? merge(
+          each.value.target_group,
+          {
+            attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
+          }
+        ) : null
+      )
     }
   )
 }
@@ -803,8 +804,8 @@ module "ecs_clusters" {
             for lt in each.value.ec2_autoscaling.launch_templates : merge(
               lt,
               {
-                key_name             = lt.key_name != null ? module.ec2_key_pairs[lt.key_name].key_name : lt.key_name
-                iam_instance_profile = lt.iam_instance_profile_key != null ? module.ec2_profiles[lt.iam_instance_profile_key].instance_profile_name : lt.iam_instance_profile
+                key_name         = lt.key_name != null ? module.ec2_key_pairs[lt.key_name].key_name : lt.key_name
+                instance_profile = lt.iam_instance_profile_key != null ? module.ec2_profiles[lt.iam_instance_profile_key].instance_profile_name : lt.iam_instance_profile
                 vpc_security_group_ids = lt.vpc_security_group_keys != null ? [
                   for sg_key in lt.vpc_security_group_keys :
                   module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
