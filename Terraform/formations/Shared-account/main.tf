@@ -443,7 +443,7 @@ module "alb_listener_rules" {
 # NLB listeners
 #--------------------------------------------------------------------
 module "nlb_listeners" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.6.1"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.6.9"
   for_each = (var.nlb_listeners != null) ? { for item in var.nlb_listeners : item.key => item } : {}
   common   = var.common
   nlb_listener = merge(

@@ -1457,25 +1457,25 @@ variable "ecs_clusters" {
         load_balancer_key = optional(string)
         essential         = optional(bool, true)
         port_mappings = optional(list(object({
-          container_port = number
+          container_port = optional(number)
           host_port      = optional(number)
           protocol       = optional(string, "tcp")
         })))
         environment = optional(list(object({
-          name  = string
-          value = string
+          name  = optional(string)
+          value = optional(string)
         })))
         secrets = optional(list(object({
-          name       = string
-          value_from = string
+          name       = optional(string)
+          value_from = optional(string)
         })))
         mount_points = optional(list(object({
-          source_volume  = string
-          container_path = string
+          source_volume  = optional(string)
+          container_path = optional(string)
           read_only      = optional(bool, false)
         })))
         log_configuration = optional(object({
-          log_driver = string
+          log_driver = optional(string)
           options    = optional(map(string))
         }))
       })))
