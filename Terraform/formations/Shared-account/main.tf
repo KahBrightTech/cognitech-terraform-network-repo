@@ -752,12 +752,12 @@ module "ecs_clusters" {
               {
                 environment = concat(
                   container.environment != null ? container.environment : [],
-                  [
+                  each.value.backend_url != null ? [
                     {
                       name  = "BACKEND_URL"
-                      value = lb.load_balancer_key != null ? module.load_balancers[lb.load_balancer_key].dns_name : lb.dns_name
+                      value = each.value.load_balancer_key != null ? module.load_balancers[each.value.load_balancer_key].dns_name : each.value.backend_url
                     }
-                  ]
+                  ] : []
                 )
               }
             )
@@ -768,12 +768,12 @@ module "ecs_clusters" {
               {
                 environment = concat(
                   container.environment != null ? container.environment : [],
-                  [
+                  each.value.backend_url != null ? [
                     {
                       name  = "BACKEND_URL"
-                      value = lb.load_balancer_key != null ? module.load_balancers[lb.load_balancer_key].dns_name : lb.dns_name
+                      value = each.value.load_balancer_key != null ? module.load_balancers[each.value.load_balancer_key].dns_name : each.value.backend_url
                     }
-                  ]
+                  ] : []
                 )
               }
             )
