@@ -1770,7 +1770,7 @@ inputs = {
             templatefile("${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json", {
               load_balancer_key = "ecs-backend"
             })
-          },
+          }
         }
         {
           family                     = "${local.vpc_name_abr}-backend"
@@ -1780,7 +1780,7 @@ inputs = {
           memory                     = "1024"
           execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
-          container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"
+          container_definitions_file = {"${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"}
         },
         {
           family                     = "${local.vpc_name_abr}-database"
@@ -1790,8 +1790,7 @@ inputs = {
           memory                     = "1024"
           execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
-          container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json"
-
+          container_definitions_file = {"${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json"}
         }
       ]
       services = [
