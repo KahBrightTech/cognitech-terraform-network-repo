@@ -733,7 +733,7 @@ module "ecr_repos" {
 # Creates ECS clusters and supporting resources
 #--------------------------------------------------------------------
 module "ecs_clusters" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.6.6"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.6.10"
   for_each = (var.ecs_clusters != null) ? { for item in var.ecs_clusters : item.create_ecs_cluster ? item.key : null => item if item.create_ecs_cluster } : {}
   common   = var.common
   ecs = merge(
@@ -761,7 +761,13 @@ module "ecs_clusters" {
                 }
               )
             ]) : null
-            container_definitions_file = td.container_definitions == null ? td.container_definitions_file : null
+            container_definitions_file = td.container_definitions == null ? (
+              td.load_balancer_key != null && td.container_definitions_file != null ? replace(
+                td.container_definitions_file,
+                "__BACKEND_URL__",
+                "http://${module.load_balancers[td.load_balancer_key].dns_name}"
+              ) : td.container_definitions_file
+            ) : null
           }
         )
       ] : null

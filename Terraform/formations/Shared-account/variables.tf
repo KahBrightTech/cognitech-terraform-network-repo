@@ -1449,6 +1449,7 @@ variable "ecs_clusters" {
       requires_compatibilities = optional(list(string), ["EC2"])
       cpu                      = optional(string)
       memory                   = optional(string)
+      load_balancer_key        = optional(string)
       container_definitions = optional(list(object({
         name              = optional(string)
         image             = optional(string)

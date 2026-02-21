@@ -1758,45 +1758,36 @@ inputs = {
       }
       task_definitions = [
         {
-          family                   = "${local.vpc_name_abr}-frontend"
-          task_role_key            = "${local.vpc_name_abr}-ecs-task"
-          execution_role_key       = "${local.vpc_name_abr}-ecs-execution"
-          network_mode             = "awsvpc"
-          requires_compatibilities = ["EC2"]
-          cpu                      = "512"
-          memory                   = "1024"
-          container_definitions_file = templatefile(
-            "${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json",
-            {
-              load_balancer_key = "ecs-app"
-            }
-          )
+          family                     = "${local.vpc_name_abr}-frontend"
+          task_role_key              = "${local.vpc_name_abr}-ecs-task"
+          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
+          network_mode               = "awsvpc"
+          requires_compatibilities   = ["EC2"]
+          cpu                        = "512"
+          memory                     = "1024"
+          load_balancer_key          = "ecs-app"
+          container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json",
+
         },
         {
-          family                   = "${local.vpc_name_abr}-backend"
-          network_mode             = "awsvpc"
-          requires_compatibilities = ["EC2"]
-          cpu                      = "512"
-          memory                   = "1024"
-          execution_role_key       = "${local.vpc_name_abr}-ecs-execution"
-          task_role_key            = "${local.vpc_name_abr}-ecs-task"
-          container_definitions_file = templatefile(
-            "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json",
-            {}
-          )
+          family                     = "${local.vpc_name_abr}-backend"
+          network_mode               = "awsvpc"
+          requires_compatibilities   = ["EC2"]
+          cpu                        = "512"
+          memory                     = "1024"
+          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
+          task_role_key              = "${local.vpc_name_abr}-ecs-task"
+          container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"
         },
         {
-          family                   = "${local.vpc_name_abr}-database"
-          network_mode             = "awsvpc"
-          requires_compatibilities = ["FARGATE"]
-          cpu                      = "512"
-          memory                   = "1024"
-          execution_role_key       = "${local.vpc_name_abr}-ecs-execution"
-          task_role_key            = "${local.vpc_name_abr}-ecs-task"
-          container_definitions_file = templatefile(
-            "${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json",
-            {}
-          )
+          family                     = "${local.vpc_name_abr}-database"
+          network_mode               = "awsvpc"
+          requires_compatibilities   = ["FARGATE"]
+          cpu                        = "512"
+          memory                     = "1024"
+          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
+          task_role_key              = "${local.vpc_name_abr}-ecs-task"
+          container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json"
         }
       ]
       services = [
