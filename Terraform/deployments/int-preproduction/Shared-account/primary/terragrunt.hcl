@@ -1766,11 +1766,12 @@ inputs = {
           requires_compatibilities = ["EC2"]
           cpu                      = "512"
           memory                   = "1024"
-          container_definitions_file = {
-            templatefile("${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json", {
+          container_definitions_file = templatefile(
+            "${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json",
+            {
               load_balancer_key = "ecs-backend"
-            })
-          }
+            }
+          )
         }
         {
           family                     = "${local.vpc_name_abr}-backend"
