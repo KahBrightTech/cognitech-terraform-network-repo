@@ -1267,7 +1267,7 @@ inputs = {
     {
       key         = "ecs-backend"
       name        = "ecs-backend"
-      protocol    = "HTTP"
+      protocol    = "TCP"
       port        = 3000
       target_type = "ip"
       health_check = {
