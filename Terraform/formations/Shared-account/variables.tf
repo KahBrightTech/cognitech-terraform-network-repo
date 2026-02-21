@@ -557,8 +557,8 @@ variable "alb_listeners" {
       certificate_arn = string
     })))
     target_group_arn = optional(string)
+    tg_name          = optional(string)
     target_group = optional(object({
-      tg_name      = optional(string)
       name         = optional(string)
       port         = optional(number)
       protocol     = optional(string)

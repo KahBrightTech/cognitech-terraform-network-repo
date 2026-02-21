@@ -400,8 +400,8 @@ module "alb_listeners" {
       )
       vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group_arn = (
-        each.value.target_group.tg_name != null && each.value.target_group.tg_name != ""
-        ? module.target_groups[each.value.target_group.tg_name].target_group_arn
+        each.value.tg_name != null && each.value.tg_name != ""
+        ? module.target_groups[each.value.tg_name].target_group_arn
         : each.value.target_group.arn
       )
       target_group = each.value.target_group != null ? merge(
@@ -738,80 +738,80 @@ module "ecs_clusters" {
   ecs = merge(
     each.value,
     {
-      key = each.value.service_group_key
+      task_definitions = each.value.task_definitions != null ? [
+        for td in each.value.task_definitions : merge(
+          td,
+          {
+            execution_role_arn = td.execution_role_key != null ? module.iam_roles[td.execution_role_key].iam_role_arn : td.execution_role_arn
+            task_role_arn      = td.task_role_key != null ? module.iam_roles[td.task_role_key].iam_role_arn : td.task_role_arn
+            container_definitions = td.container_definitions != null ? jsonencode([
+              for container in td.container_definitions : merge(
+                container,
+                {
+                  environment = concat(
+                    container.environment != null ? container.environment : [],
+                    each.value.backend_url != null ? [
+                      {
+                        name  = "BACKEND_URL"
+                        value = each.value.load_balancer_key != null ? module.load_balancers[each.value.load_balancer_key].dns_name : each.value.backend_url
+                      }
+                    ] : []
+                  )
+                }
+              )
+            ]) : td.container_definitions_file
+          }
+        )
+      ] : null
     },
     {
-      task_definitions = each.value.task_definitions != null ? merge(
-        each.value.task_definitions,
-        {
-          execution_role_arn = each.value.task_definitions.execution_role_key != null ? module.iam_roles[each.value.task_definitions.execution_role_key].iam_role_arn : each.value.task_definitions.execution_role_arn,
-          task_role_arn      = each.value.task_definitions.task_role_key != null ? module.iam_roles[each.value.task_definitions.task_role_key].iam_role_arn : each.value.task_definitions.task_role_arn
-          container_definitions = each.value.task_definitions.container_definitions != null ? jsonencode([
-            for container in each.value.task_definitions.container_definitions : merge(
-              container,
-              {
-                environment = concat(
-                  container.environment != null ? container.environment : [],
-                  each.value.backend_url != null ? [
-                    {
-                      name  = "BACKEND_URL"
-                      value = each.value.load_balancer_key != null ? module.load_balancers[each.value.load_balancer_key].dns_name : each.value.backend_url
-                    }
-                  ] : []
-                )
+      services = each.value.services != null ? [
+        for svc in each.value.services : merge(
+          svc,
+          {
+            load_balancers = svc.load_balancers != null ? [
+              for lb in svc.load_balancers : {
+                target_group_arn = lb.target_group_key != null ? module.target_groups[lb.target_group_key].target_group_arn : lb.target_group_arn
+                container_name   = lb.container_name
+                container_port   = lb.container_port
               }
-            )
-          ]) : each.value.task_definitions.container_definitions_file
-        }
-      ) : null
-    },
-    {
-      services = each.value.services != null ? merge(
-        each.value.services,
-        {
-          load_balancers = each.value.services.load_balancers != null ? [
-            for lb in each.value.services.load_balancers :
-            {
-              target_group_arn = lb.target_group_key != null ? module.target_groups[lb.target_group_key].target_group_arn : lb.target_group_arn
-              container_name   = lb.container_name
-              container_port   = lb.container_port
-            }
-          ] : []
-        },
-        {
-          network_configuration = each.value.services.network_configuration != null ? merge(
-            each.value.services.network_configuration,
-            {
-              subnets = each.value.services.network_configuration.subnet_keys != null ? flatten([
-                for subnet_key in each.value.services.network_configuration.subnet_keys :
-                (each.value.use_private_subnets == true) ?
-                module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-              ]) : each.value.services.network_configuration.subnets,
-              security_groups = each.value.services.network_configuration.security_group_keys != null ? [
-                for sg_key in each.value.services.network_configuration.security_group_keys :
-                module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
-              ] : each.value.services.network_configuration.security_group_ids
-            }
-          ) : null
-        }
-      ) : null
+            ] : []
+            network_configuration = svc.network_configuration != null ? merge(
+              svc.network_configuration,
+              {
+                subnets = svc.network_configuration.subnet_keys != null ? flatten([
+                  for subnet_key in svc.network_configuration.subnet_keys :
+                  (each.value.use_private_subnets == true) ?
+                  module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                  module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                ]) : svc.network_configuration.subnets
+                security_groups = svc.network_configuration.security_group_keys != null ? [
+                  for sg_key in svc.network_configuration.security_group_keys :
+                  module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+                ] : svc.network_configuration.security_groups
+              }
+            ) : null
+          }
+        )
+      ] : null
     },
     {
       ec2_autoscaling = each.value.ec2_autoscaling != null ? merge(
         each.value.ec2_autoscaling,
         {
-          launch_template = each.value.ec2_autoscaling.launch_templates != null ? merge(
-            each.value.ec2_autoscaling.launch_templates,
-            {
-              key_name             = each.value.ec2_autoscaling.launch_templates.key_name != null ? module.ec2_key_pairs[each.value.ec2_autoscaling.launch_templates.key_name].key_name : each.value.ec2_autoscaling.launch_templates.key_name,
-              iam_instance_profile = each.value.ec2_autoscaling.launch_templates.iam_instance_profile_key != null ? module.ec2_profiles[each.value.ec2_autoscaling.launch_templates.iam_instance_profile_key].instance_profile_name : each.value.ec2_autoscaling.launch_templates.iam_instance_profile,
-              vpc_security_group_ids = each.value.ec2_autoscaling.launch_templates.vpc_security_group_keys != null ? [
-                for sg_key in each.value.ec2_autoscaling.launch_templates.vpc_security_group_keys :
-                module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
-              ] : each.value.ec2_autoscaling.launch_templates.vpc_security_group_ids
-            }
-          ) : null,
+          launch_templates = each.value.ec2_autoscaling.launch_templates != null ? [
+            for lt in each.value.ec2_autoscaling.launch_templates : merge(
+              lt,
+              {
+                key_name             = lt.key_name != null ? module.ec2_key_pairs[lt.key_name].key_name : lt.key_name
+                iam_instance_profile = lt.iam_instance_profile_key != null ? module.ec2_profiles[lt.iam_instance_profile_key].instance_profile_name : lt.iam_instance_profile
+                vpc_security_group_ids = lt.vpc_security_group_keys != null ? [
+                  for sg_key in lt.vpc_security_group_keys :
+                  module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+                ] : lt.vpc_security_group_ids
+              }
+            )
+          ] : null
           autoscaling_group = each.value.ec2_autoscaling.autoscaling_group != null ? merge(
             each.value.ec2_autoscaling.autoscaling_group,
             {
@@ -820,7 +820,7 @@ module "ecs_clusters" {
                 (each.value.use_private_subnets == true) ?
                 module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
                 module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-              ]) : each.value.ec2_autoscaling.autoscaling_group.subnet_ids,
+              ]) : each.value.ec2_autoscaling.autoscaling_group.subnet_ids
               attach_target_groups = each.value.ec2_autoscaling.autoscaling_group.target_group_keys != null ? [
                 for tg_key in each.value.ec2_autoscaling.autoscaling_group.target_group_keys :
                 module.target_groups[tg_key].target_group_arn

@@ -1244,7 +1244,7 @@ inputs = {
       port       = 3000
       ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
       action     = "forward"
-      vpc_name   = local.vpc_name
+      vpc_name   = local.vpc_name_abr
       tg_name    = "ecs-backend"
     }
   ]
