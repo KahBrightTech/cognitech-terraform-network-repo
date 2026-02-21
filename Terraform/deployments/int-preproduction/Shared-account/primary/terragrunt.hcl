@@ -1170,8 +1170,8 @@ inputs = {
   ]
   load_balancers = [
     {
-      key             = "ecs-app"
-      name            = "ecs-app"
+      key             = "ecs-web"
+      name            = "ecs-web"
       vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "application"
       security_groups = ["alb"]
@@ -1185,8 +1185,8 @@ inputs = {
       create_default_listener    = false
     },
     {
-      key             = "ecs-backend"
-      name            = "ecs-backend"
+      key             = "ecs-app"
+      name            = "ecs-app"
       vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "network"
       security_groups = ["nlb"]
@@ -1201,8 +1201,8 @@ inputs = {
   ]
   alb_listeners = [
     {
-      key             = "ecs-app-https"
-      alb_key         = "ecs-app"
+      key             = "ecs-web-https"
+      alb_key         = "ecs-web"
       protocol        = "HTTPS"
       certificate_key = "${local.vpc_name_abr}"
       port            = 443
@@ -1238,8 +1238,8 @@ inputs = {
   ]
   nlb_listeners = [
     {
-      key        = "ecs-backend"
-      nlb_key    = "ecs-backend"
+      key        = "ecs-app"
+      nlb_key    = "ecs-app"
       protocol   = "TCP"
       port       = 3000
       ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
@@ -1257,7 +1257,7 @@ inputs = {
       target_type = "ip"
       health_check = {
         protocol = "HTTP"
-        port     = "traffic-port"
+        port     = 80
         path     = "/"
         matcher  = "200-299"
       }
@@ -1272,7 +1272,7 @@ inputs = {
       target_type = "ip"
       health_check = {
         protocol = "TCP"
-        port     = "traffic-port"
+        port     = 3000
         path     = "/"
       }
       vpc_name     = local.vpc_name_abr
@@ -1769,31 +1769,31 @@ inputs = {
           container_definitions_file = templatefile(
             "${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json",
             {
-              load_balancer_key = "ecs-backend"
+              load_balancer_key = "ecs-app"
             }
           )
         },
         {
-          family                     = "${local.vpc_name_abr}-backend"
-          network_mode               = "awsvpc"
-          requires_compatibilities   = ["EC2"]
-          cpu                        = "512"
-          memory                     = "1024"
-          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
-          task_role_key              = "${local.vpc_name_abr}-ecs-task"
+          family                   = "${local.vpc_name_abr}-backend"
+          network_mode             = "awsvpc"
+          requires_compatibilities = ["EC2"]
+          cpu                      = "512"
+          memory                   = "1024"
+          execution_role_key       = "${local.vpc_name_abr}-ecs-execution"
+          task_role_key            = "${local.vpc_name_abr}-ecs-task"
           container_definitions_file = templatefile(
             "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json",
             {}
           )
         },
         {
-          family                     = "${local.vpc_name_abr}-database"
-          network_mode               = "awsvpc"
-          requires_compatibilities   = ["FARGATE"]
-          cpu                        = "512"
-          memory                     = "1024"
-          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
-          task_role_key              = "${local.vpc_name_abr}-ecs-task"
+          family                   = "${local.vpc_name_abr}-database"
+          network_mode             = "awsvpc"
+          requires_compatibilities = ["FARGATE"]
+          cpu                      = "512"
+          memory                   = "1024"
+          execution_role_key       = "${local.vpc_name_abr}-ecs-execution"
+          task_role_key            = "${local.vpc_name_abr}-ecs-task"
           container_definitions_file = templatefile(
             "${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json",
             {}
