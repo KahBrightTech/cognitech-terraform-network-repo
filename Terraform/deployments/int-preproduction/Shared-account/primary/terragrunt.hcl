@@ -327,16 +327,7 @@ inputs = {
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.nlb_base,
-            [
-              {
-                key           = "egress-3000-ecs-backend"
-                target_sg_key = "ecs-backend"
-                description   = "ECS - Outbound traffic to ECS Backend SG on tcp port 3000"
-                from_port     = 3000
-                to_port       = 3000
-                ip_protocol   = "tcp"
-              },
-            ]
+            []
           )
         },
         {
