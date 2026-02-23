@@ -733,7 +733,7 @@ module "ecr_repos" {
 # Creates ECS clusters and supporting resources
 #--------------------------------------------------------------------
 module "ecs_clusters" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.6.12"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.6.13"
   for_each = (var.ecs_clusters != null) ? { for item in var.ecs_clusters : item.create_ecs_cluster ? item.key : null => item if item.create_ecs_cluster } : {}
   common   = var.common
   ecs = merge(
