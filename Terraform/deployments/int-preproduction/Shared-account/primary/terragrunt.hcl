@@ -1737,10 +1737,10 @@ inputs = {
       vpc_name                   = local.vpc_name_abr
       container_insights_enabled = true
       capacity_providers = {
-        capacity_provider_names = ["${local.vpc_name_abr}-ecs-cp", "FARGATE", "FARGATE_SPOT"]
+        capacity_provider_names = ["${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-ecs-cp", "FARGATE", "FARGATE_SPOT"]
         default_capacity_provider_strategy = [
           {
-            capacity_provider = "${local.vpc_name_abr}-ecs-cp"
+            capacity_provider = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-ecs-cp"
             base              = 2
             weight            = 1
           },
