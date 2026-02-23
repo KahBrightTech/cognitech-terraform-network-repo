@@ -807,9 +807,7 @@ module "ecs_clusters" {
                   td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
                     td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
                   )
-                  ) : (
-                  td.container_definitions_file != null ? file(td.container_definitions_file) : null
-                )
+                ) : td.container_definitions_file # ← just pass the path, don't call file()
               )
             ) : null
           }
