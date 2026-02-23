@@ -763,19 +763,19 @@ module "ecs_clusters" {
                     td.secrets_manager_key != null ? [
                       {
                         name       = "DB_PASSWORD"
-                        value_from = "${module.secrets_manager[td.secrets_manager_key].arn}:password::"
+                        value_from = "${module.secrets[td.secrets_manager_key].arn}:password::"
                       },
                       {
                         name       = "DB_USERNAME"
-                        value_from = "${module.secrets_manager[td.secrets_manager_key].arn}:username::"
+                        value_from = "${module.secrets[td.secrets_manager_key].arn}:username::"
                       },
                       {
                         name       = "DB_PORT"
-                        value_from = "${module.secrets_manager[td.secrets_manager_key].arn}:port::"
+                        value_from = "${module.secrets[td.secrets_manager_key].arn}:port::"
                       },
                       {
                         name       = "DB_NAME"
-                        value_from = "${module.secrets_manager[td.secrets_manager_key].arn}:dbname::"
+                        value_from = "${module.secrets[td.secrets_manager_key].arn}:dbname::"
                       }
                     ] : []
                   )
@@ -790,12 +790,12 @@ module "ecs_clusters" {
                   "http://${module.load_balancers[td.load_balancer_key].dns_name}"
                 ),
                 "__SECRET_ARN__",
-                td.secrets_manager_key != null ? module.secrets_manager[td.secrets_manager_key].arn : ""
+                td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
                 ) : (
                 td.secrets_manager_key != null && td.container_definitions_file != null ? replace(
                   td.container_definitions_file,
                   "__SECRET_ARN__",
-                  module.secrets_manager[td.secrets_manager_key].arn
+                  td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
                 ) : td.container_definitions_file
               )
             ) : null
