@@ -1767,7 +1767,6 @@ inputs = {
           memory                     = "1024"
           load_balancer_key          = "ecs-app"
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json",
-
         },
         {
           family                     = "${local.vpc_name_abr}-backend"
