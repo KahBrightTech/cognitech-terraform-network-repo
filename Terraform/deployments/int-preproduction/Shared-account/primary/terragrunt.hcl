@@ -1824,7 +1824,6 @@ inputs = {
               include.env.locals.subnet_prefix.secondary
             ]
             security_group_keys = ["ecs-frontend"]
-            assign_public_ip    = true
           }
         },
         {
@@ -1853,7 +1852,6 @@ inputs = {
               include.env.locals.subnet_prefix.secondary
             ]
             security_group_keys = ["ecs-backend"]
-            assign_public_ip    = true
           }
         },
         {
@@ -1875,7 +1873,6 @@ inputs = {
               include.env.locals.subnet_prefix.secondary
             ]
             security_group_keys = ["ecs-database"]
-            assign_public_ip    = true
           }
         }
       ]
