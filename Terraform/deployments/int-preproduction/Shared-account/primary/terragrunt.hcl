@@ -1744,16 +1744,16 @@ inputs = {
             base              = 2
             weight            = 1
           },
-          {
-            capacity_provider = "FARGATE"
-            base              = 0
-            weight            = 1
-          },
-          {
-            capacity_provider = "FARGATE_SPOT"
-            base              = 0
-            weight            = 3
-          }
+          # {
+          #   capacity_provider = "FARGATE"
+          #   base              = 0
+          #   weight            = 1
+          # },
+          # {
+          #   capacity_provider = "FARGATE_SPOT"
+          #   base              = 0
+          #   weight            = 3
+          # }
         ]
       }
       task_definitions = [
@@ -1781,12 +1781,20 @@ inputs = {
         {
           family                     = "${local.vpc_name_abr}-database"
           network_mode               = "awsvpc"
-          requires_compatibilities   = ["FARGATE"]
+          requires_compatibilities   = ["EC2"]
           cpu                        = "1280"
           memory                     = "2560"
           execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json"
+          volumes = [
+            {
+              name                        = "database-storage"
+              host_path                   = null
+              docker_volume_configuration = null
+              efs_volume_configuration    = null
+            }
+          ]
         }
       ]
       services = [
@@ -1886,7 +1894,7 @@ inputs = {
             vpc_security_group_keys     = ["ecs-instance"]
             user_data = base64encode(<<-EOF
                 #!/bin/bash
-                echo ECS_CLUSTER=${local.vpc_name_abr}-${include.env.locals.ecs_cluster_keys.primary_cluster} >> /etc/ecs/ecs.config
+                echo ECS_CLUSTER=${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-${include.env.locals.ecs_cluster_keys.primary_cluster} >> /etc/ecs/ecs.config
                 echo ECS_ENABLE_CONTAINER_METADATA=true >> /etc/ecs/ecs.config
             EOF
             )
