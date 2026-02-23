@@ -1910,7 +1910,7 @@ inputs = {
           launch_template_key = "${local.vpc_name_abr}-ecs-lt"
         }
         capacity_provider = {
-          name                           = "${local.vpc_name_abr}-ecs-cp"
+          name                           = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-ecs-cp"
           managed_termination_protection = "DISABLED"
           managed_scaling = {
             maximum_scaling_step_size = 3
