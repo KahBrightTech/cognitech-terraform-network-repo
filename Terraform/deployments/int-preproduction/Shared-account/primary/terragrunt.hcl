@@ -1792,7 +1792,7 @@ inputs = {
       services = [
         {
           name                               = "${local.vpc_name_abr}-frontend-service"
-          task_definition_fmaily             = "${local.vpc_name_abr}-frontend"
+          task_definition_family             = "${local.vpc_name_abr}-frontend"
           desired_count                      = 2
           launch_type                        = "EC2"
           scheduling_strategy                = "REPLICA"
@@ -1821,7 +1821,7 @@ inputs = {
         },
         {
           name                               = "${local.vpc_name_abr}-backend-service"
-          task_definition_fmaily             = "${local.vpc_name_abr}-backend"
+          task_definition_family             = "${local.vpc_name_abr}-backend"
           desired_count                      = 2
           launch_type                        = "EC2"
           scheduling_strategy                = "REPLICA"
@@ -1850,7 +1850,7 @@ inputs = {
         },
         {
           name                               = "${local.vpc_name_abr}-database-service"
-          task_definition_fmaily             = "${local.vpc_name_abr}-database"
+          task_definition_family             = "${local.vpc_name_abr}-database"
           desired_count                      = 1
           launch_type                        = "EC2"
           scheduling_strategy                = "REPLICA"
