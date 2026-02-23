@@ -35,7 +35,7 @@ locals {
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
   create_eks_cluster = false
-  create_ecs_cluster = true
+  create_ecs_cluster = false
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
@@ -327,7 +327,16 @@ inputs = {
           )
           egress = concat(
             include.cloud.locals.security_group_rules.locals.egress.nlb_base,
-            []
+            [
+              {
+                key           = "egress-3000-ecs-backend"
+                target_sg_key = "ecs-backend"
+                description   = "ECS - Outbound traffic to ECS Backend SG on tcp port 3000"
+                from_port     = 3000
+                to_port       = 3000
+                ip_protocol   = "tcp"
+              },
+            ]
           )
         },
         {
@@ -542,30 +551,6 @@ inputs = {
               description   = "ECS - Inbound traffic from NLB Internal SG on tcp port 3000"
               from_port     = 3000
               to_port       = 3000
-              ip_protocol   = "tcp"
-            },
-            {
-              key           = "ingress-8080-ecs-frontend-sg"
-              source_sg_key = "ecs-frontend"
-              description   = "ECS - Inbound traffic from Frontend SG on tcp port 8080"
-              from_port     = 8080
-              to_port       = 8080
-              ip_protocol   = "tcp"
-            },
-            {
-              key           = "ingress-3000-alb-sg"
-              source_sg_key = "alb"
-              description   = "ECS - Inbound traffic from ALB SG on tcp port 3000"
-              from_port     = 3000
-              to_port       = 3000
-              ip_protocol   = "tcp"
-            },
-            {
-              key           = "ingress-8080-alb-sg"
-              source_sg_key = "alb"
-              description   = "ECS - Inbound traffic from ALB SG on tcp port 8080"
-              from_port     = 8080
-              to_port       = 8080
               ip_protocol   = "tcp"
             }
           ]
@@ -1189,7 +1174,7 @@ inputs = {
       name            = "ecs-app"
       vpc_name_abr    = "${local.vpc_name_abr}"
       type            = "network"
-      security_groups = ["nlb"]
+      security_groups = ["ecs-nlb-internal"]
       subnets = [
         include.env.locals.subnet_prefix.primary
       ]
