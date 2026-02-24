@@ -35,7 +35,7 @@ locals {
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
   create_eks_cluster = false
-  create_ecs_cluster = true
+  create_ecs_cluster = false
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
@@ -1177,46 +1177,46 @@ inputs = {
     }
   ]
   load_balancers = [
-    {
-      key             = "ecs-web"
-      name            = "ecs-web"
-      vpc_name_abr    = "${local.vpc_name_abr}"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = false
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-      vpc_name                   = local.vpc_name_abr
-      create_default_listener    = false
-    },
-    {
-      key             = "ecs-app"
-      name            = "ecs-app"
-      vpc_name_abr    = "${local.vpc_name_abr}"
-      type            = "network"
-      security_groups = ["ecs-nlb-internal"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = false
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-      vpc_name                   = local.vpc_name_abr
-    }
+    # {
+    #   key             = "ecs-web"
+    #   name            = "ecs-web"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = false
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+    #   vpc_name                   = local.vpc_name_abr
+    #   create_default_listener    = false
+    # },
+    # {
+    #   key             = "ecs-app"
+    #   name            = "ecs-app"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "network"
+    #   security_groups = ["ecs-nlb-internal"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = false
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+    #   vpc_name                   = local.vpc_name_abr
+    # }
   ]
   alb_listeners = [
-    {
-      key             = "ecs-web-https"
-      alb_key         = "ecs-web"
-      protocol        = "HTTPS"
-      certificate_key = "${local.vpc_name_abr}"
-      port            = 443
-      action          = "forward"
-      tg_name         = "ecs-frontend"
-    }
+    # {
+    #   key             = "ecs-web-https"
+    #   alb_key         = "ecs-web"
+    #   protocol        = "HTTPS"
+    #   certificate_key = "${local.vpc_name_abr}"
+    #   port            = 443
+    #   action          = "forward"
+    #   tg_name         = "ecs-frontend"
+    # }
   ]
   alb_listener_rules = [
     # {
@@ -1245,46 +1245,46 @@ inputs = {
     # }
   ]
   nlb_listeners = [
-    {
-      key        = "ecs-app"
-      nlb_key    = "ecs-app"
-      protocol   = "TCP"
-      port       = 3000
-      ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
-      action     = "forward"
-      vpc_name   = local.vpc_name_abr
-      tg_name    = "ecs-backend"
-    }
+    # {
+    #   key        = "ecs-app"
+    #   nlb_key    = "ecs-app"
+    #   protocol   = "TCP"
+    #   port       = 3000
+    #   ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
+    #   action     = "forward"
+    #   vpc_name   = local.vpc_name_abr
+    #   tg_name    = "ecs-backend"
+    # }
   ]
   target_groups = [
-    {
-      key         = "ecs-frontend"
-      name        = "ecs-frontend"
-      protocol    = "HTTP"
-      port        = 80
-      target_type = "ip"
-      health_check = {
-        protocol = "HTTP"
-        port     = 80
-        path     = "/"
-        matcher  = "200-299"
-      }
-      vpc_name     = local.vpc_name_abr
-      vpc_name_abr = "${local.vpc_name_abr}"
-    },
-    {
-      key         = "ecs-backend"
-      name        = "ecs-backend"
-      protocol    = "TCP"
-      port        = 3000
-      target_type = "ip"
-      health_check = {
-        protocol = "TCP"
-        port     = 3000
-      }
-      vpc_name     = local.vpc_name_abr
-      vpc_name_abr = "${local.vpc_name_abr}"
-    }
+    # {
+    #   key         = "ecs-frontend"
+    #   name        = "ecs-frontend"
+    #   protocol    = "HTTP"
+    #   port        = 80
+    #   target_type = "ip"
+    #   health_check = {
+    #     protocol = "HTTP"
+    #     port     = 80
+    #     path     = "/"
+    #     matcher  = "200-299"
+    #   }
+    #   vpc_name     = local.vpc_name_abr
+    #   vpc_name_abr = "${local.vpc_name_abr}"
+    # },
+    # {
+    #   key         = "ecs-backend"
+    #   name        = "ecs-backend"
+    #   protocol    = "TCP"
+    #   port        = 3000
+    #   target_type = "ip"
+    #   health_check = {
+    #     protocol = "TCP"
+    #     port     = 3000
+    #   }
+    #   vpc_name     = local.vpc_name_abr
+    #   vpc_name_abr = "${local.vpc_name_abr}"
+    # }
   ]
 
   wafs = [
@@ -1723,7 +1723,7 @@ inputs = {
       publicly_accessible     = true
     },
     {
-      create_rds_instance   = true
+      create_rds_instance   = false
       key                   = "${local.vpc_name_abr}-postgres"
       name                  = "${local.vpc_name_abr}-postgres-db"
       engine                = "postgres"
