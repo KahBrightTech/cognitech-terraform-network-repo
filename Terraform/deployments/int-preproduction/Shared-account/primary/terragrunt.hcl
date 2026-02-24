@@ -35,7 +35,7 @@ locals {
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
   create_eks_cluster = false
-  create_ecs_cluster = false
+  create_ecs_cluster = true
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
@@ -462,6 +462,14 @@ inputs = {
               to_port     = 3306
               ip_protocol = "tcp"
             },
+            {
+              key           = "ingress-ecs-backend-3306-sg"
+              source_sg_key = "ecs-backend"
+              description   = "BASE - Inbound traffic from ECS Backend SG to Backend on tcp port 3306"
+              from_port     = 3306
+              to_port       = 3306
+              ip_protocol   = "tcp"
+            }
           ]
           egress = []
         },
@@ -550,6 +558,14 @@ inputs = {
               key           = "egress-3306-ecs-database-sg"
               target_sg_key = "ecs-database"
               description   = "ECS - Outbound traffic to Database SG on tcp port 3306"
+              from_port     = 3306
+              to_port       = 3306
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-3306-db-sg"
+              target_sg_key = "db"
+              description   = "ECS - Outbound traffic to DB SG on tcp port 3306"
               from_port     = 3306
               to_port       = 3306
               ip_protocol   = "tcp"
@@ -1145,46 +1161,46 @@ inputs = {
     }
   ]
   load_balancers = [
-    # {
-    #   key             = "ecs-web"
-    #   name            = "ecs-web"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = false
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-    #   vpc_name                   = local.vpc_name_abr
-    #   create_default_listener    = false
-    # },
-    # {
-    #   key             = "ecs-app"
-    #   name            = "ecs-app"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "network"
-    #   security_groups = ["ecs-nlb-internal"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = false
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-    #   vpc_name                   = local.vpc_name_abr
-    # }
+    {
+      key             = "ecs-web"
+      name            = "ecs-web"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = false
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+      vpc_name                   = local.vpc_name_abr
+      create_default_listener    = false
+    },
+    {
+      key             = "ecs-app"
+      name            = "ecs-app"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "network"
+      security_groups = ["ecs-nlb-internal"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = false
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+      vpc_name                   = local.vpc_name_abr
+    }
   ]
   alb_listeners = [
-    # {
-    #   key             = "ecs-web-https"
-    #   alb_key         = "ecs-web"
-    #   protocol        = "HTTPS"
-    #   certificate_key = "${local.vpc_name_abr}"
-    #   port            = 443
-    #   action          = "forward"
-    #   tg_name         = "ecs-frontend"
-    # }
+    {
+      key             = "ecs-web-https"
+      alb_key         = "ecs-web"
+      protocol        = "HTTPS"
+      certificate_key = "${local.vpc_name_abr}"
+      port            = 443
+      action          = "forward"
+      tg_name         = "ecs-frontend"
+    }
   ]
   alb_listener_rules = [
     # {
@@ -1213,46 +1229,46 @@ inputs = {
     # }
   ]
   nlb_listeners = [
-    # {
-    #   key        = "ecs-app"
-    #   nlb_key    = "ecs-app"
-    #   protocol   = "TCP"
-    #   port       = 3000
-    #   ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
-    #   action     = "forward"
-    #   vpc_name   = local.vpc_name_abr
-    #   tg_name    = "ecs-backend"
-    # }
+    {
+      key        = "ecs-app"
+      nlb_key    = "ecs-app"
+      protocol   = "TCP"
+      port       = 3000
+      ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
+      action     = "forward"
+      vpc_name   = local.vpc_name_abr
+      tg_name    = "ecs-backend"
+    }
   ]
   target_groups = [
-    # {
-    #   key         = "ecs-frontend"
-    #   name        = "ecs-frontend"
-    #   protocol    = "HTTP"
-    #   port        = 80
-    #   target_type = "ip"
-    #   health_check = {
-    #     protocol = "HTTP"
-    #     port     = 80
-    #     path     = "/"
-    #     matcher  = "200-299"
-    #   }
-    #   vpc_name     = local.vpc_name_abr
-    #   vpc_name_abr = "${local.vpc_name_abr}"
-    # },
-    # {
-    #   key         = "ecs-backend"
-    #   name        = "ecs-backend"
-    #   protocol    = "TCP"
-    #   port        = 3000
-    #   target_type = "ip"
-    #   health_check = {
-    #     protocol = "TCP"
-    #     port     = 3000
-    #   }
-    #   vpc_name     = local.vpc_name_abr
-    #   vpc_name_abr = "${local.vpc_name_abr}"
-    # }
+    {
+      key         = "ecs-frontend"
+      name        = "ecs-frontend"
+      protocol    = "HTTP"
+      port        = 80
+      target_type = "ip"
+      health_check = {
+        protocol = "HTTP"
+        port     = 80
+        path     = "/"
+        matcher  = "200-299"
+      }
+      vpc_name     = local.vpc_name_abr
+      vpc_name_abr = "${local.vpc_name_abr}"
+    },
+    {
+      key         = "ecs-backend"
+      name        = "ecs-backend"
+      protocol    = "TCP"
+      port        = 3000
+      target_type = "ip"
+      health_check = {
+        protocol = "TCP"
+        port     = 3000
+      }
+      vpc_name     = local.vpc_name_abr
+      vpc_name_abr = "${local.vpc_name_abr}"
+    }
   ]
 
   wafs = [
@@ -1672,8 +1688,8 @@ inputs = {
 
   rds_instances = [
     {
-      create_rds_instance   = false
-      key                   = "eksmysql"
+      create_rds_instance   = true
+      key                   = "ecsmysql"
       name                  = "${local.vpc_name_abr}-eks-mysql-db"
       engine                = "mysql"
       engine_version        = "8.0.43"
@@ -1682,7 +1698,7 @@ inputs = {
       allocated_storage     = 20
       max_allocated_storage = 20
       storage_type          = "gp3"
-      database_name         = "eksdb"
+      database_name         = "ecsdb"
       port                  = 3306
       subnet_keys = [
         include.env.locals.subnet_prefix.primary
@@ -1752,26 +1768,27 @@ inputs = {
           memory                     = "2560"
           execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
+          rds_key                    = "ecsmysql"
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"
         },
-        {
-          family                     = "${local.vpc_name_abr}-database"
-          network_mode               = "awsvpc"
-          requires_compatibilities   = ["EC2"]
-          cpu                        = "1280"
-          memory                     = "2560"
-          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
-          task_role_key              = "${local.vpc_name_abr}-ecs-task"
-          container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json"
-          volumes = [
-            {
-              name                        = "database-storage"
-              host_path                   = null
-              docker_volume_configuration = null
-              efs_volume_configuration    = null
-            }
-          ]
-        }
+        # {
+        #   family                     = "${local.vpc_name_abr}-database"
+        #   network_mode               = "awsvpc"
+        #   requires_compatibilities   = ["EC2"]
+        #   cpu                        = "1280"
+        #   memory                     = "2560"
+        #   execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
+        #   task_role_key              = "${local.vpc_name_abr}-ecs-task"
+        #   container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json"
+        #   volumes = [
+        #     {
+        #       name                        = "database-storage"
+        #       host_path                   = null
+        #       docker_volume_configuration = null
+        #       efs_volume_configuration    = null
+        #     }
+        #   ]
+        # }
       ]
       services = [
         {
@@ -1830,27 +1847,27 @@ inputs = {
             security_group_keys = ["ecs-backend"]
           }
         },
-        {
-          name                               = "${local.vpc_name_abr}-database-service"
-          task_definition_family             = "${local.vpc_name_abr}-database"
-          desired_count                      = 1
-          launch_type                        = "EC2"
-          scheduling_strategy                = "REPLICA"
-          deployment_maximum_percent         = 200
-          deployment_minimum_healthy_percent = 100
-          enable_ecs_managed_tags            = true
-          deployment_circuit_breaker = {
-            enable   = true
-            rollback = true
-          }
-          network_configuration = {
-            subnet_keys = [
-              include.env.locals.subnet_prefix.primary,
-              include.env.locals.subnet_prefix.secondary
-            ]
-            security_group_keys = ["ecs-database"]
-          }
-        }
+        # {
+        #   name                               = "${local.vpc_name_abr}-database-service"
+        #   task_definition_family             = "${local.vpc_name_abr}-database"
+        #   desired_count                      = 1
+        #   launch_type                        = "EC2"
+        #   scheduling_strategy                = "REPLICA"
+        #   deployment_maximum_percent         = 200
+        #   deployment_minimum_healthy_percent = 100
+        #   enable_ecs_managed_tags            = true
+        #   deployment_circuit_breaker = {
+        #     enable   = true
+        #     rollback = true
+        #   }
+        #   network_configuration = {
+        #     subnet_keys = [
+        #       include.env.locals.subnet_prefix.primary,
+        #       include.env.locals.subnet_prefix.secondary
+        #     ]
+        #     security_group_keys = ["ecs-database"]
+        #   }
+        # }
       ]
       ec2_autoscaling = {
         launch_templates = [
