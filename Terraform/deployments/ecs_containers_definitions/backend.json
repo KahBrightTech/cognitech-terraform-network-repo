@@ -17,7 +17,7 @@
         "valueFrom": "__SECRET_ARN__:password::"
       },
       {
-        "name": "DB_USER",
+        "name": "DB_USERNAME",
         "valueFrom": "__SECRET_ARN__:username::"
       },
       {
