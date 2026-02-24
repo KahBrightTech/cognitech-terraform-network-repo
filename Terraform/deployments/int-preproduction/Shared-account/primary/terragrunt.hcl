@@ -1793,6 +1793,7 @@ inputs = {
           cpu                        = "512"
           memory                     = "1024"
           load_balancer_key          = "ecs-app"
+          load_balancer_port         = 3000
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json",
         },
         {

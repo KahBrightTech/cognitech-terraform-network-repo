@@ -1450,6 +1450,7 @@ variable "ecs_clusters" {
       cpu                      = optional(string)
       memory                   = optional(string)
       load_balancer_key        = optional(string)
+      load_balancer_port       = optional(number)
       secrets_manager_key      = optional(string)
       rds_key                  = optional(string)
       container_definitions = optional(list(object({

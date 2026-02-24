@@ -754,7 +754,7 @@ module "ecs_clusters" {
                     td.load_balancer_key != null ? [
                       {
                         name  = "BACKEND_URL"
-                        value = "http://${module.load_balancers[td.load_balancer_key].dns_name}"
+                        value = "http://${module.load_balancers[td.load_balancer_key].dns_name}${td.load_balancer_port != null ? ":${td.load_balancer_port}" : ""}"
                       }
                       ] : (
                       each.value.backend_url != null ? [
@@ -794,7 +794,7 @@ module "ecs_clusters" {
                 replace(
                   file(td.container_definitions_file),
                   "__BACKEND_URL__",
-                  "http://${module.load_balancers[td.load_balancer_key].dns_name}"
+                  "http://${module.load_balancers[td.load_balancer_key].dns_name}${td.load_balancer_port != null ? ":${td.load_balancer_port}" : ""}"
                 ),
                 "__SECRET_ARN__",
                 td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
@@ -807,7 +807,7 @@ module "ecs_clusters" {
                   td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
                     td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
                   )
-                ) : td.container_definitions_file # ← just pass the path, don't call file()
+                ) : td.container_definitions_file
               )
             ) : null
           }
