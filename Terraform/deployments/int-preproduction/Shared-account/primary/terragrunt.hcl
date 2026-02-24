@@ -469,6 +469,14 @@ inputs = {
               from_port     = 3306
               to_port       = 3306
               ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-ecs-backend-5432-sg"
+              source_sg_key = "ecs-backend"
+              description   = "BASE - Inbound traffic from ECS Backend SG to Backend on tcp port 5432"
+              from_port     = 5432
+              to_port       = 5432
+              ip_protocol   = "tcp"
             }
           ]
           egress = []
@@ -568,6 +576,14 @@ inputs = {
               description   = "ECS - Outbound traffic to DB SG on tcp port 3306"
               from_port     = 3306
               to_port       = 3306
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-5432-db-sg"
+              target_sg_key = "db"
+              description   = "ECS - Outbound traffic to DB SG on tcp port 5432"
+              from_port     = 5432
+              to_port       = 5432
               ip_protocol   = "tcp"
             },
             {
@@ -1688,7 +1704,7 @@ inputs = {
 
   rds_instances = [
     {
-      create_rds_instance   = true
+      create_rds_instance   = false
       key                   = "ecsmysql"
       name                  = "${local.vpc_name_abr}-eks-mysql-db"
       engine                = "mysql"
@@ -1700,6 +1716,25 @@ inputs = {
       storage_type          = "gp3"
       database_name         = "ecsdb"
       port                  = 3306
+      subnet_keys = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      vpc_security_group_keys = ["db"]
+      publicly_accessible     = true
+    },
+    {
+      create_rds_instance   = true
+      key                   = "${local.vpc_name_abr}-postgres"
+      name                  = "${local.vpc_name_abr}-postgres-db"
+      engine                = "postgres"
+      engine_version        = "15.4"
+      instance_class        = "db.t3.micro"
+      vpc_name              = local.vpc_name_abr
+      allocated_storage     = 20
+      max_allocated_storage = 40
+      storage_type          = "gp3"
+      database_name         = "ecsdb"
+      port                  = 5432
       subnet_keys = [
         include.env.locals.subnet_prefix.primary
       ]
@@ -1768,7 +1803,7 @@ inputs = {
           memory                     = "2560"
           execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
-          rds_key                    = "ecsmysql"
+          rds_key                    = "${local.vpc_name_abr}-postgres"
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"
         },
         # {
