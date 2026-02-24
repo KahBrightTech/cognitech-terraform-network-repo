@@ -40,6 +40,17 @@
         "ssm:GetParameterHistory"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "SSMMessagesAccess",
+      "Effect": "Allow",
+      "Action": [
+        "ssmmessages:CreateControlChannel",
+        "ssmmessages:CreateDataChannel",
+        "ssmmessages:OpenControlChannel",
+        "ssmmessages:OpenDataChannel"
+      ],
+      "Resource": "*"
     }
   ]
 }
