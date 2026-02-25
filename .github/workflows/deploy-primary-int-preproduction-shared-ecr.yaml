@@ -1,395 +1,399 @@
 name: Deploy-primary-int-preproduction-shared-ECR
 
 on:
-    push:
-        branches:
-            - main
-            - "*"
-        paths:
-            - "Container-apps/AfricaLetTalk/frontend/**"
-            - "Container-apps/AfricaLetTalk/backend/**"
-            - ".github/workflows/deploy-primary-int-preproduction-shared-ecr.yaml"
-    workflow_dispatch:
-        inputs:
-            service:
-                description: "Select the service to deploy"
-                required: true
-                type: choice
-                options:
-                    - "all"
-                    - "frontend"
-                    - "backend"
-            deploy_type:
-                description: "Deploy latest build or a specific version?"
-                required: true
-                type: choice
-                options:
-                    - "latest"
-                    - "specific-version"
-            frontend_version:
-                description: "Frontend version to deploy e.g. v11 (only used if service is frontend or all)"
-                required: false
-                type: string
-            backend_version:
-                description: "Backend version to deploy e.g. v11 (only used if service is backend or all)"
-                required: false
-                type: string
-            environment:
-                description: "Select the environment"
-                required: true
-                type: choice
-                options:
-                    - "int-preproduction"
+  push:
+    branches:
+      - main
+      - "*"
+    paths:
+      - "Container-apps/AfricaLetTalk/frontend/**"
+      - "Container-apps/AfricaLetTalk/backend/**"
+      - ".github/workflows/deploy-primary-int-preproduction-shared-ecr.yaml"
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Select the service to deploy"
+        required: true
+        type: choice
+        options:
+          - "all"
+          - "frontend"
+          - "backend"
+      deploy_type:
+        description: "Deploy latest build or a specific version?"
+        required: true
+        type: choice
+        options:
+          - "new-build"
+          - "existing-version"
+      frontend_tag:
+        description: "Frontend tag to use e.g. v13 (required for all deploy types)"
+        required: true
+        type: string
+      backend_tag:
+        description: "Backend tag to use e.g. v13 (required for all deploy types)"
+        required: true
+        type: string
+      environment:
+        description: "Select the environment"
+        required: true
+        type: choice
+        options:
+          - "int-preproduction"
 
 env:
-    IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
-    REGION: us-east-1
-    ECR_REGISTRY: 730335294148.dkr.ecr.us-east-1.amazonaws.com
-    ECR_REPO: int-preproduction-use1-ecs
-    FRONTEND_CONTAINER_NAME: frontend
-    BACKEND_CONTAINER_NAME: backend
-    ECS_CLUSTER: int-preproduction-use1-shared-letsconnect
-    FRONTEND_TASK_DEF: int-preproduction-use1-shared-frontend
-    BACKEND_TASK_DEF: int-preproduction-use1-shared-backend
-    FRONTEND_ECS_SERVICE: int-preproduction-use1-shared-frontend-service
-    BACKEND_ECS_SERVICE: int-preproduction-use1-shared-backend-service
+  IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
+  REGION: us-east-1
+  ECR_REGISTRY: 730335294148.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REPO: int-preproduction-use1-ecs
+  FRONTEND_CONTAINER_NAME: frontend
+  BACKEND_CONTAINER_NAME: backend
+  ECS_CLUSTER: int-preproduction-use1-shared-letsconnect
+  FRONTEND_TASK_DEF: int-preproduction-use1-shared-frontend
+  BACKEND_TASK_DEF: int-preproduction-use1-shared-backend
+  FRONTEND_ECS_SERVICE: int-preproduction-use1-shared-frontend-service
+  BACKEND_ECS_SERVICE: int-preproduction-use1-shared-backend-service
 
 permissions:
-    packages: write
-    contents: read
-    id-token: write
+  packages: write
+  contents: read
+  id-token: write
 
 jobs:
-    #------------------------------------------------------------------
-    # Detect which services changed
-    #------------------------------------------------------------------
-    Detect-Changes:
-        runs-on: ubuntu-latest
-        outputs:
-            frontend_changed: ${{ steps.filter.outputs.frontend }}
-            backend_changed: ${{ steps.filter.outputs.backend }}
-        steps:
-            - name: Clone the repository
-              uses: actions/checkout@v4
+  #------------------------------------------------------------------
+  # Detect which services changed (code push only)
+  #------------------------------------------------------------------
+  Detect-Changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend_changed: ${{ steps.filter.outputs.frontend }}
+      backend_changed:  ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
 
-            - name: Detect changed paths
-              uses: dorny/paths-filter@v2
-              id: filter
-              with:
-                  filters: |
-                      frontend:
-                        - 'Container-apps/AfricaLetTalk/frontend/**'
-                      backend:
-                        - 'Container-apps/AfricaLetTalk/backend/**'
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'Container-apps/AfricaLetTalk/frontend/**'
+            backend:
+              - 'Container-apps/AfricaLetTalk/backend/**'
 
-    #------------------------------------------------------------------
-    # Build and push frontend image to ECR
-    #------------------------------------------------------------------
-    Build-Frontend:
-        needs: Detect-Changes
-        runs-on: ubuntu-latest
-        if: |
-            needs.Detect-Changes.outputs.frontend_changed == 'true' ||
-            (github.event_name == 'workflow_dispatch' &&
-            (github.event.inputs.service == 'frontend' || github.event.inputs.service == 'all') &&
-            github.event.inputs.deploy_type == 'latest')
-        outputs:
-            image_tag: ${{ steps.meta.outputs.image_tag }}
-            version: ${{ steps.meta.outputs.version }}
-        defaults:
-            run:
-                shell: bash
-                working-directory: Container-apps/AfricaLetTalk/frontend
-        steps:
-            - name: Clone the repository
-              uses: actions/checkout@v4
+  #------------------------------------------------------------------
+  # Build and push frontend image to ECR
+  #------------------------------------------------------------------
+  Build-Frontend:
+    needs: Detect-Changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.Detect-Changes.outputs.frontend_changed == 'true' ||
+      (github.event_name == 'workflow_dispatch' &&
+      (github.event.inputs.service == 'frontend' || github.event.inputs.service == 'all') &&
+      github.event.inputs.deploy_type == 'new-build')
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: Container-apps/AfricaLetTalk/frontend
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
 
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1.7.0
-              with:
-                  role-to-assume: ${{ env.IAM_ROLE }}
-                  role-session-name: GitHub_to_AWS_via_FederatedOIDC
-                  aws-region: ${{ env.REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: ${{ env.IAM_ROLE }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.REGION }}
 
-            - name: Login to Amazon ECR
-              id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-            - name: Generate version tag
-              id: meta
-              run: |
-                  LATEST_TAG=$(aws ecr describe-images \
-                    --repository-name ${{ env.ECR_REPO }} \
-                    --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags' \
-                    --output json | \
-                    jq -r '.[] | select(startswith("frontend-v"))' | \
-                    sort -t'v' -k2 -n | tail -1)
+      - name: Verify tag does not already exist in ECR
+        id: meta
+        run: |
+          # Use the tag specified in the workflow input
+          NEW_TAG="frontend-${{ github.event.inputs.frontend_tag }}"
 
-                  if [ -z "$LATEST_TAG" ]; then
-                    NEW_VERSION="v1"
-                  else
-                    CURRENT_NUM=$(echo $LATEST_TAG | grep -oE '[0-9]+$')
-                    NEW_NUM=$((CURRENT_NUM + 1))
-                    NEW_VERSION="v${NEW_NUM}"
-                  fi
+          echo "Checking if ${NEW_TAG} already exists in ECR..."
 
-                  echo "version=${NEW_VERSION}"            >> $GITHUB_OUTPUT
-                  echo "image_tag=frontend-${NEW_VERSION}" >> $GITHUB_OUTPUT
+          EXISTING=$(aws ecr describe-images \
+            --repository-name ${{ env.ECR_REPO }} \
+            --query 'imageDetails[*].imageTags' \
+            --output json | \
+            jq -r '.[] | .[]? | select(. == "'${NEW_TAG}'")')
 
-                  echo "## Frontend Build"                         >> $GITHUB_STEP_SUMMARY
-                  echo "Version: \`frontend-${NEW_VERSION}\`"     >> $GITHUB_STEP_SUMMARY
-                  echo "SHA: \`${{ github.sha }}\`"               >> $GITHUB_STEP_SUMMARY
+          if [ -n "$EXISTING" ]; then
+            echo "❌ Tag ${NEW_TAG} already exists in ECR. Aborting to prevent overwrite." >> $GITHUB_STEP_SUMMARY
+            echo "❌ Tag ${NEW_TAG} already exists in ECR. A build with this tag has already been pushed."
+            echo "   Use a different tag or deploy the existing version using deploy_type = existing-version"
+            exit 1
+          fi
 
-            - name: Build and push frontend image
-              run: |
-                  docker build \
-                    -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }} \
-                    -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:frontend-latest \
-                    .
-                  docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}
-                  docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:frontend-latest
-                  echo "Pushed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Tag ${NEW_TAG} does not exist — proceeding with build" >> $GITHUB_STEP_SUMMARY
+          echo "image_tag=${NEW_TAG}" >> $GITHUB_OUTPUT
 
-    #------------------------------------------------------------------
-    # Build and push backend image to ECR
-    #------------------------------------------------------------------
-    Build-Backend:
-        needs: Detect-Changes
-        runs-on: ubuntu-latest
-        if: |
-            needs.Detect-Changes.outputs.backend_changed == 'true' ||
-            (github.event_name == 'workflow_dispatch' &&
-            (github.event.inputs.service == 'backend' || github.event.inputs.service == 'all') &&
-            github.event.inputs.deploy_type == 'latest')
-        outputs:
-            image_tag: ${{ steps.meta.outputs.image_tag }}
-            version: ${{ steps.meta.outputs.version }}
-        defaults:
-            run:
-                shell: bash
-                working-directory: Container-apps/AfricaLetTalk/backend
-        steps:
-            - name: Clone the repository
-              uses: actions/checkout@v4
+          echo "## Frontend Build"                    >> $GITHUB_STEP_SUMMARY
+          echo "Tag:  \`${NEW_TAG}\`"                 >> $GITHUB_STEP_SUMMARY
+          echo "SHA:  \`${{ github.sha }}\`"          >> $GITHUB_STEP_SUMMARY
 
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1.7.0
-              with:
-                  role-to-assume: ${{ env.IAM_ROLE }}
-                  role-session-name: GitHub_to_AWS_via_FederatedOIDC
-                  aws-region: ${{ env.REGION }}
+      - name: Build and push frontend image
+        run: |
+          docker build \
+            -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }} \
+            -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:frontend-latest \
+            .
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:frontend-latest
+          echo "✅ Pushed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
 
-            - name: Login to Amazon ECR
-              id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v2
+  #------------------------------------------------------------------
+  # Build and push backend image to ECR
+  #------------------------------------------------------------------
+  Build-Backend:
+    needs: Detect-Changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.Detect-Changes.outputs.backend_changed == 'true' ||
+      (github.event_name == 'workflow_dispatch' &&
+      (github.event.inputs.service == 'backend' || github.event.inputs.service == 'all') &&
+      github.event.inputs.deploy_type == 'new-build')
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: Container-apps/AfricaLetTalk/backend
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
 
-            - name: Generate version tag
-              id: meta
-              run: |
-                  LATEST_TAG=$(aws ecr describe-images \
-                    --repository-name ${{ env.ECR_REPO }} \
-                    --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags' \
-                    --output json | \
-                    jq -r '.[] | select(startswith("backend-v"))' | \
-                    sort -t'v' -k2 -n | tail -1)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: ${{ env.IAM_ROLE }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.REGION }}
 
-                  if [ -z "$LATEST_TAG" ]; then
-                    NEW_VERSION="v1"
-                  else
-                    CURRENT_NUM=$(echo $LATEST_TAG | grep -oE '[0-9]+$')
-                    NEW_NUM=$((CURRENT_NUM + 1))
-                    NEW_VERSION="v${NEW_NUM}"
-                  fi
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-                  echo "version=${NEW_VERSION}"           >> $GITHUB_OUTPUT
-                  echo "image_tag=backend-${NEW_VERSION}" >> $GITHUB_OUTPUT
+      - name: Verify tag does not already exist in ECR
+        id: meta
+        run: |
+          # Use the tag specified in the workflow input
+          NEW_TAG="backend-${{ github.event.inputs.backend_tag }}"
 
-                  echo "## Backend Build"                        >> $GITHUB_STEP_SUMMARY
-                  echo "Version: \`backend-${NEW_VERSION}\`"    >> $GITHUB_STEP_SUMMARY
-                  echo "SHA: \`${{ github.sha }}\`"             >> $GITHUB_STEP_SUMMARY
+          echo "Checking if ${NEW_TAG} already exists in ECR..."
 
-            - name: Build and push backend image
-              run: |
-                  docker build \
-                    -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }} \
-                    -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:backend-latest \
-                    .
-                  docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}
-                  docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:backend-latest
-                  echo "Pushed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          EXISTING=$(aws ecr describe-images \
+            --repository-name ${{ env.ECR_REPO }} \
+            --query 'imageDetails[*].imageTags' \
+            --output json | \
+            jq -r '.[] | .[]? | select(. == "'${NEW_TAG}'")')
 
-    #------------------------------------------------------------------
-    # Approve before deploying to ECS (main branch only)
-    #------------------------------------------------------------------
-    Approve:
-        needs: [Build-Frontend, Build-Backend]
-        runs-on: ubuntu-latest
-        if: |
-            always() &&
-            github.ref == 'refs/heads/main' &&
-            (needs.Build-Frontend.result == 'success' || needs.Build-Backend.result == 'success' ||
-            (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_type == 'specific-version'))
-        environment:
-            name: production
-        steps:
-            - name: Awaiting approval before deploying to ECS
-              run: |
-                  echo "Waiting for manual approval to deploy to ECS."
-                  echo "## Approval Gate" >> $GITHUB_STEP_SUMMARY
-                  if [ "${{ github.event.inputs.deploy_type }}" == "specific-version" ]; then
-                    echo "Deploy type: \`specific-version\`"                                          >> $GITHUB_STEP_SUMMARY
-                    echo "Frontend version: \`frontend-${{ github.event.inputs.frontend_version }}\`" >> $GITHUB_STEP_SUMMARY
-                    echo "Backend version:  \`backend-${{ github.event.inputs.backend_version }}\`"   >> $GITHUB_STEP_SUMMARY
-                  else
-                    echo "Deploy type: \`latest build\`" >> $GITHUB_STEP_SUMMARY
-                  fi
+          if [ -n "$EXISTING" ]; then
+            echo "❌ Tag ${NEW_TAG} already exists in ECR. Aborting to prevent overwrite." >> $GITHUB_STEP_SUMMARY
+            echo "❌ Tag ${NEW_TAG} already exists in ECR. A build with this tag has already been pushed."
+            echo "   Use a different tag or deploy the existing version using deploy_type = existing-version"
+            exit 1
+          fi
 
-    #------------------------------------------------------------------
-    # Deploy frontend to ECS
-    #------------------------------------------------------------------
-    Deploy-Frontend:
-        needs: [Approve, Build-Frontend]
-        runs-on: ubuntu-latest
-        if: |
-            always() &&
-            needs.Approve.result == 'success' &&
-            (needs.Build-Frontend.result == 'success' ||
-            (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_type == 'specific-version' &&
-            (github.event.inputs.service == 'frontend' || github.event.inputs.service == 'all')))
-        defaults:
-            run:
-                shell: bash
-        steps:
-            - name: Clone the repository
-              uses: actions/checkout@v4
+          echo "✅ Tag ${NEW_TAG} does not exist — proceeding with build" >> $GITHUB_STEP_SUMMARY
+          echo "image_tag=${NEW_TAG}" >> $GITHUB_OUTPUT
 
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1.7.0
-              with:
-                  role-to-assume: ${{ env.IAM_ROLE }}
-                  role-session-name: GitHub_to_AWS_via_FederatedOIDC
-                  aws-region: ${{ env.REGION }}
+          echo "## Backend Build"                     >> $GITHUB_STEP_SUMMARY
+          echo "Tag:  \`${NEW_TAG}\`"                 >> $GITHUB_STEP_SUMMARY
+          echo "SHA:  \`${{ github.sha }}\`"          >> $GITHUB_STEP_SUMMARY
 
-            - name: Resolve frontend image tag
-              id: resolve
-              run: |
-                  if [ "${{ github.event.inputs.deploy_type }}" == "specific-version" ]; then
-                    IMAGE_TAG="frontend-${{ github.event.inputs.frontend_version }}"
-                    echo "Deploying specific version: ${IMAGE_TAG}" >> $GITHUB_STEP_SUMMARY
-                  else
-                    IMAGE_TAG="${{ needs.Build-Frontend.outputs.image_tag }}"
-                    echo "Deploying latest build: ${IMAGE_TAG}" >> $GITHUB_STEP_SUMMARY
-                  fi
+      - name: Build and push backend image
+        run: |
+          docker build \
+            -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }} \
+            -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:backend-latest \
+            .
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:backend-latest
+          echo "✅ Pushed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
 
-                  aws ecr describe-images \
-                    --repository-name ${{ env.ECR_REPO }} \
-                    --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
-                    { echo "❌ Image ${IMAGE_TAG} not found in ECR" >> $GITHUB_STEP_SUMMARY; exit 1; }
+  #------------------------------------------------------------------
+  # Approve before deploying to ECS (main branch only)
+  #------------------------------------------------------------------
+  Approve:
+    needs: [Build-Frontend, Build-Backend]
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' &&
+      (needs.Build-Frontend.result == 'success' || needs.Build-Backend.result == 'success' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_type == 'existing-version'))
+    environment:
+      name: production
+    steps:
+      - name: Awaiting approval before deploying to ECS
+        run: |
+          echo "## Approval Gate" >> $GITHUB_STEP_SUMMARY
+          echo "Deploy type: \`${{ github.event.inputs.deploy_type }}\`"         >> $GITHUB_STEP_SUMMARY
+          echo "Frontend tag: \`frontend-${{ github.event.inputs.frontend_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Backend tag:  \`backend-${{ github.event.inputs.backend_tag }}\`"   >> $GITHUB_STEP_SUMMARY
+          echo "Waiting for manual approval..."
 
-                  echo "image_tag=${IMAGE_TAG}"                                >> $GITHUB_OUTPUT
-                  echo "✅ Image verified in ECR: \`${IMAGE_TAG}\`" >> $GITHUB_STEP_SUMMARY
+  #------------------------------------------------------------------
+  # Deploy frontend to ECS
+  #------------------------------------------------------------------
+  Deploy-Frontend:
+    needs: [Approve, Build-Frontend]
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      needs.Approve.result == 'success' &&
+      (needs.Build-Frontend.result == 'success' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_type == 'existing-version' &&
+      (github.event.inputs.service == 'frontend' || github.event.inputs.service == 'all')))
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
 
-            - name: Download current frontend task definition
-              run: |
-                  aws ecs describe-task-definition \
-                    --task-definition ${{ env.FRONTEND_TASK_DEF }} \
-                    --query taskDefinition \
-                    > frontend-task-definition.json
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: ${{ env.IAM_ROLE }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.REGION }}
 
-            - name: Update frontend image in task definition
-              id: frontend-task-def
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: frontend-task-definition.json
-                  container-name: ${{ env.FRONTEND_CONTAINER_NAME }}
-                  image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}
+      - name: Resolve and verify frontend image tag
+        id: resolve
+        run: |
+          IMAGE_TAG="frontend-${{ github.event.inputs.frontend_tag }}"
 
-            - name: Deploy frontend to ECS
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                  task-definition: ${{ steps.frontend-task-def.outputs.task-definition }}
-                  service: ${{ env.FRONTEND_ECS_SERVICE }}
-                  cluster: ${{ env.ECS_CLUSTER }}
-                  wait-for-service-stability: true
+          echo "Verifying \`${IMAGE_TAG}\` exists in ECR before deploying..."
 
-            - name: Frontend deploy summary
-              run: |
-                  echo "## Frontend Deployment"                                                                               >> $GITHUB_STEP_SUMMARY
-                  echo "✅ Deployed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-                  echo "Service: \`${{ env.FRONTEND_ECS_SERVICE }}\`"                                                        >> $GITHUB_STEP_SUMMARY
-                  echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"                                                                 >> $GITHUB_STEP_SUMMARY
+          # For new-build the image was just pushed so it must exist
+          # For existing-version verify the tag is actually in ECR
+          aws ecr describe-images \
+            --repository-name ${{ env.ECR_REPO }} \
+            --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
+            {
+              echo "❌ Image ${IMAGE_TAG} not found in ECR" >> $GITHUB_STEP_SUMMARY
+              echo "❌ Image ${IMAGE_TAG} not found in ECR. Cannot deploy a non-existent image."
+              echo "   Push the image first using deploy_type = new-build"
+              exit 1
+            }
 
-    #------------------------------------------------------------------
-    # Deploy backend to ECS
-    #------------------------------------------------------------------
-    Deploy-Backend:
-        needs: [Approve, Build-Backend]
-        runs-on: ubuntu-latest
-        if: |
-            always() &&
-            needs.Approve.result == 'success' &&
-            (needs.Build-Backend.result == 'success' ||
-            (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_type == 'specific-version' &&
-            (github.event.inputs.service == 'backend' || github.event.inputs.service == 'all')))
-        defaults:
-            run:
-                shell: bash
-        steps:
-            - name: Clone the repository
-              uses: actions/checkout@v4
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "✅ Image \`${IMAGE_TAG}\` verified in ECR — proceeding with deploy" >> $GITHUB_STEP_SUMMARY
 
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1.7.0
-              with:
-                  role-to-assume: ${{ env.IAM_ROLE }}
-                  role-session-name: GitHub_to_AWS_via_FederatedOIDC
-                  aws-region: ${{ env.REGION }}
+      - name: Download current frontend task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.FRONTEND_TASK_DEF }} \
+            --query taskDefinition \
+            > frontend-task-definition.json
 
-            - name: Resolve backend image tag
-              id: resolve
-              run: |
-                  if [ "${{ github.event.inputs.deploy_type }}" == "specific-version" ]; then
-                    IMAGE_TAG="backend-${{ github.event.inputs.backend_version }}"
-                    echo "Deploying specific version: ${IMAGE_TAG}" >> $GITHUB_STEP_SUMMARY
-                  else
-                    IMAGE_TAG="${{ needs.Build-Backend.outputs.image_tag }}"
-                    echo "Deploying latest build: ${IMAGE_TAG}" >> $GITHUB_STEP_SUMMARY
-                  fi
+      - name: Update frontend image in task definition
+        id: frontend-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: frontend-task-definition.json
+          container-name: ${{ env.FRONTEND_CONTAINER_NAME }}
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}
 
-                  aws ecr describe-images \
-                    --repository-name ${{ env.ECR_REPO }} \
-                    --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
-                    { echo "❌ Image ${IMAGE_TAG} not found in ECR" >> $GITHUB_STEP_SUMMARY; exit 1; }
+      - name: Deploy frontend to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.frontend-task-def.outputs.task-definition }}
+          service:         ${{ env.FRONTEND_ECS_SERVICE }}
+          cluster:         ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
 
-                  echo "image_tag=${IMAGE_TAG}"                                >> $GITHUB_OUTPUT
-                  echo "✅ Image verified in ECR: \`${IMAGE_TAG}\`" >> $GITHUB_STEP_SUMMARY
+      - name: Frontend deploy summary
+        run: |
+          echo "## Frontend Deployment"                                                                               >> $GITHUB_STEP_SUMMARY
+          echo "✅ Deployed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Service: \`${{ env.FRONTEND_ECS_SERVICE }}\`"                                                        >> $GITHUB_STEP_SUMMARY
+          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"                                                                 >> $GITHUB_STEP_SUMMARY
 
-            - name: Download current backend task definition
-              run: |
-                  aws ecs describe-task-definition \
-                    --task-definition ${{ env.BACKEND_TASK_DEF }} \
-                    --query taskDefinition \
-                    > backend-task-definition.json
+  #------------------------------------------------------------------
+  # Deploy backend to ECS
+  #------------------------------------------------------------------
+  Deploy-Backend:
+    needs: [Approve, Build-Backend]
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      needs.Approve.result == 'success' &&
+      (needs.Build-Backend.result == 'success' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_type == 'existing-version' &&
+      (github.event.inputs.service == 'backend' || github.event.inputs.service == 'all')))
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
 
-            - name: Update backend image in task definition
-              id: backend-task-def
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: backend-task-definition.json
-                  container-name: ${{ env.BACKEND_CONTAINER_NAME }}
-                  image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: ${{ env.IAM_ROLE }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.REGION }}
 
-            - name: Deploy backend to ECS
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                  task-definition: ${{ steps.backend-task-def.outputs.task-definition }}
-                  service: ${{ env.BACKEND_ECS_SERVICE }}
-                  cluster: ${{ env.ECS_CLUSTER }}
-                  wait-for-service-stability: true
+      - name: Resolve and verify backend image tag
+        id: resolve
+        run: |
+          IMAGE_TAG="backend-${{ github.event.inputs.backend_tag }}"
 
-            - name: Backend deploy summary
-              run: |
-                  echo "## Backend Deployment"                                                                                >> $GITHUB_STEP_SUMMARY
-                  echo "✅ Deployed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-                  echo "Service: \`${{ env.BACKEND_ECS_SERVICE }}\`"                                                         >> $GITHUB_STEP_SUMMARY
-                  echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"                                                                 >> $GITHUB_STEP_SUMMARY
+          echo "Verifying \`${IMAGE_TAG}\` exists in ECR before deploying..."
+
+          aws ecr describe-images \
+            --repository-name ${{ env.ECR_REPO }} \
+            --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
+            {
+              echo "❌ Image ${IMAGE_TAG} not found in ECR" >> $GITHUB_STEP_SUMMARY
+              echo "❌ Image ${IMAGE_TAG} not found in ECR. Cannot deploy a non-existent image."
+              echo "   Push the image first using deploy_type = new-build"
+              exit 1
+            }
+
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "✅ Image \`${IMAGE_TAG}\` verified in ECR — proceeding with deploy" >> $GITHUB_STEP_SUMMARY
+
+      - name: Download current backend task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.BACKEND_TASK_DEF }} \
+            --query taskDefinition \
+            > backend-task-definition.json
+
+      - name: Update backend image in task definition
+        id: backend-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: backend-task-definition.json
+          container-name: ${{ env.BACKEND_CONTAINER_NAME }}
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}
+
+      - name: Deploy backend to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.backend-task-def.outputs.task-definition }}
+          service:         ${{ env.BACKEND_ECS_SERVICE }}
+          cluster:         ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Backend deploy summary
+        run: |
+          echo "## Backend Deployment"                                                                                >> $GITHUB_STEP_SUMMARY
+          echo "✅ Deployed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Service: \`${{ env.BACKEND_ECS_SERVICE }}\`"                                                         >> $GITHUB_STEP_SUMMARY
+          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"                                                                 >> $GITHUB_STEP_SUMMARY
