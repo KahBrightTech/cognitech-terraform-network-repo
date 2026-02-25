@@ -8,7 +8,6 @@ on:
     paths:
       - "Container-apps/AfricaLetTalk/frontend/**"
       - "Container-apps/AfricaLetTalk/backend/**"
-      - ".github/workflows/deploy-primary-int-preproduction-shared-ecr.yaml"
   workflow_dispatch:
     inputs:
       service:
@@ -44,12 +43,12 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
   REGION: us-east-1
-  ECR_REGISTRY: 730335294148.dkr.ecr.us-east-1.amazonaws.com  # ← removed repo name from here
+  ECR_REGISTRY: 730335294148.dkr.ecr.us-east-1.amazonaws.com
   ECR_REPO: int-preproduction-use1-ecs
   FRONTEND_CONTAINER_NAME: frontend
   BACKEND_CONTAINER_NAME: backend
   ECS_CLUSTER: int-preproduction-use1-shared-letsconnect
-  FRONTEND_TASK_DEF: int-preproduction-use1-shared-frontend  
+  FRONTEND_TASK_DEF: int-preproduction-use1-shared-frontend
   BACKEND_TASK_DEF: int-preproduction-use1-shared-backend
   FRONTEND_ECS_SERVICE: int-preproduction-use1-shared-frontend-service
   BACKEND_ECS_SERVICE: int-preproduction-use1-shared-backend-service
@@ -99,7 +98,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: Container-apps/AfricaLetTalk/frontend  
+        working-directory: Container-apps/AfricaLetTalk/frontend
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
@@ -133,12 +132,12 @@ jobs:
             NEW_VERSION="v${NEW_NUM}"
           fi
 
-          echo "version=${NEW_VERSION}"              >> $GITHUB_OUTPUT
-          echo "image_tag=frontend-${NEW_VERSION}"   >> $GITHUB_OUTPUT
+          echo "version=${NEW_VERSION}"            >> $GITHUB_OUTPUT
+          echo "image_tag=frontend-${NEW_VERSION}" >> $GITHUB_OUTPUT
 
-          echo "## Frontend Build"                           >> $GITHUB_STEP_SUMMARY
-          echo "Version: \`frontend-${NEW_VERSION}\`"       >> $GITHUB_STEP_SUMMARY
-          echo "SHA: \`${{ github.sha }}\`"                 >> $GITHUB_STEP_SUMMARY
+          echo "## Frontend Build"                         >> $GITHUB_STEP_SUMMARY
+          echo "Version: \`frontend-${NEW_VERSION}\`"     >> $GITHUB_STEP_SUMMARY
+          echo "SHA: \`${{ github.sha }}\`"               >> $GITHUB_STEP_SUMMARY
 
       - name: Build and push frontend image
         run: |
@@ -201,12 +200,12 @@ jobs:
             NEW_VERSION="v${NEW_NUM}"
           fi
 
-          echo "version=${NEW_VERSION}"             >> $GITHUB_OUTPUT
-          echo "image_tag=backend-${NEW_VERSION}"   >> $GITHUB_OUTPUT
+          echo "version=${NEW_VERSION}"           >> $GITHUB_OUTPUT
+          echo "image_tag=backend-${NEW_VERSION}" >> $GITHUB_OUTPUT
 
-          echo "## Backend Build"                          >> $GITHUB_STEP_SUMMARY
-          echo "Version: \`backend-${NEW_VERSION}\`"      >> $GITHUB_STEP_SUMMARY
-          echo "SHA: \`${{ github.sha }}\`"               >> $GITHUB_STEP_SUMMARY
+          echo "## Backend Build"                        >> $GITHUB_STEP_SUMMARY
+          echo "Version: \`backend-${NEW_VERSION}\`"    >> $GITHUB_STEP_SUMMARY
+          echo "SHA: \`${{ github.sha }}\`"             >> $GITHUB_STEP_SUMMARY
 
       - name: Build and push backend image
         run: |
@@ -237,9 +236,9 @@ jobs:
           echo "Waiting for manual approval to deploy to ECS."
           echo "## Approval Gate" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event.inputs.deploy_type }}" == "specific-version" ]; then
-            echo "Deploy type: \`specific-version\`" >> $GITHUB_STEP_SUMMARY
+            echo "Deploy type: \`specific-version\`"                                          >> $GITHUB_STEP_SUMMARY
             echo "Frontend version: \`frontend-${{ github.event.inputs.frontend_version }}\`" >> $GITHUB_STEP_SUMMARY
-            echo "Backend version: \`backend-${{ github.event.inputs.backend_version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "Backend version:  \`backend-${{ github.event.inputs.backend_version }}\`"   >> $GITHUB_STEP_SUMMARY
           else
             echo "Deploy type: \`latest build\`" >> $GITHUB_STEP_SUMMARY
           fi
@@ -286,13 +285,13 @@ jobs:
             --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
             { echo "❌ Image ${IMAGE_TAG} not found in ECR" >> $GITHUB_STEP_SUMMARY; exit 1; }
 
-          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}"                                >> $GITHUB_OUTPUT
           echo "✅ Image verified in ECR: \`${IMAGE_TAG}\`" >> $GITHUB_STEP_SUMMARY
 
       - name: Download current frontend task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition ${{ env.ECS_CLUSTER }}-frontend \
+            --task-definition ${{ env.FRONTEND_TASK_DEF }} \
             --query taskDefinition \
             > frontend-task-definition.json
 
@@ -314,10 +313,10 @@ jobs:
 
       - name: Frontend deploy summary
         run: |
-          echo "## Frontend Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "## Frontend Deployment"                                                                               >> $GITHUB_STEP_SUMMARY
           echo "✅ Deployed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Service: \`${{ env.FRONTEND_ECS_SERVICE }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"          >> $GITHUB_STEP_SUMMARY
+          echo "Service: \`${{ env.FRONTEND_ECS_SERVICE }}\`"                                                        >> $GITHUB_STEP_SUMMARY
+          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"                                                                 >> $GITHUB_STEP_SUMMARY
 
   #------------------------------------------------------------------
   # Deploy backend to ECS
@@ -361,13 +360,13 @@ jobs:
             --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
             { echo "❌ Image ${IMAGE_TAG} not found in ECR" >> $GITHUB_STEP_SUMMARY; exit 1; }
 
-          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}"                                >> $GITHUB_OUTPUT
           echo "✅ Image verified in ECR: \`${IMAGE_TAG}\`" >> $GITHUB_STEP_SUMMARY
 
       - name: Download current backend task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition ${{ env.ECS_CLUSTER }}-backend \
+            --task-definition ${{ env.BACKEND_TASK_DEF }} \
             --query taskDefinition \
             > backend-task-definition.json
 
@@ -389,7 +388,7 @@ jobs:
 
       - name: Backend deploy summary
         run: |
-          echo "## Backend Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "## Backend Deployment"                                                                                >> $GITHUB_STEP_SUMMARY
           echo "✅ Deployed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Service: \`${{ env.BACKEND_ECS_SERVICE }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"         >> $GITHUB_STEP_SUMMARY
+          echo "Service: \`${{ env.BACKEND_ECS_SERVICE }}\`"                                                         >> $GITHUB_STEP_SUMMARY
+          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"                                                                 >> $GITHUB_STEP_SUMMARY
