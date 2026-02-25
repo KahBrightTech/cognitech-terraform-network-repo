@@ -49,6 +49,8 @@ env:
   FRONTEND_CONTAINER_NAME: frontend
   BACKEND_CONTAINER_NAME: backend
   ECS_CLUSTER: int-preproduction-use1-shared-letsconnect
+  FRONTEND_TASK_DEF: int-preproduction-use1-shared-frontend  
+  BACKEND_TASK_DEF: int-preproduction-use1-shared-backend
   FRONTEND_ECS_SERVICE: int-preproduction-use1-shared-frontend-service
   BACKEND_ECS_SERVICE: int-preproduction-use1-shared-backend-service
 
