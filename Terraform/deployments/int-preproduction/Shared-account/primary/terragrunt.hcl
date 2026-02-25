@@ -11,6 +11,7 @@ include "env" {
   path   = find_in_parent_folders("locals-env.hcl")
   expose = true
 }
+
 #-------------------------------------------------------
 # Locals 
 #-------------------------------------------------------
@@ -35,7 +36,7 @@ locals {
   vpc_name           = "shared-services"
   vpc_name_abr       = "shared"
   create_eks_cluster = false
-  create_ecs_cluster = false
+  create_ecs_cluster = true
   vpn_ip             = "69.143.134.56/32"
 
   # Composite variables 
@@ -1177,21 +1178,21 @@ inputs = {
     }
   ]
   load_balancers = [
-    # {
-    #   key             = "ecs-web"
-    #   name            = "ecs-web"
-    #   vpc_name_abr    = "${local.vpc_name_abr}"
-    #   type            = "application"
-    #   security_groups = ["alb"]
-    #   subnets = [
-    #     include.env.locals.subnet_prefix.primary
-    #   ]
-    #   enable_deletion_protection = false
-    #   enable_access_logs         = true
-    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-    #   vpc_name                   = local.vpc_name_abr
-    #   create_default_listener    = false
-    # },
+    {
+      key             = "ecs-web"
+      name            = "ecs-web"
+      vpc_name_abr    = "${local.vpc_name_abr}"
+      type            = "application"
+      security_groups = ["alb"]
+      subnets = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = false
+      enable_access_logs         = true
+      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+      vpc_name                   = local.vpc_name_abr
+      create_default_listener    = false
+    },
     # {
     #   key             = "ecs-app"
     #   name            = "ecs-app"
@@ -1208,15 +1209,15 @@ inputs = {
     # }
   ]
   alb_listeners = [
-    # {
-    #   key             = "ecs-web-https"
-    #   alb_key         = "ecs-web"
-    #   protocol        = "HTTPS"
-    #   certificate_key = "${local.vpc_name_abr}"
-    #   port            = 443
-    #   action          = "forward"
-    #   tg_name         = "ecs-frontend"
-    # }
+    {
+      key             = "ecs-web-https"
+      alb_key         = "ecs-web"
+      protocol        = "HTTPS"
+      certificate_key = "${local.vpc_name_abr}"
+      port            = 443
+      action          = "forward"
+      tg_name         = "ecs-frontend"
+    }
   ]
   alb_listener_rules = [
     # {
@@ -1257,21 +1258,21 @@ inputs = {
     # }
   ]
   target_groups = [
-    # {
-    #   key         = "ecs-frontend"
-    #   name        = "ecs-frontend"
-    #   protocol    = "HTTP"
-    #   port        = 80
-    #   target_type = "ip"
-    #   health_check = {
-    #     protocol = "HTTP"
-    #     port     = 80
-    #     path     = "/"
-    #     matcher  = "200-299"
-    #   }
-    #   vpc_name     = local.vpc_name_abr
-    #   vpc_name_abr = "${local.vpc_name_abr}"
-    # },
+    {
+      key         = "ecs-frontend"
+      name        = "ecs-frontend"
+      protocol    = "HTTP"
+      port        = 80
+      target_type = "ip"
+      health_check = {
+        protocol = "HTTP"
+        port     = 80
+        path     = "/"
+        matcher  = "200-299"
+      }
+      vpc_name     = local.vpc_name_abr
+      vpc_name_abr = "${local.vpc_name_abr}"
+    },
     # {
     #   key         = "ecs-backend"
     #   name        = "ecs-backend"
@@ -1723,7 +1724,7 @@ inputs = {
       publicly_accessible     = true
     },
     {
-      create_rds_instance   = false
+      create_rds_instance   = true
       key                   = "${local.vpc_name_abr}-postgres"
       name                  = "${local.vpc_name_abr}-postgres-db"
       engine                = "postgres"
@@ -1783,6 +1784,26 @@ inputs = {
           # }
         ]
       }
+      cloud_map_namespaces = [
+        {
+          name = "${local.vpc_name_abr}.local"
+          type = "DNS_PUBLIC"
+          services = [
+            {
+              name = "backend"
+              dns_config = {
+                routing_policy = "MULTIVALUE"
+                dns_records = [
+                  { ttl = 10, type = "A" }
+                ]
+              }
+              health_check_custom_config = {
+                failure_threshold = 1
+              }
+            }
+          ]
+        }
+      ]
       task_definitions = [
         {
           family                     = "${local.vpc_name_abr}-frontend"
@@ -1805,6 +1826,8 @@ inputs = {
           execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
           rds_key                    = "${local.vpc_name_abr}-postgres"
+          cloud_map_key              = "${local.vpc_name_abr}.local/backend"
+          cloud_map_port             = 3000
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"
         },
         # {
@@ -1866,17 +1889,22 @@ inputs = {
           deployment_maximum_percent         = 200
           deployment_minimum_healthy_percent = 100
           enable_ecs_managed_tags            = true
+          service_registries = {
+            cloud_map_service_key = "${local.vpc_name_abr}.local/backend"
+            container_name        = "backend"
+            container_port        = 3000
+          }
           deployment_circuit_breaker = {
             enable   = true
             rollback = true
           }
-          load_balancers = [
-            {
-              target_group_key = "ecs-backend"
-              container_name   = "backend"
-              container_port   = 3000
-            }
-          ]
+          # load_balancers = [
+          #   {
+          #     target_group_key = "ecs-backend"
+          #     container_name   = "backend"
+          #     container_port   = 3000
+          #   }
+          # ]
           network_configuration = {
             subnet_keys = [
               include.env.locals.subnet_prefix.primary,

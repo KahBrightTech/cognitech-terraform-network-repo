@@ -733,7 +733,7 @@ module "ecr_repos" {
 # Creates ECS clusters and supporting resources
 #--------------------------------------------------------------------
 module "ecs_clusters" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.6.15"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.6.17"
   for_each = (var.ecs_clusters != null) ? { for item in var.ecs_clusters : item.create_ecs_cluster ? item.key : null => item if item.create_ecs_cluster } : {}
   common   = var.common
   ecs = merge(
@@ -751,19 +751,31 @@ module "ecs_clusters" {
                 {
                   environment = concat(
                     container.environment != null ? container.environment : [],
+
+                    # ── Load Balancer BACKEND_URL ──
                     td.load_balancer_key != null ? [
                       {
                         name  = "BACKEND_URL"
                         value = "http://${module.load_balancers[td.load_balancer_key].dns_name}${td.load_balancer_port != null ? ":${td.load_balancer_port}" : ""}"
                       }
                       ] : (
-                      each.value.backend_url != null ? [
+                      td.cloud_map_key != null ? [
                         {
-                          name  = "BACKEND_URL"
-                          value = each.value.backend_url
+                          name = "BACKEND_URL"
+                          value = "http://${
+                            join(".", reverse(split("/", td.cloud_map_key)))
+                          }${td.cloud_map_port != null ? ":${td.cloud_map_port}" : ""}"
                         }
-                      ] : []
-                    )
+                        ] : (
+
+                        # ── Static BACKEND_URL fallback ──
+                        each.value.backend_url != null ? [
+                          {
+                            name  = "BACKEND_URL"
+                            value = each.value.backend_url
+                          }
+                        ] : []
+                    ))
                   )
                   secrets = concat(
                     container.secrets != null ? container.secrets : [],
@@ -801,14 +813,27 @@ module "ecs_clusters" {
                   td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
                 )
                 ) : (
-                (td.rds_key != null || td.secrets_manager_key != null) && td.container_definitions_file != null ? replace(
-                  file(td.container_definitions_file),
+                td.cloud_map_key != null && td.container_definitions_file != null ? replace(
+                  replace(
+                    file(td.container_definitions_file),
+                    "__BACKEND_URL__",
+                    "http://${
+                      join(".", reverse(split("/", td.cloud_map_key)))
+                    }${td.cloud_map_port != null ? ":${td.cloud_map_port}" : ""}"
+                  ),
                   "__SECRET_ARN__",
                   td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
                     td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
                   )
-                ) : td.container_definitions_file
-              )
+                  ) : (
+                  (td.rds_key != null || td.secrets_manager_key != null) && td.container_definitions_file != null ? replace(
+                    file(td.container_definitions_file),
+                    "__SECRET_ARN__",
+                    td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
+                      td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
+                    )
+                  ) : td.container_definitions_file
+              ))
             ) : null
           }
         )
