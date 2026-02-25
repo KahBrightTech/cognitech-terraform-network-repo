@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: africanwear-db
+    environment:
+      POSTGRES_USER: africanwear
+      POSTGRES_PASSWORD: africanwear123
+      POSTGRES_DB: africanwear_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - africanwear-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U africanwear"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Authentication Microservice
+  auth-service:
+    build: ./auth-service
+    container_name: africanwear-auth
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://africanwear:africanwear123@database:5432/africanwear_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 24h
+    ports:
+      - "3001:3001"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - africanwear-network
+    restart: unless-stopped
+
+  # Products/Catalog Microservice
+  products-service:
+    build: ./products-service
+    container_name: africanwear-products
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgresql://africanwear:africanwear123@database:5432/africanwear_db
+    ports:
+      - "3002:3002"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - africanwear-network
+    restart: unless-stopped
+
+  # Cart Microservice
+  cart-service:
+    build: ./cart-service
+    container_name: africanwear-cart
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: postgresql://africanwear:africanwear123@database:5432/africanwear_db
+      AUTH_SERVICE_URL: http://auth-service:3001
+    ports:
+      - "3003:3003"
+    depends_on:
+      database:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - africanwear-network
+    restart: unless-stopped
+
+  # Frontend React Application
+  frontend:
+    build: ./frontend
+    container_name: africanwear-frontend
+    environment:
+      REACT_APP_AUTH_SERVICE_URL: http://localhost:3001
+      REACT_APP_PRODUCTS_SERVICE_URL: http://localhost:3002
+      REACT_APP_CART_SERVICE_URL: http://localhost:3003
+    ports:
+      - "3000:80"
+    depends_on:
+      - auth-service
+      - products-service
+      - cart-service
+    networks:
+      - africanwear-network
+    restart: unless-stopped
+
+  # Portainer - Docker Management UI
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    ports:
+      - "8083:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - africanwear-network
+    restart: unless-stopped
+
+networks:
+  africanwear-network:
+    driver: bridge
+
+volumes:
+  db_data:
+  portainer_data:

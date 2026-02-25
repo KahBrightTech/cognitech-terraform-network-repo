@@ -871,6 +871,16 @@ module "ecs_clusters" {
       ] : null
     },
     {
+      cloud_map_namespaces = each.value.cloud_map_namespaces != null ? [
+        for ns in each.value.cloud_map_namespaces : merge(
+          ns,
+          {
+            vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+          }
+        )
+      ] : null
+    },
+    {
       ec2_autoscaling = each.value.ec2_autoscaling != null ? merge(
         each.value.ec2_autoscaling,
         {

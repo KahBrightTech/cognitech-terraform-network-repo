@@ -1787,7 +1787,8 @@ inputs = {
       cloud_map_namespaces = [
         {
           name = "${local.vpc_name_abr}.local"
-          type = "DNS_PUBLIC"
+          type = "DNS_PRIVATE"
+          vpc_name  = local.vpc_name_abr
           services = [
             {
               name = "backend"

@@ -1528,6 +1528,7 @@ variable "ecs_clusters" {
       description = optional(string)
       type        = optional(string, "DNS_PRIVATE")
       vpc_id      = optional(string)
+      vpc_name    = optional(string)
       services = optional(list(object({
         name = string
         dns_config = optional(object({
