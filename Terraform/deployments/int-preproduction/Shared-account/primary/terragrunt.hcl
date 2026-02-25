@@ -520,6 +520,14 @@ inputs = {
               ip_protocol   = "tcp"
             },
             {
+              key           = "egress-3000-ecs-backend-sg"
+              target_sg_key = "ecs-backend"
+              description   = "ECS - Outbound traffic to Backend SG on tcp port 3000"
+              from_port     = 3000
+              to_port       = 3000
+              ip_protocol   = "tcp"
+            },
+            {
               key         = "egress-all-traffic-ecs-frontend"
               cidr_ipv4   = "0.0.0.0/0"
               description = "ECS - Outbound all traffic from ECS Frontend to Internet"
@@ -557,6 +565,14 @@ inputs = {
               key           = "ingress-3000-ecs-nlb-internal-sg"
               source_sg_key = "ecs-nlb-internal"
               description   = "ECS - Inbound traffic from NLB Internal SG on tcp port 3000"
+              from_port     = 3000
+              to_port       = 3000
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-3000-ecs-frontend-sg"
+              source_sg_key = "ecs-frontend"
+              description   = "ECS - Inbound traffic from ECS Frontend SG on tcp port 3000"
               from_port     = 3000
               to_port       = 3000
               ip_protocol   = "tcp"
@@ -1786,9 +1802,9 @@ inputs = {
       }
       cloud_map_namespaces = [
         {
-          name = "${local.vpc_name_abr}.local"
-          type = "DNS_PRIVATE"
-          vpc_name  = local.vpc_name_abr
+          name     = "${local.vpc_name_abr}.local"
+          type     = "DNS_PRIVATE"
+          vpc_name = local.vpc_name_abr
           services = [
             {
               name = "backend"
