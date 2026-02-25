@@ -1806,15 +1806,17 @@ inputs = {
       ]
       task_definitions = [
         {
-          family                     = "${local.vpc_name_abr}-frontend"
-          task_role_key              = "${local.vpc_name_abr}-ecs-task"
-          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
-          network_mode               = "awsvpc"
-          requires_compatibilities   = ["EC2"]
-          cpu                        = "512"
-          memory                     = "1024"
-          load_balancer_key          = "ecs-app"
-          load_balancer_port         = 3000
+          family                   = "${local.vpc_name_abr}-frontend"
+          task_role_key            = "${local.vpc_name_abr}-ecs-task"
+          execution_role_key       = "${local.vpc_name_abr}-ecs-execution"
+          network_mode             = "awsvpc"
+          requires_compatibilities = ["EC2"]
+          cpu                      = "512"
+          memory                   = "1024"
+          # load_balancer_key          = "ecs-app"
+          # load_balancer_port         = 3000
+          cloud_map_key              = "${local.vpc_name_abr}.local/backend"
+          cloud_map_port             = 3000
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json",
         },
         {
@@ -1826,8 +1828,6 @@ inputs = {
           execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
           rds_key                    = "${local.vpc_name_abr}-postgres"
-          cloud_map_key              = "${local.vpc_name_abr}.local/backend"
-          cloud_map_port             = 3000
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"
         },
         # {
