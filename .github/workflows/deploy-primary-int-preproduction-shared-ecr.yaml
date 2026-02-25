@@ -1,4 +1,5 @@
 name: Deploy-primary-int-preproduction-shared-ECR
+
 on:
   push:
     branches:
@@ -43,7 +44,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
   REGION: us-east-1
-  ECR_REGISTRY: 730335294148.dkr.ecr.us-east-1.amazonaws.com/int-preproduction-use1-ecs
+  ECR_REGISTRY: 730335294148.dkr.ecr.us-east-1.amazonaws.com  # ← removed repo name from here
   ECR_REPO: int-preproduction-use1-ecs
   FRONTEND_CONTAINER_NAME: frontend
   BACKEND_CONTAINER_NAME: backend
@@ -75,9 +76,9 @@ jobs:
         with:
           filters: |
             frontend:
-              - 'AfricaLetTalk/frontend/**'
+              - 'Container-apps/AfricaLetTalk/frontend/**'
             backend:
-              - 'AfricaLetTalk/backend/**'
+              - 'Container-apps/AfricaLetTalk/backend/**'
 
   #------------------------------------------------------------------
   # Build and push frontend image to ECR
@@ -96,7 +97,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: AfricaLetTalk/frontend
+        working-directory: Container-apps/AfricaLetTalk/frontend  
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
@@ -115,7 +116,6 @@ jobs:
       - name: Generate version tag
         id: meta
         run: |
-          # Get latest version from ECR and increment it
           LATEST_TAG=$(aws ecr describe-images \
             --repository-name ${{ env.ECR_REPO }} \
             --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags' \
@@ -124,21 +124,19 @@ jobs:
             sort -t'v' -k2 -n | tail -1)
 
           if [ -z "$LATEST_TAG" ]; then
-            # No existing version found, start at v1
             NEW_VERSION="v1"
           else
-            # Extract number and increment
             CURRENT_NUM=$(echo $LATEST_TAG | grep -oE '[0-9]+$')
             NEW_NUM=$((CURRENT_NUM + 1))
             NEW_VERSION="v${NEW_NUM}"
           fi
 
-          echo "version=${NEW_VERSION}"         >> $GITHUB_OUTPUT
-          echo "image_tag=frontend-${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${NEW_VERSION}"              >> $GITHUB_OUTPUT
+          echo "image_tag=frontend-${NEW_VERSION}"   >> $GITHUB_OUTPUT
 
-          echo "## Frontend Build"                              >> $GITHUB_STEP_SUMMARY
-          echo "Version: \`frontend-${NEW_VERSION}\`"          >> $GITHUB_STEP_SUMMARY
-          echo "SHA: \`${{ github.sha }}\`"                    >> $GITHUB_STEP_SUMMARY
+          echo "## Frontend Build"                           >> $GITHUB_STEP_SUMMARY
+          echo "Version: \`frontend-${NEW_VERSION}\`"       >> $GITHUB_STEP_SUMMARY
+          echo "SHA: \`${{ github.sha }}\`"                 >> $GITHUB_STEP_SUMMARY
 
       - name: Build and push frontend image
         run: |
@@ -167,7 +165,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: AfricaLetTalk/backend
+        working-directory: Container-apps/AfricaLetTalk/backend
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
@@ -186,7 +184,6 @@ jobs:
       - name: Generate version tag
         id: meta
         run: |
-          # Get latest version from ECR and increment it
           LATEST_TAG=$(aws ecr describe-images \
             --repository-name ${{ env.ECR_REPO }} \
             --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags' \
@@ -202,12 +199,12 @@ jobs:
             NEW_VERSION="v${NEW_NUM}"
           fi
 
-          echo "version=${NEW_VERSION}"            >> $GITHUB_OUTPUT
-          echo "image_tag=backend-${NEW_VERSION}"  >> $GITHUB_OUTPUT
+          echo "version=${NEW_VERSION}"             >> $GITHUB_OUTPUT
+          echo "image_tag=backend-${NEW_VERSION}"   >> $GITHUB_OUTPUT
 
-          echo "## Backend Build"                              >> $GITHUB_STEP_SUMMARY
-          echo "Version: \`backend-${NEW_VERSION}\`"          >> $GITHUB_STEP_SUMMARY
-          echo "SHA: \`${{ github.sha }}\`"                   >> $GITHUB_STEP_SUMMARY
+          echo "## Backend Build"                          >> $GITHUB_STEP_SUMMARY
+          echo "Version: \`backend-${NEW_VERSION}\`"      >> $GITHUB_STEP_SUMMARY
+          echo "SHA: \`${{ github.sha }}\`"               >> $GITHUB_STEP_SUMMARY
 
       - name: Build and push backend image
         run: |
@@ -238,9 +235,9 @@ jobs:
           echo "Waiting for manual approval to deploy to ECS."
           echo "## Approval Gate" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event.inputs.deploy_type }}" == "specific-version" ]; then
-            echo "Deploy type: \`specific-version\`"                                >> $GITHUB_STEP_SUMMARY
+            echo "Deploy type: \`specific-version\`" >> $GITHUB_STEP_SUMMARY
             echo "Frontend version: \`frontend-${{ github.event.inputs.frontend_version }}\`" >> $GITHUB_STEP_SUMMARY
-            echo "Backend version:  \`backend-${{ github.event.inputs.backend_version }}\`"   >> $GITHUB_STEP_SUMMARY
+            echo "Backend version: \`backend-${{ github.event.inputs.backend_version }}\`" >> $GITHUB_STEP_SUMMARY
           else
             echo "Deploy type: \`latest build\`" >> $GITHUB_STEP_SUMMARY
           fi
@@ -275,16 +272,13 @@ jobs:
         id: resolve
         run: |
           if [ "${{ github.event.inputs.deploy_type }}" == "specific-version" ]; then
-            # Use the version provided in the workflow input
             IMAGE_TAG="frontend-${{ github.event.inputs.frontend_version }}"
             echo "Deploying specific version: ${IMAGE_TAG}" >> $GITHUB_STEP_SUMMARY
           else
-            # Use the tag from the build job
             IMAGE_TAG="${{ needs.Build-Frontend.outputs.image_tag }}"
             echo "Deploying latest build: ${IMAGE_TAG}" >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Verify the image exists in ECR before deploying
           aws ecr describe-images \
             --repository-name ${{ env.ECR_REPO }} \
             --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
@@ -320,8 +314,8 @@ jobs:
         run: |
           echo "## Frontend Deployment" >> $GITHUB_STEP_SUMMARY
           echo "✅ Deployed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Service: \`${{ env.FRONTEND_ECS_SERVICE }}\`"  >> $GITHUB_STEP_SUMMARY
-          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"           >> $GITHUB_STEP_SUMMARY
+          echo "Service: \`${{ env.FRONTEND_ECS_SERVICE }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"          >> $GITHUB_STEP_SUMMARY
 
   #------------------------------------------------------------------
   # Deploy backend to ECS
@@ -353,16 +347,13 @@ jobs:
         id: resolve
         run: |
           if [ "${{ github.event.inputs.deploy_type }}" == "specific-version" ]; then
-            # Use the version provided in the workflow input
             IMAGE_TAG="backend-${{ github.event.inputs.backend_version }}"
             echo "Deploying specific version: ${IMAGE_TAG}" >> $GITHUB_STEP_SUMMARY
           else
-            # Use the tag from the build job
             IMAGE_TAG="${{ needs.Build-Backend.outputs.image_tag }}"
             echo "Deploying latest build: ${IMAGE_TAG}" >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Verify the image exists in ECR before deploying
           aws ecr describe-images \
             --repository-name ${{ env.ECR_REPO }} \
             --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
@@ -398,30 +389,5 @@ jobs:
         run: |
           echo "## Backend Deployment" >> $GITHUB_STEP_SUMMARY
           echo "✅ Deployed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.resolve.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Service: \`${{ env.BACKEND_ECS_SERVICE }}\`"  >> $GITHUB_STEP_SUMMARY
-          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"          >> $GITHUB_STEP_SUMMARY
-```
-
----
-
-## How version selection works in the UI
-
-When you trigger manually via `workflow_dispatch` you get these inputs:
-```
-service:          [ all | frontend | backend ]
-deploy_type:      [ latest | specific-version ]
-frontend_version: v11        ← only needed if specific-version
-backend_version:  v11        ← only needed if specific-version
-environment:      [ int-preproduction ]
-```
-
----
-
-## The two deploy paths
-```
-# Path 1 — code push or deploy_type = latest
-Push code → Build → auto-increments to v12 → Deploy v12
-
-# Path 2 — deploy_type = specific-version (rollback)
-No build → Skip Build jobs → Resolve step pulls frontend-v9
-→ Verifies v9 exists in ECR → Deploys v9 to ECS
+          echo "Service: \`${{ env.BACKEND_ECS_SERVICE }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"         >> $GITHUB_STEP_SUMMARY
