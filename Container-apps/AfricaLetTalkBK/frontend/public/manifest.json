@@ -1,0 +1,9 @@
+{
+  "short_name": "LetsConnectAfrika",
+  "name": "LetsConnectAfrika - Social Media Platform",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#E07A2F",
+  "background_color": "#ffffff"
+}

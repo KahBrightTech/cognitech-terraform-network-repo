@@ -93,7 +93,6 @@ initializeDatabase()
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
         });
-        // Graceful shutdown
         process.on('SIGTERM', () => {
             console.log('SIGTERM received, shutting down gracefully');
             server.close(() => {
@@ -107,15 +106,5 @@ initializeDatabase()
         console.error('❌ Database initialization failed, server not started:', err);
         process.exit(1);
     });
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-    console.log('SIGTERM received, shutting down gracefully');
-    server.close(() => {
-        pool.end();
-        console.log('Server closed');
-        process.exit(0);
-    });
-});
 
 module.exports = app;

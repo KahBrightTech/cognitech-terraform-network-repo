@@ -165,7 +165,7 @@ function Header({ user, onLogout, onUserUpdate }) {
               <ellipse cx="65" cy="72" rx="3" ry="7" fill="white" opacity="0.9" transform="rotate(-10,65,72)"/>
             </svg>
           </div>
-          <h1>Lets<span>Connect</span></h1>
+          <h1>LetsConnect<span>Afrika</span></h1>
         </div>
         {user ? (
           <div className="nav">

@@ -49,7 +49,7 @@ function Home() {
 
         {/* Features */}
         <div className="section-title">
-          <h3>Why LetsConnect?</h3>
+          <h3>Why LetsConnectAfrika?</h3>
           <p>Everything you need to stay connected with your community</p>
         </div>
 

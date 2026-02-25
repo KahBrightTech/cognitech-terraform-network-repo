@@ -10,8 +10,6 @@ function Feed({ user }) {
   const [error, setError] = useState('');
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
-  const [newsSource, setNewsSource] = useState('live');
-  const [trendingSource, setTrendingSource] = useState('live');
   const [trending, setTrending] = useState([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('feed');
@@ -134,7 +132,6 @@ function Feed({ user }) {
       if (response.ok) {
         const data = await response.json();
         setNews(data.articles || []);
-        setNewsSource(data.source || 'live');
       }
     } catch (error) {
       console.error('Fetch news error:', error);
@@ -149,7 +146,6 @@ function Feed({ user }) {
       if (response.ok) {
         const data = await response.json();
         setTrending(data.trending || []);
-        setTrendingSource(data.source || 'live');
       }
     } catch (error) {
       console.error('Fetch trending error:', error);
@@ -730,44 +726,15 @@ function Feed({ user }) {
     'Kampala, Uganda', 'Dakar, Senegal', 'Kigali, Rwanda'
   ];
 
-  // Sidebar profile photo upload
-  const handleSidebarAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    try {
-      const token = localStorage.getItem('token');
-      const formData = new FormData();
-      formData.append('avatar', file);
-      const resp = await fetch('/api/users/avatar', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        // Trigger App-level user update if prop available
-        if (window.__updateUser) window.__updateUser(data.user);
-        // Optimistically update avatar in UI via page reload workaround
-        window.location.reload();
-      } else {
-        const err = await resp.json();
-        alert(err.error || 'Failed to upload photo');
-      }
-    } catch (err) {
-      alert('Failed to upload photo');
-    }
-    e.target.value = '';
-  };
-
   // Share handler
   const handleSharePost = async (post) => {
-    const shareText = `${post.full_name || post.username} on LetsConnect:\n\n${post.content}`;
+    const shareText = `${post.full_name || post.username} on LetsConnectAfrika:\n\n${post.content}`;
     const shareUrl = window.location.origin + '/feed';
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'LetsConnect Post',
+          title: 'LetsConnectAfrika Post',
           text: shareText,
           url: shareUrl,
         });
@@ -955,23 +922,8 @@ function Feed({ user }) {
               <div className="profile-cover-pattern"></div>
             </div>
             <div className="profile-card-body">
-              <div className="profile-card-avatar-wrapper">
-                <div className="profile-card-avatar">
-                  {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="avatar" className="profile-card-avatar-img" />
-                  ) : (
-                    user.username ? user.username[0].toUpperCase() : 'U'
-                  )}
-                </div>
-                <label className="profile-card-avatar-upload" title="Change profile photo">
-                  📷
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={handleSidebarAvatarUpload}
-                  />
-                </label>
+              <div className="profile-card-avatar">
+                {user.username ? user.username[0].toUpperCase() : 'U'}
               </div>
               <h4>{user.full_name || user.username}</h4>
               <p className="profile-handle">@{user.username}</p>
@@ -1088,7 +1040,7 @@ function Feed({ user }) {
                   <div className="create-post-avatar">
                     {user.username ? user.username[0].toUpperCase() : 'U'}
                   </div>
-                  <span className="create-post-greeting">What's on your mind, {user.full_name || user.username}?</span>
+                  <span className="create-post-greeting">What's happening, {user.full_name || user.username}?</span>
                 </div>
                 <form onSubmit={handleCreatePost}>
                   <textarea
@@ -1327,14 +1279,9 @@ function Feed({ user }) {
           {activeTab === 'news' && (
             <div className="news-feed">
               <div className="news-feed-header">
-                <h3>📰 Latest News</h3>
-                <p>Stay informed with the latest stories from around the world</p>
+                <h3>📰 Latest African News</h3>
+                <p>Stay informed with the latest stories from across the continent</p>
               </div>
-              {newsSource === 'fallback' && (
-                <div className="news-fallback-banner">
-                  ⚠️ Live news feeds are temporarily unavailable. Showing curated stories. Check your ECS outbound network configuration.
-                </div>
-              )}
               {newsLoading ? (
                 <div className="loading">
                   <div className="loading-spinner"></div>
@@ -1558,12 +1505,12 @@ function Feed({ user }) {
 
           <div className="sidebar-card sidebar-footer">
             <div className="sidebar-footer-links">
-              <a href="#">About LetsConnect</a>
+              <a href="#">About LetsConnectAfrika</a>
               <a href="#">Privacy</a>
               <a href="#">Terms</a>
               <a href="#">Help</a>
             </div>
-            <p className="sidebar-copyright">© 2026 LetsConnect</p>
+            <p className="sidebar-copyright">© 2026 LetsConnectAfrika</p>
           </div>
         </div>
       </div>

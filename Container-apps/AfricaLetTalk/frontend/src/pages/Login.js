@@ -56,7 +56,7 @@ function Login({ onLogin }) {
         ></div>
         <div className="auth-form">
           <h2>Welcome back</h2>
-          <p className="auth-subtitle">Sign in to continue to OneAfrica</p>
+          <p className="auth-subtitle">Sign in to continue to LetsConnect</p>
           {error && <div className="error">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="form-group">

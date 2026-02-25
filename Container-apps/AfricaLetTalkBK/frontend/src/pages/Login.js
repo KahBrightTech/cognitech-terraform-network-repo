@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Register({ onLogin }) {
+function Login({ onLogin }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
-    password: '',
-    fullName: ''
+    password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,7 +23,7 @@ function Register({ onLogin }) {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -39,10 +37,10 @@ function Register({ onLogin }) {
         onLogin(data.user, data.token);
         navigate('/feed');
       } else {
-        setError(data.error || 'Registration failed');
+        setError(data.error || 'Login failed');
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Login error:', error);
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
@@ -54,35 +52,13 @@ function Register({ onLogin }) {
       <div className="auth-card">
         <div 
           className="auth-image" 
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=800&q=80')" }}
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&q=80')" }}
         ></div>
         <div className="auth-form">
-          <h2>Join LetsConnect</h2>
-          <p className="auth-subtitle">Create your account and start connecting</p>
+          <h2>Welcome back</h2>
+          <p className="auth-subtitle">Sign in to continue to OneAfrica</p>
           {error && <div className="error">{error}</div>}
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Full Name</label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                required
-                placeholder="Your full name"
-              />
-            </div>
-            <div className="form-group">
-              <label>Username</label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                required
-                placeholder="Choose a username"
-              />
-            </div>
             <div className="form-group">
               <label>Email</label>
               <input
@@ -102,17 +78,16 @@ function Register({ onLogin }) {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                minLength="6"
-                placeholder="Min 6 characters"
+                placeholder="Enter your password"
               />
             </div>
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
           <p className="auth-link">
-            Already have an account?{' '}
-            <span onClick={() => navigate('/login')}>Sign in</span>
+            Don't have an account?{' '}
+            <span onClick={() => navigate('/register')}>Create one</span>
           </p>
         </div>
       </div>
@@ -120,4 +95,4 @@ function Register({ onLogin }) {
   );
 }
 
-export default Register;
+export default Login;

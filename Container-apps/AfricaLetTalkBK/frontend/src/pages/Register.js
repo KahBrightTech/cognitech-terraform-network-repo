@@ -57,7 +57,7 @@ function Register({ onLogin }) {
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=800&q=80')" }}
         ></div>
         <div className="auth-form">
-          <h2>Join LetsConnect</h2>
+          <h2>Join OneAfrica</h2>
           <p className="auth-subtitle">Create your account and start connecting</p>
           {error && <div className="error">{error}</div>}
           <form onSubmit={handleSubmit}>
