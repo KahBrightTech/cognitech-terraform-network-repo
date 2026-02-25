@@ -1891,8 +1891,8 @@ inputs = {
           enable_ecs_managed_tags            = true
           service_registries = {
             cloud_map_service_key = "${local.vpc_name_abr}.local/backend"
-            container_name        = "backend"
-            container_port        = 3000
+            # container_name        = "backend" # Not needed when using awsvpc network mode since the port is defined at the task level, but if using bridge or host network mode then you would need to specify the container and port here
+            # container_port        = 3000 # Not needed when using awsvpc network mode since the port is defined at the task level, but if using bridge or host network mode then you would need to specify the container and port here
           }
           deployment_circuit_breaker = {
             enable   = true
