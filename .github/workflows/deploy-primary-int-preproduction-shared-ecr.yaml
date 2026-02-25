@@ -83,10 +83,48 @@ jobs:
               - 'Container-apps/AfricaLetTalk/backend/**'
 
   #------------------------------------------------------------------
+  # Verify ECS cluster exists before doing anything
+  #------------------------------------------------------------------
+  Verify-Cluster:
+    runs-on: ubuntu-latest
+    outputs:
+      cluster_exists: ${{ steps.check.outputs.cluster_exists }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: ${{ env.IAM_ROLE }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.REGION }}
+
+      - name: Check ECS cluster exists
+        id: check
+        run: |
+          CLUSTER_STATUS=$(aws ecs describe-clusters \
+            --clusters ${{ env.ECS_CLUSTER }} \
+            --region ${{ env.REGION }} \
+            --query 'clusters[0].status' \
+            --output text 2>/dev/null || echo "NOT_FOUND")
+
+          echo "Cluster: ${{ env.ECS_CLUSTER }}"
+          echo "Status:  ${CLUSTER_STATUS}"
+
+          if [ "$CLUSTER_STATUS" == "ACTIVE" ]; then
+            echo "cluster_exists=true"  >> $GITHUB_OUTPUT
+            echo "✅ ECS cluster found and ACTIVE — deployment will proceed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "cluster_exists=false" >> $GITHUB_OUTPUT
+            echo "## ⚠️ ECS Cluster Not Found"                                          >> $GITHUB_STEP_SUMMARY
+            echo "Cluster \`${{ env.ECS_CLUSTER }}\` does not exist or is not ACTIVE." >> $GITHUB_STEP_SUMMARY
+            echo "Images will be pushed to ECR but deployment will be skipped."         >> $GITHUB_STEP_SUMMARY
+            echo "Status returned: \`${CLUSTER_STATUS}\`"                               >> $GITHUB_STEP_SUMMARY
+          fi
+
+  #------------------------------------------------------------------
   # Build and push frontend image to ECR
   #------------------------------------------------------------------
   Build-Frontend:
-    needs: Detect-Changes
+    needs: [Detect-Changes, Verify-Cluster]
     runs-on: ubuntu-latest
     if: |
       needs.Detect-Changes.outputs.frontend_changed == 'true' ||
@@ -117,7 +155,6 @@ jobs:
       - name: Verify tag does not already exist in ECR
         id: meta
         run: |
-          # Use the tag specified in the workflow input
           NEW_TAG="frontend-${{ github.event.inputs.frontend_tag }}"
 
           echo "Checking if ${NEW_TAG} already exists in ECR..."
@@ -138,9 +175,9 @@ jobs:
           echo "✅ Tag ${NEW_TAG} does not exist — proceeding with build" >> $GITHUB_STEP_SUMMARY
           echo "image_tag=${NEW_TAG}" >> $GITHUB_OUTPUT
 
-          echo "## Frontend Build"                    >> $GITHUB_STEP_SUMMARY
-          echo "Tag:  \`${NEW_TAG}\`"                 >> $GITHUB_STEP_SUMMARY
-          echo "SHA:  \`${{ github.sha }}\`"          >> $GITHUB_STEP_SUMMARY
+          echo "## Frontend Build"           >> $GITHUB_STEP_SUMMARY
+          echo "Tag: \`${NEW_TAG}\`"         >> $GITHUB_STEP_SUMMARY
+          echo "SHA: \`${{ github.sha }}\`"  >> $GITHUB_STEP_SUMMARY
 
       - name: Build and push frontend image
         run: |
@@ -152,11 +189,19 @@ jobs:
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:frontend-latest
           echo "✅ Pushed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
 
+      - name: Skip deployment notice
+        if: needs.Verify-Cluster.outputs.cluster_exists != 'true'
+        run: |
+          echo "## ⚠️ Deployment Skipped"                                                >> $GITHUB_STEP_SUMMARY
+          echo "Image was pushed to ECR successfully."                                   >> $GITHUB_STEP_SUMMARY
+          echo "ECS cluster \`${{ env.ECS_CLUSTER }}\` was not found."                  >> $GITHUB_STEP_SUMMARY
+          echo "Deploy manually once the cluster is provisioned using existing-version." >> $GITHUB_STEP_SUMMARY
+
   #------------------------------------------------------------------
   # Build and push backend image to ECR
   #------------------------------------------------------------------
   Build-Backend:
-    needs: Detect-Changes
+    needs: [Detect-Changes, Verify-Cluster]
     runs-on: ubuntu-latest
     if: |
       needs.Detect-Changes.outputs.backend_changed == 'true' ||
@@ -187,7 +232,6 @@ jobs:
       - name: Verify tag does not already exist in ECR
         id: meta
         run: |
-          # Use the tag specified in the workflow input
           NEW_TAG="backend-${{ github.event.inputs.backend_tag }}"
 
           echo "Checking if ${NEW_TAG} already exists in ECR..."
@@ -208,9 +252,9 @@ jobs:
           echo "✅ Tag ${NEW_TAG} does not exist — proceeding with build" >> $GITHUB_STEP_SUMMARY
           echo "image_tag=${NEW_TAG}" >> $GITHUB_OUTPUT
 
-          echo "## Backend Build"                     >> $GITHUB_STEP_SUMMARY
-          echo "Tag:  \`${NEW_TAG}\`"                 >> $GITHUB_STEP_SUMMARY
-          echo "SHA:  \`${{ github.sha }}\`"          >> $GITHUB_STEP_SUMMARY
+          echo "## Backend Build"           >> $GITHUB_STEP_SUMMARY
+          echo "Tag: \`${NEW_TAG}\`"        >> $GITHUB_STEP_SUMMARY
+          echo "SHA: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
 
       - name: Build and push backend image
         run: |
@@ -222,14 +266,23 @@ jobs:
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:backend-latest
           echo "✅ Pushed: \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.meta.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
 
+      - name: Skip deployment notice
+        if: needs.Verify-Cluster.outputs.cluster_exists != 'true'
+        run: |
+          echo "## ⚠️ Deployment Skipped"                                                >> $GITHUB_STEP_SUMMARY
+          echo "Image was pushed to ECR successfully."                                   >> $GITHUB_STEP_SUMMARY
+          echo "ECS cluster \`${{ env.ECS_CLUSTER }}\` was not found."                  >> $GITHUB_STEP_SUMMARY
+          echo "Deploy manually once the cluster is provisioned using existing-version." >> $GITHUB_STEP_SUMMARY
+
   #------------------------------------------------------------------
   # Approve before deploying to ECS (main branch only)
   #------------------------------------------------------------------
   Approve:
-    needs: [Build-Frontend, Build-Backend]
+    needs: [Build-Frontend, Build-Backend, Verify-Cluster]
     runs-on: ubuntu-latest
     if: |
       always() &&
+      needs.Verify-Cluster.outputs.cluster_exists == 'true' &&
       github.ref == 'refs/heads/main' &&
       (needs.Build-Frontend.result == 'success' || needs.Build-Backend.result == 'success' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_type == 'existing-version'))
@@ -238,20 +291,22 @@ jobs:
     steps:
       - name: Awaiting approval before deploying to ECS
         run: |
-          echo "## Approval Gate" >> $GITHUB_STEP_SUMMARY
-          echo "Deploy type: \`${{ github.event.inputs.deploy_type }}\`"         >> $GITHUB_STEP_SUMMARY
-          echo "Frontend tag: \`frontend-${{ github.event.inputs.frontend_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Backend tag:  \`backend-${{ github.event.inputs.backend_tag }}\`"   >> $GITHUB_STEP_SUMMARY
+          echo "## Approval Gate"                                                             >> $GITHUB_STEP_SUMMARY
+          echo "Deploy type: \`${{ github.event.inputs.deploy_type }}\`"                     >> $GITHUB_STEP_SUMMARY
+          echo "Frontend tag: \`frontend-${{ github.event.inputs.frontend_tag }}\`"          >> $GITHUB_STEP_SUMMARY
+          echo "Backend tag:  \`backend-${{ github.event.inputs.backend_tag }}\`"            >> $GITHUB_STEP_SUMMARY
+          echo "Cluster: \`${{ env.ECS_CLUSTER }}\`"                                        >> $GITHUB_STEP_SUMMARY
           echo "Waiting for manual approval..."
 
   #------------------------------------------------------------------
   # Deploy frontend to ECS
   #------------------------------------------------------------------
   Deploy-Frontend:
-    needs: [Approve, Build-Frontend]
+    needs: [Approve, Build-Frontend, Verify-Cluster]
     runs-on: ubuntu-latest
     if: |
       always() &&
+      needs.Verify-Cluster.outputs.cluster_exists == 'true' &&
       needs.Approve.result == 'success' &&
       (needs.Build-Frontend.result == 'success' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_type == 'existing-version' &&
@@ -277,14 +332,12 @@ jobs:
 
           echo "Verifying \`${IMAGE_TAG}\` exists in ECR before deploying..."
 
-          # For new-build the image was just pushed so it must exist
-          # For existing-version verify the tag is actually in ECR
           aws ecr describe-images \
             --repository-name ${{ env.ECR_REPO }} \
             --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
             {
-              echo "❌ Image ${IMAGE_TAG} not found in ECR" >> $GITHUB_STEP_SUMMARY
-              echo "❌ Image ${IMAGE_TAG} not found in ECR. Cannot deploy a non-existent image."
+              echo "❌ Image ${IMAGE_TAG} not found in ECR"                   >> $GITHUB_STEP_SUMMARY
+              echo "❌ Image ${IMAGE_TAG} not found in ECR. Cannot deploy."
               echo "   Push the image first using deploy_type = new-build"
               exit 1
             }
@@ -326,10 +379,11 @@ jobs:
   # Deploy backend to ECS
   #------------------------------------------------------------------
   Deploy-Backend:
-    needs: [Approve, Build-Backend]
+    needs: [Approve, Build-Backend, Verify-Cluster]
     runs-on: ubuntu-latest
     if: |
       always() &&
+      needs.Verify-Cluster.outputs.cluster_exists == 'true' &&
       needs.Approve.result == 'success' &&
       (needs.Build-Backend.result == 'success' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_type == 'existing-version' &&
@@ -359,8 +413,8 @@ jobs:
             --repository-name ${{ env.ECR_REPO }} \
             --image-ids imageTag=${IMAGE_TAG} > /dev/null 2>&1 || \
             {
-              echo "❌ Image ${IMAGE_TAG} not found in ECR" >> $GITHUB_STEP_SUMMARY
-              echo "❌ Image ${IMAGE_TAG} not found in ECR. Cannot deploy a non-existent image."
+              echo "❌ Image ${IMAGE_TAG} not found in ECR"                   >> $GITHUB_STEP_SUMMARY
+              echo "❌ Image ${IMAGE_TAG} not found in ECR. Cannot deploy."
               echo "   Push the image first using deploy_type = new-build"
               exit 1
             }
