@@ -77,6 +77,10 @@ function Feed({ user }) {
   const [friendSearching, setFriendSearching] = useState(false);
   const [pendingSentRequests, setPendingSentRequests] = useState(new Set());
 
+  // Friends feed state
+  const [friendsPosts, setFriendsPosts] = useState([]);
+  const [friendsPostsLoading, setFriendsPostsLoading] = useState(false);
+
   useEffect(() => {
     document.body.classList.add('feed-active');
     fetchPosts();
@@ -125,6 +129,30 @@ function Feed({ user }) {
       setError('Network error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFriendsPosts = async () => {
+    setFriendsPostsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/posts/friends-feed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ limit: 20, offset: 0 })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFriendsPosts(data.posts || []);
+      }
+    } catch (error) {
+      console.error('Fetch friends posts error:', error);
+    } finally {
+      setFriendsPostsLoading(false);
     }
   };
 
@@ -1001,6 +1029,12 @@ function Feed({ user }) {
               <span className="sidebar-nav-icon">🏠</span> My Feed
             </button>
             <button
+              className={`sidebar-nav-btn ${activeTab === 'friends' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('friends'); fetchFriendsPosts(); }}
+            >
+              <span className="sidebar-nav-icon">👥</span> Friends Feed
+            </button>
+            <button
               className={`sidebar-nav-btn ${activeTab === 'trending' ? 'active' : ''}`}
               onClick={() => setActiveTab('trending')}
             >
@@ -1270,6 +1304,126 @@ function Feed({ user }) {
                     </div>
 
                     {/* Comments Section */}
+                    {expandedComments[post.id] && (
+                      <div className="comments-section">
+                        {commentLoading[post.id] ? (
+                          <div className="comments-loading">Loading comments...</div>
+                        ) : (
+                          <>
+                            {(comments[post.id] || []).map((c) => (
+                              <div key={c.id} className="comment-item">
+                                <div className="comment-avatar">
+                                  {c.username ? c.username[0].toUpperCase() : 'U'}
+                                </div>
+                                <div className="comment-body">
+                                  <div className="comment-bubble">
+                                    <span className="comment-author">{c.full_name || c.username}</span>
+                                    <p>{c.content}</p>
+                                  </div>
+                                  <span className="comment-time">{formatDate(c.created_at)}</span>
+                                </div>
+                              </div>
+                            ))}
+                            <div className="comment-input-row">
+                              <div className="comment-input-avatar">
+                                {user.username ? user.username[0].toUpperCase() : 'U'}
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Write a comment..."
+                                value={commentTexts[post.id] || ''}
+                                onChange={(e) => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleAddComment(post.id);
+                                  }
+                                }}
+                              />
+                              <button
+                                className="comment-send-btn"
+                                onClick={() => handleAddComment(post.id)}
+                                disabled={!commentTexts[post.id]?.trim()}
+                              >
+                                ➤
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </>
+          )}
+
+          {activeTab === 'friends' && (
+            <>
+              <div className="friends-feed-header">
+                <h3>👥 Friends Feed</h3>
+                <p>See what your friends have been sharing</p>
+              </div>
+              {friendsPostsLoading ? (
+                <div className="loading">
+                  <div className="loading-spinner"></div>
+                  <p>Loading friends' posts...</p>
+                </div>
+              ) : friendsPosts.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">👥</div>
+                  <h3>No posts from friends yet</h3>
+                  <p>Add friends to see their posts here!</p>
+                </div>
+              ) : (
+                friendsPosts.map((post) => (
+                  <div key={post.id} className="post-card">
+                    <div className="post-header">
+                      <div className="post-avatar">
+                        {post.username ? post.username[0].toUpperCase() : 'U'}
+                      </div>
+                      <div className="post-info">
+                        <h4>{post.full_name || post.username} <span className="friend-badge">Friend</span></h4>
+                        <span>@{post.username} · {formatDate(post.created_at)}</span>
+                      </div>
+                      <button className="post-menu-btn">⋯</button>
+                    </div>
+                    <div className="post-content">
+                      <p>{post.content}</p>
+                      {post.media_urls && post.media_urls.length > 0 && (
+                        <div className={`post-images post-images-${Math.min(post.media_urls.length, 4)}`}>
+                          {post.media_urls.map((url, i) => (
+                            <img key={i} src={url} alt="Post media" className="post-image" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="post-engagement">
+                      {(parseInt(post.likes_count) > 0 || parseInt(post.comments_count) > 0) && (
+                        <div className="post-engagement-info">
+                          {parseInt(post.likes_count) > 0 && (
+                            <span>❤️ {post.likes_count} {parseInt(post.likes_count) === 1 ? 'like' : 'likes'}</span>
+                          )}
+                          {parseInt(post.comments_count) > 0 && (
+                            <span>{post.comments_count} {parseInt(post.comments_count) === 1 ? 'comment' : 'comments'}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="post-actions">
+                      <button
+                        onClick={() => handleLikePost(post.id)}
+                        className={post.is_liked ? 'liked' : ''}
+                      >
+                        {post.is_liked ? '❤️' : '🤍'} Like
+                      </button>
+                      <button onClick={() => toggleComments(post.id)}>
+                        💬 Comment
+                      </button>
+                      <button onClick={() => handleSharePost(post)}>🔄 Share</button>
+                      <button>🔖 Save</button>
+                    </div>
+
                     {expandedComments[post.id] && (
                       <div className="comments-section">
                         {commentLoading[post.id] ? (

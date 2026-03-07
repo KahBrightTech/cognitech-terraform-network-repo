@@ -65,6 +65,43 @@ router.post('/feed', authenticate, async (req, res) => {
     }
 });
 
+// Friends-only feed
+router.post('/friends-feed', authenticate, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { limit = 20, offset = 0 } = req.body;
+
+        const result = await query(
+            `SELECT 
+                p.*,
+                u.username,
+                u.full_name,
+                u.avatar_url,
+                (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
+                (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count,
+                EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as is_liked
+             FROM posts p
+             JOIN users u ON p.user_id = u.id
+             WHERE p.user_id IN (
+                 SELECT CASE 
+                     WHEN user1_id = $1 THEN user2_id
+                     ELSE user1_id
+                 END
+                 FROM friendships
+                 WHERE (user1_id = $1 OR user2_id = $1) AND status = 'accepted'
+             )
+             ORDER BY p.created_at DESC
+             LIMIT $2 OFFSET $3`,
+            [userId, limit, offset]
+        );
+
+        res.json({ posts: result.rows });
+    } catch (error) {
+        console.error('Get friends feed error:', error);
+        res.status(500).json({ error: 'Failed to get friends feed' });
+    }
+});
+
 router.post('/', authenticate, upload.array('images', 4), async (req, res) => {
     try {
         const { content } = req.body;

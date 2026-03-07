@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
 import Feed from './pages/Feed';
 import Messages from './pages/Messages';
 import NotFound from './pages/NotFound';
@@ -70,6 +71,10 @@ function App() {
           <Route 
             path="/register" 
             element={user ? <Navigate to="/feed" /> : <Register onLogin={handleLogin} />} 
+          />
+          <Route 
+            path="/verify-email" 
+            element={<VerifyEmail onLogin={handleLogin} />} 
           />
           <Route 
             path="/feed" 

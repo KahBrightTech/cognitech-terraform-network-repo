@@ -1500,6 +1500,36 @@ a.trending-item:hover {
   font-size: 14px;
 }
 
+/* Friends Feed */
+.friends-feed-header {
+  margin-bottom: 24px;
+}
+
+.friends-feed-header h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.friends-feed-header p {
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+.friend-badge {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+  letter-spacing: 0.3px;
+}
+
 .news-grid {
   display: grid;
   grid-template-columns: 1fr;
