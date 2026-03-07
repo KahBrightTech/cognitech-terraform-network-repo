@@ -13,5 +13,9 @@
                 "cmd": "terragrunt hclfmt ${file}"
             }
         ]
-    }
+    },
+    "css.lint.vendorPrefix": "ignore",
+    "css.lint.compatibleVendorPrefixes": "ignore",
+    "css.validate": false,
+    "css.completion.triggerPropertyValueCompletion": true
 }
