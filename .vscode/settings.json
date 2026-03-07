@@ -1,5 +1,17 @@
 {
     "[hcl]": {
         "editor.formatOnSave": false
+    },
+    "[terragrunt]": {
+        "editor.defaultFormatter": null,
+        "editor.formatOnSave": false
+    },
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": "terragrunt\\.hcl$",
+                "cmd": "terragrunt hclfmt ${file}"
+            }
+        ]
     }
 }

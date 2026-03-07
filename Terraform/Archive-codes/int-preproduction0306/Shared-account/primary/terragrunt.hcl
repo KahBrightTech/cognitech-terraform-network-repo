@@ -1823,13 +1823,15 @@ inputs = {
       ]
       task_definitions = [
         {
-          family                     = "${local.vpc_name_abr}-frontend"
-          task_role_key              = "${local.vpc_name_abr}-ecs-task"
-          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
-          network_mode               = "awsvpc"
-          requires_compatibilities   = ["EC2"]
-          cpu                        = "512"
-          memory                     = "1024"
+          family                   = "${local.vpc_name_abr}-frontend"
+          task_role_key            = "${local.vpc_name_abr}-ecs-task"
+          execution_role_key       = "${local.vpc_name_abr}-ecs-execution"
+          network_mode             = "awsvpc"
+          requires_compatibilities = ["EC2"]
+          cpu                      = "512"
+          memory                   = "1024"
+          # load_balancer_key          = "ecs-app"
+          # load_balancer_port         = 3000
           cloud_map_key              = "${local.vpc_name_abr}.local/backend"
           cloud_map_port             = 3000
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json",
@@ -1844,7 +1846,25 @@ inputs = {
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
           rds_key                    = "${local.vpc_name_abr}-postgres"
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"
-        }
+        },
+        # {
+        #   family                     = "${local.vpc_name_abr}-database"
+        #   network_mode               = "awsvpc"
+        #   requires_compatibilities   = ["EC2"]
+        #   cpu                        = "1280"
+        #   memory                     = "2560"
+        #   execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
+        #   task_role_key              = "${local.vpc_name_abr}-ecs-task"
+        #   container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/database.json"
+        #   volumes = [
+        #     {
+        #       name                        = "database-storage"
+        #       host_path                   = null
+        #       docker_volume_configuration = null
+        #       efs_volume_configuration    = null
+        #     }
+        #   ]
+        # }
       ]
       services = [
         {
@@ -1909,7 +1929,28 @@ inputs = {
             ]
             security_group_keys = ["ecs-backend"]
           }
-        }
+        },
+        # {
+        #   name                               = "${local.vpc_name_abr}-database-service"
+        #   task_definition_family             = "${local.vpc_name_abr}-database"
+        #   desired_count                      = 1
+        #   launch_type                        = "EC2"
+        #   scheduling_strategy                = "REPLICA"
+        #   deployment_maximum_percent         = 200
+        #   deployment_minimum_healthy_percent = 100
+        #   enable_ecs_managed_tags            = true
+        #   deployment_circuit_breaker = {
+        #     enable   = true
+        #     rollback = true
+        #   }
+        #   network_configuration = {
+        #     subnet_keys = [
+        #       include.env.locals.subnet_prefix.primary,
+        #       include.env.locals.subnet_prefix.secondary
+        #     ]
+        #     security_group_keys = ["ecs-database"]
+        #   }
+        # }
       ]
       ec2_autoscaling = {
         launch_templates = [

@@ -14,7 +14,7 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context     = "primary"
+  region_context     = "secondary"
   deploy_globally    = "true"
   internal           = "private"
   external           = "public"
@@ -52,6 +52,9 @@ dependency "shared_services" {
 #-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
+# terraform {
+#   source = "../../../../..//formations/Simple-Network-Tenant-Account"
+# }
 terraform {
   source = "../../../../..//formations/Tenant-account"
 }
@@ -331,7 +334,6 @@ inputs = {
       ]
     }
   ]
-
   s3_private_buckets = [
     {
       name              = "${local.vpc_name}-app-bucket"
@@ -557,7 +559,6 @@ generate "aws-providers" {
   }
   EOF
 }
-
 
 
 

@@ -15,7 +15,7 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context     = "primary"
+  region_context     = "secondary"
   deploy_globally    = "true"
   internal           = "private"
   external           = "public"
@@ -27,7 +27,7 @@ locals {
   state_bucket       = local.region_context == "primary" ? include.env.locals.remote_state_bucket.primary : include.env.locals.remote_state_bucket.secondary
   state_lock_table   = include.env.locals.remote_dynamodb_table
   vpc_name           = "shared-services"
-  native_name_abr    = "datasync"
+  vpc_name_abr       = "shared"
   internet_cidr      = "0.0.0.0/0"
   account_id         = include.cloud.locals.account_info[include.env.locals.name_abr].number
   aws_account_name   = include.cloud.locals.account_info[include.env.locals.name_abr].name
@@ -37,7 +37,7 @@ locals {
   tags = merge(
     include.env.locals.tags,
     {
-      Environment = "native-services"
+      Environment = "shared-services"
       ManagedBy   = "terraform:${local.deployment_name}"
     }
   )
@@ -46,7 +46,7 @@ locals {
 # Source  
 #-------------------------------------------------------
 terraform {
-  source = "../../../../..//formations/Simple-Native-Products"
+  source = "../../../..//formations/Simple-Native-Products"
 }
 
 #-------------------------------------------------------
@@ -104,7 +104,7 @@ inputs = {
       key = "s3-smb"
       s3_location = {
         location_type          = "S3"
-        s3_bucket_arn          = dependency.shared_services.outputs.S3_buckets.shared-services-datasync-bucket.arn
+        s3_bucket_arn          = "arn:aws:s3:::${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-datasync-bucket"
         subdirectory           = include.env.locals.datasync.s3.subdirectory.smb
         bucket_access_role_arn = dependency.shared_services.outputs.IAM_roles.shared-services-datasync.iam_role_arn
       }

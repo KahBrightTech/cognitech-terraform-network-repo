@@ -16,8 +16,8 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context = "primary"
-  region = local.region_context == "primary" ? include.cloud.locals.region.primary : include.cloud.locals.region.secondary
+  region_context  = "primary"
+  region          = local.region_context == "primary" ? include.cloud.locals.region.primary : include.cloud.locals.region.secondary
   deployment_name = "terraform-${include.env.locals.name_abr}-deploy-shared-base-${local.region_context}"
 
   # Composite variables 
