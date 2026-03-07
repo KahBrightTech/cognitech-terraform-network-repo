@@ -26,14 +26,15 @@ router.post('/register', async (req, res) => {
 
         const result = await query(
             `INSERT INTO users (username, email, password, full_name, email_verified, verification_token, created_at) 
-             VALUES ($1, $2, $3, $4, false, $5, NOW()) 
+             VALUES ($1, $2, $3, $4, true, $5, NOW()) 
              RETURNING id, username, email, full_name, avatar_url, created_at`,
             [username, email, hashedPassword, fullName, verificationToken]
         );
 
         const user = result.rows[0];
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
 
-        // Send verification email
+        // Attempt to send verification email (non-blocking)
         try {
             await sendVerificationEmail(email, fullName || username, verificationToken);
         } catch (emailErr) {
@@ -41,9 +42,9 @@ router.post('/register', async (req, res) => {
         }
 
         res.status(201).json({ 
-            message: 'Account created. Please check your email to verify your account.',
-            email: email,
-            requiresVerification: true
+            message: 'Account created successfully!',
+            user,
+            token
         });
     } catch (error) {
         console.error('Register error:', error);
@@ -132,14 +133,6 @@ router.post('/login', async (req, res) => {
         
         if (!validPassword) {
             return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        if (!user.email_verified) {
-            return res.status(403).json({ 
-                error: 'Please verify your email before logging in',
-                requiresVerification: true,
-                email: user.email
-            });
         }
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
