@@ -131,6 +131,7 @@ locals {
     iam_user  = "user"
     eks_node  = "eks-node-private-key"
     eks_db_sa = "eks-db-service-account"
+    smtp      = "smtp-credentials"
   }
   # RAM principals as a list of strings (Organization ARN)
   ram_principals = [

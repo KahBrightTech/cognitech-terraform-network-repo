@@ -804,34 +804,58 @@ module "ecs_clusters" {
             container_definitions_file = td.container_definitions == null ? (
               td.load_balancer_key != null && td.container_definitions_file != null ? replace(
                 replace(
-                  file(td.container_definitions_file),
-                  "__BACKEND_URL__",
-                  "http://${module.load_balancers[td.load_balancer_key].dns_name}${td.load_balancer_port != null ? ":${td.load_balancer_port}" : ""}"
-                ),
-                "__SECRET_ARN__",
-                td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
-                  td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
-                )
-                ) : (
-                td.cloud_map_key != null && td.container_definitions_file != null ? replace(
                   replace(
-                    file(td.container_definitions_file),
-                    "__BACKEND_URL__",
-                    "http://${
-                      join(".", reverse(split("/", td.cloud_map_key)))
-                    }${td.cloud_map_port != null ? ":${td.cloud_map_port}" : ""}"
-                  ),
-                  "__SECRET_ARN__",
-                  td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
-                    td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
-                  )
-                  ) : (
-                  (td.rds_key != null || td.secrets_manager_key != null) && td.container_definitions_file != null ? replace(
-                    file(td.container_definitions_file),
+                    replace(
+                      file(td.container_definitions_file),
+                      "__BACKEND_URL__",
+                      "http://${module.load_balancers[td.load_balancer_key].dns_name}${td.load_balancer_port != null ? ":${td.load_balancer_port}" : ""}"
+                    ),
                     "__SECRET_ARN__",
                     td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
                       td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
                     )
+                  ),
+                  "__FRONTEND_URL__",
+                  td.frontend_url_lb_key != null ? "http://${module.load_balancers[td.frontend_url_lb_key].dns_name}" : "__FRONTEND_URL__"
+                ),
+                "__SMTP_SECRET_ARN__",
+                td.smtp_secret_key != null ? module.secrets[td.smtp_secret_key].arn : ""
+                ) : (
+                td.cloud_map_key != null && td.container_definitions_file != null ? replace(
+                  replace(
+                    replace(
+                      replace(
+                        file(td.container_definitions_file),
+                        "__BACKEND_URL__",
+                        "http://${
+                          join(".", reverse(split("/", td.cloud_map_key)))
+                        }${td.cloud_map_port != null ? ":${td.cloud_map_port}" : ""}"
+                      ),
+                      "__SECRET_ARN__",
+                      td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
+                        td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
+                      )
+                    ),
+                    "__FRONTEND_URL__",
+                    td.frontend_url_lb_key != null ? "http://${module.load_balancers[td.frontend_url_lb_key].dns_name}" : "__FRONTEND_URL__"
+                  ),
+                  "__SMTP_SECRET_ARN__",
+                  td.smtp_secret_key != null ? module.secrets[td.smtp_secret_key].arn : ""
+                  ) : (
+                  (td.rds_key != null || td.secrets_manager_key != null) && td.container_definitions_file != null ? replace(
+                    replace(
+                      replace(
+                        file(td.container_definitions_file),
+                        "__SECRET_ARN__",
+                        td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
+                          td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
+                        )
+                      ),
+                      "__FRONTEND_URL__",
+                      td.frontend_url_lb_key != null ? "http://${module.load_balancers[td.frontend_url_lb_key].dns_name}" : "__FRONTEND_URL__"
+                    ),
+                    "__SMTP_SECRET_ARN__",
+                    td.smtp_secret_key != null ? module.secrets[td.smtp_secret_key].arn : ""
                   ) : td.container_definitions_file
               ))
             ) : null

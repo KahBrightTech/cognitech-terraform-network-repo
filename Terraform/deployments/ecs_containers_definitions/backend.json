@@ -12,8 +12,10 @@
       }
     ],
     "environment": [
-      { "name": "NODE_ENV", "value": "production" },
-      { "name": "PORT",     "value": "3000" }
+      { "name": "NODE_ENV",      "value": "production" },
+      { "name": "PORT",          "value": "3000" },
+      { "name": "FRONTEND_URL",  "value": "__FRONTEND_URL__" },
+      { "name": "SMTP_SECURE",   "value": "false" }
     ],
     "secrets": [
       {
@@ -35,6 +37,26 @@
       {
         "name": "DB_NAME",
         "valueFrom": "__SECRET_ARN__:dbname::"
+      },
+      {
+        "name": "JWT_SECRET",
+        "valueFrom": "__SMTP_SECRET_ARN__:JWT_SECRET::"
+      },
+      {
+        "name": "SMTP_HOST",
+        "valueFrom": "__SMTP_SECRET_ARN__:SMTP_HOST::"
+      },
+      {
+        "name": "SMTP_PORT",
+        "valueFrom": "__SMTP_SECRET_ARN__:SMTP_PORT::"
+      },
+      {
+        "name": "SMTP_USER",
+        "valueFrom": "__SMTP_SECRET_ARN__:SMTP_USER::"
+      },
+      {
+        "name": "SMTP_PASS",
+        "valueFrom": "__SMTP_SECRET_ARN__:SMTP_PASS::"
       }
     ],
     "healthCheck": {

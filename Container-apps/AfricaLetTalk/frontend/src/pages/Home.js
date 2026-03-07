@@ -57,8 +57,8 @@ function Home() {
           <div className="feature-card">
             <img 
               className="feature-card-img" 
-              src="https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=600&q=80" 
-              alt="Kilimanjaro at sunset"
+              src="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80" 
+              alt="Lagos Nigeria cityscape"
             />
             <div className="feature-card-body">
               <div className="feature-icon feature-icon-orange">📱</div>
@@ -70,8 +70,8 @@ function Home() {
           <div className="feature-card">
             <img 
               className="feature-card-img" 
-              src="https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=600&q=80" 
-              alt="Great Pyramids of Giza"
+              src="https://images.unsplash.com/photo-1565791380713-1756b9a05343?w=600&q=80" 
+              alt="Nairobi Kenya skyline"
             />
             <div className="feature-card-body">
               <div className="feature-icon feature-icon-green">🤝</div>
@@ -83,8 +83,8 @@ function Home() {
           <div className="feature-card">
             <img 
               className="feature-card-img" 
-              src="https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=600&q=80" 
-              alt="African safari elephants"
+              src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80" 
+              alt="Modern African professionals"
             />
             <div className="feature-card-body">
               <div className="feature-icon feature-icon-blue">💬</div>
@@ -96,8 +96,8 @@ function Home() {
           <div className="feature-card">
             <img 
               className="feature-card-img" 
-              src="https://images.unsplash.com/photo-1549366021-9f761d450615?w=600&q=80" 
-              alt="Table Mountain Cape Town"
+              src="https://images.unsplash.com/photo-1577948000111-9c970dfe3743?w=600&q=80" 
+              alt="Accra Ghana modern city"
             />
             <div className="feature-card-body">
               <div className="feature-icon feature-icon-red">🔒</div>
@@ -115,19 +115,19 @@ function Home() {
 
         <div className="gallery">
           <div className="gallery-item">
-            <img src="https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=80" alt="African safari wildlife" />
+            <img src="https://images.unsplash.com/photo-1611348586804-61bf6c080437?w=600&q=80" alt="Dar es Salaam Tanzania skyline" />
           </div>
           <div className="gallery-item">
-            <img src="https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=600&q=80" alt="Victoria Falls Zimbabwe" />
+            <img src="https://images.unsplash.com/photo-1591828988777-1e2e4a0e7a4d?w=600&q=80" alt="Kigali Rwanda modern city" />
           </div>
           <div className="gallery-item">
-            <img src="https://images.unsplash.com/photo-1484318571209-661cf29a69c3?w=600&q=80" alt="African sunset savanna" />
+            <img src="https://images.unsplash.com/photo-1565791380713-1756b9a05343?w=600&q=80" alt="Nairobi business district" />
           </div>
           <div className="gallery-item">
-            <img src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&q=80" alt="Majestic African landscape" />
+            <img src="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80" alt="Lagos urban nightlife" />
           </div>
           <div className="gallery-item">
-            <img src="https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=600&q=80" alt="Marrakech Morocco" />
+            <img src="https://images.unsplash.com/photo-1577948000111-9c970dfe3743?w=600&q=80" alt="Accra Ghana street scene" />
           </div>
         </div>
       </div>

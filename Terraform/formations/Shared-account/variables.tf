@@ -1451,6 +1451,8 @@ variable "ecs_clusters" {
       memory                   = optional(string)
       load_balancer_key        = optional(string)
       load_balancer_port       = optional(number)
+      frontend_url_lb_key      = optional(string)
+      smtp_secret_key          = optional(string)
       cloud_map_key            = optional(string)
       cloud_map_port           = optional(number)
       secrets_manager_key      = optional(string)

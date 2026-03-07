@@ -35,6 +35,11 @@ env:
   TF_VAR_DOCKER_PASSWORD: ${{ secrets.TF_VAR_DOCKER_PASSWORD }}
   TF_VAR_DOCKER_USERNAME: ${{ secrets.TF_VAR_DOCKER_USERNAME }}
   TF_VAR_EKS_CLUSTER_THUMPRINT: ${{ secrets.TF_VAR_EKS_CLUSTER_THUMPRINT }}
+  TF_VAR_JWT_SECRET: ${{ secrets.TF_VAR_JWT_SECRET }}
+  TF_VAR_SMTP_HOST: ${{ secrets.TF_VAR_SMTP_HOST }}
+  TF_VAR_SMTP_PORT: ${{ secrets.TF_VAR_SMTP_PORT }}
+  TF_VAR_SMTP_PASS: ${{ secrets.TF_VAR_SMTP_PASS }}
+  TF_VAR_SMTP_USER: ${{ secrets.TF_VAR_SMTP_USER }}
 
 permissions:
   packages: write

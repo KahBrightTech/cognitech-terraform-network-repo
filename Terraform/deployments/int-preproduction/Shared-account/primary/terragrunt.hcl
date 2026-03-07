@@ -1027,6 +1027,20 @@ inputs = {
         username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
         password = "${get_env("TF_VAR_DOCKER_PASSWORD")}"
       }
+    },
+    {
+      key                     = "smtp"
+      name_prefix             = include.cloud.locals.secret_names.smtp
+      description             = "SMTP credentials for ${local.aws_account_name} environment"
+      recovery_window_in_days = 7
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        JWT_SECRET = "${get_env("TF_VAR_JWT_SECRET")}"
+        SMTP_HOST  = "${get_env("TF_VAR_SMTP_HOST")}"
+        SMTP_PORT  = "${get_env("TF_VAR_SMTP_PORT")}"
+        SMTP_PASS  = "${get_env("TF_VAR_SMTP_PASS")}"
+        SMTP_USER  = "${get_env("TF_VAR_SMTP_USER")}"
+      }
     }
   ]
   ssm_parameters = [
@@ -1843,6 +1857,8 @@ inputs = {
           execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
           task_role_key              = "${local.vpc_name_abr}-ecs-task"
           rds_key                    = "${local.vpc_name_abr}-postgres"
+          frontend_url_lb_key        = "ecs-web"
+          smtp_secret_key            = "smtp"
           container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"
         }
       ]
