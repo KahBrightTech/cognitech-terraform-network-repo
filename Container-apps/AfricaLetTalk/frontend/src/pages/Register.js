@@ -11,6 +11,10 @@ function Register({ onLogin }) {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [registered, setRegistered] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -36,8 +40,13 @@ function Register({ onLogin }) {
       const data = await response.json();
 
       if (response.ok) {
-        onLogin(data.user, data.token);
-        navigate('/feed');
+        if (data.requiresVerification) {
+          setRegistered(true);
+          setRegisteredEmail(data.email);
+        } else {
+          onLogin(data.user, data.token);
+          navigate('/feed');
+        }
       } else {
         setError(data.error || 'Registration failed');
       }
@@ -48,6 +57,54 @@ function Register({ onLogin }) {
       setLoading(false);
     }
   };
+
+  const handleResend = async () => {
+    setResending(true);
+    setResendMsg('');
+    try {
+      const resp = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registeredEmail })
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        setResendMsg('Verification email sent! Check your inbox.');
+      } else {
+        setResendMsg(data.error || 'Failed to resend');
+      }
+    } catch (err) {
+      setResendMsg('Network error. Please try again.');
+    } finally {
+      setResending(false);
+    }
+  };
+
+  if (registered) {
+    return (
+      <div className="verify-wrapper">
+        <div className="verify-card">
+          <div className="verify-icon">📧</div>
+          <h2>Check Your Email</h2>
+          <p>We've sent a verification link to</p>
+          <p className="verify-email">{registeredEmail}</p>
+          <p>Click the link in the email to activate your account.</p>
+          <button className="verify-btn" onClick={handleResend} disabled={resending}>
+            {resending ? 'Sending...' : 'Resend Verification Email'}
+          </button>
+          {resendMsg && <p style={{ marginTop: '12px', fontSize: '14px' }}>{resendMsg}</p>}
+          <p style={{ marginTop: '20px' }}>
+            <span className="auth-link">
+              Already verified?{' '}
+              <span onClick={() => navigate('/login')} style={{ cursor: 'pointer', color: 'var(--primary)', fontWeight: 600 }}>
+                Sign in
+              </span>
+            </span>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-wrapper">

@@ -15,6 +15,7 @@
     "cors": "^2.8.5",
     "multer": "^1.4.5-lts.1",
     "dotenv": "^16.3.1",
+    "nodemailer": "^6.9.8",
     "rss-parser": "^3.13.0"
   },
   "engines": {

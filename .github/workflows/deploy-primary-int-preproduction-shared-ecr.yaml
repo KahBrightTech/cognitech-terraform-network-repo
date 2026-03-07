@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - "*"
     paths:
       - "Container-apps/AfricaLetTalk/frontend/**"
       - "Container-apps/AfricaLetTalk/backend/**"
@@ -127,7 +126,7 @@ jobs:
     needs: [Detect-Changes, Verify-Cluster]
     runs-on: ubuntu-latest
     if: |
-      needs.Detect-Changes.outputs.frontend_changed == 'true' ||
+      (github.event_name == 'push' && needs.Detect-Changes.outputs.frontend_changed == 'true') ||
       (github.event_name == 'workflow_dispatch' &&
       (github.event.inputs.service == 'frontend' || github.event.inputs.service == 'all') &&
       github.event.inputs.deploy_type == 'new-build')
@@ -152,10 +151,17 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Verify tag does not already exist in ECR
+      - name: Generate and verify image tag
         id: meta
         run: |
-          NEW_TAG="frontend-${{ github.event.inputs.frontend_tag }}"
+          # For push events, auto-generate tag from short SHA
+          # For workflow_dispatch, use the user-provided tag
+          if [ "${{ github.event_name }}" == "push" ]; then
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+            NEW_TAG="frontend-sha-${SHORT_SHA}"
+          else
+            NEW_TAG="frontend-${{ github.event.inputs.frontend_tag }}"
+          fi
 
           echo "Checking if ${NEW_TAG} already exists in ECR..."
 
@@ -204,7 +210,7 @@ jobs:
     needs: [Detect-Changes, Verify-Cluster]
     runs-on: ubuntu-latest
     if: |
-      needs.Detect-Changes.outputs.backend_changed == 'true' ||
+      (github.event_name == 'push' && needs.Detect-Changes.outputs.backend_changed == 'true') ||
       (github.event_name == 'workflow_dispatch' &&
       (github.event.inputs.service == 'backend' || github.event.inputs.service == 'all') &&
       github.event.inputs.deploy_type == 'new-build')
@@ -229,10 +235,17 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Verify tag does not already exist in ECR
+      - name: Generate and verify image tag
         id: meta
         run: |
-          NEW_TAG="backend-${{ github.event.inputs.backend_tag }}"
+          # For push events, auto-generate tag from short SHA
+          # For workflow_dispatch, use the user-provided tag
+          if [ "${{ github.event_name }}" == "push" ]; then
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+            NEW_TAG="backend-sha-${SHORT_SHA}"
+          else
+            NEW_TAG="backend-${{ github.event.inputs.backend_tag }}"
+          fi
 
           echo "Checking if ${NEW_TAG} already exists in ECR..."
 

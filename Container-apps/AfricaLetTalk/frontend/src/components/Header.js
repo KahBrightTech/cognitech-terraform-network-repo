@@ -120,6 +120,40 @@ function Header({ user, onLogout, onUserUpdate }) {
     }
   };
 
+  const acceptFriendFromNotif = async (friendshipId, notifId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await fetch('/api/friends/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ friendshipId })
+      });
+      if (resp.ok) {
+        setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, _accepted: true } : n));
+        fetchNotifCount();
+      }
+    } catch (err) {
+      console.error('Accept friend from notif error:', err);
+    }
+  };
+
+  const rejectFriendFromNotif = async (friendshipId, notifId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await fetch('/api/friends/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ friendshipId })
+      });
+      if (resp.ok) {
+        setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, _rejected: true } : n));
+        fetchNotifCount();
+      }
+    } catch (err) {
+      console.error('Reject friend from notif error:', err);
+    }
+  };
+
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -241,6 +275,14 @@ function Header({ user, onLogout, onUserUpdate }) {
                           </div>
                           <div className="notif-item-body">
                             <p className="notif-item-text">{n.content}</p>
+                            {n.type === 'friend_request' && n.related_id && !n._accepted && !n._rejected && (
+                              <div className="notif-friend-actions">
+                                <button className="notif-accept-btn" onClick={(e) => { e.stopPropagation(); acceptFriendFromNotif(n.related_id, n.id); }}>Accept</button>
+                                <button className="notif-reject-btn" onClick={(e) => { e.stopPropagation(); rejectFriendFromNotif(n.related_id, n.id); }}>Decline</button>
+                              </div>
+                            )}
+                            {n._accepted && <span className="notif-action-done">✓ Accepted</span>}
+                            {n._rejected && <span className="notif-action-done">Declined</span>}
                             <span className="notif-item-time">{formatNotifTime(n.created_at)}</span>
                           </div>
                           {!n.is_read && <div className="notif-unread-dot" />}

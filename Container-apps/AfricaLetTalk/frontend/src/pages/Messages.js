@@ -12,6 +12,7 @@ function Messages({ user }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [friendsList, setFriendsList] = useState([]);
   const messagesEndRef = useRef(null);
   const pollRef = useRef(null);
   const inputRef = useRef(null);
@@ -19,11 +20,27 @@ function Messages({ user }) {
   useEffect(() => {
     document.body.classList.add('feed-active');
     fetchConversations();
+    fetchFriendsList();
     return () => {
       document.body.classList.remove('feed-active');
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, []);
+
+  const fetchFriendsList = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await fetch('/api/friends/list', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setFriendsList(data.friends || []);
+      }
+    } catch (err) {
+      console.error('Fetch friends list error:', err);
+    }
+  };
 
   const fetchConversations = async () => {
     try {
@@ -232,6 +249,35 @@ function Messages({ user }) {
               ))}
             </div>
           )}
+
+          {/* Friends without conversations */}
+          {(() => {
+            const convUserIds = new Set(conversations.map(c => c.other_user_id));
+            const friendsWithoutConv = friendsList.filter(f => !convUserIds.has(f.id));
+            if (friendsWithoutConv.length === 0) return null;
+            return (
+              <div className="friends-no-conv">
+                <div className="friends-no-conv-header">Friends</div>
+                {friendsWithoutConv.map(f => (
+                  <div key={f.id} className="conversation-item" onClick={() => startConversation(f)}>
+                    <div className="conversation-avatar" style={{ background: '#2D6A4F' }}>
+                      {f.avatar_url ? (
+                        <img src={f.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                      ) : (
+                        (f.full_name || f.username || 'U')[0].toUpperCase()
+                      )}
+                    </div>
+                    <div className="conversation-info">
+                      <div className="conversation-top">
+                        <span className="conversation-name">{f.full_name || f.username}</span>
+                      </div>
+                      <div className="conversation-preview">Tap to start chatting</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Chat Area */}
@@ -359,6 +405,26 @@ function Messages({ user }) {
                   </div>
                 ))}
               </div>
+              {searchQuery.length < 2 && friendsList.length > 0 && (
+                <div className="new-chat-friends">
+                  <h4 className="new-chat-friends-title">Your Friends</h4>
+                  {friendsList.map(f => (
+                    <div key={f.id} className="new-chat-user" onClick={() => startConversation(f)}>
+                      <div className="new-chat-user-avatar" style={{ background: '#2D6A4F' }}>
+                        {f.avatar_url ? (
+                          <img src={f.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                        ) : (
+                          (f.full_name || f.username || 'U')[0].toUpperCase()
+                        )}
+                      </div>
+                      <div className="new-chat-user-info">
+                        <span className="new-chat-user-name">{f.full_name || f.username}</span>
+                        <span className="new-chat-user-handle">@{f.username}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

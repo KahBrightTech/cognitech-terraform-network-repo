@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(100),
     avatar_url VARCHAR(500),
     bio TEXT,
+    email_verified BOOLEAN DEFAULT false,
+    verification_token VARCHAR(64),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
