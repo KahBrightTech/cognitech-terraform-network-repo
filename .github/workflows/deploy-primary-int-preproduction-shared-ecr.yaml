@@ -341,7 +341,18 @@ jobs:
       - name: Resolve and verify frontend image tag
         id: resolve
         run: |
-          IMAGE_TAG="frontend-${{ github.event.inputs.frontend_tag }}"
+          # For push events, use the tag from the build job output
+          # For workflow_dispatch existing-version, use the user-provided tag
+          if [ "${{ github.event_name }}" == "push" ]; then
+            IMAGE_TAG="${{ needs.Build-Frontend.outputs.image_tag }}"
+          else
+            IMAGE_TAG="frontend-${{ github.event.inputs.frontend_tag }}"
+          fi
+
+          if [ -z "${IMAGE_TAG}" ]; then
+            echo "❌ No image tag resolved — nothing to deploy" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
 
           echo "Verifying \`${IMAGE_TAG}\` exists in ECR before deploying..."
 
@@ -418,7 +429,18 @@ jobs:
       - name: Resolve and verify backend image tag
         id: resolve
         run: |
-          IMAGE_TAG="backend-${{ github.event.inputs.backend_tag }}"
+          # For push events, use the tag from the build job output
+          # For workflow_dispatch existing-version, use the user-provided tag
+          if [ "${{ github.event_name }}" == "push" ]; then
+            IMAGE_TAG="${{ needs.Build-Backend.outputs.image_tag }}"
+          else
+            IMAGE_TAG="backend-${{ github.event.inputs.backend_tag }}"
+          fi
+
+          if [ -z "${IMAGE_TAG}" ]; then
+            echo "❌ No image tag resolved — nothing to deploy" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
 
           echo "Verifying \`${IMAGE_TAG}\` exists in ECR before deploying..."
 
