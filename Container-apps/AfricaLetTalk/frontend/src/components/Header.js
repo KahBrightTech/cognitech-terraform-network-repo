@@ -183,6 +183,30 @@ function Header({ user, onLogout, onUserUpdate }) {
     }
   };
 
+  const handleRemoveAvatar = async () => {
+    setUploadingAvatar(true);
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ avatarUrl: null })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (onUserUpdate) onUserUpdate(data.user);
+      }
+    } catch (err) {
+      alert('Failed to remove avatar');
+    } finally {
+      setUploadingAvatar(false);
+      setShowAvatarMenu(false);
+    }
+  };
+
   const getInitial = () => {
     if (user.full_name) return user.full_name.charAt(0).toUpperCase();
     return user.username.charAt(0).toUpperCase();
@@ -195,8 +219,12 @@ function Header({ user, onLogout, onUserUpdate }) {
           <div className="logo-icon">
             <svg viewBox="0 0 100 100" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
               <circle cx="50" cy="50" r="48" fill="#E07A2F"/>
-              <path d="M52 12 C50 12, 47 13, 45 14 C43 15, 41 16, 40 17 L38 18 C36 18, 35 19, 34 20 C33 21, 32 22, 31 24 C30 25, 30 27, 29 29 L28 31 C27 32, 27 34, 27 36 C27 38, 26 40, 26 42 L26 44 C26 46, 25 47, 25 49 L25 52 C25 54, 25 56, 26 58 L27 60 C27 62, 28 63, 28 65 C29 67, 30 68, 31 70 L33 72 C34 73, 35 75, 37 76 L39 78 C40 79, 42 80, 43 81 C44 82, 45 82, 46 83 L47 84 C47 85, 48 86, 48 86 L47 87 C47 88, 46 88, 46 88 L45 88 C44 87, 43 86, 42 86 L41 85 C40 84, 39 84, 38 85 C37 86, 38 87, 39 87 L40 88 C41 88, 42 89, 43 89 L45 89 C46 89, 47 89, 48 88 L50 86 C51 85, 52 84, 52 82 L52 80 C53 78, 54 76, 55 75 L56 73 C57 72, 58 70, 59 68 L60 66 C61 64, 62 62, 63 60 L64 58 C65 56, 66 54, 66 52 L66 50 C67 48, 68 46, 68 44 L68 42 C68 40, 68 38, 67 36 L66 34 C66 32, 65 30, 64 29 L62 27 C61 26, 60 24, 59 23 L57 20 C56 19, 55 17, 54 16 L53 14 C52 13, 52 12, 52 12 Z" fill="white" opacity="0.95"/>
-              <ellipse cx="65" cy="72" rx="3" ry="7" fill="white" opacity="0.9" transform="rotate(-10,65,72)"/>
+              <circle cx="35" cy="38" r="9" fill="white" opacity="0.95"/>
+              <circle cx="65" cy="38" r="9" fill="white" opacity="0.95"/>
+              <circle cx="50" cy="60" r="10" fill="white" opacity="0.95"/>
+              <line x1="40" y1="42" x2="46" y2="54" stroke="white" strokeWidth="3" opacity="0.9"/>
+              <line x1="60" y1="42" x2="54" y2="54" stroke="white" strokeWidth="3" opacity="0.9"/>
+              <line x1="38" y1="36" x2="62" y2="36" stroke="white" strokeWidth="3" opacity="0.9"/>
             </svg>
           </div>
           <h1>Lets<span>Connect</span></h1>
@@ -217,12 +245,13 @@ function Header({ user, onLogout, onUserUpdate }) {
               {showAvatarMenu && (
                 <div className="header-avatar-menu">
                   <div className="header-avatar-menu-header">
-                    <div className="header-avatar-large">
+                    <div className="header-avatar-large" onClick={() => fileInputRef.current?.click()} style={{ cursor: 'pointer', position: 'relative' }}>
                       {user.avatar_url ? (
                         <img src={user.avatar_url} alt="avatar" />
                       ) : (
                         <span>{getInitial()}</span>
                       )}
+                      <div className="avatar-camera-overlay">📷</div>
                     </div>
                     <div className="header-avatar-info">
                       <strong>{user.full_name || user.username}</strong>
@@ -236,6 +265,15 @@ function Header({ user, onLogout, onUserUpdate }) {
                   >
                     {uploadingAvatar ? '⏳ Uploading...' : '📷 Change Photo'}
                   </button>
+                  {user.avatar_url && (
+                    <button
+                      className="header-avatar-menu-btn remove-photo-btn"
+                      onClick={handleRemoveAvatar}
+                      disabled={uploadingAvatar}
+                    >
+                      🗑️ Remove Photo
+                    </button>
+                  )}
                   <input
                     type="file"
                     ref={fileInputRef}

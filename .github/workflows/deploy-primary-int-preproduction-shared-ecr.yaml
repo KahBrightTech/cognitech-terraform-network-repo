@@ -154,11 +154,17 @@ jobs:
       - name: Generate and verify image tag
         id: meta
         run: |
-          # For push events, auto-generate tag from short SHA
+          # For push events, auto-increment version from latest ECR tag
           # For workflow_dispatch, use the user-provided tag
           if [ "${{ github.event_name }}" == "push" ]; then
-            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-            NEW_TAG="frontend-sha-${SHORT_SHA}"
+            LATEST=$(aws ecr describe-images \
+              --repository-name ${{ env.ECR_REPO }} \
+              --query 'imageDetails[*].imageTags' \
+              --output json | \
+              jq -r '.[][] // empty' | grep -oP '^frontend-v\K[0-9]+' | sort -n | tail -1)
+
+            NEXT_VERSION=$(( ${LATEST:-0} + 1 ))
+            NEW_TAG="frontend-v${NEXT_VERSION}"
           else
             NEW_TAG="frontend-${{ github.event.inputs.frontend_tag }}"
           fi
@@ -238,11 +244,17 @@ jobs:
       - name: Generate and verify image tag
         id: meta
         run: |
-          # For push events, auto-generate tag from short SHA
+          # For push events, auto-increment version from latest ECR tag
           # For workflow_dispatch, use the user-provided tag
           if [ "${{ github.event_name }}" == "push" ]; then
-            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-            NEW_TAG="backend-sha-${SHORT_SHA}"
+            LATEST=$(aws ecr describe-images \
+              --repository-name ${{ env.ECR_REPO }} \
+              --query 'imageDetails[*].imageTags' \
+              --output json | \
+              jq -r '.[][] // empty' | grep -oP '^backend-v\K[0-9]+' | sort -n | tail -1)
+
+            NEXT_VERSION=$(( ${LATEST:-0} + 1 ))
+            NEW_TAG="backend-v${NEXT_VERSION}"
           else
             NEW_TAG="backend-${{ github.event.inputs.backend_tag }}"
           fi

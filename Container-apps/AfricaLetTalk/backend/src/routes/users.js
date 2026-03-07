@@ -64,14 +64,17 @@ router.put('/:userId', authenticate, async (req, res) => {
 
         const { fullName, bio, avatarUrl } = req.body;
 
+        // If avatarUrl key is present in body (even if null), use the value directly
+        // If not present, keep the existing avatar_url via COALESCE
+        const avatarExplicit = 'avatarUrl' in req.body;
         const result = await query(
             `UPDATE users 
              SET full_name = COALESCE($1, full_name),
                  bio = COALESCE($2, bio),
-                 avatar_url = COALESCE($3, avatar_url)
+                 avatar_url = CASE WHEN $5::boolean THEN $3 ELSE avatar_url END
              WHERE id = $4
              RETURNING id, username, email, full_name, avatar_url, bio, created_at`,
-            [fullName, bio, avatarUrl, userId]
+            [fullName, bio, avatarUrl || null, userId, avatarExplicit]
         );
 
         res.json({ user: result.rows[0] });
