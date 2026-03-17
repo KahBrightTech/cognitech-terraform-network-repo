@@ -36,8 +36,8 @@ locals {
   vpc_name            = "shared-services"
   vpc_name_abr        = "shared"
   create_eks_cluster  = false
-  create_ecs_cluster  = true
-  create_postgres_rds = true
+  create_ecs_cluster  = false
+  create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
 
@@ -1210,21 +1210,21 @@ inputs = {
     }
   ]
   load_balancers = [
-    {
-      key             = "ecs-web"
-      name            = "ecs-web"
-      vpc_name_abr    = "${local.vpc_name_abr}"
-      type            = "application"
-      security_groups = ["alb"]
-      subnets = [
-        include.env.locals.subnet_prefix.primary
-      ]
-      enable_deletion_protection = false
-      enable_access_logs         = true
-      access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-      vpc_name                   = local.vpc_name_abr
-      create_default_listener    = false
-    }
+    # {
+    #   key             = "ecs-web"
+    #   name            = "ecs-web"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = false
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+    #   vpc_name                   = local.vpc_name_abr
+    #   create_default_listener    = false
+    # }
     # {
     #   key             = "ecs-app"
     #   name            = "ecs-app"
@@ -1241,15 +1241,15 @@ inputs = {
     # }
   ]
   alb_listeners = [
-    {
-      key             = "ecs-web-https"
-      alb_key         = "ecs-web"
-      protocol        = "HTTPS"
-      certificate_key = "${local.vpc_name_abr}"
-      port            = 443
-      action          = "forward"
-      tg_name         = "ecs-frontend"
-    }
+    # {
+    #   key             = "ecs-web-https"
+    #   alb_key         = "ecs-web"
+    #   protocol        = "HTTPS"
+    #   certificate_key = "${local.vpc_name_abr}"
+    #   port            = 443
+    #   action          = "forward"
+    #   tg_name         = "ecs-frontend"
+    # }
   ]
   alb_listener_rules = [
     # {
@@ -1290,21 +1290,21 @@ inputs = {
     # }
   ]
   target_groups = [
-    {
-      key         = "ecs-frontend"
-      name        = "ecs-frontend"
-      protocol    = "HTTP"
-      port        = 80
-      target_type = "ip"
-      health_check = {
-        protocol = "HTTP"
-        port     = 80
-        path     = "/"
-        matcher  = "200-299"
-      }
-      vpc_name     = local.vpc_name_abr
-      vpc_name_abr = "${local.vpc_name_abr}"
-    }
+    # {
+    #   key         = "ecs-frontend"
+    #   name        = "ecs-frontend"
+    #   protocol    = "HTTP"
+    #   port        = 80
+    #   target_type = "ip"
+    #   health_check = {
+    #     protocol = "HTTP"
+    #     port     = 80
+    #     path     = "/"
+    #     matcher  = "200-299"
+    #   }
+    #   vpc_name     = local.vpc_name_abr
+    #   vpc_name_abr = "${local.vpc_name_abr}"
+    # }
     # {
     #   key         = "ecs-backend"
     #   name        = "ecs-backend"
