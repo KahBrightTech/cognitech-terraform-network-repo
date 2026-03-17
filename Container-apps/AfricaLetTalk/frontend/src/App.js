@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import Feed from './pages/Feed';
 import Messages from './pages/Messages';
+import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import Header from './components/Header';
 
@@ -38,6 +39,10 @@ function AppContent({ user, onLogout, onUserUpdate, onLogin }) {
         <Route 
           path="/messages" 
           element={user ? <Messages user={user} /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/profile/:username" 
+          element={user ? <Profile user={user} /> : <Navigate to="/login" />} 
         />
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -99,6 +99,18 @@ function Header({ user, onLogout, onUserUpdate }) {
     } catch (err) { /* silent */ }
   };
 
+  const markNotifRead = async (notifId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`/api/notifications/${notifId}/read`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, is_read: true } : n));
+      setNotifCount(prev => Math.max(0, prev - 1));
+    } catch (err) { /* silent */ }
+  };
+
   const formatNotifTime = (dateStr) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -295,7 +307,17 @@ function Header({ user, onLogout, onUserUpdate }) {
                       <p className="notif-empty">No notifications yet</p>
                     ) : (
                       notifications.slice(0, 20).map(n => (
-                        <div key={n.id} className={`notif-item ${!n.is_read ? 'notif-unread' : ''}`}>
+                        <div key={n.id} className={`notif-item ${!n.is_read ? 'notif-unread' : ''}`}
+                          onClick={() => {
+                            if (!n.is_read) markNotifRead(n.id);
+                            setShowNotifPanel(false);
+                            if (n.type === 'friend_request' || n.type === 'friend_accepted') {
+                              navigate(`/profile/${n.username}`);
+                            } else {
+                              navigate('/feed');
+                            }
+                          }}
+                          style={{ cursor: 'pointer' }}>
                           <div className="notif-item-avatar">
                             {n.avatar_url ? (
                               <img src={n.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />

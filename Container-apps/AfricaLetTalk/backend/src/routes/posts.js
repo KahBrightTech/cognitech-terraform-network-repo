@@ -423,4 +423,23 @@ router.post('/:postId/share', authenticate, async (req, res) => {
     }
 });
 
+// Delete a post (owner only)
+router.delete('/:postId', authenticate, async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const userId = req.user.userId;
+        const post = await query('SELECT user_id FROM posts WHERE id = $1', [postId]);
+        if (post.rows.length === 0) return res.status(404).json({ error: 'Post not found' });
+        if (post.rows[0].user_id !== userId) return res.status(403).json({ error: 'Not authorized' });
+        await query('DELETE FROM likes WHERE post_id = $1', [postId]);
+        await query('DELETE FROM comments WHERE post_id = $1', [postId]);
+        await query('DELETE FROM notifications WHERE related_id = $1', [postId]);
+        await query('DELETE FROM posts WHERE id = $1 AND user_id = $2', [postId, userId]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete post error:', error);
+        res.status(500).json({ error: 'Failed to delete post' });
+    }
+});
+
 module.exports = router;

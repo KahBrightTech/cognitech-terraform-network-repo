@@ -33,6 +33,63 @@ const avatarUpload = multer({
     }
 });
 
+router.get('/profile/:username', authenticate, async (req, res) => {
+    try {
+        const { username } = req.params;
+        const currentUserId = req.user.userId;
+
+        const userResult = await query(
+            `SELECT id, username, full_name, avatar_url, bio, created_at FROM users WHERE username = $1`,
+            [username]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const profileUser = userResult.rows[0];
+
+        const postsResult = await query(
+            `SELECT p.*, u.username, u.full_name, u.avatar_url,
+                    (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) AS likes_count,
+                    (SELECT COUNT(*) FROM post_comments WHERE post_id = p.id) AS comments_count,
+                    EXISTS(SELECT 1 FROM post_likes WHERE post_id = p.id AND user_id = $2) AS is_liked
+             FROM posts p
+             JOIN users u ON p.user_id = u.id
+             WHERE p.user_id = $1
+             ORDER BY p.created_at DESC
+             LIMIT 20`,
+            [profileUser.id, currentUserId]
+        );
+
+        const friendCountResult = await query(
+            `SELECT COUNT(*) FROM friendships
+             WHERE (user_id = $1 OR friend_id = $1) AND status = 'accepted'`,
+            [profileUser.id]
+        );
+
+        let friendshipStatus = null;
+        if (currentUserId !== profileUser.id) {
+            const fsResult = await query(
+                `SELECT id, status, user_id FROM friendships
+                 WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1)`,
+                [currentUserId, profileUser.id]
+            );
+            if (fsResult.rows.length > 0) friendshipStatus = fsResult.rows[0];
+        }
+
+        res.json({
+            user: profileUser,
+            posts: postsResult.rows,
+            friendCount: parseInt(friendCountResult.rows[0].count),
+            friendshipStatus
+        });
+    } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({ error: 'Failed to get profile' });
+    }
+});
+
 router.get('/:userId', authenticate, async (req, res) => {
     try {
         const { userId } = req.params;

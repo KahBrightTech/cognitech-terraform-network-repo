@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Feed({ user, onUserUpdate }) {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [selectedVideos, setSelectedVideos] = useState([]);
   const [videoPreviews, setVideoPreviews] = useState([]);
+  const [openPostMenu, setOpenPostMenu] = useState(null);
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState('');
@@ -108,6 +111,14 @@ function Feed({ user, onUserUpdate }) {
       if (framePollingRef.current) clearInterval(framePollingRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (openPostMenu !== null) {
+      const close = () => setOpenPostMenu(null);
+      document.addEventListener('click', close);
+      return () => document.removeEventListener('click', close);
+    }
+  }, [openPostMenu]);
 
   const fetchPosts = async () => {
     try {
@@ -817,6 +828,23 @@ function Feed({ user, onUserUpdate }) {
     }
   };
 
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Delete this post? This cannot be undone.')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (resp.ok) {
+        setPosts(prev => prev.filter(p => p.id !== postId));
+        setFriendsPosts(prev => prev.filter(p => p.id !== postId));
+      }
+    } catch (err) {
+      console.error('Delete post error:', err);
+    }
+  };
+
   const isVideoUrl = (url) => /\.(mp4|mov|avi|webm|mkv)$/i.test(url);
 
   const handleImageSelect = (e) => {
@@ -878,6 +906,7 @@ function Feed({ user, onUserUpdate }) {
       });
 
       if (response.ok) {
+        const data = await response.json();
         setNewPost('');
         setSelectedImages([]);
         setSelectedFeeling(null);
@@ -887,7 +916,15 @@ function Feed({ user, onUserUpdate }) {
         selectedVideos.forEach(url => URL.revokeObjectURL(url));
         setSelectedVideos([]);
         setVideoPreviews([]);
-        fetchPosts();
+        setPosts(prev => [{
+          ...data.post,
+          username: user.username,
+          full_name: user.full_name,
+          avatar_url: user.avatar_url,
+          likes_count: '0',
+          comments_count: '0',
+          is_liked: false,
+        }, ...prev]);
       } else {
         setError('Failed to create post');
       }
@@ -1316,22 +1353,32 @@ function Feed({ user, onUserUpdate }) {
                 posts.map((post) => (
                   <div key={post.id} className="post-card">
                     <div className="post-header">
-                      <div className="post-avatar">
+                      <div className="post-avatar" onClick={() => navigate(`/profile/${post.username}`)} style={{ cursor: 'pointer' }}>
                         {post.avatar_url ? (
                           <img src={post.avatar_url} alt={post.username} className="post-avatar-img" />
                         ) : (
                           post.username ? post.username[0].toUpperCase() : 'U'
                         )}
                       </div>
-                      <div className="post-info">
+                      <div className="post-info" onClick={() => navigate(`/profile/${post.username}`)} style={{ cursor: 'pointer' }}>
                         <h4>{post.full_name || post.username}</h4>
                         <span>@{post.username} · {formatDate(post.created_at)}</span>
                       </div>
-                      <button className="post-menu-btn">⋯</button>
+                      <div className="post-menu-wrapper">
+                        <button
+                          className="post-menu-btn"
+                          onClick={(e) => { e.stopPropagation(); setOpenPostMenu(openPostMenu === post.id ? null : post.id); }}
+                        >⋯</button>
+                        {openPostMenu === post.id && post.user_id === user.id && (
+                          <div className="post-menu-dropdown">
+                            <button onClick={() => { setOpenPostMenu(null); handleDeletePost(post.id); }}>🗑️ Delete post</button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="post-content">
                       <p>{post.content}</p>
-                      {/* Post Media (images and videos) */}
+                      {/* Post Media (images and videos) */
                       {post.media_urls && post.media_urls.length > 0 && (
                         <div className={`post-images post-images-${Math.min(post.media_urls.length, 4)}`}>
                           {post.media_urls.map((url, i) => (
@@ -1454,18 +1501,28 @@ function Feed({ user, onUserUpdate }) {
                 friendsPosts.map((post) => (
                   <div key={post.id} className="post-card">
                     <div className="post-header">
-                      <div className="post-avatar">
+                      <div className="post-avatar" onClick={() => navigate(`/profile/${post.username}`)} style={{ cursor: 'pointer' }}>
                         {post.avatar_url ? (
                           <img src={post.avatar_url} alt={post.username} className="post-avatar-img" />
                         ) : (
                           post.username ? post.username[0].toUpperCase() : 'U'
                         )}
                       </div>
-                      <div className="post-info">
+                      <div className="post-info" onClick={() => navigate(`/profile/${post.username}`)} style={{ cursor: 'pointer' }}>
                         <h4>{post.full_name || post.username} <span className="friend-badge">Friend</span></h4>
                         <span>@{post.username} · {formatDate(post.created_at)}</span>
                       </div>
-                      <button className="post-menu-btn">⋯</button>
+                      <div className="post-menu-wrapper">
+                        <button
+                          className="post-menu-btn"
+                          onClick={(e) => { e.stopPropagation(); setOpenPostMenu(openPostMenu === post.id ? null : post.id); }}
+                        >⋯</button>
+                        {openPostMenu === post.id && post.user_id === user.id && (
+                          <div className="post-menu-dropdown">
+                            <button onClick={() => { setOpenPostMenu(null); handleDeletePost(post.id); }}>🗑️ Delete post</button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="post-content">
                       <p>{post.content}</p>
