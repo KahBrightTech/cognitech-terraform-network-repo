@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-function Feed({ user }) {
+function Feed({ user, onUserUpdate }) {
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [selectedVideos, setSelectedVideos] = useState([]);
+  const [videoPreviews, setVideoPreviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState('');
@@ -20,6 +22,7 @@ function Feed({ user }) {
   const [commentTexts, setCommentTexts] = useState({});
   const [commentLoading, setCommentLoading] = useState({});
   const fileInputRef = useRef(null);
+  const videoInputRef = useRef(null);
 
   // Live stream state
   const [liveStreams, setLiveStreams] = useState([]);
@@ -773,10 +776,8 @@ function Feed({ user }) {
       });
       if (resp.ok) {
         const data = await resp.json();
-        // Trigger App-level user update if prop available
-        if (window.__updateUser) window.__updateUser(data.user);
-        // Optimistically update avatar in UI via page reload workaround
-        window.location.reload();
+        if (onUserUpdate) onUserUpdate(data.user);
+        else window.location.reload();
       } else {
         const err = await resp.json();
         alert(err.error || 'Failed to upload photo');
@@ -816,6 +817,8 @@ function Feed({ user }) {
     }
   };
 
+  const isVideoUrl = (url) => /\.(mp4|mov|avi|webm|mkv)$/i.test(url);
+
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files).slice(0, 4);
     setSelectedImages(files);
@@ -832,9 +835,24 @@ function Feed({ user }) {
     });
   };
 
+  const handleVideoSelect = (e) => {
+    const files = Array.from(e.target.files).slice(0, 2);
+    setSelectedVideos(files);
+    const previews = files.map(file => URL.createObjectURL(file));
+    setVideoPreviews(previews);
+  };
+
+  const removeVideo = (index) => {
+    setSelectedVideos(prev => prev.filter((_, i) => i !== index));
+    setVideoPreviews(prev => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
   const handleCreatePost = async (e) => {
     e.preventDefault();
-    if (!newPost.trim() && selectedImages.length === 0) return;
+    if (!newPost.trim() && selectedImages.length === 0 && selectedVideos.length === 0) return;
 
     setPosting(true);
     try {
@@ -848,7 +866,8 @@ function Feed({ user }) {
         fullContent += ` — 📍 ${postLocation}`;
       }
       formData.append('content', fullContent);
-      selectedImages.forEach(file => formData.append('images', file));
+      selectedImages.forEach(file => formData.append('media', file));
+      selectedVideos.forEach(file => formData.append('media', file));
 
       const response = await fetch('/api/posts', {
         method: 'POST',
@@ -865,6 +884,9 @@ function Feed({ user }) {
         setPostLocation(null);
         imagePreviews.forEach(url => URL.revokeObjectURL(url));
         setImagePreviews([]);
+        selectedVideos.forEach(url => URL.revokeObjectURL(url));
+        setSelectedVideos([]);
+        setVideoPreviews([]);
         fetchPosts();
       } else {
         setError('Failed to create post');
@@ -1120,7 +1142,11 @@ function Feed({ user }) {
               <div className="create-post">
                 <div className="create-post-top">
                   <div className="create-post-avatar">
-                    {user.username ? user.username[0].toUpperCase() : 'U'}
+                    {user.avatar_url ? (
+                      <img src={user.avatar_url} alt={user.username} className="post-avatar-img" />
+                    ) : (
+                      user.username ? user.username[0].toUpperCase() : 'U'
+                    )}
                   </div>
                   <span className="create-post-greeting">What's on your mind, {user.full_name || user.username}?</span>
                 </div>
@@ -1150,6 +1176,24 @@ function Feed({ user }) {
                     </div>
                   )}
 
+                  {/* Video Previews */}
+                  {videoPreviews.length > 0 && (
+                    <div className="image-preview-grid">
+                      {videoPreviews.map((preview, index) => (
+                        <div key={index} className="image-preview-item">
+                          <video src={preview} controls className="video-preview" style={{ width: '100%', maxHeight: '200px', borderRadius: '8px' }} />
+                          <button
+                            type="button"
+                            className="image-preview-remove"
+                            onClick={() => removeVideo(index)}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="create-post-actions">
                     <div className="create-post-buttons">
                       <input
@@ -1160,12 +1204,27 @@ function Feed({ user }) {
                         onChange={handleImageSelect}
                         style={{ display: 'none' }}
                       />
+                      <input
+                        ref={videoInputRef}
+                        type="file"
+                        accept="video/*"
+                        multiple
+                        onChange={handleVideoSelect}
+                        style={{ display: 'none' }}
+                      />
                       <button
                         type="button"
                         className="create-post-btn"
                         onClick={() => fileInputRef.current.click()}
                       >
                         📷 Photo
+                      </button>
+                      <button
+                        type="button"
+                        className="create-post-btn"
+                        onClick={() => videoInputRef.current.click()}
+                      >
+                        🎥 Video
                       </button>
                       <button
                         type="button"
@@ -1194,7 +1253,7 @@ function Feed({ user }) {
                     <button
                       type="submit"
                       className="btn-post"
-                      disabled={posting || (!newPost.trim() && selectedImages.length === 0)}
+                      disabled={posting || (!newPost.trim() && selectedImages.length === 0 && selectedVideos.length === 0)}
                     >
                       {posting ? 'Posting...' : 'Post'}
                     </button>
@@ -1258,7 +1317,11 @@ function Feed({ user }) {
                   <div key={post.id} className="post-card">
                     <div className="post-header">
                       <div className="post-avatar">
-                        {post.username ? post.username[0].toUpperCase() : 'U'}
+                        {post.avatar_url ? (
+                          <img src={post.avatar_url} alt={post.username} className="post-avatar-img" />
+                        ) : (
+                          post.username ? post.username[0].toUpperCase() : 'U'
+                        )}
                       </div>
                       <div className="post-info">
                         <h4>{post.full_name || post.username}</h4>
@@ -1268,11 +1331,15 @@ function Feed({ user }) {
                     </div>
                     <div className="post-content">
                       <p>{post.content}</p>
-                      {/* Post Images */}
+                      {/* Post Media (images and videos) */}
                       {post.media_urls && post.media_urls.length > 0 && (
                         <div className={`post-images post-images-${Math.min(post.media_urls.length, 4)}`}>
                           {post.media_urls.map((url, i) => (
-                            <img key={i} src={url} alt="Post media" className="post-image" />
+                            isVideoUrl(url) ? (
+                              <video key={i} src={url} controls className="post-video" style={{ width: '100%', borderRadius: '8px', maxHeight: '400px' }} />
+                            ) : (
+                              <img key={i} src={url} alt="Post photo" className="post-image" />
+                            )
                           ))}
                         </div>
                       )}
@@ -1313,7 +1380,11 @@ function Feed({ user }) {
                             {(comments[post.id] || []).map((c) => (
                               <div key={c.id} className="comment-item">
                                 <div className="comment-avatar">
-                                  {c.username ? c.username[0].toUpperCase() : 'U'}
+                                  {c.avatar_url ? (
+                                    <img src={c.avatar_url} alt={c.username} className="post-avatar-img" />
+                                  ) : (
+                                    c.username ? c.username[0].toUpperCase() : 'U'
+                                  )}
                                 </div>
                                 <div className="comment-body">
                                   <div className="comment-bubble">
@@ -1326,7 +1397,11 @@ function Feed({ user }) {
                             ))}
                             <div className="comment-input-row">
                               <div className="comment-input-avatar">
-                                {user.username ? user.username[0].toUpperCase() : 'U'}
+                                {user.avatar_url ? (
+                                  <img src={user.avatar_url} alt={user.username} className="post-avatar-img" />
+                                ) : (
+                                  user.username ? user.username[0].toUpperCase() : 'U'
+                                )}
                               </div>
                               <input
                                 type="text"
@@ -1380,7 +1455,11 @@ function Feed({ user }) {
                   <div key={post.id} className="post-card">
                     <div className="post-header">
                       <div className="post-avatar">
-                        {post.username ? post.username[0].toUpperCase() : 'U'}
+                        {post.avatar_url ? (
+                          <img src={post.avatar_url} alt={post.username} className="post-avatar-img" />
+                        ) : (
+                          post.username ? post.username[0].toUpperCase() : 'U'
+                        )}
                       </div>
                       <div className="post-info">
                         <h4>{post.full_name || post.username} <span className="friend-badge">Friend</span></h4>
@@ -1393,7 +1472,11 @@ function Feed({ user }) {
                       {post.media_urls && post.media_urls.length > 0 && (
                         <div className={`post-images post-images-${Math.min(post.media_urls.length, 4)}`}>
                           {post.media_urls.map((url, i) => (
-                            <img key={i} src={url} alt="Post media" className="post-image" />
+                            isVideoUrl(url) ? (
+                              <video key={i} src={url} controls className="post-video" style={{ width: '100%', borderRadius: '8px', maxHeight: '400px' }} />
+                            ) : (
+                              <img key={i} src={url} alt="Post photo" className="post-image" />
+                            )
                           ))}
                         </div>
                       )}
@@ -1433,7 +1516,11 @@ function Feed({ user }) {
                             {(comments[post.id] || []).map((c) => (
                               <div key={c.id} className="comment-item">
                                 <div className="comment-avatar">
-                                  {c.username ? c.username[0].toUpperCase() : 'U'}
+                                  {c.avatar_url ? (
+                                    <img src={c.avatar_url} alt={c.username} className="post-avatar-img" />
+                                  ) : (
+                                    c.username ? c.username[0].toUpperCase() : 'U'
+                                  )}
                                 </div>
                                 <div className="comment-body">
                                   <div className="comment-bubble">
@@ -1446,7 +1533,11 @@ function Feed({ user }) {
                             ))}
                             <div className="comment-input-row">
                               <div className="comment-input-avatar">
-                                {user.username ? user.username[0].toUpperCase() : 'U'}
+                                {user.avatar_url ? (
+                                  <img src={user.avatar_url} alt={user.username} className="post-avatar-img" />
+                                ) : (
+                                  user.username ? user.username[0].toUpperCase() : 'U'
+                                )}
                               </div>
                               <input
                                 type="text"

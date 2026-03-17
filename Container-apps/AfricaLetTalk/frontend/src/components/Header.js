@@ -217,15 +217,7 @@ function Header({ user, onLogout, onUserUpdate }) {
       <div className="header-content">
         <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <div className="logo-icon">
-            <svg viewBox="0 0 100 100" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="50" cy="50" r="48" fill="#E07A2F"/>
-              <circle cx="35" cy="38" r="9" fill="white" opacity="0.95"/>
-              <circle cx="65" cy="38" r="9" fill="white" opacity="0.95"/>
-              <circle cx="50" cy="60" r="10" fill="white" opacity="0.95"/>
-              <line x1="40" y1="42" x2="46" y2="54" stroke="white" strokeWidth="3" opacity="0.9"/>
-              <line x1="60" y1="42" x2="54" y2="54" stroke="white" strokeWidth="3" opacity="0.9"/>
-              <line x1="38" y1="36" x2="62" y2="36" stroke="white" strokeWidth="3" opacity="0.9"/>
-            </svg>
+            <img src="/cognitech-logo.svg" alt="LetsConnect" style={{ width: '36px', height: '36px', display: 'block' }} />
           </div>
           <h1>Lets<span>Connect</span></h1>
         </div>

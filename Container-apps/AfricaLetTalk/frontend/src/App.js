@@ -33,7 +33,7 @@ function AppContent({ user, onLogout, onUserUpdate, onLogin }) {
         />
         <Route 
           path="/feed" 
-          element={user ? <Feed user={user} /> : <Navigate to="/login" />} 
+          element={user ? <Feed user={user} onUserUpdate={onUserUpdate} /> : <Navigate to="/login" />} 
         />
         <Route 
           path="/messages" 

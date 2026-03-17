@@ -19,13 +19,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB (supports videos)
     fileFilter: (req, file, cb) => {
-        const allowed = /jpeg|jpg|png|gif|webp/;
-        const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-        const mime = allowed.test(file.mimetype);
-        if (ext && mime) cb(null, true);
-        else cb(new Error('Only image files are allowed'));
+        const imageTypes = /jpeg|jpg|png|gif|webp/;
+        const videoTypes = /mp4|mov|avi|webm|mkv/;
+        const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
+        const isImage = imageTypes.test(ext) && imageTypes.test(file.mimetype);
+        const isVideo = videoTypes.test(ext) || file.mimetype.startsWith('video/');
+        if (isImage || isVideo) cb(null, true);
+        else cb(new Error('Only image and video files are allowed'));
     }
 });
 
@@ -103,7 +105,7 @@ router.post('/friends-feed', authenticate, async (req, res) => {
     }
 });
 
-router.post('/', authenticate, upload.array('images', 4), async (req, res) => {
+router.post('/', authenticate, upload.array('media', 6), async (req, res) => {
     try {
         const { content } = req.body;
         const userId = req.user.userId;
