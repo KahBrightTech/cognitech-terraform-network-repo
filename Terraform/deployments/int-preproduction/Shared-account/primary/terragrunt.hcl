@@ -33,11 +33,13 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Shared-account"
   ## Updates these variables as per the product/service
-  vpc_name           = "shared-services"
-  vpc_name_abr       = "shared"
-  create_eks_cluster = false
-  create_ecs_cluster = true
-  vpn_ip             = "69.143.134.56/32"
+  vpc_name            = "shared-services"
+  vpc_name_abr        = "shared"
+  create_eks_cluster  = false
+  create_ecs_cluster  = true
+  create_postgres_rds = true
+  create_mysql_rds    = false
+  vpn_ip              = "69.143.134.56/32"
 
   # Composite variables 
   tags = merge(
@@ -1735,7 +1737,7 @@ inputs = {
 
   rds_instances = [
     {
-      create_rds_instance   = false
+      create_rds_instance   = local.create_mysql_rds
       key                   = "ecsmysql"
       name                  = "${local.vpc_name_abr}-eks-mysql-db"
       engine                = "mysql"
@@ -1754,7 +1756,7 @@ inputs = {
       publicly_accessible     = true
     },
     {
-      create_rds_instance   = true
+      create_rds_instance   = local.create_postgres_rds
       key                   = "${local.vpc_name_abr}-postgres"
       name                  = "${local.vpc_name_abr}-postgres-db"
       engine                = "postgres"
