@@ -1378,7 +1378,7 @@ function Feed({ user, onUserUpdate }) {
                     </div>
                     <div className="post-content">
                       <p>{post.content}</p>
-                      {/* Post Media (images and videos) */
+                      {/* Post Media (images and videos) */}
                       {post.media_urls && post.media_urls.length > 0 && (
                         <div className={`post-images post-images-${Math.min(post.media_urls.length, 4)}`}>
                           {post.media_urls.map((url, i) => (
