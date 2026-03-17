@@ -22,28 +22,28 @@ router.post('/register', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const verificationToken = crypto.randomBytes(32).toString('hex');
+        // Verification disabled - users can login immediately
+        // const verificationToken = crypto.randomBytes(32).toString('hex');
 
         const result = await query(
             `INSERT INTO users (username, email, password, full_name, email_verified, verification_token, created_at) 
-             VALUES ($1, $2, $3, $4, false, $5, NOW()) 
+             VALUES ($1, $2, $3, $4, true, NULL, NOW()) 
              RETURNING id, username, email, full_name, avatar_url, created_at`,
-            [username, email, hashedPassword, fullName, verificationToken]
+            [username, email, hashedPassword, fullName]
         );
 
         const user = result.rows[0];
 
-        // Send verification email
-        try {
-            await sendVerificationEmail(email, fullName || username, verificationToken);
-        } catch (emailErr) {
-            console.error('Failed to send verification email:', emailErr);
-        }
+        // Email verification disabled
+        // try {
+        //     await sendVerificationEmail(email, fullName || username, verificationToken);
+        // } catch (emailErr) {
+        //     console.error('Failed to send verification email:', emailErr);
+        // }
 
         res.status(201).json({ 
-            message: 'Account created. Please check your email to verify your account.',
-            email: email,
-            requiresVerification: true
+            message: 'Account created successfully. You can now login.',
+            user: user
         });
     } catch (error) {
         console.error('Register error:', error);
@@ -134,13 +134,14 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        if (!user.email_verified) {
-            return res.status(403).json({ 
-                error: 'Please verify your email before logging in',
-                requiresVerification: true,
-                email: user.email
-            });
-        }
+        // Email verification disabled - allow login immediately
+        // if (!user.email_verified) {
+        //     return res.status(403).json({ 
+        //         error: 'Please verify your email before logging in',
+        //         requiresVerification: true,
+        //         email: user.email
+        //     });
+        // }
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
 

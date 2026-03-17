@@ -10,10 +10,15 @@ function Home() {
         {/* Logo Section */}
         <div className="home-logo-container">
           <div className="home-logo">
-            <img src="/cognitech-logo.svg" alt="Cognitech" />
+            <img src="/cognitech-logo.svg" alt="LetsConnect" />
           </div>
-          <h1 className="home-title">AfricaLetTalk</h1>
-          <p className="home-subtitle">Connect. Share. Celebrate Africa.</p>
+          <h1 className="home-title">LetsConnect</h1>
+          <p className="home-tagline">
+            <span className="tagline-connect">Connect</span>
+            <span className="tagline-share">Share</span>
+            <span className="tagline-celebrate">Celebrate</span>
+            <span className="tagline-relationships">Relationships</span>
+          </p>
         </div>
 
         {/* Sign In Options */}

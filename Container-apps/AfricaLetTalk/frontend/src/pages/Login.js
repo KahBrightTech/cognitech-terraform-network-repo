@@ -9,9 +9,6 @@ function Login({ onLogin }) {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [needsVerification, setNeedsVerification] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resendMsg, setResendMsg] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -23,8 +20,6 @@ function Login({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setNeedsVerification(false);
-    setResendMsg('');
     setLoading(true);
 
     try {
@@ -41,8 +36,6 @@ function Login({ onLogin }) {
       if (response.ok) {
         onLogin(data.user, data.token);
         navigate('/feed');
-      } else if (data.requiresVerification) {
-        setNeedsVerification(true);
       } else {
         setError(data.error || 'Login failed');
       }
@@ -51,28 +44,6 @@ function Login({ onLogin }) {
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setResending(true);
-    setResendMsg('');
-    try {
-      const resp = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email })
-      });
-      const data = await resp.json();
-      if (resp.ok) {
-        setResendMsg('Verification email sent! Check your inbox.');
-      } else {
-        setResendMsg(data.error || 'Failed to resend');
-      }
-    } catch (err) {
-      setResendMsg('Network error. Please try again.');
-    } finally {
-      setResending(false);
     }
   };
 
@@ -91,20 +62,6 @@ function Login({ onLogin }) {
 
           {/* Error Messages */}
           {error && <div className="error dark-error">{error}</div>}
-          {needsVerification && (
-            <div className="error dark-warning">
-              <p style={{ margin: '0 0 8px' }}>Your email is not verified yet. Please check your inbox.</p>
-              <button
-                className="verify-btn"
-                onClick={handleResend}
-                disabled={resending}
-                style={{ fontSize: '13px', padding: '6px 14px' }}
-              >
-                {resending ? 'Sending...' : 'Resend Verification Email'}
-              </button>
-              {resendMsg && <p style={{ margin: '6px 0 0', fontSize: '13px' }}>{resendMsg}</p>}
-            </div>
-          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit}>
