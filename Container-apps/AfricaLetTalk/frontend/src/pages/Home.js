@@ -57,7 +57,7 @@ function Home() {
           <div className="feature-card">
             <img 
               className="feature-card-img" 
-              src="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80" 
+              src="https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=600&q=80" 
               alt="Lagos Nigeria cityscape"
             />
             <div className="feature-card-body">
@@ -118,7 +118,7 @@ function Home() {
             <img src="https://images.unsplash.com/photo-1611348586804-61bf6c080437?w=600&q=80" alt="Dar es Salaam Tanzania skyline" />
           </div>
           <div className="gallery-item">
-            <img src="https://images.unsplash.com/photo-1591828988777-1e2e4a0e7a4d?w=600&q=80" alt="Kigali Rwanda modern city" />
+            <img src="https://images.unsplash.com/photo-1609198092458-38a293c7ac4b?w=600&q=80" alt="Kigali Rwanda modern city" />
           </div>
           <div className="gallery-item">
             <img src="https://images.unsplash.com/photo-1565791380713-1756b9a05343?w=600&q=80" alt="Nairobi business district" />

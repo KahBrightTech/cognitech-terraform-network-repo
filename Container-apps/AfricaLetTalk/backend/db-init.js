@@ -34,13 +34,18 @@ async function initializeDatabase() {
       console.log('✅ Schema already exists - skipping initialization');
     }
 
-    // Fix any existing users stuck with email_verified = false
-    const unverified = await client.query(
-      `UPDATE users SET email_verified = true WHERE email_verified = false RETURNING id`
-    );
-    if (unverified.rowCount > 0) {
-      console.log(`✅ Auto-verified ${unverified.rowCount} existing user(s)`);
-    }
+    // Ensure email_verified and verification_token columns exist (migration for older DBs)
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='email_verified') THEN
+          ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT false;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='verification_token') THEN
+          ALTER TABLE users ADD COLUMN verification_token VARCHAR(64);
+        END IF;
+      END $$;
+    `);
   } catch (err) {
     console.error('❌ Database initialization failed:', err);
     throw err;  // rethrow so server doesn't start with broken DB

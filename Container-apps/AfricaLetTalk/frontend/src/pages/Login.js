@@ -77,18 +77,22 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-card">
-        <div 
-          className="auth-image" 
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&q=80')" }}
-        ></div>
-        <div className="auth-form">
-          <h2>Welcome back</h2>
-          <p className="auth-subtitle">Sign in to continue to LetsConnect</p>
-          {error && <div className="error">{error}</div>}
+    <div className="auth-wrapper dark-theme">
+      <div className="auth-card dark-card">
+        <div className="auth-form dark-form">
+          {/* Logo Section */}
+          <div className="auth-logo-section">
+            <div className="auth-logo">
+              <img src="/cognitech-logo.svg" alt="Cognitech" />
+            </div>
+            <h2>Welcome Back</h2>
+            <p className="auth-subtitle">Sign in to your account</p>
+          </div>
+
+          {/* Error Messages */}
+          {error && <div className="error dark-error">{error}</div>}
           {needsVerification && (
-            <div className="error" style={{ background: '#fff3cd', color: '#856404', borderColor: '#ffc107' }}>
+            <div className="error dark-warning">
               <p style={{ margin: '0 0 8px' }}>Your email is not verified yet. Please check your inbox.</p>
               <button
                 className="verify-btn"
@@ -101,37 +105,51 @@ function Login({ onLogin }) {
               {resendMsg && <p style={{ margin: '6px 0 0', fontSize: '13px' }}>{resendMsg}</p>}
             </div>
           )}
+
+          {/* Login Form */}
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                placeholder="you@example.com"
-              />
+            <div className="form-group dark-input-group">
+              <label>Username or Email</label>
+              <div className="input-with-icon">
+                <span className="input-icon">👤</span>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter your email"
+                />
+              </div>
             </div>
-            <div className="form-group">
+            <div className="form-group dark-input-group">
               <label>Password</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                placeholder="Enter your password"
-              />
+              <div className="input-with-icon">
+                <span className="input-icon">🔒</span>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter your password"
+                />
+              </div>
             </div>
-            <button type="submit" className="btn-primary" disabled={loading}>
+            <button type="submit" className="btn-primary dark-btn-primary" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-          <p className="auth-link">
+
+          <p className="auth-link dark-auth-link">
             Don't have an account?{' '}
             <span onClick={() => navigate('/register')}>Create one</span>
           </p>
+
+          {/* Branding Footer */}
+          <div className="auth-footer">
+            <p className="powered-by">powered by cognitech</p>
+          </div>
         </div>
       </div>
     </div>
