@@ -183,6 +183,52 @@ router.post('/:postId/like', authenticate, async (req, res) => {
                 'INSERT INTO likes (post_id, user_id, created_at) VALUES ($1, $2, NOW())',
                 [postId, userId]
             );
+            
+            // Notify post author and all their friends about the like
+            try {
+                const post = await query('SELECT user_id, content FROM posts WHERE id = $1', [postId]);
+                if (post.rows.length > 0) {
+                    const postAuthorId = post.rows[0].user_id;
+                    const postContent = post.rows[0].content || 'their post';
+                    
+                    // Don't notify if liking own post
+                    if (postAuthorId !== userId) {
+                        const likerInfo = await query('SELECT username, full_name FROM users WHERE id = $1', [userId]);
+                        const likerName = likerInfo.rows[0]?.full_name || likerInfo.rows[0]?.username || 'Someone';
+                        const preview = postContent.substring(0, 40) + (postContent.length > 40 ? '...' : '');
+                        
+                        // Notify post author
+                        await query(
+                            `INSERT INTO notifications (user_id, from_user_id, type, content, related_id)
+                             VALUES ($1, $2, 'post_liked', $3, $4)`,
+                            [postAuthorId, userId, `${likerName} liked your post: "${preview || 'photo'}"`, postId]
+                        );
+                        
+                        // Notify all friends of the post author (except the liker)
+                        const friends = await query(
+                            `SELECT CASE WHEN user1_id = $1 THEN user2_id ELSE user1_id END as friend_id
+                             FROM friendships
+                             WHERE (user1_id = $1 OR user2_id = $1) AND status = 'accepted'`,
+                            [postAuthorId]
+                        );
+                        
+                        for (const friend of friends.rows) {
+                            if (friend.friend_id !== userId) { // Don't notify the liker
+                                const authorInfo = await query('SELECT username, full_name FROM users WHERE id = $1', [postAuthorId]);
+                                const authorName = authorInfo.rows[0]?.full_name || authorInfo.rows[0]?.username || 'Someone';
+                                await query(
+                                    `INSERT INTO notifications (user_id, from_user_id, type, content, related_id)
+                                     VALUES ($1, $2, 'friend_post_liked', $3, $4)`,
+                                    [friend.friend_id, userId, `${likerName} liked ${authorName}'s post`, postId]
+                                );
+                            }
+                        }
+                    }
+                }
+            } catch (notifErr) {
+                console.error('Like notification error (non-fatal):', notifErr);
+            }
+            
             res.json({ liked: true });
         }
     } catch (error) {
@@ -228,6 +274,51 @@ router.post('/:postId/comments', authenticate, async (req, res) => {
             [postId, userId, content.trim()]
         );
 
+        // Notify post author and all their friends about the comment
+        try {
+            const post = await query('SELECT user_id, content FROM posts WHERE id = $1', [postId]);
+            if (post.rows.length > 0) {
+                const postAuthorId = post.rows[0].user_id;
+                const postContent = post.rows[0].content || 'their post';
+                
+                const commenterInfo = await query('SELECT username, full_name FROM users WHERE id = $1', [userId]);
+                const commenterName = commenterInfo.rows[0]?.full_name || commenterInfo.rows[0]?.username || 'Someone';
+                const commentPreview = content.substring(0, 40) + (content.length > 40 ? '...' : '');
+                const postPreview = postContent.substring(0, 30) + (postContent.length > 30 ? '...' : '');
+                
+                // Notify post author (if not commenting on own post)
+                if (postAuthorId !== userId) {
+                    await query(
+                        `INSERT INTO notifications (user_id, from_user_id, type, content, related_id)
+                         VALUES ($1, $2, 'post_commented', $3, $4)`,
+                        [postAuthorId, userId, `${commenterName} commented: "${commentPreview}" on your post`, postId]
+                    );
+                }
+                
+                // Notify all friends of the post author (except the commenter)
+                const friends = await query(
+                    `SELECT CASE WHEN user1_id = $1 THEN user2_id ELSE user1_id END as friend_id
+                     FROM friendships
+                     WHERE (user1_id = $1 OR user2_id = $1) AND status = 'accepted'`,
+                    [postAuthorId]
+                );
+                
+                for (const friend of friends.rows) {
+                    if (friend.friend_id !== userId) { // Don't notify the commenter
+                        const authorInfo = await query('SELECT username, full_name FROM users WHERE id = $1', [postAuthorId]);
+                        const authorName = authorInfo.rows[0]?.full_name || authorInfo.rows[0]?.username || 'Someone';
+                        await query(
+                            `INSERT INTO notifications (user_id, from_user_id, type, content, related_id)
+                             VALUES ($1, $2, 'friend_post_commented', $3, $4)`,
+                            [friend.friend_id, userId, `${commenterName} commented on ${authorName}'s post: "${commentPreview}"`, postId]
+                        );
+                    }
+                }
+            }
+        } catch (notifErr) {
+            console.error('Comment notification error (non-fatal):', notifErr);
+        }
+
         // Fetch with user info
         const comment = await query(
             `SELECT c.*, u.username, u.full_name, u.avatar_url
@@ -241,6 +332,92 @@ router.post('/:postId/comments', authenticate, async (req, res) => {
     } catch (error) {
         console.error('Create comment error:', error);
         res.status(500).json({ error: 'Failed to create comment' });
+    }
+});
+
+// Share a post
+router.post('/:postId/share', authenticate, async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const userId = req.user.userId;
+        const { content } = req.body; // Optional message with the share
+
+        // Get original post details
+        const originalPost = await query('SELECT user_id, content, media_urls FROM posts WHERE id = $1', [postId]);
+        if (originalPost.rows.length === 0) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        // Create a new post as a share
+        const shareContent = content ? `${content}\n\n--- Shared from original post ---` : '--- Shared post ---';
+        const result = await query(
+            `INSERT INTO posts (user_id, content, media_urls, shared_from, created_at)
+             VALUES ($1, $2, $3, $4, NOW())
+             RETURNING *`,
+            [userId, shareContent, originalPost.rows[0].media_urls, postId]
+        );
+
+        // Notify original post author and all their friends about the share
+        try {
+            const postAuthorId = originalPost.rows[0].user_id;
+            const postContent = originalPost.rows[0].content || 'their post';
+            
+            const sharerInfo = await query('SELECT username, full_name FROM users WHERE id = $1', [userId]);
+            const sharerName = sharerInfo.rows[0]?.full_name || sharerInfo.rows[0]?.username || 'Someone';
+            const postPreview = postContent.substring(0, 40) + (postContent.length > 40 ? '...' : '');
+            
+            // Notify original post author (if not sharing own post)
+            if (postAuthorId !== userId) {
+                await query(
+                    `INSERT INTO notifications (user_id, from_user_id, type, content, related_id)
+                     VALUES ($1, $2, 'post_shared', $3, $4)`,
+                    [postAuthorId, userId, `${sharerName} shared your post: "${postPreview || 'photo'}"`, postId]
+                );
+            }
+            
+            // Notify all friends of the original post author (except the sharer)
+            const friends = await query(
+                `SELECT CASE WHEN user1_id = $1 THEN user2_id ELSE user1_id END as friend_id
+                 FROM friendships
+                 WHERE (user1_id = $1 OR user2_id = $1) AND status = 'accepted'`,
+                [postAuthorId]
+            );
+            
+            for (const friend of friends.rows) {
+                if (friend.friend_id !== userId) { // Don't notify the sharer
+                    const authorInfo = await query('SELECT username, full_name FROM users WHERE id = $1', [postAuthorId]);
+                    const authorName = authorInfo.rows[0]?.full_name || authorInfo.rows[0]?.username || 'Someone';
+                    await query(
+                        `INSERT INTO notifications (user_id, from_user_id, type, content, related_id)
+                         VALUES ($1, $2, 'friend_post_shared', $3, $4)`,
+                        [friend.friend_id, userId, `${sharerName} shared ${authorName}'s post`, postId]
+                    );
+                }
+            }
+            
+            // Also notify the sharer's own friends about the new shared post
+            const sharerFriends = await query(
+                `SELECT CASE WHEN user1_id = $1 THEN user2_id ELSE user1_id END as friend_id
+                 FROM friendships
+                 WHERE (user1_id = $1 OR user2_id = $1) AND status = 'accepted'`,
+                [userId]
+            );
+            
+            for (const friend of sharerFriends.rows) {
+                await query(
+                    `INSERT INTO notifications (user_id, from_user_id, type, content, related_id)
+                     VALUES ($1, $2, 'friend_post', $3, $4)`,
+                    [friend.friend_id, userId, `${sharerName} shared a post`, result.rows[0].id]
+                );
+            }
+        } catch (notifErr) {
+            console.error('Share notification error (non-fatal):', notifErr);
+        }
+
+        res.status(201).json({ post: result.rows[0], message: 'Post shared successfully' });
+    } catch (error) {
+        console.error('Share post error:', error);
+        res.status(500).json({ error: 'Failed to share post' });
     }
 });
 
