@@ -51,9 +51,9 @@ router.get('/profile/:username', authenticate, async (req, res) => {
 
         const postsResult = await query(
             `SELECT p.*, u.username, u.full_name, u.avatar_url,
-                    (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) AS likes_count,
-                    (SELECT COUNT(*) FROM post_comments WHERE post_id = p.id) AS comments_count,
-                    EXISTS(SELECT 1 FROM post_likes WHERE post_id = p.id AND user_id = $2) AS is_liked
+                    (SELECT COUNT(*) FROM likes WHERE post_id = p.id) AS likes_count,
+                    (SELECT COUNT(*) FROM comments WHERE post_id = p.id) AS comments_count,
+                    EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $2) AS is_liked
              FROM posts p
              JOIN users u ON p.user_id = u.id
              WHERE p.user_id = $1

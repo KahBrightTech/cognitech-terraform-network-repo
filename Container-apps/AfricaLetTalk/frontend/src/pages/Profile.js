@@ -32,8 +32,10 @@ function Profile({ user }) {
         setPosts(data.posts || []);
         setFriendCount(data.friendCount || 0);
         setFriendshipStatus(data.friendshipStatus);
-      } else {
+      } else if (response.status === 404) {
         setError('User not found');
+      } else {
+        setError('Failed to load profile');
       }
     } catch (err) {
       setError('Failed to load profile');
