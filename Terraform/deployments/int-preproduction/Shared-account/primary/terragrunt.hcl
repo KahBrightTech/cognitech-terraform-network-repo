@@ -1394,6 +1394,7 @@ inputs = {
     #     }
     #   }
   ]
+
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
