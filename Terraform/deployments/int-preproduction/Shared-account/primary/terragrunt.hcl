@@ -1414,18 +1414,6 @@ inputs = {
           # kubernetes_groups omitted: system:* groups are rejected by the EKS Access Entry API.
           # AmazonEKSClusterAdminPolicy already grants full cluster-admin access.
         },
-        # ---------------------------------------------------------------------------
-        # system:masters equivalent group.
-        # The EKS Access Entry API rejects any kubernetes_groups value starting with
-        # "system:", so we use the custom group "eks-cluster-admins" instead.
-        # A ClusterRoleBinding in the auth block below binds this group to the
-        # built-in "cluster-admin" ClusterRole, giving identical superuser access.
-        # ---------------------------------------------------------------------------
-        superadmin = {
-          principal_arns    = []
-          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          kubernetes_groups = ["eks-cluster-admins"] # system:masters equivalent — bound to cluster-admin ClusterRole below
-        },
         readonly = {
           principal_arns = [
             include.env.locals.eks_roles.network,
