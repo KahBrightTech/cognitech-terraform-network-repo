@@ -1086,8 +1086,9 @@ inputs = {
             include.env.locals.eks_roles.admin,
             include.env.locals.eks_roles.system
           ]
-          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          kubernetes_groups = ["system:masters"] #This automatically gives rbac admin access to the cluster. Its a k8s built in group that has superuser access to the cluster, so use with caution and only assign trusted IAM roles to this group.
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          # kubernetes_groups omitted: system:* groups are rejected by the EKS Access Entry API.
+          # AmazonEKSClusterAdminPolicy already grants full cluster-admin access.
         },
         readonly = {
           principal_arns = [
@@ -1101,8 +1102,8 @@ inputs = {
       auth = {
         cluster_roles = [
           {
-            key  = "view"
-            name = "view"
+            key  = "cognitech-view"
+            name = "cognitech-view" # renamed from "view" to avoid conflict with the built-in Kubernetes ClusterRole
             rules = [
               {
                 api_groups = ["apps"]
@@ -1116,7 +1117,7 @@ inputs = {
           {
             key              = "view-binding"
             name             = "view-binding"
-            cluster_role_key = "view" # above cluster role key
+            cluster_role_key = "cognitech-view" # references the cognitech-view cluster role above
             subjects = [
               {
                 kind      = "Group"
