@@ -2022,49 +2022,49 @@ generate "aws-providers" {
   EOF
 }
 
-# generate "k8s-providers" {
-#   path      = "k8s-provider.tf"
-#   if_exists = "overwrite"
-#   contents  = <<-EOF
-#   %{if local.create_eks_cluster}
-#   provider "helm" {
-#     kubernetes {
-#       host                   = try(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
-#       cluster_ca_certificate = try(base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
+generate "k8s-providers" {
+  path      = "k8s-provider.tf"
+  if_exists = "overwrite"
+  contents  = <<-EOF
+  %{if local.create_eks_cluster}
+  provider "helm" {
+    kubernetes {
+      host                   = try(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
+      cluster_ca_certificate = try(base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
 
-#       exec {
-#         api_version = "client.authentication.k8s.io/v1beta1"
-#         command     = "aws"
-#         args = [
-#           "eks",
-#           "get-token",
-#           "--cluster-name",
-#           try(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name, ""),
-#           "--region",
-#           "${local.region}"
-#         ]
-#       }
-#     }
-#   }
+      exec {
+        api_version = "client.authentication.k8s.io/v1beta1"
+        command     = "aws"
+        args = [
+          "eks",
+          "get-token",
+          "--cluster-name",
+          try(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name, ""),
+          "--region",
+          "${local.region}"
+        ]
+      }
+    }
+  }
 
-#   provider "kubernetes" {
-#     host                   = try(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
-#     cluster_ca_certificate = try(base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
+  provider "kubernetes" {
+    host                   = try(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint, "")
+    cluster_ca_certificate = try(base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data), "")
 
-#     exec {
-#       api_version = "client.authentication.k8s.io/v1beta1"
-#       command     = "aws"
-#       args = [
-#         "eks",
-#         "get-token",
-#         "--cluster-name",
-#         try(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name, ""),
-#         "--region",
-#         "${local.region}"
-#       ]
-#     }
-#   }
-#   %{endif}
-#   EOF
-# }
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        try(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name, ""),
+        "--region",
+        "${local.region}"
+      ]
+    }
+  }
+  %{endif}
+  EOF
+}
 
