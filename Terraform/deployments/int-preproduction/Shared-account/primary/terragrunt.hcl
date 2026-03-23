@@ -1420,8 +1420,8 @@ inputs = {
             include.env.locals.eks_roles.network,
             include.env.locals.eks_roles.readonly
           ]
-          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
-          kubernetes_groups = ["viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+          # kubernetes_groups = ["viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
         }
       }
       auth = {
