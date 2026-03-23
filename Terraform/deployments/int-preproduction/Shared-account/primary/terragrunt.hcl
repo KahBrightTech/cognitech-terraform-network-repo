@@ -35,7 +35,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name            = "shared-services"
   vpc_name_abr        = "shared"
-  create_eks_cluster  = false
+  create_eks_cluster  = true
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
@@ -1425,31 +1425,31 @@ inputs = {
       }
       auth = {
         cluster_roles = [
-          # {
-          #   key  = "cognitech-view"
-          #   name = "cognitech-view" # renamed from "view" to avoid conflict with the built-in Kubernetes ClusterRole
-          #   rules = [
-          #     {
-          #       api_groups = ["apps"]
-          #       resources  = ["deployments", "pods", "services"]
-          #       verbs      = ["get", "list", "watch"]
-          #     }
-          #   ]
-          # }
+          {
+            key  = "cognitech-view"
+            name = "cognitech-view" # renamed from "view" to avoid conflict with the built-in Kubernetes ClusterRole
+            rules = [
+              {
+                api_groups = ["apps"]
+                resources  = ["deployments", "pods", "services"]
+                verbs      = ["get", "list", "watch"]
+              }
+            ]
+          }
         ]
         cluster_role_bindings = [
-          # {
-          #   key              = "view-binding"
-          #   name             = "view-binding"
-          #   cluster_role_key = "cognitech-view" # references the cognitech-view cluster role above
-          #   subjects = [
-          #     {
-          #       kind      = "Group"
-          #       name      = "viewers"
-          #       api_group = "rbac.authorization.k8s.io"
-          #     }
-          #   ]
-          # }
+          {
+            key              = "view-binding"
+            name             = "view-binding"
+            cluster_role_key = "cognitech-view" # references the cognitech-view cluster role above
+            subjects = [
+              {
+                kind      = "Group"
+                name      = "viewers"
+                api_group = "rbac.authorization.k8s.io"
+              }
+            ]
+          }
         ]
       }
       subnet_keys = [
