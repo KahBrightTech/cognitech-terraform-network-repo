@@ -1484,31 +1484,42 @@ generate "k8s-providers" {
   if_exists = "overwrite"
   contents  = <<-EOF
   %{if local.create_eks_cluster}
-  # -------------------------------------------------------------------------
-  # Use data source instead of module.eks outputs to prevent the
-  # destroy-time provider dependency cycle.  The cluster name is built
-  # from Terragrunt locals that are known at plan time.
-  # -------------------------------------------------------------------------
-  data "aws_eks_cluster" "provider_cluster" {
-    name = "${include.cloud.locals.account_info[include.env.locals.name_abr].name}-${local.region_prefix}-${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-eks-cluster"
-  }
-
-  data "aws_eks_cluster_auth" "provider_cluster" {
-    name = data.aws_eks_cluster.provider_cluster.name
-  }
-
   provider "helm" {
-    kubernetes {
-      host                   = data.aws_eks_cluster.provider_cluster.endpoint
-      cluster_ca_certificate = base64decode(data.aws_eks_cluster.provider_cluster.certificate_authority[0].data)
-      token                  = data.aws_eks_cluster_auth.provider_cluster.token
+    kubernetes = {
+      host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
+      cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
+      
+      exec = {
+        api_version = "client.authentication.k8s.io/v1beta1"
+        command     = "aws"
+        args = [
+          "eks",
+          "get-token",
+          "--cluster-name",
+          module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name,
+          "--region",
+          "${local.region}"
+        ]
+      }
     }
   }
 
   provider "kubernetes" {
-    host                   = data.aws_eks_cluster.provider_cluster.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.provider_cluster.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.provider_cluster.token
+    host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
+    
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name,
+        "--region",
+        "${local.region}"
+      ]
+    }
   }
   %{endif}
   EOF

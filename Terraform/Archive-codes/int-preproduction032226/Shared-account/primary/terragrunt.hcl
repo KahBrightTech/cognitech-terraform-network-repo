@@ -35,7 +35,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name            = "shared-services"
   vpc_name_abr        = "shared"
-  create_eks_cluster  = true
+  create_eks_cluster  = false
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
@@ -2042,7 +2042,7 @@ generate "k8s-providers" {
   }
 
   provider "helm" {
-    kubernetes {
+    kubernetes = {
       host                   = data.aws_eks_cluster.provider_cluster.endpoint
       cluster_ca_certificate = base64decode(data.aws_eks_cluster.provider_cluster.certificate_authority[0].data)
       token                  = data.aws_eks_cluster_auth.provider_cluster.token
