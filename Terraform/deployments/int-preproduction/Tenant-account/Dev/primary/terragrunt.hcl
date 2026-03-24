@@ -1213,7 +1213,7 @@ inputs = {
         {
           key             = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
           node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-groups"
-          node_role_key   = "${local.vpc_name_abr}-ec2-nodes"
+          node_role_arn   = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
           subnet_keys = [
             include.env.locals.subnet_prefix.primary
           ]
