@@ -648,14 +648,6 @@ inputs = {
               source_sg_key = "ecs-database"
               description   = "ECS - Inbound traffic from ECS Database SG"
               ip_protocol   = "-1"
-            },
-            {
-              key         = "ingress-22-bastion-cidr"
-              cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
-              description = "ECS - Inbound SSH traffic from VPC CIDR on tcp port 22"
-              from_port   = 22
-              to_port     = 22
-              ip_protocol = "tcp"
             }
           ]
           egress = [
