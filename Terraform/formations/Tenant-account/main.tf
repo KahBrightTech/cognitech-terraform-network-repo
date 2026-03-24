@@ -53,20 +53,21 @@ module "transit_gateway_attachment" {
     name = var.tgw_attachments.name
   }
 }
+
 #--------------------------------------------------------------------
 # Transit Gateway route table - Creates Transit Gateway route tables
 #--------------------------------------------------------------------
 module "transit_gateway_route_table" {
-  count  = var.tgw_route_table != null ? 1 : 0
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-route-table?ref=v1.1.17"
-  common = var.common
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-route-table?ref=v1.1.17"
+  for_each = var.tgw_route_table != null ? { for rt in var.tgw_route_table : rt.key => rt } : {}
+  common   = var.common
   depends_on = [
-    module.customer_vpc,
+    module.shared_vpc,
     module.transit_gateway
   ]
   tgw_route_table = {
-    name   = var.tgw_route_table.name
-    tgw_id = var.tgw_route_table.tgw_id != null ? var.tgw_route_table.tgw_id : module.transit_gateway[0].transit_gateway_id
+    name   = each.value.name
+    tgw_id = each.value.tgw_id != null ? each.value.tgw_id : module.transit_gateway[0].transit_gateway_id
   }
 }
 
