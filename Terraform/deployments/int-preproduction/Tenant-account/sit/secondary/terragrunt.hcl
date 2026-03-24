@@ -913,7 +913,7 @@ inputs = {
       create_rbac             = false
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-      role_key                = "${local.vpc_name_abr}-eks"
+      role_arn                = dependency.platform.outputs.IAM_roles.shared-eks.iam_role_arn
       oidc_thumbprint         = "${get_env("TF_VAR_EKS_CLUSTER_THUMPRINT")}"
       access_entries = {
         admin = {
@@ -1213,7 +1213,7 @@ inputs = {
         {
           key             = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
           node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-groups"
-          node_role_key   = "${local.vpc_name_abr}-ec2-nodes"
+          node_role_arn   = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
           subnet_keys = [
             include.env.locals.subnet_prefix.primary
           ]
@@ -1235,7 +1235,7 @@ inputs = {
         enable_external_dns                   = true
         enable_ebs_csi_driver                 = true
         rotationPollInterval                  = "2m"
-        cloudwatch_observability_role_key     = "${local.vpc_name_abr}-cw-observability"
+        cloudwatch_observability_role_arn     = dependency.platform.outputs.IAM_roles.shared-cw-observability.iam_role_arn
         ebs_csi_driver_role_key               = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
         enable_aws_load_balancer_controller   = true
         aws_load_balancer_controller_role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
