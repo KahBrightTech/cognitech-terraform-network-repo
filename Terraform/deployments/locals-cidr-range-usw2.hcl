@@ -151,7 +151,7 @@ locals {
               }
             }
           }
-          system-int = {
+          system-int-testing = {
             vpc = "10.30.5.0/24"
             public_subnets = {
               sbnt1 = {
