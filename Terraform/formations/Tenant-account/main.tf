@@ -599,8 +599,8 @@ module "eks" {
       subnet_ids = each.value.subnet_keys != null ? flatten([
         for subnet_key in each.value.subnet_keys :
         (each.value.use_private_subnets == true) ?
-        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+        module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : each.value.subnet_ids
     },
     {
@@ -608,7 +608,7 @@ module "eks" {
         for sg in each.value.security_groups : merge(
           sg,
           {
-            vpc_id   = module.shared_vpc[each.value.vpc_name].vpc_id
+            vpc_id   = module.customer_vpc[each.value.vpc_name].vpc_id
             vpc_name = each.value.vpc_name
           }
         )
@@ -623,7 +623,7 @@ module "eks" {
               for ing_rule in rule.ingress_rules : merge(
                 ing_rule,
                 ing_rule.source_vpc_sg_key != null ? {
-                  source_sg_id = module.shared_vpc[each.value.vpc_name].security_group[ing_rule.source_vpc_sg_key].id
+                  source_sg_id = module.customer_vpc[each.value.vpc_name].security_group[ing_rule.source_vpc_sg_key].id
                 } : {}
               )
             ] : null
@@ -633,7 +633,7 @@ module "eks" {
               for egr_rule in rule.egress_rules : merge(
                 egr_rule,
                 egr_rule.target_vpc_sg_key != null ? {
-                  target_sg_id = module.shared_vpc[each.value.vpc_name].security_group[egr_rule.target_vpc_sg_key].id
+                  target_sg_id = module.customer_vpc[each.value.vpc_name].security_group[egr_rule.target_vpc_sg_key].id
                 } : {}
               )
             ] : null
@@ -648,7 +648,7 @@ module "eks" {
           {
             vpc_security_group_ids = concat(
               lt.account_security_group_keys != null ? [
-                for sg_key in lt.account_security_group_keys : module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+                for sg_key in lt.account_security_group_keys : module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
               ] : [],
               lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
             ),
@@ -677,14 +677,14 @@ module "eks" {
             subnet_ids = ng.subnet_keys != null ? flatten([
               for subnet_key in ng.subnet_keys :
               (each.value.use_private_subnets == true) ?
-              module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-              module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+              module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+              module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
             ]) : ng.subnet_ids
           },
           {
             source_security_group_ids = ng.source_security_group_keys != null ? [
               for sg_key in ng.source_security_group_keys :
-              module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+              module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
             ] : ng.source_security_group_ids
           }
         )
@@ -707,14 +707,14 @@ module "rds" {
       subnet_ids = each.value.subnet_keys != null ? flatten([
         for subnet_key in each.value.subnet_keys :
         (each.value.use_private_subnets == true) ?
-        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+        module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : each.value.subnet_ids
     },
     {
       vpc_security_group_ids = each.value.vpc_security_group_keys != null ? [
         for sg_key in each.value.vpc_security_group_keys :
-        module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+        module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
       ] : each.value.vpc_security_group_ids
     }
   )
@@ -882,12 +882,12 @@ module "ecs_clusters" {
                 subnets = svc.network_configuration.subnet_keys != null ? flatten([
                   for subnet_key in svc.network_configuration.subnet_keys :
                   (each.value.use_private_subnets == true) ?
-                  module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                  module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                  module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                  module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
                 ]) : svc.network_configuration.subnets
                 security_groups = svc.network_configuration.security_group_keys != null ? [
                   for sg_key in svc.network_configuration.security_group_keys :
-                  module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+                  module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
                 ] : svc.network_configuration.security_groups
               }
             ) : null
@@ -900,7 +900,7 @@ module "ecs_clusters" {
         for ns in each.value.cloud_map_namespaces : merge(
           ns,
           {
-            vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+            vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
           }
         )
       ] : null
@@ -917,7 +917,7 @@ module "ecs_clusters" {
                 instance_profile = lt.iam_instance_profile_key != null ? module.ec2_profiles[lt.iam_instance_profile_key].instance_profile_name : lt.iam_instance_profile
                 vpc_security_group_ids = lt.vpc_security_group_keys != null ? [
                   for sg_key in lt.vpc_security_group_keys :
-                  module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+                  module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
                 ] : lt.vpc_security_group_ids
               }
             )
@@ -928,8 +928,8 @@ module "ecs_clusters" {
               subnet_ids = each.value.ec2_autoscaling.autoscaling_group.subnet_keys != null ? flatten([
                 for subnet_key in each.value.ec2_autoscaling.autoscaling_group.subnet_keys :
                 (each.value.use_private_subnets == true) ?
-                module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
               ]) : each.value.ec2_autoscaling.autoscaling_group.subnet_ids
               attach_target_groups = each.value.ec2_autoscaling.autoscaling_group.target_group_keys != null ? [
                 for tg_key in each.value.ec2_autoscaling.autoscaling_group.target_group_keys :
