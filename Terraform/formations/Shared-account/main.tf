@@ -592,6 +592,9 @@ module "eks" {
   eks = merge(
     each.value,
     {
+      auth = each.value.create_rbac ? each.value.auth : null
+    },
+    {
       role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
     },
     {

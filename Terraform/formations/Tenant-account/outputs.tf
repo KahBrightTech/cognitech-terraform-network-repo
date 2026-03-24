@@ -14,12 +14,17 @@ output "transit_gateway_attachment" {
 
 output "transit_gateway_route_table" {
   description = "Transit Gateway route table details"
-  value       = length(module.transit_gateway_route_table) > 0 ? module.transit_gateway_route_table[0] : null
+  value       = length(module.transit_gateway_route_table) > 0 ? module.transit_gateway_route_table : null
 }
 
 output "transit_gateway_association" {
   description = "Transit Gateway association details"
   value       = length(module.transit_gateway_association) > 0 ? module.transit_gateway_association[0] : null
+}
+
+output "transit_gateway_propagation" {
+  description = "Transit Gateway propagation details"
+  value       = length(module.transit_gateway_propagation) > 0 ? module.transit_gateway_propagation[0] : null
 }
 output "s3_app_bucket" {
   description = "S3 bucket details"
@@ -133,4 +138,65 @@ output "ssm_documents" {
 output "iam_users" {
   description = "Output for IAM Users"
   value       = module.iam_users
+}
+
+#-------------------------------------------------------
+# WAF IP Sets outputs
+#-------------------------------------------------------
+output "ip_sets" {
+  description = "Output for WAF IP Sets"
+  value       = module.ip_sets
+}
+
+#-------------------------------------------------------
+# WAF Rule Groups outputs
+#-------------------------------------------------------
+output "rule_groups" {
+  description = "Output for WAF Rule Groups"
+  value       = module.rule_groups
+}
+
+#-------------------------------------------------------
+# WAF User outputs
+#-------------------------------------------------------
+output "waf" {
+  description = "Output for WAFs"
+  value       = module.waf
+}
+
+#-------------------------------------------------------
+# EKS Cluster outputs
+#-------------------------------------------------------
+output "eks" {
+  description = "Output for all eks resources"
+  value       = module.eks
+}
+
+#-------------------------------------------------------
+# RDS Instance outputs
+#-------------------------------------------------------
+output "rds_instances" {
+  description = "Output for all RDS instances"
+  value       = module.rds
+  sensitive   = true
+}
+
+
+#-------------------------------------------------------
+# ECR outputs
+#-------------------------------------------------------
+output "ecr_repos" {
+  description = "Output for all ECR repositories"
+  value       = module.ecr_repos
+  sensitive   = true
+}
+
+
+#-------------------------------------------------------
+# ECS outputs
+#-------------------------------------------------------
+output "ecs_clusters" {
+  description = "Output for all ECS clusters"
+  value       = module.ecs_clusters
+  sensitive   = true
 }

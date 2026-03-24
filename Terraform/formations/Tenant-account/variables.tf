@@ -180,6 +180,7 @@ variable "s3_private_buckets" {
     description              = string
     name_override            = optional(string)
     policy                   = optional(string)
+    force_destroy            = optional(bool, true)
     enable_versioning        = optional(bool, true)
     enable_bucket_policy     = optional(bool, true)
     override_policy_document = optional(string)
@@ -253,11 +254,9 @@ variable "transit_gateway" {
     amazon_side_asn                 = number
     vpc_name                        = string
     ram = optional(object({
-      key                       = string
       enabled                   = optional(bool, false)
-      share_name                = optional(string)
-      allow_external_principals = optional(bool, true)
-      resource_arns             = optional(list(string), [])
+      share_name                = optional(string, "transit-gateway-share")
+      allow_external_principals = optional(bool, false)
       principals                = optional(list(string), [])
     }))
   })
@@ -286,6 +285,7 @@ variable "tgw_associations" {
   }))
   default = null
 }
+
 variable "tgw_propagations" {
   description = "The transit gateway propagation variables"
   type = list(object({
@@ -298,13 +298,13 @@ variable "tgw_propagations" {
   default = null
 }
 
-
 variable "tgw_route_table" {
   description = "The transit gateway route table variables"
-  type = object({
+  type = list(object({
+    key    = string
     name   = string
     tgw_id = optional(string)
-  })
+  }))
   default = null
 }
 
@@ -349,10 +349,11 @@ variable "iam_roles" {
     managed_policy_arns       = optional(list(string))
     max_session_duration      = optional(number, 3600)
     permissions_boundary      = optional(string)
+    create_custom_policy      = optional(bool, true)
     policy = optional(object({
-      name          = string
+      name          = optional(string)
       description   = optional(string)
-      policy        = string
+      policy        = optional(string)
       path          = optional(string, "/")
       custom_policy = optional(bool, true)
     }))
@@ -373,6 +374,7 @@ variable "ec2_profiles" {
     managed_policy_arns       = optional(list(string))
     max_session_duration      = optional(number, 3600)
     permissions_boundary      = optional(string)
+    create_custom_policy      = optional(bool, true)
     policy = optional(object({
       name          = string
       description   = optional(string)
@@ -522,7 +524,8 @@ variable "ssm_parameters" {
     name        = string
     description = string
     type        = string
-    value       = string
+    value       = optional(string)
+    secret_key  = optional(string)
     tier        = optional(string, "Standard") # Default to Standard if not specified
     overwrite   = optional(bool, false)        # Default to false if not specified
   }))
@@ -540,6 +543,7 @@ variable "alb_listeners" {
     protocol         = string
     ssl_policy       = optional(string)
     certificate_arn  = optional(string)
+    certificate_key  = optional(string)
     alt_alb_hostname = optional(string)
     vpc_id           = optional(string)
     vpc_name         = optional(string)
@@ -552,6 +556,8 @@ variable "alb_listeners" {
       domain_name     = string
       certificate_arn = string
     })))
+    target_group_arn = optional(string)
+    tg_name          = optional(string)
     target_group = optional(object({
       name         = optional(string)
       port         = optional(number)
@@ -631,6 +637,8 @@ variable "nlb_listeners" {
       domain_name     = optional(string)
       certificate_arn = optional(string)
     })))
+    target_group_arn = optional(string)
+    tg_name          = optional(string)
     target_group = optional(object({
       name         = optional(string)
       port         = optional(number)
@@ -649,13 +657,13 @@ variable "nlb_listeners" {
         cookie_duration = optional(number)
         cookie_name     = optional(string)
       }))
-      health_check = object({
+      health_check = optional(object({
         enabled  = optional(bool, true)
         protocol = optional(string)
         port     = optional(number)
         path     = optional(string)
         matcher  = optional(string, "200")
-      })
+      }))
     }))
   }))
   default = null
@@ -731,6 +739,7 @@ variable "iam_users" {
     user_type            = optional(string, "standard")
     create_access_key    = optional(bool, true)
     secrets_manager = optional(object({
+      name_prefix             = optional(string, "iam-user")
       recovery_window_in_days = optional(number, 30)
       description             = optional(string, null)
       policy                  = optional(string)
@@ -916,4 +925,762 @@ variable "datasync_locations" {
   default = null
 }
 
+#--------------------------------------------------------------------
+# WAF Configuration Variables (All-in-One)
+#--------------------------------------------------------------------
+variable "wafs" {
+  description = "Complete WAF configuration object"
+  type = list(object({
+    key                        = string
+    name                       = optional(string, null)
+    description                = optional(string, "WAF Web ACL for application protection")
+    scope                      = optional(string, "REGIONAL")
+    default_action             = optional(string, "allow")
+    cloudwatch_metrics_enabled = optional(bool, true)
+    rule_file                  = optional(string)
+    ip_set_arns                = optional(list(string))
+    sampled_requests_enabled   = optional(bool, true)
+    ip_sets = optional(list(object({
+      key                = string
+      name               = string
+      description        = optional(string, null)
+      scope              = optional(string, "REGIONAL")
+      ip_address_version = optional(string, "IPV4")
+      addresses          = list(string)
+      additional_tags    = optional(map(string), {})
+    })))
+    rule_groups = optional(list(object({
+      key             = string
+      name            = string
+      description     = optional(string)
+      capacity        = number
+      rule_group_file = optional(string)
+      rules = optional(list(object({
+        name                  = string
+        priority              = number
+        action                = string
+        statement_type        = string
+        ip_set_arn            = optional(string)
+        country_codes         = optional(list(string))
+        rate_limit            = optional(number)
+        aggregate_key_type    = optional(string)
+        field_to_match        = optional(string)
+        header_name           = optional(string)
+        positional_constraint = optional(string)
+        search_string         = optional(string)
+        text_transformation   = optional(string, "NONE")
+        comparison_operator   = optional(string)
+        size                  = optional(number)
+      })))
+      additional_tags = optional(map(string), {})
+    })))
+    # Custom Rules
+    custom_rules = optional(list(object({
+      name                  = string
+      priority              = number
+      action                = string
+      statement_type        = string
+      country_codes         = optional(list(string))
+      rate_limit            = optional(number)
+      aggregate_key_type    = optional(string)
+      field_to_match        = optional(string)
+      header_name           = optional(string)
+      positional_constraint = optional(string)
+      search_string         = optional(string)
+      text_transformation   = optional(string, "NONE")
+      ip_set_arn            = optional(string)
+      ip_set_key            = optional(string)
+    })))
 
+    # Rule Group References (for custom rule groups)
+    rule_group_references = optional(list(object({
+      name            = string
+      priority        = number
+      arn             = optional(string)
+      rule_group_key  = optional(string)
+      override_action = optional(string, "none")
+    })))
+
+    # Association
+    association = optional(object({
+      associate_alb = optional(bool, false)
+      alb_arns      = optional(list(string))
+      alb_keys      = optional(list(string))
+      web_acl_arn   = optional(string)
+    }))
+
+    # Logging
+    logging = optional(object({
+      enabled             = optional(bool, false)
+      log_destination_arn = optional(string)
+      create_log_group    = optional(bool)
+      log_retention_days  = optional(number, 30)
+      redacted_fields     = optional(list(string))
+      logging_filter = optional(object({
+        default_behavior = string
+        filters = list(object({
+          behavior    = string
+          requirement = string
+          conditions = list(object({
+            type       = string
+            action     = optional(string)
+            label_name = optional(string)
+          }))
+        }))
+      }))
+    }))
+  }))
+  default = null
+}
+
+#--------------------------------------------------------------------
+# EKS Configuration
+#--------------------------------------------------------------------
+variable "eks" {
+  description = "EKS cluster configuration object."
+  type = list(object({
+    key                                         = string
+    name                                        = string
+    create_eks_cluster                          = optional(bool, false)
+    create_rbac                                 = optional(bool, false)
+    role_arn                                    = optional(string)
+    role_key                                    = optional(string)
+    subnet_ids                                  = optional(list(string))
+    subnet_keys                                 = optional(list(string))
+    additional_security_group_ids               = optional(list(string))
+    additional_security_group_keys              = optional(list(string))
+    create_cloudwatch_role                      = optional(bool, false)
+    cloudwatch_observability_role_arn           = optional(string)
+    cloudwatch_observability_role_key           = optional(string)
+    endpoint_private_access                     = optional(bool, false)
+    endpoint_public_access                      = optional(bool, true)
+    public_access_cidrs                         = optional(list(string), ["0.0.0.0/0"])
+    authentication_mode                         = optional(string, "API_AND_CONFIG_MAP")
+    bootstrap_cluster_creator_admin_permissions = optional(bool, true)
+    enabled_cluster_log_types                   = optional(list(string), [])
+    service_ipv4_cidr                           = optional(string, null)
+    access_entries = optional(map(object({
+      principal_arns    = optional(list(string))
+      policy_arn        = optional(string)
+      kubernetes_groups = optional(list(string), [])
+    })), {})
+    auth = optional(object({
+      cluster_roles = optional(list(object({
+        key  = string
+        name = string
+        rules = list(object({
+          api_groups = list(string)
+          resources  = list(string)
+          verbs      = list(string)
+        }))
+        labels = optional(map(string), {})
+      })), [])
+      cluster_role_bindings = optional(list(object({
+        key               = string
+        name              = string
+        cluster_role_key  = optional(string)
+        cluster_role_name = optional(string)
+        subjects = list(object({
+          kind      = string
+          name      = string
+          namespace = optional(string)
+          api_group = optional(string, "rbac.authorization.k8s.io")
+        }))
+        labels = optional(map(string), {})
+      })), [])
+      roles = optional(list(object({
+        key       = string
+        name      = string
+        namespace = optional(string, "default")
+        rules = list(object({
+          api_groups = list(string)
+          resources  = list(string)
+          verbs      = list(string)
+        }))
+        labels = optional(map(string), {})
+      })), [])
+      role_bindings = optional(list(object({
+        key       = string
+        name      = string
+        namespace = optional(string, "default")
+        role_key  = optional(string)
+        role_name = optional(string)
+        subjects = list(object({
+          kind      = string
+          name      = string
+          namespace = optional(string)
+          api_group = optional(string, "rbac.authorization.k8s.io")
+        }))
+        labels = optional(map(string), {})
+      })), [])
+    }))
+    version                 = optional(string, "1.33")
+    oidc_thumbprint         = optional(string)
+    is_this_ec2_node_group  = optional(bool, false)
+    use_private_subnets     = optional(bool, false)
+    vpc_name                = optional(string)
+    create_node_group       = optional(bool, false)
+    create_service_accounts = optional(bool, false)
+    enable_eks_pia          = optional(bool, false)
+    eks_addons = optional(object({
+      enable_vpc_cni                                  = optional(bool, false)
+      enable_kube_proxy                               = optional(bool, false)
+      enable_coredns                                  = optional(bool, false)
+      enable_metrics_server                           = optional(bool, false)
+      enable_cloudwatch_observability                 = optional(bool, false)
+      enable_secrets_manager_csi_driver               = optional(bool, false)
+      enable_privateca_issuer                         = optional(bool, false)
+      enable_pod_identity_agent                       = optional(bool, false)
+      enable_ebs_csi_driver                           = optional(bool, false)
+      enable_aws_load_balancer_controller             = optional(bool, false)
+      enable_external_dns                             = optional(bool, false)
+      vpc_cni_version                                 = optional(string)
+      kube_proxy_version                              = optional(string)
+      coredns_version                                 = optional(string)
+      metrics_server_version                          = optional(string)
+      cloudwatch_observability_version                = optional(string)
+      secrets_manager_csi_driver_version              = optional(string)
+      pod_identity_agent_version                      = optional(string)
+      ebs_csi_driver_version                          = optional(string)
+      secrets_manager_csi_driver_aws_provider_version = optional(string)
+      aws_load_balancer_controller_version            = optional(string)
+      privateca_issuer_version                        = optional(string)
+      external_dns_version                            = optional(string)
+      cloudwatch_observability_role_arn               = optional(string)
+      cloudwatch_observability_role_key               = optional(string)
+      ebs_csi_driver_role_arn                         = optional(string)
+      ebs_csi_driver_role_key                         = optional(string)
+      aws_load_balancer_controller_role_key           = optional(string)
+      external_dns_role_arn                           = optional(string)
+      external_dns_role_key                           = optional(string)
+      external_dns_namespace                          = optional(string)
+      external_dns_policy                             = optional(string)
+      external_dns_domain_filters                     = optional(list(string))
+      external_dns_sources                            = optional(list(string))
+      external_dns_log_level                          = optional(string)
+      enableSecretRotation                            = optional(bool, false)
+      rotationPollInterval                            = optional(string)
+    }))
+    key_pair = object({
+      name               = optional(string)
+      name_prefix        = optional(string)
+      secret_name        = optional(string)
+      secret_description = optional(string)
+      policy             = optional(string)
+    })
+    security_groups = optional(list(object({
+      key         = optional(string)
+      name        = optional(string)
+      name_prefix = optional(string)
+      vpc_id      = optional(string)
+      description = optional(string)
+      vpc_name    = string
+      security_group_egress_rules = optional(list(object({
+        description     = optional(string)
+        from_port       = optional(number)
+        to_port         = optional(number)
+        protocol        = optional(string)
+        security_groups = optional(list(string))
+        cidr_blocks     = list(string)
+        self            = optional(bool, false)
+      })))
+      security_group_ingress_rules = optional(list(object({
+        description     = optional(string)
+        from_port       = optional(number)
+        to_port         = optional(number)
+        protocol        = optional(string)
+        security_groups = optional(list(string))
+        cidr_blocks     = list(string)
+        self            = optional(bool, false)
+      })))
+    })))
+    security_group_rules = optional(list(object({
+      key               = optional(string)
+      security_group_id = optional(string)
+      sg_key            = optional(string)
+      egress_rules = optional(list(object({
+        key               = string
+        cidr_ipv4         = optional(string)
+        cidr_ipv6         = optional(string)
+        prefix_list_id    = optional(string)
+        description       = optional(string)
+        from_port         = optional(number)
+        to_port           = optional(number)
+        ip_protocol       = string
+        target_sg_id      = optional(string)
+        target_sg_key     = optional(string)
+        target_vpc_sg_id  = optional(string)
+        target_vpc_sg_key = optional(string)
+      })))
+      ingress_rules = optional(list(object({
+        key               = string
+        cidr_ipv4         = optional(string)
+        cidr_ipv6         = optional(string)
+        prefix_list_id    = optional(string)
+        description       = optional(string)
+        from_port         = optional(number)
+        to_port           = optional(number)
+        ip_protocol       = string
+        source_sg_id      = optional(string)
+        source_sg_key     = optional(string)
+        source_vpc_sg_id  = optional(string)
+        source_vpc_sg_key = optional(string)
+      })))
+    })))
+    launch_templates = optional(list(object({
+      key              = optional(string)
+      name             = optional(string)
+      instance_profile = optional(string)
+      custom_ami       = optional(string)
+      ami_config = object({
+        os_release_date  = optional(string)
+        os_base_packages = optional(string)
+      })
+      instance_type               = optional(string)
+      key_name                    = optional(string)
+      ec2_ssh_key                 = optional(string)
+      associate_public_ip_address = optional(bool)
+      vpc_security_group_ids      = optional(list(string))
+      vpc_security_group_keys     = optional(list(string))
+      account_security_group_keys = optional(list(string))
+      tags                        = optional(map(string))
+      user_data                   = optional(string)
+      volume_size                 = optional(number)
+      root_device_name            = optional(string)
+    })))
+    eks_node_groups = optional(list(object({
+      key                        = optional(string)
+      cluster_key                = optional(string)
+      cluster_name               = optional(string)
+      node_group_name            = string
+      node_role_arn              = optional(string)
+      node_role_key              = optional(string)
+      subnet_ids                 = optional(list(string))
+      subnet_keys                = optional(list(string))
+      desired_size               = number
+      max_size                   = number
+      min_size                   = number
+      instance_types             = optional(list(string), [])
+      enable_remote_access       = optional(bool, false)
+      ec2_ssh_key                = optional(string, "")
+      source_security_group_ids  = optional(list(string), [])
+      source_security_group_keys = optional(list(string), [])
+      ami_type                   = optional(string)
+      disk_size                  = optional(number)
+      labels                     = optional(map(string), {})
+      tags                       = optional(map(string), {})
+      version                    = optional(string)
+      force_update_version       = optional(bool, false)
+      capacity_type              = optional(string, "ON_DEMAND")
+      ec2_instance_name          = optional(string, "eks_node_group")
+      launch_template_key        = optional(string)
+      launch_template = optional(object({
+        id      = string
+        version = optional(string, "$Latest")
+      }))
+    })))
+    service_accounts = optional(list(object({
+      key       = optional(string)
+      name      = string
+      namespace = optional(string, "default")
+      role_arn  = optional(string)
+      role_key  = optional(string)
+    })))
+    eks_pia = optional(list(object({
+      key                       = optional(string)
+      service_account_keys      = optional(list(string), [])
+      service_account_name      = optional(string)
+      service_account_namespace = optional(string)
+      role_arn                  = optional(string)
+      role_key                  = optional(string)
+    })))
+    iam_roles = optional(list(object({
+      key                                = optional(string)
+      name                               = string
+      description                        = optional(string)
+      path                               = optional(string, "/")
+      assume_role_policy                 = optional(string)
+      use_default_eks_assume_role_policy = optional(bool, true)
+      custom_assume_role_policy          = optional(bool, true)
+      force_detach_policies              = optional(bool, false)
+      managed_policy_arns                = optional(list(string))
+      max_session_duration               = optional(number, 3600)
+      permissions_boundary               = optional(string)
+      create_custom_policy               = optional(bool, true)
+      service_account_name               = optional(string)
+      service_account_namespace          = optional(string)
+      policy = optional(object({
+        name          = optional(string)
+        description   = optional(string)
+        policy        = optional(string)
+        path          = optional(string, "/")
+        custom_policy = optional(bool, true)
+      }))
+    })))
+  }))
+  default = null
+}
+
+variable "rds_instances" {
+  description = "RDS instance configuration"
+  type = list(object({
+    key                     = string
+    name                    = string
+    engine                  = string
+    engine_version          = string
+    instance_class          = string
+    allocated_storage       = number
+    vpc_name                = string
+    create_rds_instance     = optional(bool, false)
+    max_allocated_storage   = optional(number)
+    storage_type            = optional(string, "gp3")
+    storage_encrypted       = optional(bool, true)
+    kms_key_id              = optional(string)
+    iops                    = optional(number)
+    database_name           = optional(string)
+    master_username         = optional(string)
+    port                    = optional(number)
+    use_private_subnets     = optional(bool, false)
+    subnet_ids              = optional(list(string))
+    subnet_keys             = optional(list(string))
+    vpc_security_group_ids  = optional(list(string))
+    vpc_security_group_keys = optional(list(string))
+    publicly_accessible     = optional(bool, false)
+    multi_az                = optional(bool, false)
+    availability_zone       = optional(string)
+    parameter_group_name    = optional(string)
+    option_group_name       = optional(string)
+    create_parameter_group  = optional(bool, false)
+    parameter_group_family  = optional(string)
+    parameters = optional(list(object({
+      name         = string
+      value        = string
+      apply_method = optional(string, "immediate")
+    })))
+    backup_retention_period               = optional(number, 7)
+    backup_window                         = optional(string)
+    maintenance_window                    = optional(string)
+    auto_minor_version_upgrade            = optional(bool, true)
+    deletion_protection                   = optional(bool, false)
+    skip_final_snapshot                   = optional(bool, false)
+    copy_tags_to_snapshot                 = optional(bool, true)
+    enabled_cloudwatch_logs_exports       = optional(list(string), [])
+    monitoring_interval                   = optional(number, 0)
+    monitoring_role_arn                   = optional(string)
+    performance_insights_enabled          = optional(bool, false)
+    performance_insights_kms_key_id       = optional(string)
+    performance_insights_retention_period = optional(number)
+    apply_immediately                     = optional(bool, false)
+    secrets_kms_key_id                    = optional(string)
+    secret_recovery_window_days           = optional(number, 7)
+    create_read_replica                   = optional(bool, false)
+    replica_instance_class                = optional(string)
+  }))
+  default = null
+}
+
+
+variable "ecr_repos" {
+  description = "Elastic Container Registry configuration"
+  type = list(object({
+    key                      = string
+    name                     = string
+    image_tag_mutability     = optional(string, "MUTABLE")
+    scan_on_push             = optional(bool, true)
+    encryption_type          = optional(string, "AES256")
+    kms_key_arn              = optional(string, null)
+    force_delete             = optional(bool, false)
+    lifecycle_policy         = optional(string, null)
+    lifecycle_policy_file    = optional(string, null)
+    custom_lifecycle_policy  = optional(bool, false)
+    repository_policy        = optional(string, null)
+    repository_policy_file   = optional(string, null)
+    custom_repository_policy = optional(bool, false)
+    replication_configuration = optional(object({
+      rules = list(object({
+        destinations = list(object({
+          region      = string
+          registry_id = string
+        }))
+        repository_filter = optional(object({
+          filter      = string
+          filter_type = string
+        }))
+      }))
+    }))
+  }))
+  default = null
+}
+
+variable "ecs_clusters" {
+  description = "ECS configuration including common settings"
+  type = list(object({
+    key                        = string
+    cluster_name               = string
+    create_ecs_cluster         = optional(bool, false)
+    container_insights_enabled = optional(bool, false)
+    vpc_name                   = optional(string)
+    use_private_subnets        = optional(bool)
+    execute_command_configuration = optional(object({
+      kms_key_id = optional(string)
+      logging    = optional(string, "DEFAULT")
+      log_configuration = optional(object({
+        cloud_watch_encryption_enabled = optional(bool, false)
+        cloud_watch_log_group_name     = optional(string)
+        s3_bucket_name                 = optional(string)
+        s3_bucket_encryption_enabled   = optional(bool, false)
+        s3_key_prefix                  = optional(string)
+      }))
+    }))
+    capacity_providers = optional(object({
+      capacity_provider_names = list(string)
+      default_capacity_provider_strategy = optional(list(object({
+        capacity_provider = string
+        weight            = optional(number, 1)
+        base              = optional(number, 0)
+      })))
+    }))
+    task_definitions = optional(list(object({
+      family                   = string
+      task_role_arn            = optional(string)
+      task_role_key            = optional(string)
+      execution_role_arn       = optional(string)
+      execution_role_key       = optional(string)
+      network_mode             = optional(string, "bridge")
+      requires_compatibilities = optional(list(string), ["EC2"])
+      cpu                      = optional(string)
+      memory                   = optional(string)
+      load_balancer_key        = optional(string)
+      load_balancer_port       = optional(number)
+      frontend_url_lb_key      = optional(string)
+      smtp_secret_key          = optional(string)
+      cloud_map_key            = optional(string)
+      cloud_map_port           = optional(number)
+      secrets_manager_key      = optional(string)
+      rds_key                  = optional(string)
+      container_definitions = optional(list(object({
+        name              = optional(string)
+        image             = optional(string)
+        cpu               = optional(number)
+        memory            = optional(number)
+        load_balancer_key = optional(string)
+        essential         = optional(bool, true)
+        port_mappings = optional(list(object({
+          container_port = optional(number)
+          host_port      = optional(number)
+          protocol       = optional(string, "tcp")
+        })))
+        environment = optional(list(object({
+          name  = optional(string)
+          value = optional(string)
+        })))
+        secrets = optional(list(object({
+          name       = optional(string)
+          value_from = optional(string)
+        })))
+        mount_points = optional(list(object({
+          source_volume  = optional(string)
+          container_path = optional(string)
+          read_only      = optional(bool, false)
+        })))
+        log_configuration = optional(object({
+          log_driver = optional(string)
+          options    = optional(map(string))
+        }))
+      })))
+      container_definitions_file = optional(string)
+      volumes = optional(list(object({
+        name      = string
+        host_path = optional(string)
+
+        docker_volume_configuration = optional(object({
+          scope         = optional(string)
+          autoprovision = optional(bool)
+          driver        = optional(string)
+          driver_opts   = optional(map(string))
+          labels        = optional(map(string))
+        }))
+        efs_volume_configuration = optional(object({
+          file_system_id          = string
+          root_directory          = optional(string, "/")
+          transit_encryption      = optional(string, "DISABLED")
+          transit_encryption_port = optional(number)
+          authorization_config = optional(object({
+            access_point_id = optional(string)
+            iam             = optional(string)
+          }))
+        }))
+      })))
+      placement_constraints = optional(list(object({
+        type       = string
+        expression = optional(string)
+      })))
+
+      proxy_configuration = optional(object({
+        container_name = string
+        properties     = optional(map(string))
+        type           = optional(string, "APPMESH")
+      }))
+      runtime_platform = optional(object({
+        operating_system_family = optional(string, "LINUX")
+        cpu_architecture        = optional(string, "X86_64")
+      }))
+    })))
+    cloud_map_namespaces = optional(list(object({
+      name        = string
+      description = optional(string)
+      type        = optional(string, "DNS_PRIVATE")
+      vpc_id      = optional(string)
+      vpc_name    = optional(string)
+      services = optional(list(object({
+        name = string
+        dns_config = optional(object({
+          namespace_id   = optional(string) # Auto-resolved if null
+          routing_policy = optional(string, "MULTIVALUE")
+          dns_records = optional(list(object({
+            ttl  = number
+            type = string # A | AAAA | CNAME | SRV
+          })))
+        }))
+        health_check_config = optional(object({
+          failure_threshold = optional(number, 1)
+          resource_path     = optional(string)
+          type              = optional(string) # HTTP | HTTPS | TCP
+        }))
+
+        health_check_custom_config = optional(object({
+          failure_threshold = optional(number, 1)
+        }))
+      })))
+    })))
+    services = optional(list(object({
+      name                               = string
+      task_definition                    = optional(string)
+      task_definition_family             = optional(string)
+      desired_count                      = optional(number, 1)
+      launch_type                        = optional(string, "EC2")
+      platform_version                   = optional(string)
+      scheduling_strategy                = optional(string, "REPLICA")
+      deployment_maximum_percent         = optional(number, 200)
+      deployment_minimum_healthy_percent = optional(number, 100)
+      enable_ecs_managed_tags            = optional(bool, false)
+      enable_execute_command             = optional(bool, false)
+      health_check_grace_period_seconds  = optional(number)
+      propagate_tags                     = optional(string)
+      capacity_provider_strategy = optional(list(object({
+        capacity_provider = string
+        weight            = optional(number, 1)
+        base              = optional(number, 0)
+      })))
+      deployment_circuit_breaker = optional(object({
+        enable   = bool
+        rollback = bool
+      }))
+      deployment_controller = optional(object({
+        type = optional(string, "ECS")
+      }))
+      load_balancers = optional(list(object({
+        target_group_arn = optional(string)
+        target_group_key = optional(string)
+        container_name   = string
+        container_port   = number
+      })))
+      network_configuration = optional(object({
+        subnets             = optional(list(string))
+        subnet_keys         = optional(list(string))
+        security_groups     = optional(list(string))
+        security_group_keys = optional(list(string))
+        assign_public_ip    = optional(bool, false)
+      }))
+      placement_constraints = optional(list(object({
+        type       = string
+        expression = optional(string)
+      })))
+      ordered_placement_strategy = optional(list(object({
+        type  = string
+        field = optional(string)
+      })))
+      service_registries = optional(object({
+        registry_arn          = optional(string)
+        cloud_map_service_key = optional(string)
+        port                  = optional(number)
+        container_name        = optional(string)
+        container_port        = optional(number)
+      }))
+    })))
+    ec2_autoscaling = optional(object({
+      launch_templates = optional(list(object({
+        key                      = optional(string)
+        name                     = optional(string)
+        instance_profile         = optional(string)
+        iam_instance_profile_key = optional(string)
+        custom_ami               = optional(string)
+        ami_config = object({
+          os_release_date  = optional(string)
+          os_base_packages = optional(string)
+        })
+        instance_type               = optional(string)
+        key_name                    = optional(string)
+        ec2_ssh_key                 = optional(string)
+        associate_public_ip_address = optional(bool)
+        vpc_security_group_ids      = optional(list(string))
+        vpc_security_group_keys     = optional(list(string))
+        tags                        = optional(map(string))
+        user_data                   = optional(string)
+        volume_size                 = optional(number)
+        root_device_name            = optional(string)
+      })))
+      autoscaling_group = optional(object({
+        name                      = optional(string)
+        min_size                  = optional(number)
+        max_size                  = optional(number)
+        health_check_type         = optional(string)
+        health_check_grace_period = optional(number)
+        force_delete              = optional(bool)
+        desired_capacity          = optional(number)
+        subnet_ids                = optional(list(string))
+        subnet_keys               = optional(list(string))
+        target_group_keys         = optional(list(string))
+        attach_target_groups      = optional(list(string))
+        launch_template_key       = optional(string)
+        launch_template = optional(object({
+          id      = string
+          version = optional(string, "$Latest")
+        }))
+        timeouts = optional(object({
+          delete = optional(string)
+        }))
+        tags = optional(map(string))
+        additional_tags = optional(list(object({
+          key                 = string
+          value               = string
+          propagate_at_launch = optional(bool, true)
+        })))
+      }))
+      capacity_provider = object({
+        name                           = string
+        managed_termination_protection = optional(string, "DISABLED")
+        managed_scaling = object({
+          maximum_scaling_step_size = optional(number, 10)
+          minimum_scaling_step_size = optional(number, 1)
+          status                    = optional(string, "ENABLED")
+          target_capacity           = optional(number, 100)
+          instance_warmup_period    = optional(number, 300)
+        })
+      })
+      scaling_policies = optional(object({
+        scale_up = object({
+          scaling_adjustment = number
+          adjustment_type    = optional(string, "ChangeInCapacity")
+          cooldown           = optional(number, 300)
+        })
+        scale_down = object({
+          scaling_adjustment = number
+          adjustment_type    = optional(string, "ChangeInCapacity")
+          cooldown           = optional(number, 300)
+        })
+      }))
+    }))
+  }))
+  default = null
+}

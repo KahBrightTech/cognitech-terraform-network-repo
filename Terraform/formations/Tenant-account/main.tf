@@ -1,12 +1,20 @@
 
 #--------------------------------------------------------------------
-# Data block to fetch values from the console 
+# Data
 #--------------------------------------------------------------------
+data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
-#--------------------------------------------------------------------
-# Creating customer resources
-#--------------------------------------------------------------------
+data "aws_iam_roles" "admin_role" {
+  name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
+
+data "aws_iam_roles" "network_role" {
+  name_regex  = "AWSReservedSSO_NetworkAdministrator_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
+
 module "customer_vpc" {
   source   = "../Create-Network"
   for_each = var.vpcs != null ? { for vpc in var.vpcs : vpc.name => vpc } : {}
@@ -29,7 +37,7 @@ module "transit_gateway" {
 #--------------------------------------------------------------------
 module "transit_gateway_attachment" {
   count  = var.tgw_attachments != null ? 1 : 0
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.1.17"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.3.81"
   common = var.common
   vpc_id = var.vpcs != null ? module.customer_vpc[var.tgw_attachments.name].vpc_id : null
   depends_on = [
@@ -70,7 +78,7 @@ module "transit_gateway_association" {
   for_each = var.tgw_associations != null ? { for assoc in var.tgw_associations : assoc.key => assoc } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway,
     module.transit_gateway_route_table
   ]
@@ -99,7 +107,7 @@ module "transit_gateway_propagation" {
   for_each = var.tgw_propagations != null ? { for prop in var.tgw_propagations : prop.key => prop } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway,
     module.transit_gateway_route_table
   ]
@@ -116,6 +124,7 @@ module "transit_gateway_propagation" {
     }
   )
 }
+
 #--------------------------------------------------------------------
 # Transit Gateway routes - Creates Transit Gateway routes for shared services
 #--------------------------------------------------------------------
@@ -207,17 +216,22 @@ module "s3_app_bucket" {
 # IAM Roles and Policies
 #--------------------------------------------------------------------
 module "iam_roles" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.1.76"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.5.44"
   for_each = (var.iam_roles != null) ? { for item in var.iam_roles : item.name => item } : {}
   common   = var.common
-  iam_role = each.value
+  iam_role = merge(
+    each.value,
+    {
+      policy = each.value.policy != null ? each.value.policy : null
+    }
+  )
 }
 
 #--------------------------------------------------------------------
 # EC2 instance profiles
 #--------------------------------------------------------------------
 module "ec2_profiles" {
-  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.1.77"
+  source       = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/EC2-profiles?ref=v1.6.5"
   for_each     = (var.ec2_profiles != null) ? { for item in var.ec2_profiles : item.name => item } : {}
   common       = var.common
   ec2_profiles = each.value
@@ -366,28 +380,35 @@ module "target_groups" {
 # ALB listeners
 #--------------------------------------------------------------------
 module "alb_listeners" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.2.98"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/alb-listeners?ref=v1.6.8"
   for_each = (var.alb_listeners != null) ? { for item in var.alb_listeners : item.key => item } : {}
   common   = var.common
   alb_listener = merge(
     each.value,
     {
-      # Resolve load balancer ARN from the load balancer key
       alb_arn = try(
         module.load_balancers[each.value.alb_key].arn,
         each.value.alb_arn
       )
-      certificate_arn = each.value.protocol == "HTTPS" ? try(
-        module.certificates[each.value.vpc_name].arn,
-        each.value.certificate_arn
-      ) : null
+      certificate_arn = each.value.protocol != "HTTPS" ? null : (
+        (each.value.certificate_key != null && each.value.certificate_key != "")
+        ? try(module.certificates[each.value.certificate_key].arn, null)
+        : try(module.certificates[each.value.vpc_name].arn, each.value.certificate_arn)
+      )
       vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
-      target_group = each.value.target_group != null ? merge(
-        each.value.target_group,
-        {
-          attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
-        }
-      ) : null
+      target_group_arn = (
+        each.value.tg_name != null && each.value.tg_name != ""
+        ? module.target_groups[each.value.tg_name].target_group_arn
+        : each.value.target_group_arn
+      )
+      target_group = each.value.tg_name != null && each.value.tg_name != "" ? null : (
+        each.value.target_group != null ? merge(
+          each.value.target_group,
+          {
+            attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
+          }
+        ) : null
+      )
     }
   )
 }
@@ -420,7 +441,7 @@ module "alb_listener_rules" {
 # NLB listeners
 #--------------------------------------------------------------------
 module "nlb_listeners" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.2.98"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/nlb-listener?ref=v1.6.9"
   for_each = (var.nlb_listeners != null) ? { for item in var.nlb_listeners : item.key => item } : {}
   common   = var.common
   nlb_listener = merge(
@@ -430,17 +451,25 @@ module "nlb_listeners" {
         module.load_balancers[each.value.nlb_key].arn,
         each.value.nlb_arn
       )
-      certificate_arn = each.value.protocol == "TLS" ? try(
-        module.certificates[each.value.vpc_name].arn,
-        each.value.certificate_arn
-      ) : null
+      certificate_arn = each.value.protocol != "TLS" ? null : (
+        (each.value.certificate_key != null && each.value.certificate_key != "")
+        ? try(module.certificates[each.value.certificate_key].arn, null)
+        : try(module.certificates[each.value.vpc_name].arn, each.value.certificate_arn)
+      )
       vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
-      target_group = each.value.target_group != null ? merge(
-        each.value.target_group,
-        {
-          attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
-        }
-      ) : null
+      target_group_arn = (
+        each.value.tg_name != null && each.value.tg_name != ""
+        ? module.target_groups[each.value.tg_name].target_group_arn
+        : each.value.target_group.arn
+      )
+      target_group = (
+        each.value.target_group != null ? merge(
+          each.value.target_group,
+          {
+            attachments = each.value.target_group.attachments != null ? each.value.target_group.attachments : []
+          }
+        ) : null
+      )
     }
   )
 }
@@ -465,7 +494,452 @@ module "iam_users" {
   iam_user = each.value
 }
 
+#--------------------------------------------------------------------
+# IP SET
+#--------------------------------------------------------------------
+module "ip_sets" {
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Waf-ipsets?ref=v1.4.9"
+  for_each = var.wafs != null ? {
+    for item in flatten([
+      for waf in var.wafs : waf.ip_sets != null ? waf.ip_sets : []
+    ]) : item.key => item
+  } : {}
+  common = var.common
+  ip_set = each.value
+}
+
+#--------------------------------------------------------------------
+# Rule Groups
+#--------------------------------------------------------------------
+module "rule_groups" {
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF-rulegroup?ref=v1.4.9"
+  for_each = var.wafs != null ? {
+    for item in flatten([
+      for waf in var.wafs : waf.rule_groups != null ? waf.rule_groups : []
+    ]) : item.key => item
+  } : {}
+  common = var.common
+  rule_group = merge(
+    each.value,
+    {
+      rules = each.value.rules != null ? [
+        for rule in each.value.rules : merge(
+          rule,
+          {
+            ip_set_arn = rule.ip_set_key != null ? module.ip_sets[rule.ip_set_key].ip_set_arn : rule.ip_set_arn
+          }
+        )
+      ] : []
+    }
+  )
+}
+
+#--------------------------------------------------------------------
+# WAF
+#--------------------------------------------------------------------
+module "waf" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/WAF?ref=v1.4.11"
+  for_each = (var.wafs != null) ? { for item in var.wafs : item.key => item } : {}
+  common   = var.common
+  waf = merge(
+    each.value,
+    {
+      custom_rules = each.value.custom_rules != null ? [
+        for rule in each.value.custom_rules : merge(
+          rule,
+          {
+            ip_set_arn = rule.ip_set_key != null ? module.ip_sets[rule.ip_set_key].ip_set_arn : (rule.ip_set_arn != null ? rule.ip_set_arn : null)
+          }
+        )
+      ] : []
+    },
+    {
+      rule_group_references = each.value.rule_group_references != null ? [
+        for rg in each.value.rule_group_references : merge(
+          rg, {
+            arn = rg.rule_group_key != null ? module.rule_groups[rg.rule_group_key].rule_group_arn : rg.arn
+          }
+        )
+      ] : []
+    },
+    {
+      association = each.value.association != null ? (
+        each.value.association.associate_alb == true ? merge(
+          each.value.association,
+          {
+            alb_arns = each.value.association.alb_arns != null ? each.value.association.alb_arns : (
+              each.value.association.alb_keys != null ? [
+                for alb_key in each.value.association.alb_keys :
+                module.load_balancers[alb_key].arn
+              ] : []
+            )
+          }
+        ) : null
+      ) : null
+    }
+  )
+}
+
+#--------------------------------------------------------------------
+# Creates EKS and supporting resources
+#--------------------------------------------------------------------
+module "eks" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.18"
+  for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
+  common   = var.common
+  eks = merge(
+    each.value,
+    {
+      auth = each.value.create_rbac ? each.value.auth : null
+    },
+    {
+      role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
+    },
+    {
+      subnet_ids = each.value.subnet_keys != null ? flatten([
+        for subnet_key in each.value.subnet_keys :
+        (each.value.use_private_subnets == true) ?
+        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+      ]) : each.value.subnet_ids
+    },
+    {
+      security_groups = each.value.security_groups != null ? [
+        for sg in each.value.security_groups : merge(
+          sg,
+          {
+            vpc_id   = module.shared_vpc[each.value.vpc_name].vpc_id
+            vpc_name = each.value.vpc_name
+          }
+        )
+      ] : null
+    },
+    {
+      security_group_rules = each.value.security_group_rules != null ? [
+        for rule in each.value.security_group_rules : merge(
+          rule,
+          {
+            ingress_rules = rule.ingress_rules != null ? [
+              for ing_rule in rule.ingress_rules : merge(
+                ing_rule,
+                ing_rule.source_vpc_sg_key != null ? {
+                  source_sg_id = module.shared_vpc[each.value.vpc_name].security_group[ing_rule.source_vpc_sg_key].id
+                } : {}
+              )
+            ] : null
+          },
+          {
+            egress_rules = rule.egress_rules != null ? [
+              for egr_rule in rule.egress_rules : merge(
+                egr_rule,
+                egr_rule.target_vpc_sg_key != null ? {
+                  target_sg_id = module.shared_vpc[each.value.vpc_name].security_group[egr_rule.target_vpc_sg_key].id
+                } : {}
+              )
+            ] : null
+          }
+        )
+      ] : null
+    },
+    {
+      launch_templates = each.value.launch_templates != null ? [
+        for lt in each.value.launch_templates : merge(
+          lt,
+          {
+            vpc_security_group_ids = concat(
+              lt.account_security_group_keys != null ? [
+                for sg_key in lt.account_security_group_keys : module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+              ] : [],
+              lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
+            ),
+            vpc_security_group_keys = lt.vpc_security_group_keys
+          }
+        )
+      ] : null
+    },
+    {
+      eks_addons = each.value.eks_addons != null ? merge(
+        each.value.eks_addons,
+        (each.value.cloudwatch_observability_role_key != null || each.value.cloudwatch_observability_role_arn != null) ?
+        {
+          cloudwatch_observability_role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
+        } : {}
+      ) : null
+    },
+    {
+      eks_node_groups = each.value.eks_node_groups != null ? [
+        for ng in each.value.eks_node_groups : merge(
+          ng,
+          {
+            node_role_arn = ng.node_role_key != null ? module.iam_roles[ng.node_role_key].iam_role_arn : ng.node_role_arn
+          },
+          {
+            subnet_ids = ng.subnet_keys != null ? flatten([
+              for subnet_key in ng.subnet_keys :
+              (each.value.use_private_subnets == true) ?
+              module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+              module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+            ]) : ng.subnet_ids
+          },
+          {
+            source_security_group_ids = ng.source_security_group_keys != null ? [
+              for sg_key in ng.source_security_group_keys :
+              module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+            ] : ng.source_security_group_ids
+          }
+        )
+      ] : null
+    }
+  )
+}
 
 
+#--------------------------------------------------------------------
+# Creates RDS instances
+#--------------------------------------------------------------------
+module "rds" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/RDS?ref=v1.6.16"
+  for_each = (var.rds_instances != null) ? { for item in var.rds_instances : item.create_rds_instance ? item.key : null => item if item.create_rds_instance } : {}
+  common   = var.common
+  rds_instance = merge(
+    each.value,
+    {
+      subnet_ids = each.value.subnet_keys != null ? flatten([
+        for subnet_key in each.value.subnet_keys :
+        (each.value.use_private_subnets == true) ?
+        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+      ]) : each.value.subnet_ids
+    },
+    {
+      vpc_security_group_ids = each.value.vpc_security_group_keys != null ? [
+        for sg_key in each.value.vpc_security_group_keys :
+        module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+      ] : each.value.vpc_security_group_ids
+    }
+  )
+}
 
+#--------------------------------------------------------------------
+# Creates ECR repositories
+#--------------------------------------------------------------------
+module "ecr_repos" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/ECR?ref=v1.5.84"
+  for_each = (var.ecr_repos != null) ? { for item in var.ecr_repos : item.key => item } : {}
+  common   = var.common
+  ecr      = each.value
+}
+
+#--------------------------------------------------------------------
+# Creates ECS clusters and supporting resources
+#--------------------------------------------------------------------
+module "ecs_clusters" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-ecs?ref=v1.6.17"
+  for_each = (var.ecs_clusters != null) ? { for item in var.ecs_clusters : item.create_ecs_cluster ? item.key : null => item if item.create_ecs_cluster } : {}
+  common   = var.common
+  ecs = merge(
+    each.value,
+    {
+      task_definitions = each.value.task_definitions != null ? [
+        for td in each.value.task_definitions : merge(
+          td,
+          {
+            execution_role_arn = td.execution_role_key != null ? module.iam_roles[td.execution_role_key].iam_role_arn : td.execution_role_arn
+            task_role_arn      = td.task_role_key != null ? module.iam_roles[td.task_role_key].iam_role_arn : td.task_role_arn
+            container_definitions = td.container_definitions != null ? jsonencode([
+              for container in td.container_definitions : merge(
+                container,
+                {
+                  environment = concat(
+                    container.environment != null ? container.environment : [],
+
+                    # ── Load Balancer BACKEND_URL ──
+                    td.load_balancer_key != null ? [
+                      {
+                        name  = "BACKEND_URL"
+                        value = "http://${module.load_balancers[td.load_balancer_key].dns_name}${td.load_balancer_port != null ? ":${td.load_balancer_port}" : ""}"
+                      }
+                      ] : (
+                      td.cloud_map_key != null ? [
+                        {
+                          name = "BACKEND_URL"
+                          value = "http://${
+                            join(".", reverse(split("/", td.cloud_map_key)))
+                          }${td.cloud_map_port != null ? ":${td.cloud_map_port}" : ""}"
+                        }
+                        ] : (
+
+                        # ── Static BACKEND_URL fallback ──
+                        each.value.backend_url != null ? [
+                          {
+                            name  = "BACKEND_URL"
+                            value = each.value.backend_url
+                          }
+                        ] : []
+                    ))
+                  )
+                  secrets = concat(
+                    container.secrets != null ? container.secrets : [],
+                    td.rds_key != null || td.secrets_manager_key != null ? [
+                      {
+                        name       = "DB_PASSWORD"
+                        value_from = "${td.rds_key != null ? module.rds[td.rds_key].secret_arn : module.secrets[td.secrets_manager_key].arn}:password::"
+                      },
+                      {
+                        name       = "DB_USERNAME"
+                        value_from = "${td.rds_key != null ? module.rds[td.rds_key].secret_arn : module.secrets[td.secrets_manager_key].arn}:username::"
+                      },
+                      {
+                        name       = "DB_PORT"
+                        value_from = "${td.rds_key != null ? module.rds[td.rds_key].secret_arn : module.secrets[td.secrets_manager_key].arn}:port::"
+                      },
+                      {
+                        name       = "DB_NAME"
+                        value_from = "${td.rds_key != null ? module.rds[td.rds_key].secret_arn : module.secrets[td.secrets_manager_key].arn}:dbname::"
+                      }
+                    ] : []
+                  )
+                }
+              )
+            ]) : null
+            container_definitions_file = td.container_definitions == null ? (
+              td.load_balancer_key != null && td.container_definitions_file != null ? replace(
+                replace(
+                  replace(
+                    replace(
+                      file(td.container_definitions_file),
+                      "__BACKEND_URL__",
+                      "http://${module.load_balancers[td.load_balancer_key].dns_name}${td.load_balancer_port != null ? ":${td.load_balancer_port}" : ""}"
+                    ),
+                    "__SECRET_ARN__",
+                    td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
+                      td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
+                    )
+                  ),
+                  "__FRONTEND_URL__",
+                  td.frontend_url_lb_key != null ? "http://${module.load_balancers[td.frontend_url_lb_key].dns_name}" : "__FRONTEND_URL__"
+                ),
+                "__SMTP_SECRET_ARN__",
+                td.smtp_secret_key != null ? module.secrets[td.smtp_secret_key].arn : ""
+                ) : (
+                td.cloud_map_key != null && td.container_definitions_file != null ? replace(
+                  replace(
+                    replace(
+                      replace(
+                        file(td.container_definitions_file),
+                        "__BACKEND_URL__",
+                        "http://${
+                          join(".", reverse(split("/", td.cloud_map_key)))
+                        }${td.cloud_map_port != null ? ":${td.cloud_map_port}" : ""}"
+                      ),
+                      "__SECRET_ARN__",
+                      td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
+                        td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
+                      )
+                    ),
+                    "__FRONTEND_URL__",
+                    td.frontend_url_lb_key != null ? "http://${module.load_balancers[td.frontend_url_lb_key].dns_name}" : "__FRONTEND_URL__"
+                  ),
+                  "__SMTP_SECRET_ARN__",
+                  td.smtp_secret_key != null ? module.secrets[td.smtp_secret_key].arn : ""
+                  ) : (
+                  (td.rds_key != null || td.secrets_manager_key != null) && td.container_definitions_file != null ? replace(
+                    replace(
+                      replace(
+                        file(td.container_definitions_file),
+                        "__SECRET_ARN__",
+                        td.rds_key != null ? module.rds[td.rds_key].secret_arn : (
+                          td.secrets_manager_key != null ? module.secrets[td.secrets_manager_key].arn : ""
+                        )
+                      ),
+                      "__FRONTEND_URL__",
+                      td.frontend_url_lb_key != null ? "http://${module.load_balancers[td.frontend_url_lb_key].dns_name}" : "__FRONTEND_URL__"
+                    ),
+                    "__SMTP_SECRET_ARN__",
+                    td.smtp_secret_key != null ? module.secrets[td.smtp_secret_key].arn : ""
+                  ) : td.container_definitions_file
+              ))
+            ) : null
+          }
+        )
+      ] : null
+    },
+    {
+      services = each.value.services != null ? [
+        for svc in each.value.services : merge(
+          svc,
+          {
+            load_balancers = svc.load_balancers != null ? [
+              for lb in svc.load_balancers : {
+                target_group_arn = lb.target_group_key != null ? module.target_groups[lb.target_group_key].target_group_arn : lb.target_group_arn
+                container_name   = lb.container_name
+                container_port   = lb.container_port
+              }
+            ] : []
+            network_configuration = svc.network_configuration != null ? merge(
+              svc.network_configuration,
+              {
+                subnets = svc.network_configuration.subnet_keys != null ? flatten([
+                  for subnet_key in svc.network_configuration.subnet_keys :
+                  (each.value.use_private_subnets == true) ?
+                  module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                  module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                ]) : svc.network_configuration.subnets
+                security_groups = svc.network_configuration.security_group_keys != null ? [
+                  for sg_key in svc.network_configuration.security_group_keys :
+                  module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+                ] : svc.network_configuration.security_groups
+              }
+            ) : null
+          }
+        )
+      ] : null
+    },
+    {
+      cloud_map_namespaces = each.value.cloud_map_namespaces != null ? [
+        for ns in each.value.cloud_map_namespaces : merge(
+          ns,
+          {
+            vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+          }
+        )
+      ] : null
+    },
+    {
+      ec2_autoscaling = each.value.ec2_autoscaling != null ? merge(
+        each.value.ec2_autoscaling,
+        {
+          launch_templates = each.value.ec2_autoscaling.launch_templates != null ? [
+            for lt in each.value.ec2_autoscaling.launch_templates : merge(
+              lt,
+              {
+                key_name         = lt.key_name != null ? module.ec2_key_pairs[lt.key_name].name : lt.key_name
+                instance_profile = lt.iam_instance_profile_key != null ? module.ec2_profiles[lt.iam_instance_profile_key].instance_profile_name : lt.iam_instance_profile
+                vpc_security_group_ids = lt.vpc_security_group_keys != null ? [
+                  for sg_key in lt.vpc_security_group_keys :
+                  module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+                ] : lt.vpc_security_group_ids
+              }
+            )
+          ] : null
+          autoscaling_group = each.value.ec2_autoscaling.autoscaling_group != null ? merge(
+            each.value.ec2_autoscaling.autoscaling_group,
+            {
+              subnet_ids = each.value.ec2_autoscaling.autoscaling_group.subnet_keys != null ? flatten([
+                for subnet_key in each.value.ec2_autoscaling.autoscaling_group.subnet_keys :
+                (each.value.use_private_subnets == true) ?
+                module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+              ]) : each.value.ec2_autoscaling.autoscaling_group.subnet_ids
+              attach_target_groups = each.value.ec2_autoscaling.autoscaling_group.target_group_keys != null ? [
+                for tg_key in each.value.ec2_autoscaling.autoscaling_group.target_group_keys :
+                module.target_groups[tg_key].target_group_arn
+              ] : each.value.ec2_autoscaling.autoscaling_group.attach_target_groups
+            }
+          ) : null
+        }
+      ) : null
+    }
+  )
+}
 
