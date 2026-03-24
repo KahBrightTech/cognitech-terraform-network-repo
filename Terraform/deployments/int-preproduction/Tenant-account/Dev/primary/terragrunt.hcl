@@ -53,7 +53,7 @@ locals {
 #-------------------------------------------------------
 # Dependencies 
 #-------------------------------------------------------
-dependency "shared_services" {
+dependency "platform" {
   config_path = "../../../Shared-account/${local.region_context}"
 }
 #-------------------------------------------------------
@@ -442,14 +442,6 @@ inputs = {
         {
           sg_key = "db"
           ingress = [
-            {
-              key         = "ingress-3306-shared-vp"
-              cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
-              description = "BASE - Inbound NFS traffic from the internet on tcp port 3306"
-              from_port   = 3306
-              to_port     = 3306
-              ip_protocol = "tcp"
-            },
             {
               key         = "ingress-3306-vpn_ip"
               cidr_ipv4   = local.vpn_ip
