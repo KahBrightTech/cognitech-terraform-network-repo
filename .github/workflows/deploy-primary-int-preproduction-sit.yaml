@@ -88,21 +88,13 @@ jobs:
         run: |
           terragrunt run-all plan --terragrunt-non-interactive --terragrunt-no-color | tee plan_output.txt
 
-      - name: Generate Plan Summary
+      - name: Plan Summary
         if: success()
         run: |
-          # Extract the plan summary line(s)
-          SUMMARY=$(grep -E "Plan:|No changes." plan_output.txt | tail -1 || echo "Plan summary not found")
-          
-          # Create GitHub Actions summary
           echo "## Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Full plan output available in job logs**" >> $GITHUB_STEP_SUMMARY
-
+          sed 's/\x1b\[[0-9;]*m//g' plan_output.txt | grep -oE "Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy\." | sort -u >> $GITHUB_STEP_SUMMARY || echo "No changes detected" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY 
   Approve:
     needs: Plan
     runs-on: ubuntu-latest
@@ -117,8 +109,8 @@ jobs:
     needs: Approve
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terragrunt_action == 'apply' && github.ref == 'refs/heads/main'
-    environment:
-      name: production
+    # environment:
+    #   name: production
     env:
       IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
       REGION: us-east-1

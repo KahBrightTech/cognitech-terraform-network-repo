@@ -1288,19 +1288,6 @@ inputs = {
     }
   ]
 
-  ecr_repos = [
-    {
-      key                      = "ecs"
-      name                     = "ecs"
-      image_tag_mutability     = "MUTABLE"
-      scan_on_push             = true
-      custom_lifecycle_policy  = true
-      custom_repository_policy = true
-      lifecycle_policy_file    = "${include.cloud.locals.repo.root}/iam_policies/ecr/ecs_repo_lifecycle_policy.json"
-      repository_policy_file   = "${include.cloud.locals.repo.root}/iam_policies/ecr/ecs_repo_repository_policy.json"
-    }
-  ]
-
   ecs_clusters = [
     {
       key                        = "primary"
