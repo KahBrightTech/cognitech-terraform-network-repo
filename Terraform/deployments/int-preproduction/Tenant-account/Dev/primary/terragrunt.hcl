@@ -945,7 +945,7 @@ inputs = {
             name = "cognitech-view" # renamed from "view" to avoid conflict with the built-in Kubernetes ClusterRole
             rules = [
               {
-                api_groups = ["apps"]
+                api_groups = ["*"]
                 resources  = ["deployments", "pods", "services"]
                 verbs      = ["get", "list", "watch"]
               }
