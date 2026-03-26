@@ -932,6 +932,12 @@ inputs = {
           ]
           # policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy" This grants the roles default kubernetes view cluster role permission. To avoid the role from getting these permissions remove this permissions. 
           kubernetes_groups = ["viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+        },
+        audit = {
+          principal_arns = [
+            include.env.locals.eks_roles.network
+          ]
+          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy" This grants the roles default kubernetes view cluster role permission. To avoid the role from getting these permissions remove this permissions. 
         }
       }
       auth = {
