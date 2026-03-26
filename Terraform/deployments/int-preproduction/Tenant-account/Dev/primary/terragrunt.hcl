@@ -927,17 +927,15 @@ inputs = {
         },
         readonly = {
           principal_arns = [
-            include.env.locals.eks_roles.network,
             include.env.locals.eks_roles.readonly
           ]
-          # policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy" This grants the roles default kubernetes view cluster role permission. To avoid the role from getting these permissions remove this permissions. 
-          kubernetes_groups = ["viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+          kubernetes_groups = ["cognitec-viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
         },
         audit = {
           principal_arns = [
             include.env.locals.eks_roles.network
           ]
-          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy" This grants the roles default kubernetes view cluster role permission. To avoid the role from getting these permissions remove this permissions. 
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy" #This grants the roles default kubernetes view cluster role permission. To avoid the role from getting these permissions remove this permissions. view cluster role permission. To avoid the role from getting these permissions remove this permissions. 
         }
       }
       auth = {
@@ -962,7 +960,7 @@ inputs = {
             subjects = [
               {
                 kind      = "Group"
-                name      = "viewers"
+                name      = "cognitech-viewers"
                 api_group = "rbac.authorization.k8s.io"
               }
             ]
