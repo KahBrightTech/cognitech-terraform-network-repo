@@ -929,7 +929,7 @@ inputs = {
           principal_arns = [
             include.env.locals.eks_roles.readonly
           ]
-          kubernetes_groups = ["cognitec-viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+          kubernetes_groups = ["cognitech-viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
         },
         audit = {
           principal_arns = [
