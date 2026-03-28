@@ -1500,7 +1500,7 @@ inputs = {
       handler             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.handler
       timeout             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.timeout
       private_bucket_name = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.private_bucket_name
-      lamda_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lamda_s3_key
+      lambda_s3_key       = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lamda_s3_key
       layer_description   = "Lambda Layer for shared libraries"
       layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
     }
