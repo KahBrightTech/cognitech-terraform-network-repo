@@ -1698,6 +1698,7 @@ variable "lambdas" {
     lambda_s3_key       = string
     layer_description   = optional(string)
     layer_s3_key        = optional(string)
+    env_variables       = optional(map(string))
   }))
   default = null
 }
