@@ -1693,9 +1693,9 @@ variable "lambdas" {
     description         = string
     runtime             = string
     handler             = string
-    timeout             = number
-    private_bucket_name = optional(string)
-    lambda_s3_key       = optional(string)
+    timeout             = optional(number)
+    private_bucket_name = string
+    lambda_s3_key       = string
     layer_description   = optional(string)
     layer_s3_key        = optional(string)
   }))
