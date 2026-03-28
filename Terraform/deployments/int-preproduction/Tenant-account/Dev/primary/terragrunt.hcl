@@ -1508,8 +1508,8 @@ inputs = {
 
   events = [
     {
-      rule_name           = "${local.vpc_name}-eks-node-tagger-rule" \
-      event_pattern       = <<-EOF
+      rule_name        = "${local.vpc_name}-eks-node-tagger-rule"
+      event_pattern    = <<-EOF
       {
         "source": ["aws.ec2"],
         "detail-type": ["EC2 Instance State-change Notification"],
@@ -1517,8 +1517,9 @@ inputs = {
           "state": ["running"]
         }
       }
-      rule_description          = "EventBridge rule to trigger EKS node tagger Lambda on EC2 instance state change"
-      target_key = "${local.vpc_name}-eks_node_tagger"
+      EOF
+      rule_description = "EventBridge rule to trigger EKS node tagger Lambda on EC2 instance state change"
+      target_key       = "${local.vpc_name}-eks_node_tagger"
       tags = {
         Used_for = "eks-node-tagging"
       }
