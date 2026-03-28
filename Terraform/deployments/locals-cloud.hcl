@@ -125,12 +125,12 @@ locals {
       }
     }
     user_credentials = {
-      runtime              = "python3.9"
-      handler              = "lambda_handler.lambda_handler"
-      private_bucklet_name = "cognitech-lambdas-bucket"
-      lamda_s3_key         = "IAM-Credentials/codes/generate_iam_report.zip"
-      timeout              = "120"
-      layer_s3_key         = "IAM-Credentials/layers/python.zip"
+      runtime             = "python3.9"
+      handler             = "lambda_handler.lambda_handler"
+      private_bucket_name = "cognitech-lambdas-bucket"
+      lamda_s3_key        = "IAM-Credentials/codes/generate_iam_report.zip"
+      timeout             = "120"
+      layer_s3_key        = "IAM-Credentials/layers/python.zip"
     }
   }
   secret_names = {
