@@ -1492,9 +1492,9 @@ inputs = {
     }
   ]
 
-  Lambdas = [
+  lambdas = [
     {
-      function_name        = "${local.vpc_name}-eks_node_tagger"
+      function_name        = "${local.vpc_name_abr}-eks_node_tagger"
       description          = "Lambda function to tag EKS nodes"
       runtime              = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.runtime
       handler              = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.handler
@@ -1508,7 +1508,7 @@ inputs = {
 
   events = [
     {
-      rule_name        = "${local.vpc_name}-eks-node-tagger-rule"
+      rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
       event_pattern    = <<-EOF
       {
         "source": ["aws.ec2"],
@@ -1519,7 +1519,7 @@ inputs = {
       }
       EOF
       rule_description = "EventBridge rule to trigger tagging newly created EKS nodes on EC2 instance state change"
-      target_key       = "${local.vpc_name}-eks_node_tagger"
+      target_key       = "${local.vpc_name_abr}-eks_node_tagger"
       tags = {
         Used_for = "eks-node-tagging"
       }
