@@ -125,7 +125,7 @@ locals {
       }
     }
     user_credentials = {
-      runtime             = "python3.9"
+      runtime             = "python3.12"
       handler             = "lambda_handler.lambda_handler"
       private_bucket_name = "cognitech-lambdas-bucket"
       lambda_s3_key       = "IAM-Credentials/codes/generate_iam_report.zip"

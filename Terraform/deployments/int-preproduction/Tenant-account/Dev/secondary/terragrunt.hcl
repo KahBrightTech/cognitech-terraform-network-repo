@@ -1494,21 +1494,24 @@ inputs = {
 
   Lambdas = [
     {
-      function_name        = "${local.vpc_name}-eks_node_tagger"
-      description          = "Lambda function to tag EKS nodes"
-      runtime              = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.runtime
-      handler              = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.handler
-      timeout              = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.timeout
-      private_bucklet_name = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.private_bucklet_name
-      lamda_s3_key         = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lamda_s3_key
-      layer_description    = "Lambda Layer for shared libraries"
-      layer_s3_key         = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
+      function_name       = "${local.vpc_name_abr}-eks_node_tagger"
+      description         = "Lambda function to tag EKS nodes"
+      runtime             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.runtime
+      handler             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.handler
+      timeout             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.timeout
+      private_bucket_name = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.private_bucket_name
+      lambda_s3_key       = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lambda_s3_key
+      layer_description   = "Lambda Layer for shared libraries"
+      layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
+      env_variables = {
+        VPC_NAME_ABR = local.vpc_name_abr
+      }
     }
   ]
 
   events = [
     {
-      rule_name        = "${local.vpc_name}-eks-node-tagger-rule"
+      rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
       event_pattern    = <<-EOF
       {
         "source": ["aws.ec2"],

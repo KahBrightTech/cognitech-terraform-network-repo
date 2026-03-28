@@ -1503,6 +1503,9 @@ inputs = {
       lambda_s3_key       = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lambda_s3_key
       layer_description   = "Lambda Layer for shared libraries"
       layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
+      env_variables = {
+        VPC_NAME_ABR = local.vpc_name_abr
+      }
     }
   ]
 
