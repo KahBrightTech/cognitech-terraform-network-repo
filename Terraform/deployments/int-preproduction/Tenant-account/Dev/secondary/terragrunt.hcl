@@ -1491,6 +1491,7 @@ inputs = {
       }
     }
   ]
+
   Lambdas = [
     {
       function_name        = "${local.vpc_name}-eks_node_tagger"
@@ -1502,6 +1503,26 @@ inputs = {
       lamda_s3_key         = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lamda_s3_key
       layer_description    = "Lambda Layer for shared libraries"
       layer_s3_key         = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
+    }
+  ]
+
+  events = [
+    {
+      rule_name        = "${local.vpc_name}-eks-node-tagger-rule"
+      event_pattern    = <<-EOF
+      {
+        "source": ["aws.ec2"],
+        "detail-type": ["EC2 Instance State-change Notification"],
+        "detail": {
+          "state": ["running"]
+        }
+      }
+      EOF
+      rule_description = "EventBridge rule to trigger EKS node tagger Lambda on EC2 instance state change"
+      target_key       = "${local.vpc_name}-eks_node_tagger"
+      tags = {
+        Used_for = "eks-node-tagging"
+      }
     }
   ]
 }
