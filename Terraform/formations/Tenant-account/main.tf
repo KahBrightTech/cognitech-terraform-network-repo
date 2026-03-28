@@ -958,8 +958,13 @@ module "lambdas" {
 # Creates Events
 #--------------------------------------------------------------------
 module "events" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Event-Bridge?ref=v1.6.21"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Event-Bridge?ref=v1.6.22"
   for_each = (var.events != null) ? { for item in var.events : item.rule_name => item } : {}
   common   = var.common
-  event    = each.value
+  event = merge(
+    each.value,
+    {
+      target_arn = each.value.target_key != null ? module.lambdas[each.value.target_key].lambda_function_arn : each.value.target_arn
+    }
+  )
 }

@@ -1706,12 +1706,13 @@ variable "lambdas" {
 variable "events" {
   description = "EventBridge configuration object."
   type = list(object({
-    event_bus_name   = string
-    rule_name        = string
-    event_pattern    = string
+    event_bus_name   = optional(string)
+    rule_name        = optional(string)
+    event_pattern    = optional(string)
     rule_description = optional(string, "")
     rule_enabled     = optional(bool, true)
-    target_arn       = string
+    target_arn       = optional(string)
+    target_key       = optional(string)
     tags             = optional(map(string), {})
   }))
   default = null
