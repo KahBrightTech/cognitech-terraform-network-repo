@@ -948,7 +948,7 @@ module "ecs_clusters" {
 # Creates Lambdas
 #--------------------------------------------------------------------
 module "lambdas" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Lambdas/Template?ref=v1.6.20"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Lambdas/Template?ref=v1.6.25"
   for_each = (var.lambdas != null) ? { for item in var.lambdas : item.function_name => item } : {}
   common   = var.common
   Lambda   = each.value
