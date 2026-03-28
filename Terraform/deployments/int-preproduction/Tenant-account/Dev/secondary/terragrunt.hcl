@@ -907,9 +907,9 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = true
-      create_service_accounts = true
-      enable_eks_pia          = true
+      create_node_group       = false
+      create_service_accounts = false
+      enable_eks_pia          = false
       create_rbac             = false
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
@@ -927,11 +927,15 @@ inputs = {
         },
         readonly = {
           principal_arns = [
-            include.env.locals.eks_roles.network,
             include.env.locals.eks_roles.readonly
           ]
-          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
-          kubernetes_groups = ["viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+          kubernetes_groups = ["cognitech-viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+        },
+        audit = {
+          principal_arns = [
+            include.env.locals.eks_roles.network
+          ]
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy" #This grants the roles default kubernetes view cluster role permission. To avoid the role from getting these permissions remove this permissions. view cluster role permission. To avoid the role from getting these permissions remove this permissions. 
         }
       }
       auth = {
@@ -941,7 +945,7 @@ inputs = {
             name = "cognitech-view" # renamed from "view" to avoid conflict with the built-in Kubernetes ClusterRole
             rules = [
               {
-                api_groups = ["apps"]
+                api_groups = ["*"]
                 resources  = ["deployments", "pods", "services"]
                 verbs      = ["get", "list", "watch"]
               }
@@ -956,7 +960,7 @@ inputs = {
             subjects = [
               {
                 kind      = "Group"
-                name      = "viewers"
+                name      = "cognitech-viewers"
                 api_group = "rbac.authorization.k8s.io"
               }
             ]
@@ -1485,6 +1489,19 @@ inputs = {
           }
         }
       }
+    }
+  ]
+  Lambdas = [
+    {
+      function_name        = "${local.vpc_name}-eks_node_tagger"
+      description          = "Lambda function to tag EKS nodes"
+      runtime              = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.runtime
+      handler              = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.handler
+      timeout              = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.timeout
+      private_bucklet_name = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.private_bucklet_name
+      lamda_s3_key         = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.lamda_s3_key
+      layer_description    = "Lambda Layer for shared libraries"
+      layer_s3_key         = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.layer_s3_key
     }
   ]
 }

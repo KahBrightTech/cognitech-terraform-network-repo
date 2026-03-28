@@ -1684,3 +1684,35 @@ variable "ecs_clusters" {
   }))
   default = null
 }
+
+
+variable "lambdas" {
+  description = "Lambda functions to be created"
+  type = list(object({
+    function_name       = string
+    description         = string
+    runtime             = string
+    handler             = string
+    timeout             = number
+    private_bucket_name = optional(string)
+    lambda_s3_key       = optional(string)
+    layer_description   = optional(string)
+    layer_s3_key        = optional(string)
+  }))
+  default = null
+}
+
+
+variable "events" {
+  description = "EventBridge configuration object."
+  type = list(object({
+    event_bus_name   = string
+    rule_name        = string
+    event_pattern    = string
+    rule_description = optional(string, "")
+    rule_enabled     = optional(bool, true)
+    target_arn       = string
+    tags             = optional(map(string), {})
+  }))
+  default = null
+}

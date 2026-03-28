@@ -944,3 +944,22 @@ module "ecs_clusters" {
   )
 }
 
+#--------------------------------------------------------------------
+# Creates Lambdas
+#--------------------------------------------------------------------
+module "lambdas" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Lambdas/Template?ref=v1.6.20"
+  for_each = (var.lambdas != null) ? { for item in var.lambdas : item.function_name => item } : {}
+  common   = var.common
+  Lambda   = each.value
+}
+
+#--------------------------------------------------------------------
+# Creates Events
+#--------------------------------------------------------------------
+module "events" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Event-Bridge?ref=v1.6.21"
+  for_each = (var.events != null) ? { for item in var.events : item.rule_name => item } : {}
+  common   = var.common
+  event    = each.value
+}

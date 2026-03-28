@@ -1491,6 +1491,19 @@ inputs = {
       }
     }
   ]
+  Lambdas = [
+    {
+      function_name        = "${local.vpc_name}-eks_node_tagger"
+      description          = "Lambda function to tag EKS nodes"
+      runtime              = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.runtime
+      handler              = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.handler
+      timeout              = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.timeout
+      private_bucklet_name = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.private_bucklet_name
+      lamda_s3_key         = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.lamda_s3_key
+      layer_description    = "Lambda Layer for shared libraries"
+      layer_s3_key         = include.cloud.locals[include.env.locals.name_abr].lambda.eks_node_tagger.layer_s3_key
+    }
+  ]
 }
 
 #-------------------------------------------------------

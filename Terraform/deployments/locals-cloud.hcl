@@ -98,21 +98,31 @@ locals {
     org_ip   = "69.143.134.56/32"
   }
   lambda = {
-    start_instance = {
-      runtime              = "python3.9"
-      handler              = "index.lambda_handler"
-      private_bucklet_name = "cognitech-lambdas-bucket"
-      lamda_s3_key         = "start-ec2/index.zip"
-      timeout              = "120"
-      layer_s3_key         = "layers/layers.zip"
-    }
-    stop_instance = {
-      runtime              = "python3.9"
-      handler              = "index.lambda_handler"
-      private_bucklet_name = "cognitech-lambdas-bucket"
-      lamda_s3_key         = "stop-ec2/index.zip"
-      timeout              = "120"
-      layer_s3_key         = "layers/layers.zip"
+    intpp = {
+      start_instance = {
+        runtime              = "python3.9"
+        handler              = "index.lambda_handler"
+        private_bucklet_name = "cognitech-lambdas-bucket"
+        lamda_s3_key         = "start-ec2/index.zip"
+        timeout              = "120"
+        layer_s3_key         = "layers/layers.zip"
+      }
+      stop_instance = {
+        runtime              = "python3.9"
+        handler              = "index.lambda_handler"
+        private_bucklet_name = "cognitech-lambdas-bucket"
+        lamda_s3_key         = "stop-ec2/index.zip"
+        timeout              = "120"
+        layer_s3_key         = "layers/layers.zip"
+      }
+      eks_node_tagger = {
+        runtime              = "python3.9"
+        handler              = "index.lambda_handler"
+        private_bucklet_name = "int-preproduction-use1-dev-software-bucket"
+        lamda_s3_key         = "lambda/functions/function.zip"
+        timeout              = "120"
+        layer_s3_key         = "lambda/layers/layer.zip"
+      }
     }
     user_credentials = {
       runtime              = "python3.9"

@@ -200,3 +200,13 @@ output "ecs_clusters" {
   value       = module.ecs_clusters
   sensitive   = true
 }
+
+
+#-------------------------------------------------------
+# Lambda outputs
+#-------------------------------------------------------
+output "lambdas" {
+  description = "Output for all Lambda functions"
+  value       = module.lambdas
+  sensitive   = true
+}
