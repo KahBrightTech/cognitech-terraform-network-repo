@@ -100,7 +100,7 @@ locals {
   lambda = {
     intpp = {
       start_instance = {
-        runtime             = "python3.9"
+        runtime             = "python3.12"
         handler             = "index.lambda_handler"
         private_bucket_name = "cognitech-lambdas-bucket"
         lambda_s3_key       = "start-ec2/index.zip"
@@ -108,7 +108,7 @@ locals {
         layer_s3_key        = "layers/layers.zip"
       }
       stop_instance = {
-        runtime             = "python3.9"
+        runtime             = "python3.12"
         handler             = "index.lambda_handler"
         private_bucket_name = "cognitech-lambdas-bucket"
         lambda_s3_key       = "stop-ec2/index.zip"
@@ -116,7 +116,7 @@ locals {
         layer_s3_key        = "layers/layers.zip"
       }
       eks_node_tagger = {
-        runtime             = "python3.9"
+        runtime             = "python3.12"
         handler             = "eks_instance_tagger_lambda.lambda_handler" # This is a combination of the file name and the function name in the code. For example, if your code file is named "function.py" and the function you want to execute is named "lambda_handler", then the handler would be "function.lambda_handler".
         private_bucket_name = "int-preproduction-use1-dev-software-bucket"
         lambda_s3_key       = "lambda/functions/function.zip"

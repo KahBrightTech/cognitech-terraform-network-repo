@@ -1492,7 +1492,7 @@ inputs = {
     }
   ]
 
-  Lambdas = [
+  lambdas = [
     {
       function_name       = "${local.vpc_name_abr}-eks_node_tagger"
       description         = "Lambda function to tag EKS nodes"
@@ -1501,7 +1501,7 @@ inputs = {
       timeout             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.timeout
       private_bucket_name = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.private_bucket_name
       lambda_s3_key       = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lambda_s3_key
-      layer_description   = "Lambda Layer for shared libraries"
+      layer_description   = "Lambda Layer for shared libraries for all functions"
       layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
       env_variables = {
         VPC_NAME_ABR = local.vpc_name_abr
@@ -1521,8 +1521,8 @@ inputs = {
         }
       }
       EOF
-      rule_description = "EventBridge rule to trigger EKS node tagger Lambda on EC2 instance state change"
-      target_key       = "${local.vpc_name}-eks_node_tagger"
+      rule_description = "EventBridge rule to trigger tagging newly created EKS nodes on EC2 instance state change"
+      target_key       = "${local.vpc_name_abr}-eks_node_tagger"
       tags = {
         Used_for = "eks-node-tagging"
       }
@@ -1606,4 +1606,3 @@ generate "k8s-providers" {
   %{endif}
   EOF
 }
-
