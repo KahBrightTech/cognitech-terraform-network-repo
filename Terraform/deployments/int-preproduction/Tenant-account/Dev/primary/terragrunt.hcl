@@ -35,7 +35,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name            = "development"
   vpc_name_abr        = "dev"
-  create_eks_cluster  = false
+  create_eks_cluster  = true
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
@@ -907,10 +907,10 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = false
-      create_service_accounts = false
-      enable_eks_pia          = false
-      create_rbac             = false
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
+      create_rbac             = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_arn                = dependency.platform.outputs.IAM_roles.shared-eks.iam_role_arn
@@ -929,7 +929,7 @@ inputs = {
           principal_arns = [
             include.env.locals.eks_roles.readonly
           ]
-          kubernetes_groups = ["cognitech-viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+          kubernetes_groups = ["cognitech-viewers", "infogrid"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
         },
         audit = {
           principal_arns = [
@@ -961,6 +961,32 @@ inputs = {
               {
                 kind      = "Group"
                 name      = "cognitech-viewers"
+                api_group = "rbac.authorization.k8s.io"
+              }
+            ]
+          }
+        ]
+        roles = [
+          key       = "infogrid"
+          name      = "infogrid"
+          namespace = "infogrid"
+          rules = [
+            {
+              api_groups = ["*"]
+              resources  = ["deployments", "pods", "services"]
+              verbs      = ["get", "list", "watch"]
+            }
+          ]
+        ]
+        role_bindings = [
+          {
+            key              = "infogrid-binding"
+            name             = "infogrid-binding"
+            cluster_role_key = "infogrid" # references the infogrid cluster role above
+            subjects = [
+              {
+                kind      = "Group"
+                name      = "infogrid"
                 api_group = "rbac.authorization.k8s.io"
               }
             ]
