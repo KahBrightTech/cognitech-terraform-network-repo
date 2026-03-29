@@ -1041,6 +1041,7 @@ variable "eks" {
   type = list(object({
     key                                         = string
     name                                        = string
+    create_namespaces                           = optional(bool, false)
     create_eks_cluster                          = optional(bool, false)
     create_rbac                                 = optional(bool, false)
     role_arn                                    = optional(string)
