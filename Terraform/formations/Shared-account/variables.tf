@@ -1114,6 +1114,10 @@ variable "eks" {
         labels = optional(map(string), {})
       })), [])
     }))
+    namespaces = optional(list(object({
+      name   = optional(string, "")
+      labels = optional(map(string), {})
+    })))
     version                 = optional(string, "1.33")
     oidc_thumbprint         = optional(string)
     is_this_ec2_node_group  = optional(bool, false)

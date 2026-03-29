@@ -929,7 +929,7 @@ inputs = {
           principal_arns = [
             include.env.locals.eks_roles.readonly
           ]
-          kubernetes_groups = ["cognitech-viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+          kubernetes_groups = ["cognitech-viewers", "infogrid"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
         },
         audit = {
           principal_arns = [
@@ -966,7 +966,44 @@ inputs = {
             ]
           }
         ]
+        roles = [
+          {
+            key       = "infogrid"
+            name      = "infogrid"
+            namespace = "infogrid"
+            rules = [
+              {
+                api_groups = ["*"]
+                resources  = ["deployments", "pods", "services"]
+                verbs      = ["get", "list", "watch"]
+              }
+            ]
+          }
+        ]
+        role_bindings = [
+          {
+            key       = "infogrid-binding"
+            name      = "infogrid-binding"
+            namespace = "infogrid" # This namespace has to be thesame as the one defined in the infogrid role above
+            role_key  = "infogrid" # references the infogrid cluster role above
+            subjects = [
+              {
+                kind      = "Group"
+                name      = "infogrid"
+                api_group = "rbac.authorization.k8s.io"
+              }
+            ]
+          }
+        ]
       }
+      namespaces = [
+        {
+          name = "infogrid"
+          labels = {
+            team = "infogrid"
+          }
+        }
+      ]
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
         include.env.locals.subnet_prefix.secondary
