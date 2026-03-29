@@ -927,11 +927,15 @@ inputs = {
         },
         readonly = {
           principal_arns = [
-            include.env.locals.eks_roles.network,
             include.env.locals.eks_roles.readonly
           ]
-          policy_arn        = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
-          kubernetes_groups = ["viewers"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+          kubernetes_groups = ["cognitech-viewers", "infogrid"] # Allows binding of the IAM role to Kubernetes RBAC groups for read-only access
+        },
+        audit = {
+          principal_arns = [
+            include.env.locals.eks_roles.network
+          ]
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy" #This grants the roles default kubernetes view cluster role permission. To avoid the role from getting these permissions remove this permissions. view cluster role permission. To avoid the role from getting these permissions remove this permissions. 
         }
       }
       auth = {
@@ -941,7 +945,7 @@ inputs = {
             name = "cognitech-view" # renamed from "view" to avoid conflict with the built-in Kubernetes ClusterRole
             rules = [
               {
-                api_groups = ["apps"]
+                api_groups = ["*"]
                 resources  = ["deployments", "pods", "services"]
                 verbs      = ["get", "list", "watch"]
               }
@@ -956,7 +960,36 @@ inputs = {
             subjects = [
               {
                 kind      = "Group"
-                name      = "viewers"
+                name      = "cognitech-viewers"
+                api_group = "rbac.authorization.k8s.io"
+              }
+            ]
+          }
+        ]
+        roles = [
+          {
+            key       = "infogrid"
+            name      = "infogrid"
+            namespace = "infogrid"
+            rules = [
+              {
+                api_groups = ["*"]
+                resources  = ["deployments", "pods", "services"]
+                verbs      = ["get", "list", "watch"]
+              }
+            ]
+          }
+        ]
+        role_bindings = [
+          {
+            key       = "infogrid-binding"
+            name      = "infogrid-binding"
+            namespace = "infogrid" # This namespace has to be thesame as the one defined in the infogrid role above
+            role_key  = "infogrid" # references the infogrid cluster role above
+            subjects = [
+              {
+                kind      = "Group"
+                name      = "infogrid"
                 api_group = "rbac.authorization.k8s.io"
               }
             ]
@@ -1484,6 +1517,43 @@ inputs = {
             cooldown           = 300
           }
         }
+      }
+    }
+  ]
+
+  lambdas = [
+    {
+      function_name       = "${local.vpc_name_abr}-eks_node_tagger"
+      description         = "Lambda function to tag EKS nodes"
+      runtime             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.runtime
+      handler             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.handler
+      timeout             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.timeout
+      private_bucket_name = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.private_bucket_name
+      lambda_s3_key       = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lambda_s3_key
+      layer_description   = "Lambda Layer for shared libraries for all functions"
+      layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
+      env_variables = {
+        VPC_NAME_ABR = local.vpc_name_abr
+      }
+    }
+  ]
+
+  events = [
+    {
+      rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
+      event_pattern    = <<-EOF
+      {
+        "source": ["aws.ec2"],
+        "detail-type": ["EC2 Instance State-change Notification"],
+        "detail": {
+          "state": ["running"]
+        }
+      }
+      EOF
+      rule_description = "EventBridge rule to trigger tagging newly created EKS nodes on EC2 instance state change"
+      target_key       = "${local.vpc_name_abr}-eks_node_tagger"
+      tags = {
+        Used_for = "eks-node-tagging"
       }
     }
   ]
