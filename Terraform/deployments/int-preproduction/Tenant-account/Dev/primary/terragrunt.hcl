@@ -967,16 +967,18 @@ inputs = {
           }
         ]
         roles = [
-          key       = "infogrid"
-          name      = "infogrid"
-          namespace = "infogrid"
-          rules = [
-            {
-              api_groups = ["*"]
-              resources  = ["deployments", "pods", "services"]
-              verbs      = ["get", "list", "watch"]
-            }
-          ]
+          {
+            key       = "infogrid"
+            name      = "infogrid"
+            namespace = "infogrid"
+            rules = [
+              {
+                api_groups = ["*"]
+                resources  = ["deployments", "pods", "services"]
+                verbs      = ["get", "list", "watch"]
+              }
+            ]
+          }
         ]
         role_bindings = [
           {
