@@ -951,7 +951,19 @@ module "lambdas" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Lambdas/Template?ref=v1.6.27"
   for_each = (var.lambdas != null) ? { for item in var.lambdas : item.function_name => item } : {}
   common   = var.common
-  Lambda   = each.value
+  Lambda = merge(
+    each.value,
+    {
+      permissions = each.value.permissions != null ? merge(
+        each.value.permissions,
+        {
+          source_arn = each.value.permissions.source_key != null ? (
+            module.events[each.value.permissions.source_key].event_rule_arn
+          ) : each.value.permissions.source_arn
+        }
+      ) : null
+    }
+  )
 }
 
 #--------------------------------------------------------------------

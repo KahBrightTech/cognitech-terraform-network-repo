@@ -1707,6 +1707,7 @@ variable "lambdas" {
       statement_id   = string
       principal      = string
       source_arn     = optional(string)
+      source_key     = optional(string)
       source_account = optional(string)
     })))
   }))

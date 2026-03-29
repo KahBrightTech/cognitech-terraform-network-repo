@@ -1547,7 +1547,7 @@ inputs = {
         eventbridge = {
           statement_id = "AllowEventBridgeInvoke"
           principal    = "events.amazonaws.com"
-          source_arn   = aws_cloudwatch_event_rule.eks_node_tagger.arn
+          source_key   = "${local.vpc_name_abr}-eks-node-tagger-rule"
         }
       }
     }
