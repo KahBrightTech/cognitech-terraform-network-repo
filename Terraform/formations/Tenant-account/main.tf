@@ -958,7 +958,7 @@ module "lambdas" {
 # Creates Lambdas
 #--------------------------------------------------------------------
 module "lambda-invocations" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Lambda-invocations?ref=v1.6.33"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Lambda-invocations?ref=v1.6.34"
   for_each = (var.lambda-invocations != null) ? { for item in var.lambda-invocations : item.key => item } : {}
   common   = var.common
   lambda-invocations = merge(
