@@ -1703,17 +1703,24 @@ variable "lambdas" {
     layer_description   = optional(string)
     layer_s3_key        = optional(string)
     env_variables       = optional(map(string))
-    permissions = optional(map(object({
-      statement_id   = string
-      principal      = string
-      source_arn     = optional(string)
-      source_key     = optional(string)
-      source_account = optional(string)
-    })))
   }))
   default = null
 }
 
+variable "lambda-invocations" {
+  description = "The Lambda function invocation permissions variables"
+  type = list(object({
+    key            = string
+    function_name  = optional(string)
+    function_key   = optional(string)
+    statement_id   = string
+    principal      = string
+    source_arn     = optional(string)
+    source_key     = optional(string)
+    source_account = optional(string)
+  }))
+  default = null
+}
 
 variable "events" {
   description = "EventBridge configuration object."

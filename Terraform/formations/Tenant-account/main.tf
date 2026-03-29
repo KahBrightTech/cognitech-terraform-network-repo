@@ -948,20 +948,26 @@ module "ecs_clusters" {
 # Creates Lambdas
 #--------------------------------------------------------------------
 module "lambdas" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Lambdas/Template?ref=v1.6.27"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Lambdas/Template?ref=v1.6.33"
   for_each = (var.lambdas != null) ? { for item in var.lambdas : item.function_name => item } : {}
   common   = var.common
-  Lambda = merge(
+  Lambda   = each.value
+}
+
+#--------------------------------------------------------------------
+# Creates Lambdas
+#--------------------------------------------------------------------
+module "lambda-invocations" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Lambda-invocations?ref=v1.6.33"
+  for_each = (var.lambda-invocations != null) ? { for item in var.lambda-invocations : item.key => item } : {}
+  common   = var.common
+  lambda-invocations = merge(
     each.value,
     {
-      permissions = each.value.permissions != null ? merge(
-        each.value.permissions,
-        {
-          source_arn = each.value.permissions.source_key != null ? (
-            module.events[each.value.permissions.source_key].event_rule_arn
-          ) : each.value.permissions.source_arn
-        }
-      ) : null
+      function_name = each.value.function_key != null ? module.lambdas[each.value.function_key].lambda_function_arn : each.value.function_arn
+    },
+    {
+      source_arn = each.value.source_key != null ? module.events[each.value.source_key].event_rule_arn : each.value.source_arn
     }
   )
 }
@@ -970,7 +976,7 @@ module "lambdas" {
 # Creates Events
 #--------------------------------------------------------------------
 module "events" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Event-Bridge?ref=v1.6.24"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Event-Bridge?ref=v1.6.33"
   for_each = (var.events != null) ? { for item in var.events : item.rule_name => item } : {}
   common   = var.common
   event = merge(

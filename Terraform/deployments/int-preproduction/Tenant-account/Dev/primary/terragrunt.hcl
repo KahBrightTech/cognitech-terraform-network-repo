@@ -1543,13 +1543,6 @@ inputs = {
       env_variables = {
         VPC_NAME_ABR = local.vpc_name_abr
       }
-      permissions = {
-        eventbridge = {
-          statement_id = "AllowEventBridgeInvoke"
-          principal    = "events.amazonaws.com"
-          source_key   = "${local.vpc_name_abr}-eks-node-tagger-rule"
-        }
-      }
     }
   ]
 
@@ -1570,6 +1563,16 @@ inputs = {
       tags = {
         Used_for = "eks-node-tagging"
       }
+    }
+  ]
+
+  lambda-invocations = [
+    {
+      key          = "eventbridge-eks-node-tagger-invocation"
+      function_key = "${local.vpc_name_abr}-eks_node_tagger"
+      statement_id = "AllowEventBridgeInvoke"
+      principal    = "events.amazonaws.com"
+      source_key   = "${local.vpc_name_abr}-eks-node-tagger-rule"
     }
   ]
 }

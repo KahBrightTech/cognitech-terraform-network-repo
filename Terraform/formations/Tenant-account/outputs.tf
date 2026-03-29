@@ -208,5 +208,21 @@ output "ecs_clusters" {
 output "lambdas" {
   description = "Output for all Lambda functions"
   value       = module.lambdas
-  sensitive   = true
+}
+
+
+#-------------------------------------------------------
+# Lambda invocation outputs
+#-------------------------------------------------------
+output "lambda_invocations" {
+  description = "Output for all Lambda invocations"
+  value       = module.lambda-invocations
+}
+
+#-------------------------------------------------------
+# Event outputs
+#-------------------------------------------------------
+output "events" {
+  description = "Output for all Event rules"
+  value       = module.events
 }
