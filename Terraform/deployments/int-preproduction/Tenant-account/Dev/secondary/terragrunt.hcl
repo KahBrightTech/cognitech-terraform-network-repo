@@ -1000,7 +1000,7 @@ inputs = {
         {
           name = "infogrid"
           labels = {
-            team = "infogrid"
+            team = "infogrid-devops"
           }
         }
       ]
@@ -1542,6 +1542,13 @@ inputs = {
       layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
       env_variables = {
         VPC_NAME_ABR = local.vpc_name_abr
+      }
+      permissions = {
+        eventbridge = {
+          statement_id = "AllowEventBridgeInvoke"
+          principal    = "events.amazonaws.com"
+          source_arn   = aws_cloudwatch_event_rule.eks_node_tagger.arn
+        }
       }
     }
   ]

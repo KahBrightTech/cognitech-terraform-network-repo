@@ -1543,6 +1543,13 @@ inputs = {
       env_variables = {
         VPC_NAME_ABR = local.vpc_name_abr
       }
+      permissions = {
+        eventbridge = {
+          statement_id = "AllowEventBridgeInvoke"
+          principal    = "events.amazonaws.com"
+          source_arn   = aws_cloudwatch_event_rule.eks_node_tagger.arn
+        }
+      }
     }
   ]
 
