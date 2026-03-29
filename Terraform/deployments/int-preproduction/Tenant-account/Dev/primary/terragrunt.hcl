@@ -1000,7 +1000,7 @@ inputs = {
         {
           name = "infogrid"
           labels = {
-            team = "infogrid"
+            team = "infogrid-devops"
           }
         }
       ]
