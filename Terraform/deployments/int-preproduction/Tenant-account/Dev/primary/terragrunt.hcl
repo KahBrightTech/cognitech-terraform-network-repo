@@ -982,9 +982,10 @@ inputs = {
         ]
         role_bindings = [
           {
-            key      = "infogrid-binding"
-            name     = "infogrid-binding"
-            role_key = "infogrid" # references the infogrid cluster role above
+            key       = "infogrid-binding"
+            name      = "infogrid-binding"
+            namespace = "infogrid"
+            role_key  = "infogrid" # references the infogrid cluster role above
             subjects = [
               {
                 kind      = "Group"
