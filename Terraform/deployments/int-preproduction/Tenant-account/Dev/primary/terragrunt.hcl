@@ -984,7 +984,7 @@ inputs = {
           {
             key       = "infogrid-binding"
             name      = "infogrid-binding"
-            namespace = "infogrid"
+            namespace = "infogrid" # This namespace has to be thesame as the one defined in the infogrid role above
             role_key  = "infogrid" # references the infogrid cluster role above
             subjects = [
               {
