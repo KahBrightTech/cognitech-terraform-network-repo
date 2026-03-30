@@ -35,7 +35,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name            = "system-int-testing"
   vpc_name_abr        = "sit"
-  create_eks_cluster  = false
+  create_eks_cluster  = true
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
@@ -911,7 +911,7 @@ inputs = {
       create_service_accounts = true
       enable_eks_pia          = true
       create_rbac             = true
-      create_namespaces       = true
+      create_namespaces       = false
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_arn                = dependency.platform.outputs.IAM_roles.shared-eks.iam_role_arn
