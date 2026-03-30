@@ -907,10 +907,11 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = false
-      create_service_accounts = false
-      enable_eks_pia          = false
-      create_rbac             = false
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
+      create_rbac             = true
+      create_namespaces       = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_arn                = dependency.platform.outputs.IAM_roles.shared-eks.iam_role_arn
@@ -996,6 +997,14 @@ inputs = {
           }
         ]
       }
+      namespaces = [
+        {
+          name = "infogrid"
+          labels = {
+            team = "infogrid-devops"
+          }
+        }
+      ]
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
         include.env.locals.subnet_prefix.secondary
@@ -1522,40 +1531,40 @@ inputs = {
   ]
 
   lambdas = [
-    {
-      function_name       = "${local.vpc_name_abr}-eks_node_tagger"
-      description         = "Lambda function to tag EKS nodes"
-      runtime             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.runtime
-      handler             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.handler
-      timeout             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.timeout
-      private_bucket_name = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.private_bucket_name
-      lambda_s3_key       = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lambda_s3_key
-      layer_description   = "Lambda Layer for shared libraries for all functions"
-      layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
-      env_variables = {
-        VPC_NAME_ABR = local.vpc_name_abr
-      }
-    }
+    # {
+    #   function_name       = "${local.vpc_name_abr}-eks_node_tagger"
+    #   description         = "Lambda function to tag EKS nodes"
+    #   runtime             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.runtime
+    #   handler             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.handler
+    #   timeout             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.timeout
+    #   private_bucket_name = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.private_bucket_name
+    #   lambda_s3_key       = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lambda_s3_key
+    #   layer_description   = "Lambda Layer for shared libraries for all functions"
+    #   layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
+    #   env_variables = {
+    #     VPC_NAME_ABR = local.vpc_name_abr
+    #   }
+    # }
   ]
 
   events = [
-    {
-      rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
-      event_pattern    = <<-EOF
-      {
-        "source": ["aws.ec2"],
-        "detail-type": ["EC2 Instance State-change Notification"],
-        "detail": {
-          "state": ["running"]
-        }
-      }
-      EOF
-      rule_description = "EventBridge rule to trigger tagging newly created EKS nodes on EC2 instance state change"
-      target_key       = "${local.vpc_name_abr}-eks_node_tagger"
-      tags = {
-        Used_for = "eks-node-tagging"
-      }
-    }
+    # {
+    #   rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
+    #   event_pattern    = <<-EOF
+    #   {
+    #     "source": ["aws.ec2"],
+    #     "detail-type": ["EC2 Instance State-change Notification"],
+    #     "detail": {
+    #       "state": ["running"]
+    #     }
+    #   }
+    #   EOF
+    #   rule_description = "EventBridge rule to trigger tagging newly created EKS nodes on EC2 instance state change"
+    #   target_key       = "${local.vpc_name_abr}-eks_node_tagger"
+    #   tags = {
+    #     Used_for = "eks-node-tagging"
+    #   }
+    # }
   ]
 }
 
