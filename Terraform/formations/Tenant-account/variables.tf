@@ -1041,9 +1041,9 @@ variable "eks" {
   type = list(object({
     key                                         = string
     name                                        = string
-    create_namespaces                           = optional(bool, false)
     create_eks_cluster                          = optional(bool, false)
     create_rbac                                 = optional(bool, false)
+    create_namespaces                           = optional(bool, false)
     role_arn                                    = optional(string)
     role_key                                    = optional(string)
     subnet_ids                                  = optional(list(string))
@@ -1324,6 +1324,15 @@ variable "eks" {
     })))
   }))
   default = null
+  validation {
+    condition = alltrue([
+      for item in coalesce(var.eks, []) :
+      !item.create_namespaces || (
+        item.namespaces != null && length(item.namespaces) > 0
+      )
+    ])
+    error_message = "create_namespaces is set to true but no namespaces were provided. Please provide at least one namespace or set create_namespaces to false."
+  }
 }
 
 variable "rds_instances" {
