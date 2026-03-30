@@ -997,14 +997,14 @@ inputs = {
           }
         ]
       }
-      namespaces = [
-        {
-          name = "infogrid"
-          labels = {
-            team = "infogrid-devops"
-          }
-        }
-      ]
+      # namespaces = [
+      #   {
+      #     name = "infogrid"
+      #     labels = {
+      #       team = "infogrid-devops"
+      #     }
+      #   }
+      # ]
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
         include.env.locals.subnet_prefix.secondary
