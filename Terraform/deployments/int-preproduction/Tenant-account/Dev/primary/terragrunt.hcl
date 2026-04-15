@@ -684,6 +684,12 @@ inputs = {
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     },
     {
+      name              = "${local.vpc_name_abr}-firehose-backup"
+      description       = "The Firehose bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_firehose_bucket.json"
+    },
+    {
       key               = "audit-bucket"
       name              = "${local.vpc_name_abr}-audit-bucket"
       description       = "The audit bucket for different apps"
@@ -1202,6 +1208,19 @@ inputs = {
           }
         },
         {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
+          description               = "IAM Role for ${local.vpc_name_abr} Fluent Bit Service Account"
+          path                      = "/"
+          service_account_namespace = "amazon-cloudwatch" # No assume role policy provided so automatically uses OIDC for federation
+          service_account_name      = "fluent-bit"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
+            description = "IAM policy for ${local.vpc_name_abr} Fluent Bit Service Account."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fluent_bit_policy.json"
+          }
+        },
+        {
           key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
           name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
           description        = "IAM Role for ${local.vpc_name_abr} Secrets PIA Service Account"
@@ -1278,6 +1297,7 @@ inputs = {
         enable_pod_identity_agent             = true
         enable_external_dns                   = true
         enable_ebs_csi_driver                 = true
+        enable_fluent_bit                     = true
         rotationPollInterval                  = "2m"
         cloudwatch_observability_role_arn     = dependency.platform.outputs.IAM_roles.shared-cw-observability.iam_role_arn
         ebs_csi_driver_role_key               = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
@@ -1291,6 +1311,77 @@ inputs = {
     }
   ]
 
+  firehose_streams = [
+    key         = "${local.vpc_name_abr}-firehose"
+    name        = "${local.vpc_name_abr}-firehose"
+    destination = opensearch
+    role_arn    = dependency.platform.outputs.IAM_roles.shared-firehose.iam_role_arn
+    s3_configuration = { # This is required even when the destination is OpenSearch because Firehose uses S3 as a backup for failed deliveries to OpenSearch
+      bucket_key          = "${local.vpc_name_abr}-firehose-backup"
+      prefix              = "firehose/${local.vpc_name_abr}-logs/"
+      error_output_prefix = "firehose/${local.vpc_name_abr}-logs/errors/"
+      buffering_size      = 5
+      buffering_interval  = 300
+      compression_format  = "GZIP"
+    }
+    opensearch_configuration = {
+      domain_key = "${local.vpc_name_abr}-opensearch"
+      index_name = "${local.vpc_name_abr}-logs"
+      type_name  = "_doc"
+      vpc_config = {
+        subnet_keys = [
+          include.env.locals.subnet_prefix.primary,
+          include.env.locals.subnet_prefix.secondary
+        ]
+        security_group_keys = ["firehose"]
+      }
+    }
+  ]
+
+  opensearch_domains = [
+    {
+      key            = "${local.vpc_name_abr}-opensearch"
+      domain_name    = "${local.vpc_name_abr}-opensearch"
+      engine_version = "OpenSearch_2.3"
+      cluster_config = {
+        instance_type            = "t3.small.search"
+        instance_count           = 2
+        dedicated_master_enabled = false
+        zone_awareness_enabled   = false
+      }
+      ebs_options = {
+        ebs_enabled = true
+        volume_size = 10
+        volume_type = "gp3"
+      }
+      vpc_options = {
+        subnet_keys = [
+          include.env.locals.subnet_prefix.primary,
+          include.env.locals.subnet_prefix.secondary
+        ]
+        security_group_keys = ["opensearch"]
+      }
+    }
+  ]
+  events = [
+    {
+      rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
+      event_pattern    = <<-EOF
+      {
+        "source": ["aws.ec2"],
+        "detail-type": ["EC2 Instance State-change Notification"],
+        "detail": {
+          "state": ["running"]
+        }
+      }
+      EOF
+      rule_description = "EventBridge rule to trigger tagging newly created EKS nodes on EC2 instance state change"
+      target_key       = "${local.vpc_name_abr}-eks_node_tagger"
+      tags = {
+        Used_for = "eks-node-tagging"
+      }
+    }
+  ]
   rds_instances = [
     {
       create_rds_instance   = local.create_mysql_rds
@@ -1545,26 +1636,6 @@ inputs = {
       layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
       env_variables = {
         VPC_NAME_ABR = local.vpc_name_abr
-      }
-    }
-  ]
-
-  events = [
-    {
-      rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
-      event_pattern    = <<-EOF
-      {
-        "source": ["aws.ec2"],
-        "detail-type": ["EC2 Instance State-change Notification"],
-        "detail": {
-          "state": ["running"]
-        }
-      }
-      EOF
-      rule_description = "EventBridge rule to trigger tagging newly created EKS nodes on EC2 instance state change"
-      target_key       = "${local.vpc_name_abr}-eks_node_tagger"
-      tags = {
-        Used_for = "eks-node-tagging"
       }
     }
   ]

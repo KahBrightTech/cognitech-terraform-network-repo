@@ -195,7 +195,7 @@ module "transit_gateway_subnet_route" {
 # S3 Private app bucket
 #--------------------------------------------------------------------
 module "s3_app_bucket" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.3.75"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.6.46"
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
   common   = var.common
   s3 = merge(
@@ -585,7 +585,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.43"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.44"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -666,7 +666,8 @@ module "eks" {
         each.value.eks_addons,
         (each.value.cloudwatch_observability_role_key != null || each.value.cloudwatch_observability_role_arn != null) ?
         {
-          cloudwatch_observability_role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
+          cloudwatch_observability_role_arn   = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
+          fluent_bit_firehose_delivery_stream = each.value.fluent_bit_firehose_delivery_stream_key != null ? module.firehose_streams[each.value.fluent_bit_firehose_delivery_stream_key].name : each.value.fluent_bit_firehose_delivery_stream
         } : {}
       ) : null
     },
@@ -697,6 +698,83 @@ module "eks" {
   )
 }
 
+#--------------------------------------------------------------------
+# Creates Firehose delivery streams
+#--------------------------------------------------------------------
+module "firehose_streams" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-Firehose?ref=v1.6.47"
+  for_each = (var.firehose_streams != null) ? { for item in var.firehose_streams : item.key => item } : {}
+  common   = var.common
+  firehose = merge(
+    each.value,
+    {
+      role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
+    },
+    {
+      s3_configuration = each.value.s3_configuration != null ? merge(
+        each.value.s3_configuration,
+        {
+          bucket_arn = each.value.bucket_key != null ? module.s3_app_bucket[each.value.bucket_key].bucket_arn : each.value.bucket_arn
+        }
+      ) : null
+    },
+    {
+      opensearch_configuration = each.value.opensearch_configuration != null ? merge(
+        each.value.opensearch_configuration,
+        {
+          domain_arn = each.value.domain_key != null ? module.opensearch[each.value.domain_key].domain_arn : each.value.domain_arn
+        }
+      ) : null
+    },
+    {
+      vpc_config = each.value.vpc_config != null ? merge(
+        each.value.vpc_config,
+        {
+          subnet_ids = each.value.vpc_config.subnet_keys != null ? flatten([
+            for subnet_key in each.value.vpc_config.subnet_keys :
+            (each.value.vpc_config.use_private_subnets == true) ?
+            module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+            module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+          ]) : each.value.vpc_config.subnet_ids,
+          security_group_ids = each.value.vpc_config.security_group_keys != null ? [
+            for sg_key in each.value.vpc_config.security_group_keys :
+            module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+          ] : each.value.vpc_config.security_group_ids
+        }
+      ) : null
+
+    }
+  )
+}
+
+#--------------------------------------------------------------------
+# Creates Opensearch domains
+#--------------------------------------------------------------------
+module "opensearch_domains" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-OpenSearch?ref=v1.6.44"
+  for_each = (var.opensearch_domains != null) ? { for item in var.opensearch_domains : item.key => item } : {}
+  common   = var.common
+  opensearch = merge(
+    each.value,
+    {
+      vpc_options = each.value.vpc_options != null ? merge(
+        each.value.vpc_options,
+        {
+          subnet_ids = each.value.vpc_options.subnet_keys != null ? flatten([
+            for subnet_key in each.value.vpc_options.subnet_keys :
+            (each.value.vpc_options.use_private_subnets == true) ?
+            module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+            module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+          ]) : each.value.vpc_options.subnet_ids,
+          security_group_ids = each.value.vpc_options.security_group_keys != null ? [
+            for sg_key in each.value.vpc_options.security_group_keys :
+            module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+          ] : each.value.vpc_options.security_group_ids
+        }
+      ) : null
+    }
+  )
+}
 
 #--------------------------------------------------------------------
 # Creates RDS instances

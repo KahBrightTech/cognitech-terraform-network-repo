@@ -1165,6 +1165,13 @@ variable "eks" {
       external_dns_log_level                          = optional(string)
       enableSecretRotation                            = optional(bool, false)
       rotationPollInterval                            = optional(string)
+      enable_fluent_bit                               = optional(bool, false)
+      fluent_bit_version                              = optional(string)
+      fluent_bit_namespace                            = optional(string)
+      fluent_bit_role_arn                             = optional(string)
+      fluent_bit_role_key                             = optional(string)
+      fluent_bit_firehose_delivery_stream             = optional(string)
+      fluent_bit_firehose_delivery_stream_key         = optional(string)
     }))
     key_pair = object({
       name               = optional(string)
@@ -1332,6 +1339,16 @@ variable "eks" {
       )
     ])
     error_message = "create_namespaces is set to true but no namespaces were provided. Please provide at least one namespace or set create_namespaces to false."
+  }
+  validation {
+    condition = alltrue([
+      for item in coalesce(var.eks, []) :
+      !(
+        try(item.eks_addons.enable_cloudwatch_observability, false) &&
+        try(item.eks_addons.enable_fluent_bit, false)
+      )
+    ])
+    error_message = "CloudWatch Observability and Fluent Bit addons cannot both be enabled on the same EKS cluster. Please enable only one."
   }
 }
 
@@ -1743,6 +1760,157 @@ variable "events" {
     target_arn       = optional(string)
     target_key       = optional(string)
     tags             = optional(map(string), {})
+  }))
+  default = null
+}
+
+variable "firehose_streams" {
+  description = "Firehose delivery streams configuration object."
+  type = list(object({
+    key            = string
+    name           = string
+    destination    = optional(string, "extended_s3")
+    role_arn       = optional(string)
+    role_key       = optional(string)
+    create_cw_role = optional(bool, true)
+    # CloudWatch Logging
+    enable_cloudwatch_logging     = optional(bool, true)
+    cloudwatch_log_retention_days = optional(number, 14)
+    # S3 Configuration (required for extended_s3, also used as backup destination for opensearch)
+    s3_configuration = optional(object({
+      bucket_arn          = optional(string)
+      bucket_key          = optional(string)
+      bucket_key_prefix   = optional(string)
+      prefix              = optional(string, "")
+      error_output_prefix = optional(string, "errors/")
+      buffering_size      = optional(number, 5)   # MB
+      buffering_interval  = optional(number, 300) # seconds
+      compression_format  = optional(string, "GZIP")
+    }), null)
+    # Processing configuration (Lambda transformation, etc.)
+    processing_configuration = optional(object({
+      enabled = optional(bool, true)
+      processors = optional(list(object({
+        type = string
+        parameters = list(object({
+          parameter_name  = string
+          parameter_value = string
+        }))
+      })), [])
+    }), null)
+    # OpenSearch destination configuration
+    opensearch_configuration = optional(object({
+      domain_arn            = optional(string)
+      domain_key            = optional(string)
+      index_name            = optional(string)
+      index_rotation_period = optional(string, "OneDay") # NoRotation, OneHour, OneDay, OneWeek, OneMonth
+      type_name             = optional(string, null)
+      buffering_size        = optional(number, 5)   # MB
+      buffering_interval    = optional(number, 300) # seconds
+      retry_duration        = optional(number, 300) # seconds
+      s3_backup_mode        = optional(string, "FailedDocumentsOnly")
+      vpc_config = optional(object({
+        use_private_subnets = optional(bool, false)
+        subnet_ids          = optional(list(string))
+        subnet_keys         = optional(list(string))
+        security_group_ids  = optional(list(string))
+        security_group_keys = optional(list(string))
+      }), null)
+    }), null)
+    # Kinesis stream as source (optional)
+    kinesis_source_configuration = optional(object({
+      kinesis_stream_arn = string
+      role_arn           = string
+    }), null)
+    # Server-side encryption
+    server_side_encryption = optional(object({
+      enabled  = optional(bool, true)
+      key_type = optional(string, "AWS_OWNED_CMK")
+      key_arn  = optional(string, null)
+    }), null)
+    tags = optional(map(string), {})
+  }))
+  default = null
+}
+
+variable "opensearch_domains" {
+  description = "AWS OpenSearch domain configuration."
+  type = list(object({
+    key            = string
+    domain_name    = string
+    engine_version = optional(string, "OpenSearch_2.11")
+    # Cluster configuration
+    cluster_config = optional(object({
+      instance_type            = optional(string, "r6g.large.search")
+      instance_count           = optional(number, 2)
+      dedicated_master_enabled = optional(bool, false)
+      dedicated_master_type    = optional(string, null)
+      dedicated_master_count   = optional(number, null)
+      zone_awareness_enabled   = optional(bool, true)
+      availability_zone_count  = optional(number, 2)
+      warm_enabled             = optional(bool, false)
+      warm_type                = optional(string, null)
+      warm_count               = optional(number, null)
+    }), {})
+    # EBS options
+    ebs_options = optional(object({
+      ebs_enabled = optional(bool, true)
+      volume_type = optional(string, "gp3")
+      volume_size = optional(number, 100)
+      iops        = optional(number, 3000)
+      throughput  = optional(number, 125)
+    }), {})
+    # Encryption at rest
+    encrypt_at_rest = optional(object({
+      enabled    = optional(bool, true)
+      kms_key_id = optional(string, null)
+    }), {})
+    # Node-to-node encryption
+    node_to_node_encryption = optional(bool, true)
+    # Domain endpoint options
+    domain_endpoint_options = optional(object({
+      enforce_https                   = optional(bool, true)
+      tls_security_policy             = optional(string, "Policy-Min-TLS-1-2-2019-07")
+      custom_endpoint_enabled         = optional(bool, false)
+      custom_endpoint                 = optional(string, null)
+      custom_endpoint_certificate_arn = optional(string, null)
+    }), {})
+    # VPC options (null = public domain)
+    vpc_options = optional(object({
+      use_private_subnets = optional(bool, false)
+      subnet_ids          = optional(list(string))
+      subnet_keys         = optional(list(string))
+      security_group_ids  = optional(list(string))
+      security_group_keys = optional(list(string))
+    }), null)
+    # Fine-grained access control
+    advanced_security_options = optional(object({
+      enabled                        = optional(bool, true)
+      anonymous_auth_enabled         = optional(bool, false)
+      internal_user_database_enabled = optional(bool, false)
+      master_user_options = optional(object({
+        master_user_arn      = optional(string, null)
+        master_user_name     = optional(string, null)
+        master_user_password = optional(string, null)
+      }), null)
+    }), null)
+
+    # Access policies (JSON string)
+    access_policies = optional(string, null)
+    # Auto-tune
+    auto_tune_desired_state = optional(string, null) # ENABLED or DISABLED
+    # Advanced options
+    advanced_options = optional(map(string), null)
+    # Log publishing
+    log_publishing = optional(object({
+      index_slow_logs_enabled     = optional(bool, false)
+      search_slow_logs_enabled    = optional(bool, false)
+      es_application_logs_enabled = optional(bool, true)
+      audit_logs_enabled          = optional(bool, false)
+      log_retention_days          = optional(number, 14)
+    }), {})
+
+    tags = optional(map(string), {})
   }))
   default = null
 }

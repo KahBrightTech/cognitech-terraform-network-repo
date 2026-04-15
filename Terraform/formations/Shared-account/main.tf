@@ -196,7 +196,7 @@ module "transit_gateway_subnet_route" {
 # S3 Private app bucket
 #--------------------------------------------------------------------
 module "s3_app_bucket" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.3.75"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/S3-Private-bucket?ref=v1.6.46"
   for_each = (var.s3_private_buckets != null) ? { for item in var.s3_private_buckets : item.name => item } : {}
   common   = var.common
   s3 = merge(
@@ -218,7 +218,7 @@ module "s3_app_bucket" {
 # IAM Roles and Policies
 #--------------------------------------------------------------------
 module "iam_roles" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.5.44"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.6.45"
   for_each = (var.iam_roles != null) ? { for item in var.iam_roles : item.name => item } : {}
   common   = var.common
   iam_role = merge(

@@ -226,3 +226,19 @@ output "events" {
   description = "Output for all Event rules"
   value       = module.events
 }
+
+#-------------------------------------------------------
+# Firehose outputs
+#-------------------------------------------------------
+output "firehose_streams" {
+  description = "Output for all Firehose delivery streams"
+  value       = module.firehose_streams
+}
+
+#-------------------------------------------------------
+# OpenSearch outputs
+#-------------------------------------------------------
+output "opensearch_domains" {
+  description = "Output for all OpenSearch domains"
+  value       = module.opensearch_domains
+}

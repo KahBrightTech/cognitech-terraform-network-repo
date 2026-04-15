@@ -32,10 +32,13 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Shared-account"
   ## Updates these variables as per the product/service
-  vpc_name           = "shared-services"
-  vpc_name_abr       = "shared"
-  create_eks_cluster = true
-  vpn_ip             = "69.143.134.56/32"
+  vpc_name            = "shared-services"
+  vpc_name_abr        = "shared"
+  create_eks_cluster  = false
+  create_ecs_cluster  = false
+  create_postgres_rds = false
+  create_mysql_rds    = false
+  vpn_ip              = "69.143.134.56/32"
 
   # Composite variables 
   tags = merge(
@@ -58,13 +61,6 @@ locals {
 terraform {
   source = "../../../..//formations/Shared-account"
 }
-# #-------------------------------------------------------
-# # Source  
-# #-------------------------------------------------------
-# terraform {
-#   source = "../../../..//formations/Simple-Network-Shared-Account"
-# }
-
 #-------------------------------------------------------
 # Inputs 
 #-------------------------------------------------------
@@ -172,6 +168,48 @@ inputs = {
           name        = "nlb"
           description = "standard ${local.vpc_name} nlb security group"
           vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "ecs-nlb-internal"
+          name        = "ecs-nlb-internal"
+          description = "standard ${local.vpc_name} ecs nlb internal security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "ecs-frontend"
+          name        = "ecs-frontend"
+          description = "standard ${local.vpc_name} ecs frontend service security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "ecs-backend"
+          name        = "ecs-backend"
+          description = "standard ${local.vpc_name} ecs backend service security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "ecs-database"
+          name        = "ecs-database"
+          description = "standard ${local.vpc_name} ecs database service security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "ecs-instance"
+          name        = "ecs-instance"
+          description = "standard ${local.vpc_name} ecs instance security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "firehose"
+          name        = "firehose"
+          description = "standard ${local.vpc_name} firehose service security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "opensearch"
+          name        = "opensearch"
+          description = "standard ${local.vpc_name} opensearch service security group"
+          vpc_name    = local.vpc_name_abr
         }
       ]
       security_group_rules = [
@@ -259,6 +297,30 @@ inputs = {
                 description   = "BASE - Outbound traffic to App SG on tcp port 30000-32767"
                 from_port     = 30000
                 to_port       = 32767
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "egress-80-ecs-frontend-sg"
+                target_sg_key = "ecs-frontend"
+                description   = "ECS - Outbound HTTP traffic to ECS Service SG on tcp port 80"
+                from_port     = 80
+                to_port       = 80
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "egress-443-ecs-frontend-sg"
+                target_sg_key = "ecs-frontend"
+                description   = "ECS - Outbound HTTPS traffic to ECS Service SG on tcp port 443"
+                from_port     = 443
+                to_port       = 443
+                ip_protocol   = "tcp"
+              },
+              {
+                key           = "egress-dynamic-ports-ecs-frontend-sg"
+                target_sg_key = "ecs-frontend"
+                description   = "ECS - Outbound traffic to ECS Service SG on dynamic ports 32768-65535"
+                from_port     = 32768
+                to_port       = 65535
                 ip_protocol   = "tcp"
               }
             ]
@@ -389,6 +451,39 @@ inputs = {
           egress = []
         },
         {
+          sg_key  = "firehose"
+          ingress = []
+          egress = [
+            {
+              key         = "egress-all-traffic-bastion-sg"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "BASE - Outbound all traffic to the Internet"
+              ip_protocol = "-1"
+            }
+          ]
+        },
+        {
+          sg_key = "opensearch"
+          ingress = [
+            {
+              key           = "ingress-443-firehose-sg"
+              source_sg_key = "firehose"
+              description   = "BASE - Inbound traffic from Firehose SG to OpenSearch on tcp port 443"
+              from_port     = 443
+              to_port       = 443
+              ip_protocol   = "tcp"
+            }
+          ]
+          egress = [
+            {
+              key         = "egress-all-traffic-bastion-sg"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "BASE - Outbound all traffic to the Internet"
+              ip_protocol = "-1"
+            }
+          ]
+        },
+        {
           sg_key = "db"
           ingress = [
             {
@@ -407,8 +502,222 @@ inputs = {
               to_port     = 3306
               ip_protocol = "tcp"
             },
+            {
+              key           = "ingress-ecs-backend-3306-sg"
+              source_sg_key = "ecs-backend"
+              description   = "BASE - Inbound traffic from ECS Backend SG to Backend on tcp port 3306"
+              from_port     = 3306
+              to_port       = 3306
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-ecs-backend-5432-sg"
+              source_sg_key = "ecs-backend"
+              description   = "BASE - Inbound traffic from ECS Backend SG to Backend on tcp port 5432"
+              from_port     = 5432
+              to_port       = 5432
+              ip_protocol   = "tcp"
+            }
           ]
           egress = []
+        },
+        {
+          sg_key = "ecs-frontend"
+          ingress = [
+            {
+              key           = "ingress-80-alb-sg"
+              source_sg_key = "alb"
+              description   = "ECS - Inbound HTTP traffic from ALB SG on tcp port 80"
+              from_port     = 80
+              to_port       = 80
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-443-alb-sg"
+              source_sg_key = "alb"
+              description   = "ECS - Inbound HTTPS traffic from ALB SG on tcp port 443"
+              from_port     = 443
+              to_port       = 443
+              ip_protocol   = "tcp"
+            }
+          ]
+          egress = [
+            {
+              key           = "egress-3000-ecs-nlb-internal-sg"
+              target_sg_key = "ecs-nlb-internal"
+              description   = "ECS - Outbound traffic to NLB Internal SG on tcp port 3000"
+              from_port     = 3000
+              to_port       = 3000
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-8080-ecs-backend-sg"
+              target_sg_key = "ecs-backend"
+              description   = "ECS - Outbound traffic to Backend SG on tcp port 8080"
+              from_port     = 8080
+              to_port       = 8080
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-3000-ecs-backend-sg"
+              target_sg_key = "ecs-backend"
+              description   = "ECS - Outbound traffic to Backend SG on tcp port 3000"
+              from_port     = 3000
+              to_port       = 3000
+              ip_protocol   = "tcp"
+            },
+            {
+              key         = "egress-all-traffic-ecs-frontend"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "ECS - Outbound all traffic from ECS Frontend to Internet"
+              ip_protocol = "-1"
+            }
+          ]
+        },
+        {
+          sg_key = "ecs-nlb-internal"
+          ingress = [
+            {
+              key           = "ingress-3000-ecs-frontend-sg"
+              source_sg_key = "ecs-frontend"
+              description   = "BASE - Inbound traffic from ECS Frontend SG to NLB Internal on tcp port 3000"
+              from_port     = 3000
+              to_port       = 3000
+              ip_protocol   = "tcp"
+            },
+          ]
+          egress = [
+            {
+              key           = "egress-3000-ecs-backend-sg"
+              target_sg_key = "ecs-backend"
+              description   = "ECS - Outbound traffic to Backend SG on tcp port 3000"
+              from_port     = 3000
+              to_port       = 3000
+              ip_protocol   = "tcp"
+            }
+          ]
+        },
+        {
+          sg_key = "ecs-backend"
+          ingress = [
+            {
+              key           = "ingress-3000-ecs-nlb-internal-sg"
+              source_sg_key = "ecs-nlb-internal"
+              description   = "ECS - Inbound traffic from NLB Internal SG on tcp port 3000"
+              from_port     = 3000
+              to_port       = 3000
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-3000-ecs-frontend-sg"
+              source_sg_key = "ecs-frontend"
+              description   = "ECS - Inbound traffic from ECS Frontend SG on tcp port 3000"
+              from_port     = 3000
+              to_port       = 3000
+              ip_protocol   = "tcp"
+            }
+          ]
+          egress = [
+            {
+              key           = "egress-3306-ecs-database-sg"
+              target_sg_key = "ecs-database"
+              description   = "ECS - Outbound traffic to Database SG on tcp port 3306"
+              from_port     = 3306
+              to_port       = 3306
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-3306-db-sg"
+              target_sg_key = "db"
+              description   = "ECS - Outbound traffic to DB SG on tcp port 3306"
+              from_port     = 3306
+              to_port       = 3306
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-5432-db-sg"
+              target_sg_key = "db"
+              description   = "ECS - Outbound traffic to DB SG on tcp port 5432"
+              from_port     = 5432
+              to_port       = 5432
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-5432-ecs-database-sg"
+              target_sg_key = "ecs-database"
+              description   = "ECS - Outbound traffic to Database SG on tcp port 5432"
+              from_port     = 5432
+              to_port       = 5432
+              ip_protocol   = "tcp"
+            },
+            {
+              key         = "egress-all-traffic-ecs-backend"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "ECS - Outbound all traffic from ECS Backend to Internet"
+              ip_protocol = "-1"
+            }
+          ]
+        },
+        {
+          sg_key = "ecs-database"
+          ingress = [
+            {
+              key           = "ingress-3306-ecs-backend-sg"
+              source_sg_key = "ecs-backend"
+              description   = "ECS - Inbound MySQL traffic from Backend SG on tcp port 3306"
+              from_port     = 3306
+              to_port       = 3306
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-5432-ecs-backend-sg"
+              source_sg_key = "ecs-backend"
+              description   = "ECS - Inbound PostgreSQL traffic from Backend SG on tcp port 5432"
+              from_port     = 5432
+              to_port       = 5432
+              ip_protocol   = "tcp"
+            }
+          ]
+          egress = []
+        },
+        {
+          sg_key = "ecs-instance"
+          ingress = [
+            {
+              key           = "ingress-all-ecs-frontend-sg"
+              source_sg_key = "ecs-frontend"
+              description   = "ECS - Inbound traffic from ECS Frontend SG"
+              ip_protocol   = "-1"
+            },
+            {
+              key           = "ingress-all-ecs-backend-sg"
+              source_sg_key = "ecs-backend"
+              description   = "ECS - Inbound traffic from ECS Backend SG"
+              ip_protocol   = "-1"
+            },
+            {
+              key           = "ingress-all-ecs-database-sg"
+              source_sg_key = "ecs-database"
+              description   = "ECS - Inbound traffic from ECS Database SG"
+              ip_protocol   = "-1"
+            },
+            {
+              key         = "ingress-22-bastion-cidr"
+              cidr_ipv4   = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].vpc
+              description = "ECS - Inbound SSH traffic from VPC CIDR on tcp port 22"
+              from_port   = 22
+              to_port     = 22
+              ip_protocol = "tcp"
+            }
+          ]
+          egress = [
+            {
+              key         = "egress-all-traffic-ecs-instance"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "ECS - Outbound all traffic from ECS Instance to Internet"
+              ip_protocol = "-1"
+            }
+          ]
         }
       ]
       s3 = {
@@ -518,6 +827,7 @@ inputs = {
       ]
     }
   ]
+
   ec2_profiles = [
     {
       name               = "${local.vpc_name_abr}"
@@ -534,6 +844,16 @@ inputs = {
         description = "EC2 Instance Permission for instances"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/ec2_instance_permission_for_s3.json"
       }
+    },
+    {
+      name               = "${local.vpc_name_abr}-ecs"
+      description        = "EC2 Instance Profile for ECS Container Instances"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      ]
+      create_custom_policy = false
     }
   ]
   iam_roles = [
@@ -622,6 +942,57 @@ inputs = {
         description = "IAM policy for ${local.vpc_name_abr} CloudWatch Observability"
         policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-policy.json"
       }
+    },
+    {
+      name               = "${local.vpc_name_abr}-firehose"
+      description        = "IAM Role for ${local.vpc_name_abr} Firehose"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/firehose_trust_policy.json"
+      policy = {
+        name        = "${local.vpc_name_abr}-firehose"
+        description = "IAM policy for ${local.vpc_name_abr} Firehose"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/firehose_dev_policy.json"
+      }
+    },
+    {
+      name               = "${local.vpc_name_abr}-ecs-execution"
+      description        = "IAM Role for ${local.vpc_name_abr} ECS Task Execution"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ecs_task_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+      ]
+      policy = {
+        name        = "${local.vpc_name_abr}-ecs-execution"
+        description = "IAM policy for ${local.vpc_name_abr} ECS Task Execution (ECR and CloudWatch)"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/ecs_execution_role_policy.json"
+      }
+    },
+    {
+      name               = "${local.vpc_name_abr}-ecs-task"
+      description        = "IAM Role for ${local.vpc_name_abr} ECS Task"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ecs_task_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+      ]
+      policy = {
+        name        = "${local.vpc_name_abr}-ecs-task"
+        description = "IAM policy for ${local.vpc_name_abr} ECS Task application permissions"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/ecs_task_role_policy.json"
+      }
+    },
+    {
+      name               = "${local.vpc_name_abr}-ecs-instance"
+      description        = "IAM Role for ${local.vpc_name_abr} ECS EC2 Instances"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      ]
+      create_custom_policy = false
     }
   ]
 
@@ -705,6 +1076,20 @@ inputs = {
       value = {
         username = "${get_env("TF_VAR_DOCKER_USERNAME")}"
         password = "${get_env("TF_VAR_DOCKER_PASSWORD")}"
+      }
+    },
+    {
+      key                     = "smtp"
+      name_prefix             = include.cloud.locals.secret_names.smtp
+      description             = "SMTP credentials for ${local.aws_account_name} environment"
+      recovery_window_in_days = 7
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        JWT_SECRET = "${get_env("TF_VAR_JWT_SECRET")}"
+        SMTP_HOST  = "${get_env("TF_VAR_SMTP_HOST")}"
+        SMTP_PORT  = "${get_env("TF_VAR_SMTP_PORT")}"
+        SMTP_PASS  = "${get_env("TF_VAR_SMTP_PASS")}"
+        SMTP_USER  = "${get_env("TF_VAR_SMTP_USER")}"
       }
     }
   ]
@@ -873,63 +1258,45 @@ inputs = {
     }
   ]
   load_balancers = [
-    #   {
-    #     key             = "app"
-    #     name            = "app"
-    #     vpc_name_abr    = "${local.vpc_name_abr}"
-    #     type            = "application"
-    #     security_groups = ["alb"]
-    #     subnets = [
-    #       include.env.locals.subnet_prefix.primary
-    #     ]
-    #     enable_deletion_protection = false
-    #     enable_access_logs         = true
-    #     access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-    #     vpc_name                   = local.vpc_name_abr
-    #     create_default_listener    = true
-    #   },
-    #   #   # {
-    #   #   #   key             = "etl"
-    #   #   #   name            = "etl"
-    #   #   #   vpc_name_abr    = " ${ local.vpc_name_abr } "
-    #   #   #   type            = "application"
-    #   #   #   security_groups = ["alb"]
-    #   #   #   subnets = [
-    #   #   #     include.env.locals.subnet_prefix.primary
-    #   #   #   ]
-    #   #   #   enable_deletion_protection = true
-    #   #   #   enable_access_logs         = true
-    #   #   #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
-    #   #   #   vpc_name                   = local.vpc_name
-    #   #   # },
-    #   #   # {
-    #   #   #   key             = "ssrs"
-    #   #   #   name            = "ssrs"
-    #   #   #   vpc_name_abr    = " ${local.vpc_name_abr} "
-    #   #   #   type            = "network"
-    #   #   #   security_groups = [" nlb "]
-    #   #   #   subnets = [
-    #   #   #     include.env.locals.subnet_prefix.primary
-    #   #   #   ]
-    #   #   #   enable_deletion_protection = false
-    #   #   #   enable_access_logs         = true
-    #   #   #   access_logs_bucket         = " $ { local.aws_account_name } - $ { local.region_prefix } - $ { local.vpc_name } - audit-bucket "
-    #   #   #   vpc_name                   = local.vpc_name
-    #   #   # }
+    # {
+    #   key             = "ecs-web"
+    #   name            = "ecs-web"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "application"
+    #   security_groups = ["alb"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = false
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+    #   vpc_name                   = local.vpc_name_abr
+    #   create_default_listener    = false
+    # }
+    # {
+    #   key             = "ecs-app"
+    #   name            = "ecs-app"
+    #   vpc_name_abr    = "${local.vpc_name_abr}"
+    #   type            = "network"
+    #   security_groups = ["ecs-nlb-internal"]
+    #   subnets = [
+    #     include.env.locals.subnet_prefix.primary
+    #   ]
+    #   enable_deletion_protection = false
+    #   enable_access_logs         = true
+    #   access_logs_bucket         = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-audit-bucket"
+    #   vpc_name                   = local.vpc_name_abr
+    # }
   ]
   alb_listeners = [
     # {
-    #   key      = " etl "
-    #   alb_key  = " etl "
-    #   protocol = " HTTPS "
-    #   port     = 443
-    #   action   = " fixed-response "
-    #   vpc_name = local.vpc_name
-    #   fixed_response = {
-    #     content_type = " text / plain "
-    #     message_body = " This is a default response from the ETL ALB listener."
-    #     status_code  = " 200 "
-    #   }
+    #   key             = "ecs-web-https"
+    #   alb_key         = "ecs-web"
+    #   protocol        = "HTTPS"
+    #   certificate_key = "${local.vpc_name_abr}"
+    #   port            = 443
+    #   action          = "forward"
+    #   tg_name         = "ecs-frontend"
     # }
   ]
   alb_listener_rules = [
@@ -960,39 +1327,44 @@ inputs = {
   ]
   nlb_listeners = [
     # {
-    #   key        = " ssrs "
-    #   nlb_key    = " ssrs "
-    #   protocol   = " TLS "
-    #   port       = 443
-    #   ssl_policy = " ELBSecurityPolicy-TLS-1-2-2017-01 "
-    #   action     = " forward "
-    #   vpc_name   = local.vpc_name
-    #   target_group = {
-    #     name         = " ssrs "
-    #     protocol     = " TLS "
-    #     port         = 443
-    #     vpc_name_abr = local.vpc_name_abr
-    #     health_check = {
-    #       protocol = " HTTPS "
-    #       port     = " 443 "
-    #       path     = " / "
-    #     }
-    #   }
+    #   key        = "ecs-app"
+    #   nlb_key    = "ecs-app"
+    #   protocol   = "TCP"
+    #   port       = 3000
+    #   ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
+    #   action     = "forward"
+    #   vpc_name   = local.vpc_name_abr
+    #   tg_name    = "ecs-backend"
     # }
   ]
   target_groups = [
     # {
-    #   key      = " etl "
-    #   name     = " etl "
-    #   protocol = " HTTPS "
-    #   port     = 443
+    #   key         = "ecs-frontend"
+    #   name        = "ecs-frontend"
+    #   protocol    = "HTTP"
+    #   port        = 80
+    #   target_type = "ip"
     #   health_check = {
-    #     protocol = " HTTPS "
-    #     port     = " 443 "
-    #     path     = " / "
+    #     protocol = "HTTP"
+    #     port     = 80
+    #     path     = "/"
+    #     matcher  = "200-299"
     #   }
-    #   vpc_name     = local.vpc_name
-    #   vpc_name_abr = " $ { local.vpc_name_abr } "
+    #   vpc_name     = local.vpc_name_abr
+    #   vpc_name_abr = "${local.vpc_name_abr}"
+    # }
+    # {
+    #   key         = "ecs-backend"
+    #   name        = "ecs-backend"
+    #   protocol    = "TCP"
+    #   port        = 3000
+    #   target_type = "ip"
+    #   health_check = {
+    #     protocol = "TCP"
+    #     port     = 3000
+    #   }
+    #   vpc_name     = local.vpc_name_abr
+    #   vpc_name_abr = "${local.vpc_name_abr}"
     # }
   ]
 
@@ -1076,6 +1448,7 @@ inputs = {
       create_node_group       = false
       create_service_accounts = false
       enable_eks_pia          = false
+      create_rbac             = false
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_key                = "${local.vpc_name_abr}-eks"
@@ -1414,8 +1787,8 @@ inputs = {
 
   rds_instances = [
     {
-      create_rds_instance   = false
-      key                   = "eksmysql"
+      create_rds_instance   = local.create_mysql_rds
+      key                   = "ecsmysql"
       name                  = "${local.vpc_name_abr}-eks-mysql-db"
       engine                = "mysql"
       engine_version        = "8.0.43"
@@ -1424,8 +1797,27 @@ inputs = {
       allocated_storage     = 20
       max_allocated_storage = 20
       storage_type          = "gp3"
-      database_name         = "eksdb"
+      database_name         = "ecsdb"
       port                  = 3306
+      subnet_keys = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      vpc_security_group_keys = ["db"]
+      publicly_accessible     = true
+    },
+    {
+      create_rds_instance   = local.create_postgres_rds
+      key                   = "${local.vpc_name_abr}-postgres"
+      name                  = "${local.vpc_name_abr}-postgres-db"
+      engine                = "postgres"
+      engine_version        = "15.16"
+      instance_class        = "db.t3.micro"
+      vpc_name              = local.vpc_name_abr
+      allocated_storage     = 20
+      max_allocated_storage = 40
+      storage_type          = "gp3"
+      database_name         = "ecsdb"
+      port                  = 5432
       subnet_keys = [
         include.env.locals.subnet_prefix.primary
       ]
@@ -1447,7 +1839,207 @@ inputs = {
     }
   ]
 
+  ecs_clusters = [
+    {
+      key                        = "primary"
+      create_ecs_cluster         = local.create_ecs_cluster
+      cluster_name               = "${local.vpc_name_abr}-${include.env.locals.ecs_cluster_keys.primary_cluster}"
+      vpc_name                   = local.vpc_name_abr
+      container_insights_enabled = true
+      capacity_providers = {
+        capacity_provider_names = ["${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-ecs-cp", "FARGATE", "FARGATE_SPOT"]
+        default_capacity_provider_strategy = [
+          {
+            capacity_provider = "${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-ecs-cp"
+            base              = 2
+            weight            = 1
+          },
+          # {
+          #   capacity_provider = "FARGATE"
+          #   base              = 0
+          #   weight            = 1
+          # },
+          # {
+          #   capacity_provider = "FARGATE_SPOT"
+          #   base              = 0
+          #   weight            = 3
+          # }
+        ]
+      }
+      cloud_map_namespaces = [
+        {
+          name     = "${local.vpc_name_abr}.local"
+          type     = "DNS_PRIVATE"
+          vpc_name = local.vpc_name_abr
+          services = [
+            {
+              name = "backend"
+              dns_config = {
+                routing_policy = "MULTIVALUE"
+                dns_records = [
+                  { ttl = 10, type = "A" }
+                ]
+              }
+              health_check_custom_config = {
+                failure_threshold = 1
+              }
+            }
+          ]
+        }
+      ]
+      task_definitions = [
+        {
+          family                     = "${local.vpc_name_abr}-frontend"
+          task_role_key              = "${local.vpc_name_abr}-ecs-task"
+          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
+          network_mode               = "awsvpc"
+          requires_compatibilities   = ["EC2"]
+          cpu                        = "512"
+          memory                     = "1024"
+          cloud_map_key              = "${local.vpc_name_abr}.local/backend"
+          cloud_map_port             = 3000
+          container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/frontend.json",
+        },
+        {
+          family                     = "${local.vpc_name_abr}-backend"
+          network_mode               = "awsvpc"
+          requires_compatibilities   = ["EC2"]
+          cpu                        = "1280"
+          memory                     = "2560"
+          execution_role_key         = "${local.vpc_name_abr}-ecs-execution"
+          task_role_key              = "${local.vpc_name_abr}-ecs-task"
+          rds_key                    = "${local.vpc_name_abr}-postgres"
+          frontend_url_lb_key        = "ecs-web"
+          smtp_secret_key            = "smtp"
+          container_definitions_file = "${include.cloud.locals.repo.root}/ecs_containers_definitions/backend.json"
+        }
+      ]
+      services = [
+        {
+          name                               = "${local.vpc_name_abr}-frontend-service"
+          task_definition_family             = "${local.vpc_name_abr}-frontend"
+          desired_count                      = 2
+          launch_type                        = "EC2"
+          enable_execute_command             = true
+          scheduling_strategy                = "REPLICA"
+          deployment_maximum_percent         = 200
+          deployment_minimum_healthy_percent = 100
+          enable_ecs_managed_tags            = true
+          deployment_circuit_breaker = {
+            enable   = true
+            rollback = true
+          }
+          load_balancers = [
+            {
+              target_group_key = "ecs-frontend"
+              container_name   = "frontend"
+              container_port   = 80
+            }
+          ]
+          network_configuration = {
+            subnet_keys = [
+              include.env.locals.subnet_prefix.primary,
+              include.env.locals.subnet_prefix.secondary
+            ]
+            security_group_keys = ["ecs-frontend"]
+          }
+        },
+        {
+          name                               = "${local.vpc_name_abr}-backend-service"
+          task_definition_family             = "${local.vpc_name_abr}-backend"
+          desired_count                      = 2
+          launch_type                        = "EC2"
+          enable_execute_command             = true
+          scheduling_strategy                = "REPLICA"
+          deployment_maximum_percent         = 200
+          deployment_minimum_healthy_percent = 100
+          enable_ecs_managed_tags            = true
+          service_registries = {
+            cloud_map_service_key = "${local.vpc_name_abr}.local/backend"
+            # container_name        = "backend" # Not needed when using awsvpc network mode since the port is defined at the task level, but if using bridge or host network mode then you would need to specify the container and port here
+            # container_port        = 3000 # Not needed when using awsvpc network mode since the port is defined at the task level, but if using bridge or host network mode then you would need to specify the container and port here
+          }
+          deployment_circuit_breaker = {
+            enable   = true
+            rollback = true
+          }
+          # load_balancers = [
+          #   {
+          #     target_group_key = "ecs-backend"
+          #     container_name   = "backend"
+          #     container_port   = 3000
+          #   }
+          # ]
+          network_configuration = {
+            subnet_keys = [
+              include.env.locals.subnet_prefix.primary,
+              include.env.locals.subnet_prefix.secondary
+            ]
+            security_group_keys = ["ecs-backend"]
+          }
+        }
+      ]
+      ec2_autoscaling = {
+        launch_templates = [
+          {
+            key                      = "${local.vpc_name_abr}-ecs-lt"
+            name                     = "${local.vpc_name_abr}-ecs-lt"
+            iam_instance_profile_key = "${local.vpc_name_abr}-ecs"
+            ami_config = {
+              os_release_date = "ECSAL2023"
+            }
+            instance_type               = "t3.large"
+            key_name                    = "${local.vpc_name_abr}-key-pair"
+            associate_public_ip_address = true
+            vpc_security_group_keys     = ["ecs-instance"]
+            user_data = base64encode(<<-EOF
+                #!/bin/bash
+                echo ECS_CLUSTER=${local.aws_account_name}-${local.region_prefix}-${local.vpc_name_abr}-${include.env.locals.ecs_cluster_keys.primary_cluster} >> /etc/ecs/ecs.config
+                echo ECS_ENABLE_CONTAINER_METADATA=true >> /etc/ecs/ecs.config
+            EOF
+            )
+          }
+        ]
+        autoscaling_group = {
+          name                      = "${local.vpc_name_abr}-ecs-asg"
+          max_size                  = 6
+          min_size                  = 3
+          desired_capacity          = 3
+          health_check_grace_period = 300
+          subnet_keys = [
+            include.env.locals.subnet_prefix.primary,
+            include.env.locals.subnet_prefix.secondary
+          ]
+          launch_template_key = "${local.vpc_name_abr}-ecs-lt"
+        }
+        capacity_provider = {
+          name                           = "${local.vpc_name_abr}-ecs-cp"
+          managed_termination_protection = "DISABLED"
+          managed_scaling = {
+            maximum_scaling_step_size = 3
+            minimum_scaling_step_size = 1
+            status                    = "ENABLED"
+            target_capacity           = 80
+            instance_warmup_period    = 300
+          }
+        }
+        scaling_policies = {
+          scale_up = {
+            scaling_adjustment = 1
+            adjustment_type    = "ChangeInCapacity"
+            cooldown           = 300
+          }
+          scale_down = {
+            scaling_adjustment = -1
+            adjustment_type    = "ChangeInCapacity"
+            cooldown           = 300
+          }
+        }
+      }
+    }
+  ]
 }
+
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
