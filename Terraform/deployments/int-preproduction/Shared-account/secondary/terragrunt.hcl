@@ -199,18 +199,6 @@ inputs = {
           name        = "ecs-instance"
           description = "standard ${local.vpc_name} ecs instance security group"
           vpc_name    = local.vpc_name_abr
-        },
-        {
-          key         = "firehose"
-          name        = "firehose"
-          description = "standard ${local.vpc_name} firehose service security group"
-          vpc_name    = local.vpc_name_abr
-        },
-        {
-          key         = "opensearch"
-          name        = "opensearch"
-          description = "standard ${local.vpc_name} opensearch service security group"
-          vpc_name    = local.vpc_name_abr
         }
       ]
       security_group_rules = [
@@ -450,39 +438,6 @@ inputs = {
             }
           ]
           egress = []
-        },
-        {
-          sg_key  = "firehose"
-          ingress = []
-          egress = [
-            {
-              key         = "egress-all-traffic"
-              cidr_ipv4   = "0.0.0.0/0"
-              description = "BASE - Outbound all traffic to the Internet"
-              ip_protocol = "-1"
-            }
-          ]
-        },
-        {
-          sg_key = "opensearch"
-          ingress = [
-            {
-              key           = "ingress-443-firehose-sg"
-              source_sg_key = "firehose"
-              description   = "BASE - Inbound traffic from Firehose SG to OpenSearch on tcp port 443"
-              from_port     = 443
-              to_port       = 443
-              ip_protocol   = "tcp"
-            }
-          ]
-          egress = [
-            {
-              key         = "egress-all-traffic"
-              cidr_ipv4   = "0.0.0.0/0"
-              description = "BASE - Outbound all traffic to the Internet"
-              ip_protocol = "-1"
-            }
-          ]
         },
         {
           sg_key = "db"
