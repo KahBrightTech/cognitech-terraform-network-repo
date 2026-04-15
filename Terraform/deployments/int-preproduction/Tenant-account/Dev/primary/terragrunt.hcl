@@ -1315,7 +1315,7 @@ inputs = {
     {
       key         = "${local.vpc_name_abr}-firehose"
       name        = "${local.vpc_name_abr}-firehose"
-      destination = opensearch
+      destination = "opensearch"
       role_arn    = dependency.platform.outputs.IAM_roles.shared-firehose.iam_role_arn
       s3_configuration = { # This is required even when the destination is OpenSearch because Firehose uses S3 as a backup for failed deliveries to OpenSearch
         bucket_key          = "${local.vpc_name_abr}-firehose-backup"
