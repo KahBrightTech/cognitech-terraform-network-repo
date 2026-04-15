@@ -1331,8 +1331,7 @@ inputs = {
         type_name  = "_doc"
         vpc_config = {
           subnet_keys = [
-            include.env.locals.subnet_prefix.primary,
-            include.env.locals.subnet_prefix.secondary
+            include.env.locals.subnet_prefix.primary
           ]
           security_group_keys = ["firehose"]
         }
@@ -1358,13 +1357,13 @@ inputs = {
       }
       vpc_options = {
         subnet_keys = [
-          include.env.locals.subnet_prefix.primary,
-          include.env.locals.subnet_prefix.secondary
+          include.env.locals.subnet_prefix.primary
         ]
         security_group_keys = ["opensearch"]
       }
     }
   ]
+
   events = [
     {
       rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
