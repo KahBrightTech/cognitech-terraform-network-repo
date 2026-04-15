@@ -750,7 +750,7 @@ module "firehose_streams" {
 # Creates Opensearch domains
 #--------------------------------------------------------------------
 module "opensearch_domains" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-OpenSearch?ref=v1.6.44"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-OpenSearch?ref=v1.6.48"
   for_each = (var.opensearch_domains != null) ? { for item in var.opensearch_domains : item.key => item } : {}
   common   = var.common
   opensearch = merge(

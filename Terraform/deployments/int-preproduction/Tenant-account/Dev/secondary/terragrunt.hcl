@@ -1387,8 +1387,8 @@ inputs = {
 
   opensearch_domains = [
     {
-      key            = "${local.vpc_name_abr}-opensearch"
-      domain_name    = "${local.vpc_name_abr}-opensearch"
+      key            = "${local.vpc_name_abr}-es"
+      domain_name    = "${local.vpc_name_abr}-es"
       vpc_name       = local.vpc_name_abr
       engine_version = "OpenSearch_2.3"
       cluster_config = {
