@@ -722,7 +722,7 @@ module "firehose_streams" {
       opensearch_configuration = each.value.opensearch_configuration != null ? merge(
         each.value.opensearch_configuration,
         {
-          domain_arn = each.value.domain_key != null ? module.opensearch[each.value.domain_key].domain_arn : each.value.domain_arn
+          domain_arn = each.value.domain_key != null ? module.opensearch_domains[each.value.domain_key].domain_arn : each.value.domain_arn
         }
       ) : null
     },
