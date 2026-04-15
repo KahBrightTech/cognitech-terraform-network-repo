@@ -722,27 +722,26 @@ module "firehose_streams" {
       opensearch_configuration = each.value.opensearch_configuration != null ? merge(
         each.value.opensearch_configuration,
         {
-          domain_arn = each.value.domain_key != null ? module.opensearch_domains[each.value.domain_key].domain_arn : each.value.domain_arn
-        }
-      ) : null
-    },
-    {
-      vpc_config = each.value.vpc_config != null ? merge(
-        each.value.vpc_config,
+          domain_arn = each.value.opensearch_configuration.domain_key != null ? module.opensearch_domains[each.value.opensearch_configuration.domain_key].domain_arn : each.value.opensearch_configuration.domain_arn
+        },
         {
-          subnet_ids = each.value.vpc_config.subnet_keys != null ? flatten([
-            for subnet_key in each.value.vpc_config.subnet_keys :
-            (each.value.vpc_config.use_private_subnets == true) ?
-            module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-            module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-          ]) : each.value.vpc_config.subnet_ids,
-          security_group_ids = each.value.vpc_config.security_group_keys != null ? [
-            for sg_key in each.value.vpc_config.security_group_keys :
-            module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
-          ] : each.value.vpc_config.security_group_ids
+          vpc_config = each.value.opensearch_configuration.vpc_config != null ? merge(
+            each.value.opensearch_configuration.vpc_config,
+            {
+              subnet_ids = each.value.opensearch_configuration.vpc_config.subnet_keys != null ? flatten([
+                for subnet_key in each.value.opensearch_configuration.vpc_config.subnet_keys :
+                (each.value.opensearch_configuration.vpc_config.use_private_subnets == true) ?
+                module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+              ]) : each.value.opensearch_configuration.vpc_config.subnet_ids,
+              security_group_ids = each.value.opensearch_configuration.vpc_config.security_group_keys != null ? [
+                for sg_key in each.value.opensearch_configuration.vpc_config.security_group_keys :
+                module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+              ] : each.value.opensearch_configuration.vpc_config.security_group_ids
+            }
+          ) : null
         }
       ) : null
-
     }
   )
 }

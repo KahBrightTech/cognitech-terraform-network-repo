@@ -1769,6 +1769,7 @@ variable "firehose_streams" {
   type = list(object({
     key            = string
     name           = string
+    vpc_name       = optional(string, null)
     destination    = optional(string, "extended_s3")
     role_arn       = optional(string)
     role_key       = optional(string)
@@ -1838,6 +1839,7 @@ variable "opensearch_domains" {
   type = list(object({
     key            = string
     domain_name    = string
+    vpc_name       = optional(string, null)
     engine_version = optional(string, "OpenSearch_2.11")
     # Cluster configuration
     cluster_config = optional(object({

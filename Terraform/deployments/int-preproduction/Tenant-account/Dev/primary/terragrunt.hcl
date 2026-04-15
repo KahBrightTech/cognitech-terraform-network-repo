@@ -1290,7 +1290,7 @@ inputs = {
         enable_vpc_cni                        = true
         enable_kube_proxy                     = true
         enable_coredns                        = true
-        enable_cloudwatch_observability       = true
+        enable_cloudwatch_observability       = false
         enable_secrets_manager_csi_driver     = true
         enable_metrics_server                 = true
         enableSecretRotation                  = true
@@ -1315,6 +1315,7 @@ inputs = {
     {
       key         = "${local.vpc_name_abr}-firehose"
       name        = "${local.vpc_name_abr}-firehose"
+      vpc_name    = local.vpc_name_abr
       destination = "opensearch"
       role_arn    = dependency.platform.outputs.IAM_roles.shared-firehose.iam_role_arn
       s3_configuration = { # This is required even when the destination is OpenSearch because Firehose uses S3 as a backup for failed deliveries to OpenSearch
@@ -1343,6 +1344,7 @@ inputs = {
     {
       key            = "${local.vpc_name_abr}-opensearch"
       domain_name    = "${local.vpc_name_abr}-opensearch"
+      vpc_name       = local.vpc_name_abr
       engine_version = "OpenSearch_2.3"
       cluster_config = {
         instance_type            = "t3.small.search"
