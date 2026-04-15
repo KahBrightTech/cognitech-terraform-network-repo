@@ -11,6 +11,7 @@ include "env" {
   path   = find_in_parent_folders("locals-env.hcl")
   expose = true
 }
+
 #-------------------------------------------------------
 # Locals 
 #-------------------------------------------------------
@@ -455,7 +456,7 @@ inputs = {
           ingress = []
           egress = [
             {
-              key         = "egress-all-traffic-bastion-sg"
+              key         = "egress-all-traffic"
               cidr_ipv4   = "0.0.0.0/0"
               description = "BASE - Outbound all traffic to the Internet"
               ip_protocol = "-1"
@@ -476,7 +477,7 @@ inputs = {
           ]
           egress = [
             {
-              key         = "egress-all-traffic-bastion-sg"
+              key         = "egress-all-traffic"
               cidr_ipv4   = "0.0.0.0/0"
               description = "BASE - Outbound all traffic to the Internet"
               ip_protocol = "-1"
