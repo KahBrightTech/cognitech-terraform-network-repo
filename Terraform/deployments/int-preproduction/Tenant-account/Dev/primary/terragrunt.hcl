@@ -1365,6 +1365,7 @@ inputs = {
       }
     }
   ]
+
   events = [
     {
       rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
