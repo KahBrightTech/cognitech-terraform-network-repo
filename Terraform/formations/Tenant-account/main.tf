@@ -714,7 +714,7 @@ module "firehose_streams" {
       s3_configuration = each.value.s3_configuration != null ? merge(
         each.value.s3_configuration,
         {
-          bucket_arn = each.value.bucket_key != null ? module.s3_app_bucket[each.value.bucket_key].bucket_arn : each.value.bucket_arn
+          bucket_arn = each.value.s3_configuration.bucket_key != null ? module.s3_app_bucket[each.value.s3_configuration.bucket_key].bucket_arn : each.value.s3_configuration.bucket_arn
         }
       ) : null
     },
