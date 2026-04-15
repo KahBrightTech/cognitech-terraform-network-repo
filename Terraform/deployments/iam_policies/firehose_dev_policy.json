@@ -13,8 +13,8 @@
         "s3:PutObject"
       ],
       "Resource": [
-        "arn:aws:s3:::[[account_name]]-[[region_prefix]]-dev-firehose-bucket*",
-        "arn:aws:s3:::[[account_name]]-[[region_prefix]]-dev-*/*"
+        "arn:aws:s3:::[[account_name]]-[[region_prefix]]-dev-firehose-backup*",
+        "arn:aws:s3:::[[account_name]]-[[region_prefix]]-dev-firehose-backup*/*"
       ]
     },
     {
