@@ -684,7 +684,7 @@ inputs = {
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     },
     {
-      name              = "${local.vpc_name_abr}-firehose-bucket"
+      name              = "${local.vpc_name_abr}-firehose-backup"
       description       = "The Firehose bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_firehose_bucket.json"
@@ -1312,28 +1312,30 @@ inputs = {
   ]
 
   firehose_streams = [
-    key         = "${local.vpc_name_abr}-firehose"
-    name        = "${local.vpc_name_abr}-firehose"
-    destination = opensearch
-    role_arn    = dependency.platform.outputs.IAM_roles.shared-firehose.iam_role_arn
-    s3_configuration = { # This is required even when the destination is OpenSearch because Firehose uses S3 as a backup for failed deliveries to OpenSearch
-      bucket_key          = "${local.vpc_name_abr}-firehose-backup"
-      prefix              = "firehose/${local.vpc_name_abr}-logs/"
-      error_output_prefix = "firehose/${local.vpc_name_abr}-logs/errors/"
-      buffering_size      = 5
-      buffering_interval  = 300
-      compression_format  = "GZIP"
-    }
-    opensearch_configuration = {
-      domain_key = "${local.vpc_name_abr}-opensearch"
-      index_name = "${local.vpc_name_abr}-logs"
-      type_name  = "_doc"
-      vpc_config = {
-        subnet_keys = [
-          include.env.locals.subnet_prefix.primary,
-          include.env.locals.subnet_prefix.secondary
-        ]
-        security_group_keys = ["firehose"]
+    {
+      key         = "${local.vpc_name_abr}-firehose"
+      name        = "${local.vpc_name_abr}-firehose"
+      destination = opensearch
+      role_arn    = dependency.platform.outputs.IAM_roles.shared-firehose.iam_role_arn
+      s3_configuration = { # This is required even when the destination is OpenSearch because Firehose uses S3 as a backup for failed deliveries to OpenSearch
+        bucket_key          = "${local.vpc_name_abr}-firehose-backup"
+        prefix              = "firehose/${local.vpc_name_abr}-logs/"
+        error_output_prefix = "firehose/${local.vpc_name_abr}-logs/errors/"
+        buffering_size      = 5
+        buffering_interval  = 300
+        compression_format  = "GZIP"
+      }
+      opensearch_configuration = {
+        domain_key = "${local.vpc_name_abr}-opensearch"
+        index_name = "${local.vpc_name_abr}-logs"
+        type_name  = "_doc"
+        vpc_config = {
+          subnet_keys = [
+            include.env.locals.subnet_prefix.primary,
+            include.env.locals.subnet_prefix.secondary
+          ]
+          security_group_keys = ["firehose"]
+        }
       }
     }
   ]
