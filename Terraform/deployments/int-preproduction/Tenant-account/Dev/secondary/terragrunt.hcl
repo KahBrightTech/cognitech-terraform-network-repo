@@ -1262,7 +1262,7 @@ inputs = {
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
             description = "IAM policy for ${local.vpc_name_abr} Fluent Bit Service Account."
-            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fluent_bit_policy.json"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fluent_bit_dev.json"
           }
         },
         {
@@ -1372,7 +1372,7 @@ inputs = {
         compression_format  = "GZIP"
       }
       opensearch_configuration = {
-        domain_key = "${local.vpc_name_abr}-opensearch"
+        domain_key = "${local.vpc_name_abr}-es"
         index_name = "${local.vpc_name_abr}-logs"
         type_name  = "_doc"
         vpc_config = {
