@@ -1741,6 +1741,7 @@ variable "deploy_ansible" {
         action_type     = optional(string, "fixed-response")
         ssl_policy      = optional(string, "ELBSecurityPolicy-2016-08")
         certificate_arn = optional(string)
+        certificate_key = optional(string)
         fixed_response = optional(object({
           content_type = optional(string, "text/plain")
           message_body = optional(string, "Oops! The page you are looking for does not exist.")
