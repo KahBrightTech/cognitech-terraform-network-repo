@@ -276,6 +276,82 @@ locals {
         }
       }
     }
+    intp = {
+      segments = {
+        Account_cidr = "10.40.0.0/16"
+        shared-services = {
+          vpc = "10.40.2.0/24"
+          public_subnets = {
+            sbnt1 = {
+              primary   = "10.40.2.0/27"
+              secondary = "10.40.2.32/27"
+            }
+            sbnt2 = {
+              primary   = "10.40.2.64/27"
+              secondary = "10.40.2.96/27"
+            }
+          }
+          private_subnets = {
+            sbnt1 = {
+              primary   = "10.40.2.128/27"
+              secondary = "10.40.2.160/27"
+            }
+            sbnt2 = {
+              primary   = "10.40.2.192/27"
+              secondary = "10.40.2.224/27"
+            }
+          }
+        }
+        app_vpc = {
+          user_acceptance_test = {
+            vpc = "10.40.1.0/24"
+            public_subnets = {
+              sbnt1 = {
+                primary   = "10.40.1.0/27"
+                secondary = "10.40.1.32/27"
+              }
+              sbnt2 = {
+                primary   = "10.40.1.64/27"
+                secondary = "10.40.1.96/27"
+              }
+            }
+            private_subnets = {
+              sbnt1 = {
+                primary   = "10.40.1.128/27"
+                secondary = "10.40.1.160/27"
+              }
+              sbnt2 = {
+                primary   = "10.40.1.192/27"
+                secondary = "10.40.1.224/27"
+              }
+            }
+          }
+          production = {
+            vpc = "10.40.4.0/24"
+            public_subnets = {
+              sbnt1 = {
+                primary   = "10.40.4.0/27"
+                secondary = "10.40.4.32/27"
+              }
+              sbnt2 = {
+                primary   = "10.40.4.64/27"
+                secondary = "10.40.4.96/27"
+              }
+            }
+            private_subnets = {
+              sbnt1 = {
+                primary   = "10.40.4.128/27"
+                secondary = "10.40.4.160/27"
+              }
+              sbnt2 = {
+                primary   = "10.40.4.192/27"
+                secondary = "10.40.4.224/27"
+              }
+            }
+          }
+        }
+      }
+    }
     ntw = {
       segments = {
         Account_cidr = "10.6.0.0/16"
