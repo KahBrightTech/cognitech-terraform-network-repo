@@ -2058,7 +2058,6 @@ inputs = {
       internal            = false
       type                = "application"
       vpc_name            = local.vpc_name_abr
-      vpc_name_abr        = local.vpc_name_abr
       security_group_keys = ["awx-alb"]
       use_private_subnets = false
       subnet_keys = [
