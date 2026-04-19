@@ -949,7 +949,7 @@ module "ecs_clusters" {
 # Deploy-AWX
 #--------------------------------------------------------------------
 module "deploy_awx" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-Ansible?ref=v1.6.52"
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-Ansible?ref=v1.6.53"
   count  = var.deploy_ansible != null && var.deploy_ansible.deploy_awx == true ? 1 : 0
   common = var.common
   deploy_ansible = merge(var.deploy_ansible, {

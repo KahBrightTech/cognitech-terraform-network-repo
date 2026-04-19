@@ -2029,7 +2029,6 @@ inputs = {
       }
     }
   ]
-
   deploy_ansible = {
     deploy_awx          = local.deploy_awx
     attach_to_elb       = true
