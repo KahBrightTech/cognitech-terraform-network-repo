@@ -2114,15 +2114,19 @@ inputs = {
         use_default_listener = true
         priority             = 5
         type                 = "forward"
-        target_groups = {
-          use_created_target_group = true
-          weight                   = 99
-        }
-        conditions = {
-          host_headers = [
-            "awx.${local.public_hosted_zone}"
-          ]
-        }
+        target_groups = [
+          {
+            use_created_target_group = true
+            weight                   = 99
+          }
+        ]
+        conditions = [
+          {
+            host_headers = [
+              "awx.${local.public_hosted_zone}"
+            ]
+          }
+        ]
       }
     ]
     asg = {
