@@ -971,6 +971,11 @@ module "deploy_awx" {
         module.shared_vpc[var.deploy_ansible.alb.vpc_name].private_subnet[subnet_key].subnet_ids :
         module.shared_vpc[var.deploy_ansible.alb.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : var.deploy_ansible.alb.subnets
+      default_listener = var.deploy_ansible.alb.create_default_listener == true ? merge(
+        {
+          certificate_arn = try(lookup(var.deploy_ansible.alb, "default_listener", {}).certificate_arn, null) != null ? lookup(var.deploy_ansible.alb, "default_listener", {}).certificate_arn : try(module.certificates[var.deploy_ansible.alb.vpc_name_abr].arn, null)
+        }
+      ) : null
       subnet_mappings = (var.deploy_ansible.alb.subnet_mappings != null) ? [
         for mapping in var.deploy_ansible.alb.subnet_mappings : {
           subnet_id = lookup(
