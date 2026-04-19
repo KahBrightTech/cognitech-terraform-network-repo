@@ -971,6 +971,16 @@ module "deploy_awx" {
         module.shared_vpc[var.deploy_ansible.alb.vpc_name].private_subnet[subnet_key].subnet_ids :
         module.shared_vpc[var.deploy_ansible.alb.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : var.deploy_ansible.alb.subnets
+      subnet_mappings = (var.deploy_ansible.alb.subnet_mappings != null) ? [
+        for mapping in var.deploy_ansible.alb.subnet_mappings : {
+          subnet_id = lookup(
+            module.shared_vpc[var.deploy_ansible.alb.vpc_name].private_subnet[mapping.subnet_key],
+            "${mapping.az_subnet_selector}_subnet_id",
+            null
+          )
+          private_ipv4_address = mapping.private_ipv4_address
+        }
+      ] : []
     }) : null
     target_group = var.deploy_ansible.target_group != null ? merge(var.deploy_ansible.target_group, {
       vpc_id = var.deploy_ansible.target_group.vpc_name != null ? module.shared_vpc[var.deploy_ansible.target_group.vpc_name].vpc_id : var.deploy_ansible.target_group.vpc_id
