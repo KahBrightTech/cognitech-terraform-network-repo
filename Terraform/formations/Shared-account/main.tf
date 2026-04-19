@@ -955,7 +955,7 @@ module "deploy_awx" {
   deploy_ansible = merge(var.deploy_ansible, {
     launch_template = var.deploy_ansible.launch_template != null ? merge(var.deploy_ansible.launch_template, {
       key_name         = var.deploy_ansible.launch_template.key_name != null ? module.ec2_key_pairs[var.deploy_ansible.launch_template.key_name].name : var.deploy_ansible.launch_template.key_name
-      instance_profile = var.deploy_ansible.launch_template.iam_instance_profile_key != null ? module.ec2_profiles[var.deploy_ansible.launch_template.iam_instance_profile_key].instance_profile_name : var.deploy_ansible.launch_template.iam_instance_profile
+      instance_profile = var.deploy_ansible.launch_template.instance_profile_key != null ? module.ec2_profiles[var.deploy_ansible.launch_template.instance_profile_key].instance_profile_name : var.deploy_ansible.launch_template.instance_profile
       vpc_security_group_ids = var.deploy_ansible.launch_template.vpc_security_group_keys != null ? [
         for sg_key in var.deploy_ansible.launch_template.vpc_security_group_keys :
         module.shared_vpc[var.deploy_ansible.vpc_name].security_group[sg_key].id
