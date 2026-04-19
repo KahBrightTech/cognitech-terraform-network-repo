@@ -2125,7 +2125,7 @@ inputs = {
         }
       }
     ]
-    {
+    asg = {
       name                      = "${local.vpc_name_abr}-awx"
       min_size                  = 1
       max_size                  = 3
