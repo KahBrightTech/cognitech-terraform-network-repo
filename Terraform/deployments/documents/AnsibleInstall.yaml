@@ -116,6 +116,13 @@ mainSteps:
       log "Running Ansible Tower setup..."
       chmod +x "$EXTRACTED_FOLDER/setup.sh"
       cd "$EXTRACTED_FOLDER"
+
+      # Remove conflicting system packages that clash with AAP 2.4 bundle
+      # The bundle ships newer versions of these Python packages which conflict
+      # with the RHEL 9 base repo versions
+      log "Removing conflicting system Python packages..."
+      dnf remove -y python3-pycparser python3-cffi python3-cryptography --noautoremove || log "WARNING: Some conflicting packages may not have been installed"
+
       bash setup.sh -e required_ram=2048 || error_exit "Ansible Tower setup failed!"
 
       log "Installation completed successfully!"
