@@ -974,6 +974,16 @@ module "deploy_awx" {
       default_listener = var.deploy_ansible.alb.create_default_listener == true ? merge(
         {
           certificate_arn = try(lookup(var.deploy_ansible.alb, "default_listener", {}).certificate_arn, null) != null ? lookup(var.deploy_ansible.alb, "default_listener", {}).certificate_arn : try(module.certificates[var.deploy_ansible.alb.vpc_name_abr].arn, null)
+        },
+        { port        = 443
+          protocol    = "HTTPS"
+          action_type = "fixed-response"
+          ssl_policy  = "ELBSecurityPolicy-2016-08"
+          fixed_response = {
+            content_type = "text/plain"
+            message_body = "Oops! The page you are looking for does not exist."
+            status_code  = "200"
+          }
         }
       ) : null
       subnet_mappings = (var.deploy_ansible.alb.subnet_mappings != null) ? [

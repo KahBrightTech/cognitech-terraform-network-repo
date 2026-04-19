@@ -2067,17 +2067,17 @@ inputs = {
       enable_deletion_protection = false
       enable_access_logs         = false
       create_default_listener    = true
-      default_listener = {
-        port        = 443
-        protocol    = "HTTPS"
-        action_type = "fixed-response"
-        ssl_policy  = "ELBSecurityPolicy-2016-08"
-        fixed_response = {
-          content_type = "text/plain"
-          message_body = "Oops! The page you are looking for does not exist."
-          status_code  = "200"
-        }
-      }
+      # default_listener = {
+      #   port        = 443
+      #   protocol    = "HTTPS"
+      #   action_type = "fixed-response"
+      #   ssl_policy  = "ELBSecurityPolicy-2016-08"
+      #   fixed_response = {
+      #     content_type = "text/plain"
+      #     message_body = "Oops! The page you are looking for does not exist."
+      #     status_code  = "200"
+      #   }
+      # }
     }
     target_group = {
       name        = "${local.vpc_name_abr}-awx-tg"
