@@ -2047,7 +2047,7 @@ inputs = {
       volume_size                 = 30
       root_device_name            = "xvdf"
       vpc_security_group_keys     = ["awx-app"]
-      # user_data                   = file("${include.cloud.locals.repo.root}/bash-scripts/ssm_agent_install.sh")
+      user_data                   = templatefile("${include.cloud.locals.repo.root}/bash-scripts/ssm_agent_install.sh", {})
     }
     alb = {
       name                = "${local.vpc_name_abr}-awx"
