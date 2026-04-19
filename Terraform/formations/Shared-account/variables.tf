@@ -1698,9 +1698,10 @@ variable "deploy_ansible" {
     vpc_name            = optional(string)
     use_private_subnets = optional(bool, false)
     launch_template = optional(object({
-      name             = string
-      instance_profile = optional(string)
-      custom_ami       = optional(string)
+      name                 = string
+      instance_profile     = optional(string)
+      instance_profile_key = optional(string)
+      custom_ami           = optional(string)
       ami_config = object({
         os_release_date  = optional(string)
         os_base_packages = optional(string)

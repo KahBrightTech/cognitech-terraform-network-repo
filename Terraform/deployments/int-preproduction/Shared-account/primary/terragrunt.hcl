@@ -2042,6 +2042,7 @@ inputs = {
       }
       instance_type               = "t3.2xlarge"
       key_name                    = "${local.vpc_name_abr}-key-pair"
+      instance_profile_key        = "${local.vpc_name_abr}"
       associate_public_ip_address = true
       volume_size                 = 30
       root_device_name            = "xvdf"

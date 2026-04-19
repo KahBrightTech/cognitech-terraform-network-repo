@@ -2042,16 +2042,11 @@ inputs = {
       }
       instance_type               = "t3.2xlarge"
       key_name                    = "${local.vpc_name_abr}-key-pair"
+      instance_profile_key        = "${local.vpc_name_abr}"
       associate_public_ip_address = true
       volume_size                 = 30
       root_device_name            = "xvdf"
       vpc_security_group_keys     = ["awx-app"]
-      tags = {
-        "Name"           = "INTPP-SHR-L-ANSIBLE-01"
-        "DNS_Prefix"     = "ans01"
-        "AnsibleInstall" = "True"
-        "CreateUser"     = "True"
-      }
     }
     alb = {
       name                = "${local.vpc_name_abr}-awx"
@@ -2118,7 +2113,12 @@ inputs = {
       timeouts = {
         delete = "10m"
       }
-      tags = local.tags
+      tags = merge(local.tags,
+        {
+          "AnsibleInstall" = "True"
+          "CreateUser"     = "True"
+        }
+      )
       additional_tags = [
         {
           key                 = "Name"
