@@ -945,3 +945,46 @@ module "ecs_clusters" {
   )
 }
 
+#--------------------------------------------------------------------
+# Deploy-AWX
+#--------------------------------------------------------------------
+module "deploy_awx" {
+  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-Ansible?ref=v1.6.51"
+  count  = var.deploy_ansible != null && var.deploy_ansible.deploy_awx == true ? 1 : 0
+  common = var.common
+  deploy_ansible = merge(var.deploy_ansible, {
+    launch_template = var.deploy_ansible.launch_template != null ? merge(var.deploy_ansible.launch_template, {
+      key_name = var.deploy_ansible.launch_template.key_name != null ? module.ec2_key_pairs[var.deploy_ansible.launch_template.key_name].name : var.deploy_ansible.launch_template.key_name
+      vpc_security_group_ids = var.deploy_ansible.launch_template.vpc_security_group_keys != null ? [
+        for sg_key in var.deploy_ansible.launch_template.vpc_security_group_keys :
+        module.shared_vpc[var.deploy_ansible.vpc_name].security_group[sg_key].id
+      ] : var.deploy_ansible.launch_template.vpc_security_group_ids
+    }) : null
+    alb = var.deploy_ansible.alb != null ? merge(var.deploy_ansible.alb, {
+      security_groups = var.deploy_ansible.alb.security_group_keys != null ? [
+        for sg_key in var.deploy_ansible.alb.security_group_keys :
+        module.shared_vpc[var.deploy_ansible.alb.vpc_name].security_group[sg_key].id
+      ] : var.deploy_ansible.alb.security_groups
+      subnets = var.deploy_ansible.alb.subnet_keys != null ? flatten([
+        for subnet_key in var.deploy_ansible.alb.subnet_keys :
+        (var.deploy_ansible.alb.use_private_subnets == true) ?
+        module.shared_vpc[var.deploy_ansible.alb.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[var.deploy_ansible.alb.vpc_name].public_subnet[subnet_key].subnet_ids
+      ]) : var.deploy_ansible.alb.subnets
+    }) : null
+    target_group = var.deploy_ansible.target_group != null ? merge(var.deploy_ansible.target_group, {
+      vpc_id = var.deploy_ansible.target_group.vpc_name != null ? module.shared_vpc[var.deploy_ansible.target_group.vpc_name].vpc_id : var.deploy_ansible.target_group.vpc_id
+    }) : null
+    alb_listener = var.deploy_ansible.alb_listener != null ? merge(var.deploy_ansible.alb_listener, {
+      vpc_id = var.deploy_ansible.alb_listener.vpc_name != null ? module.shared_vpc[var.deploy_ansible.alb_listener.vpc_name].vpc_id : var.deploy_ansible.alb_listener.vpc_id
+    }) : null
+    asg = var.deploy_ansible.asg != null ? merge(var.deploy_ansible.asg, {
+      subnet_ids = var.deploy_ansible.asg.subnet_keys != null ? flatten([
+        for subnet_key in var.deploy_ansible.asg.subnet_keys :
+        (var.deploy_ansible.asg.use_private_subnets == true) ?
+        module.shared_vpc[var.deploy_ansible.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.shared_vpc[var.deploy_ansible.vpc_name].public_subnet[subnet_key].subnet_ids
+      ]) : var.deploy_ansible.asg.subnet_ids
+    }) : null
+  })
+}

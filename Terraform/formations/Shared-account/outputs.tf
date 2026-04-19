@@ -199,3 +199,12 @@ output "ecs_clusters" {
   value       = module.ecs_clusters
   sensitive   = true
 }
+
+#-------------------------------------------------------
+# AWX outputs
+#-------------------------------------------------------
+output "awx" {
+  description = "Output for all AWX resources"
+  value       = module.deploy_awx
+  sensitive   = true
+}

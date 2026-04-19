@@ -39,6 +39,7 @@ locals {
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
+  deploy_awx          = true
   vpn_ip              = "69.143.134.56/32"
 
   # Composite variables 
@@ -150,6 +151,18 @@ inputs = {
           key         = "app"
           name        = "app"
           description = "standard ${local.vpc_name} app security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "awx-alb"
+          name        = "awx-alb"
+          description = "standard ${local.vpc_name} awx-alb security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "awx-app"
+          name        = "awx-app"
+          description = "standard ${local.vpc_name} awx-app security group"
           vpc_name    = local.vpc_name_abr
         },
         {
@@ -423,6 +436,28 @@ inputs = {
                 ip_protocol = "-1"
               }
             ]
+          )
+        },
+        {
+          sg_key = "awx-alb"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.ingress.awx_alb_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.egress.awx_alb_base,
+            []
+          )
+        },
+        {
+          sg_key = "awx-app"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.ingress.awx_app_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.egress.awx_app_base,
+            []
           )
         },
         {

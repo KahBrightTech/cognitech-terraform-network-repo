@@ -39,6 +39,7 @@ locals {
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
+  deploy_awx          = true
   vpn_ip              = "69.143.134.56/32"
 
   # Composite variables 
@@ -150,6 +151,18 @@ inputs = {
           key         = "app"
           name        = "app"
           description = "standard ${local.vpc_name} app security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "awx-alb"
+          name        = "awx-alb"
+          description = "standard ${local.vpc_name} awx-alb security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "awx-app"
+          name        = "awx-app"
+          description = "standard ${local.vpc_name} awx-app security group"
           vpc_name    = local.vpc_name_abr
         },
         {
@@ -423,6 +436,28 @@ inputs = {
                 ip_protocol = "-1"
               }
             ]
+          )
+        },
+        {
+          sg_key = "awx-alb"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.ingress.awx_alb_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.egress.awx_alb_base,
+            []
+          )
+        },
+        {
+          sg_key = "awx-app"
+          ingress = concat(
+            include.cloud.locals.security_group_rules.locals.ingress.awx_app_base,
+            []
+          )
+          egress = concat(
+            include.cloud.locals.security_group_rules.locals.egress.awx_app_base,
+            []
           )
         },
         {
@@ -1994,6 +2029,126 @@ inputs = {
       }
     }
   ]
+
+  deploy_ansible = {
+    deploy_awx          = local.deploy_awx
+    attach_to_elb       = true
+    vpc_name            = local.vpc_name_abr
+    use_private_subnets = false
+    launch_template = {
+      name = "${local.vpc_name_abr}-awx"
+      ami_config = {
+        os_release_date = "RHEL9"
+      }
+      instance_type               = "t3.2xlarge"
+      key_name                    = "${local.vpc_name_abr}-key-pair"
+      associate_public_ip_address = true
+      volume_size                 = 30
+      root_device_name            = "xvdf"
+      vpc_security_group_keys     = ["awx-app"]
+      tags = {
+        "Name"           = "INTPP-SHR-L-ANSIBLE-01"
+        "DNS_Prefix"     = "ans01"
+        "AnsibleInstall" = "True"
+        "CreateUser"     = "True"
+      }
+    }
+    alb = {
+      name                = "${local.vpc_name_abr}-awx"
+      internal            = false
+      type                = "application"
+      vpc_name            = local.vpc_name_abr
+      security_group_keys = ["awx-alb"]
+      use_private_subnets = false
+      subnet_keys = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      enable_deletion_protection = false
+      enable_access_logs         = false
+      create_default_listener    = true
+      default_listener = {
+        port        = 443
+        protocol    = "HTTPS"
+        action_type = "fixed-response"
+        ssl_policy  = "ELBSecurityPolicy-2016-08"
+        fixed_response = {
+          content_type = "text/plain"
+          message_body = "Oops! The page you are looking for does not exist."
+          status_code  = "200"
+        }
+      }
+    }
+    target_group = {
+      name        = "${local.vpc_name_abr}-awx-tg"
+      port        = 443
+      protocol    = "HTTPS"
+      target_type = "instance"
+      vpc_name    = local.vpc_name_abr
+      health_check = {
+        protocol = "HTTPS"
+        port     = 443
+        path     = "/"
+        matcher  = "200"
+      }
+    }
+    # alb_listener = {
+    #   action   = "forward"
+    #   port     = 443
+    #   protocol = "HTTPS"
+    #   vpc_name = local.vpc_name_abr
+    #   target_group = {
+    #     name     = "awx-tg"
+    #     port     = 80
+    #     protocol = "HTTP"
+    #     health_check = {
+    #       protocol = "HTTP"
+    #       port     = 80
+    #       path     = "/"
+    #       matcher  = "200"
+    #     }
+    #   }
+    # },
+    alb_listener_rule = [
+      key                  = "awx"
+      use_default_listener = true
+      priority             = 5
+      type                 = "forward"
+      target_groups = {
+        use_created_target_group = true
+        weight                   = 99
+      }
+      conditions = {
+        host_headers = [
+          "awx.${local.public_hosted_zone}"
+        ]
+      }
+    ]
+    {
+      name                      = "${local.vpc_name_abr}-awx"
+      min_size                  = 1
+      max_size                  = 3
+      desired_capacity          = 1
+      health_check_type         = "ELB"
+      health_check_grace_period = 600
+      attach_target_groups = [
+        "${local.vpc_name_abr}-awx-tg"
+      ]
+      subnet_keys = [
+        include.env.locals.subnet_prefix.primary
+      ]
+      timeouts = {
+        delete = "10m"
+      }
+      tags = local.tags
+      additional_tags = [
+        {
+          key                 = "Name"
+          value               = "${local.vpc_name_abr}-awx-asg"
+          propagate_at_launch = true
+        }
+      ]
+    }
+  }
 }
 
 #-------------------------------------------------------

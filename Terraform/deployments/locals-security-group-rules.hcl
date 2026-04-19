@@ -33,6 +33,40 @@ locals {
         ip_protocol   = "tcp"
       }
     ]
+    awx_alb_base = [
+      {
+        key           = "egress-443-awx-alb-sg"
+        target_sg_key = "awx-alb"
+        description   = "BASE - Outbound HTTPS traffic to AWX ALB SG (self) on tcp port 443(HTTPS)"
+        from_port     = 443
+        to_port       = 443
+        ip_protocol   = "tcp"
+      },
+      {
+        key           = "egress-80-awx-alb-sg"
+        target_sg_key = "awx-alb"
+        description   = "BASE - Outbound HTTP traffic to AWX ALB SG(self) on tcp port 80 (HTTP)"
+        from_port     = 80
+        to_port       = 80
+        ip_protocol   = "tcp"
+      },
+      {
+        key           = "egress-443-awx-app-sg"
+        target_sg_key = "awx-app"
+        description   = "BASE - Outbound HTTPS traffic to AWX App SG on tcp port 443 (HTTPS)"
+        from_port     = 443
+        to_port       = 443
+        ip_protocol   = "tcp"
+      },
+      {
+        key           = "egress-80-awx-app-sg"
+        target_sg_key = "awx-app"
+        description   = "BASE - Outbound HTTP traffic to AWX App SG(self) on tcp port 80 (HTTP)"
+        from_port     = 80
+        to_port       = 80
+        ip_protocol   = "tcp"
+      }
+    ]
     nlb_base = [
       {
         key           = "egress-443-nlb-sg"
@@ -151,6 +185,14 @@ locals {
         ip_protocol = "tcp"
       }
     ]
+    awx_app_base = [
+      {
+        key         = "egress-all-traffic-internet"
+        cidr_ipv4   = local.internet
+        description = "BASE - Outbound all traffic to Internet"
+        ip_protocol = "-1"
+      }
+    ]
   }
 
   ###################################################################
@@ -187,6 +229,41 @@ locals {
         key           = "ingress-443-alb-sg"
         source_sg_key = "alb"
         description   = "BASE - Inbound HTTPS traffic from ALB SG to ALB SG on tcp port 443 (HTTPS)"
+        from_port     = 443
+        to_port       = 443
+        ip_protocol   = "tcp"
+      }
+    ]
+
+    awx_alb_base = [
+      {
+        key         = "ingress-80-internet"
+        cidr_ipv4   = local.internet
+        description = "BASE - Inbound HTTP traffic from Internet to ALB SG on tcp port 80 (HTTP)"
+        from_port   = 80
+        to_port     = 80
+        ip_protocol = "tcp"
+      },
+      {
+        key         = "ingress-443-internet"
+        cidr_ipv4   = local.internet
+        description = "BASE - Inbound HTTPS traffic from Internet to ALB SG on tcp port 443 (HTTPS)"
+        from_port   = 443
+        to_port     = 443
+        ip_protocol = "tcp"
+      },
+      {
+        key           = "ingress-443-awx-app-sg"
+        source_sg_key = "awx-app"
+        description   = "BASE - Inbound HTTPS traffic from AWX App SG to ALB SG on tcp port 443 (HTTPS)"
+        from_port     = 443
+        to_port       = 443
+        ip_protocol   = "tcp"
+      },
+      {
+        key           = "ingress-443-awx-alb-sg"
+        source_sg_key = "awx-alb"
+        description   = "BASE - Inbound HTTPS traffic from AWX ALB SG to ALB SG on tcp port 443 (HTTPS)"
         from_port     = 443
         to_port       = 443
         ip_protocol   = "tcp"
@@ -281,6 +358,24 @@ locals {
         to_port       = 3389
         ip_protocol   = "tcp"
       },
+    ]
+    awx_app_base = [
+      {
+        key           = "ingress-443-awx-alb-sg"
+        source_sg_key = "awx-alb"
+        description   = "BASE - Inbound HTTPS traffic from AWX ALB SG to App SG on tcp port 443 (HTTPS)"
+        from_port     = 443
+        to_port       = 443
+        ip_protocol   = "tcp"
+      },
+      {
+        key           = "ingress-80-awx-alb-sg"
+        source_sg_key = "awx-alb"
+        description   = "BASE - Inbound HTTP traffic from AWX ALB SG to App SG on tcp port 80 (HTTP)"
+        from_port     = 80
+        to_port       = 80
+        ip_protocol   = "tcp"
+      }
     ]
     windows_bastion_base = [
       {
