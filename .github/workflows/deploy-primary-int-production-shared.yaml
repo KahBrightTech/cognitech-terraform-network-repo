@@ -120,7 +120,7 @@ jobs:
     env:
       IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
       REGION: us-east-1
-      DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Shared-account/primary
+      DEPLOYMENT_PATH: Terraform/deployments/int-production/Shared-account/primary
 
     defaults:
       run:
@@ -164,7 +164,7 @@ jobs:
     env:
       IAM_ROLE: arn:aws:iam::730335294148:role/int-OIDCGitHubRole-role
       REGION: us-east-1
-      DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Shared-account/primary
+      DEPLOYMENT_PATH: Terraform/deployments/int-production/Shared-account/primary
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
