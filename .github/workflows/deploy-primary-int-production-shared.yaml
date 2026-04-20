@@ -25,7 +25,7 @@ on:
 env:
   IAM_ROLE: arn:aws:iam::271457809232:role/int-prod-OIDCGitHubRole-role
   REGION: us-east-1
-  DEPLOYMENT_PATH: Terraform/deployments/int-preproduction/Shared-account/primary
+  DEPLOYMENT_PATH: Terraform/deployments/int-production/Shared-account/primary
   TF_VAR_ANSIBLE_TOWER_USERNAME: ${{ secrets.TF_VAR_ANSIBLE_USERNAME }}
   TF_VAR_ANSIBLE_TOWER_PASSWORD: ${{ secrets.TF_VAR_ANSIBLE_PASSWORD }}
   TF_VAR_USER_USERNAME1: ${{ secrets.TF_VAR_USER_USERNAME1 }}
