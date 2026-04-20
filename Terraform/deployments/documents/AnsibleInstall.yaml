@@ -12,7 +12,7 @@ parameters:
   AnsibleS3BucketName:
     type: String
     description: "S3 Bucket Name for Ansible Tower installer"
-    default: "ansibleautomationbucket"
+    default: "int-preproduction-use1-shared-software-bucket"
   AnsibleS3BucketPrefix:
     type: String
     description: "S3 Bucket Prefix for Ansible Tower installer"
@@ -79,6 +79,12 @@ mainSteps:
       fi
       set -x   # re-enable debug logging
 
+      # Clean and rebuild dnf cache to prevent stale cache errors
+      log "Cleaning dnf cache..."
+      dnf clean all
+      rm -rf /var/cache/dnf/*
+      dnf makecache
+
       log "Updating system packages..."
       yum update -y --skip-broken || log "WARNING: Package update failed but continuing..."
 
@@ -117,13 +123,11 @@ mainSteps:
       chmod +x "$EXTRACTED_FOLDER/setup.sh"
       cd "$EXTRACTED_FOLDER"
 
-      # Remove conflicting system packages that clash with AAP 2.4 bundle
-      # The bundle ships newer versions of these Python packages which conflict
-      # with the RHEL 9 base repo versions
+      # Remove conflicting system Python packages that clash with AAP 2.4 bundle
       log "Removing conflicting system Python packages..."
       dnf remove -y python3-pycparser python3-cffi python3-cryptography --noautoremove || log "WARNING: Some conflicting packages may not have been installed"
 
-      bash setup.sh -e required_ram=2048 || error_exit "Ansible Tower setup failed!"
+      bash setup.sh -e required_ram=2048 2>&1 | tee /root/aap_setup.log || error_exit "Ansible Tower setup failed! Check /root/aap_setup.log for details"
 
       log "Installation completed successfully!"
       log "You can now access Ansible Tower at: https://$(hostname)/api/"
