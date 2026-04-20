@@ -6,6 +6,7 @@ locals {
   # Environment tags 
   build      = "terraform"
   compliance = "hippaa"
+  environment = "int-production"
   owner      = "kbrigthain@gmail.com"
 
   remote_state_bucket = {
