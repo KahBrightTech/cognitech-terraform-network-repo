@@ -4,14 +4,13 @@ locals {
   # Simple variables 
   name_abr = "intp"
   # Environment tags 
-  build       = "terraform"
-  compliance  = "hippaa"
-  environment = "sit"
-  owner       = "kbrigthain@gmail.com"
+  build      = "terraform"
+  compliance = "hippaa"
+  owner      = "kbrigthain@gmail.com"
 
   remote_state_bucket = {
-    primary   = "terragruntint"
-    secondary = "terragruntintusw2"
+    primary   = "int-prod-us-east-1-network-config-state"
+    secondary = "int-prod-us-west-2-network-config-state"
   }
 
   subnet_prefix = {
@@ -20,12 +19,12 @@ locals {
     tertiary   = "sbnt3"
     quaternary = "sbnt4"
   }
-  public_domain = "cognitechllc.org"
+  public_domain = "novutechnologies.net"
   kms_key_id = {
-    primary   = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
-    secondary = "arn:aws:kms:us-west-2:730335294148:key/357a0937-678f-4c56-b125-66cc3938e29a"
+    primary   = "arn:aws:kms:us-east-1:271457809232:key/a3f60d5d-8e1c-4af8-a1c8-66057e94bfca"
+    secondary = "arn:aws:kms:us-west-2:271457809232:key/358fc172-cd8d-405e-b6b1-be43654fbb39"
   }
-  remote_dynamodb_table = "Terragrunt"
+  remote_dynamodb_table = "terragrunt-lock-table"
   tags = {
     Environment  = local.environment
     Owner        = local.owner
@@ -41,52 +40,18 @@ locals {
   #   iam_user = "user"
   # }
 
-  datasync = {
-    agent_arns = {
-      int = "arn:aws:datasync:us-east-1:730335294148:agent/agent-0c89bb6ec58532688"
-    }
-    nfs = {
-      server_hostname = {
-        nfs = "18.232.128.38"
-      }
-      subdirectory = {
-        nfs = "/shared/nfs"
-      }
-    }
-    smb = {
-      server_hostname = {
-        ec2 = "34.227.98.48"
-      }
-      subdirectory = {
-        smb = "/Downloads/"
-      }
-      user = {
-        first = "datasync"
-      }
-      password = {
-        first = "Shilohangel@2025"
-      }
-    }
-    s3 = {
-      subdirectory = {
-        datasync_bucket = "/Data"
-        smb             = "/SMB"
-      }
-    }
-  }
-
   eks_roles = {
-    admin    = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_3d0f46907c18b968"
-    network  = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NetworkAdministrator_f92e2e2e6d5c22ca"
-    system   = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_SystemAdministrator_b35b627bf9ab22c9"
-    readonly = "arn:aws:iam::730335294148:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_ReadOnlyAccess_d76c36f99265abf4"
+    admin    = "arn:aws:iam::271457809232:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_7f215b32fef26e47"
+    network  = "arn:aws:iam::271457809232:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_NetworkAdministrator_b9b78eb5953b12dd"
+    system   = "arn:aws:iam::271457809232:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_SystemAdministrator_7845d1ed8dcf680a"
+    readonly = "arn:aws:iam::271457809232:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_ReadOnlyAccess_d2947b3732f4ad12"
   }
 
   eks_cluster_keys = {
-    primary_cluster = "InfoGrid"
+    primary_cluster = "novutech"
   }
 
   ecs_cluster_keys = {
-    primary_cluster = "letsconnect"
+    primary_cluster = "novutech"
   }
 }
