@@ -4,10 +4,10 @@ locals {
   # Simple variables 
   name_abr = "intp"
   # Environment tags 
-  build      = "terraform"
-  compliance = "hippaa"
+  build       = "terraform"
+  compliance  = "hippaa"
   environment = "int-production"
-  owner      = "kbrigthain@gmail.com"
+  owner       = "kbrigthain@gmail.com"
 
   remote_state_bucket = {
     primary   = "int-prod-us-east-1-network-config-state"

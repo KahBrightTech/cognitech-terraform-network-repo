@@ -1,0 +1,136 @@
+schemaVersion: '2.2'
+description: "Document to configure Ansible Automation Platform post-installation."
+parameters:
+  AnsibleTowerUsername:
+    type: String
+    description: "Red Hat subscription username"
+    default: "{{ssm:/Standard/ansible/username}}"
+  AnsibleTowerPassword:
+    type: String
+    description: "Red Hat subscription password"
+    default: "{{ssm:/Standard/ansible/password}}"
+  AdminPassword:
+    type: String
+    description: "Ansible Automation Platform admin password"
+    default: "{{ssm:/Standard/ansible/password}}"
+
+mainSteps:
+# -------------------------------------------------------------------
+# Step 1: Wait for Automation Controller to be ready
+# -------------------------------------------------------------------
+- action: aws:runShellScript
+  name: WaitForController
+  description: Waits for Automation Controller API to become available
+  inputs:
+    timeoutSeconds: 600
+    runCommand:
+    - |
+      #!/bin/bash -e
+      log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+      error_exit() { log "ERROR: $1"; exit 1; }
+
+      log "Waiting for Automation Controller to be ready..."
+      for i in $(seq 1 30); do
+        if curl -sk https://localhost/api/v2/ping/ | grep -q '"ha"'; then
+          log "Automation Controller is ready."
+          exit 0
+        fi
+        log "Waiting... attempt $i/30"
+        sleep 10
+      done
+      error_exit "Automation Controller did not become ready in time."
+  precondition:
+    StringEquals:
+    - platformType
+    - Linux
+
+# -------------------------------------------------------------------
+# Step 2: Activate Red Hat subscription
+# -------------------------------------------------------------------
+- action: aws:runShellScript
+  name: ActivateSubscription
+  description: Activates AAP subscription using Red Hat credentials
+  inputs:
+    timeoutSeconds: 300
+    runCommand:
+    - |
+      #!/bin/bash -e
+      log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+      error_exit() { log "ERROR: $1"; exit 1; }
+
+      ANSIBLE_TOWER_USERNAME="{{ AnsibleTowerUsername }}"
+      ANSIBLE_TOWER_PASSWORD="{{ AnsibleTowerPassword }}"
+      ADMIN_PASSWORD="{{ AdminPassword }}"
+
+      log "Activating subscription via Red Hat credentials..."
+
+      SUBS_RESPONSE=$(curl -sk -X POST https://localhost/api/v2/config/ \
+        -H "Content-Type: application/json" \
+        -u "admin:$ADMIN_PASSWORD" \
+        -d "{
+          \"subscriptions_username\": \"$ANSIBLE_TOWER_USERNAME\",
+          \"subscriptions_password\": \"$ANSIBLE_TOWER_PASSWORD\"
+        }")
+
+      SUB_POOL_ID=$(echo "$SUBS_RESPONSE" | python3 -c "
+      import sys, json
+      data = json.load(sys.stdin)
+      if isinstance(data, list) and len(data) > 0:
+          print(data[0].get('pool_id', ''))
+      elif isinstance(data, dict) and 'subscriptions' in data:
+          subs = data['subscriptions']
+          if len(subs) > 0:
+              print(subs[0].get('pool_id', ''))
+      " 2>/dev/null)
+
+      if [ -n "$SUB_POOL_ID" ]; then
+        log "Found subscription pool: $SUB_POOL_ID"
+        curl -sk -X POST https://localhost/api/v2/config/ \
+          -H "Content-Type: application/json" \
+          -u "admin:$ADMIN_PASSWORD" \
+          -d "{
+            \"subscriptions_username\": \"$ANSIBLE_TOWER_USERNAME\",
+            \"subscriptions_password\": \"$ANSIBLE_TOWER_PASSWORD\",
+            \"pool_id\": \"$SUB_POOL_ID\"
+          }" || error_exit "Failed to attach subscription"
+        log "Subscription activated successfully."
+      else
+        error_exit "Could not find available subscriptions. Response: $SUBS_RESPONSE"
+      fi
+  precondition:
+    StringEquals:
+    - platformType
+    - Linux
+
+# -------------------------------------------------------------------
+# Step 3: Verify subscription
+# -------------------------------------------------------------------
+- action: aws:runShellScript
+  name: VerifySubscription
+  description: Verifies the AAP subscription is active
+  inputs:
+    timeoutSeconds: 120
+    runCommand:
+    - |
+      #!/bin/bash -e
+      log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+      error_exit() { log "ERROR: $1"; exit 1; }
+
+      ADMIN_PASSWORD="{{ AdminPassword }}"
+
+      log "Verifying subscription status..."
+      LICENSE_STATUS=$(curl -sk -u "admin:$ADMIN_PASSWORD" https://localhost/api/v2/config/ | python3 -c "
+      import sys, json
+      data = json.load(sys.stdin)
+      print(data.get('license_info', {}).get('license_type', 'unknown'))
+      " 2>/dev/null)
+
+      if [ "$LICENSE_STATUS" = "enterprise" ] || [ "$LICENSE_STATUS" = "open" ]; then
+        log "Subscription is active. License type: $LICENSE_STATUS"
+      else
+        error_exit "Subscription status is '$LICENSE_STATUS'. Manual activation may be required."
+      fi
+  precondition:
+    StringEquals:
+    - platformType
+    - Linux
