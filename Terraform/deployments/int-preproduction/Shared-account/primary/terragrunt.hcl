@@ -2103,7 +2103,7 @@ inputs = {
       max_size                  = 3
       desired_capacity          = 1
       health_check_type         = "ELB"
-      health_check_grace_period = 600
+      health_check_grace_period = 2400 # Gives ample time for the AWX instance to initialize and pass health checks before being marked unhealthy and terminated
       attach_target_groups = [
         "${local.vpc_name_abr}-awx-tg"
       ]
