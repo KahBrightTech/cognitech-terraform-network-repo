@@ -10,7 +10,9 @@ if rpm -q amazon-ssm-agent &>/dev/null; then
   sudo systemctl status amazon-ssm-agent --no-pager
 else
   echo "SSM Agent not found. Installing..."
-  sudo dnf install -y "https://s3.${REGION}.amazonaws.com/amazon-ssm-${REGION}/latest/linux_amd64/amazon-ssm-agent.rpm"
+  sudo curl -o /tmp/amazon-ssm-agent.rpm "https://s3.${REGION}.amazonaws.com/amazon-ssm-${REGION}/latest/linux_amd64/amazon-ssm-agent.rpm"
+  sudo dnf install -y /tmp/amazon-ssm-agent.rpm
+  sudo rm -f /tmp/amazon-ssm-agent.rpm
   sudo systemctl enable amazon-ssm-agent
   sudo systemctl start amazon-ssm-agent
   echo "SSM Agent installed and running."
