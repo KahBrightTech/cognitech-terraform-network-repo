@@ -85,8 +85,12 @@ mainSteps:
       rm -rf /var/cache/dnf/*
       dnf makecache
 
+      # Remove conflicting system Python packages BEFORE updating
+      log "Removing conflicting system Python packages..."
+      dnf remove -y python3-pycparser python3-cffi python3-cryptography --noautoremove 2>/dev/null || log "WARNING: Some packages may not have been installed"
+
       log "Updating system packages..."
-      yum update -y --skip-broken || log "WARNING: Package update failed but continuing..."
+      yum update -y --skip-broken --allowerasing || log "WARNING: Package update failed but continuing..."
 
       log "Downloading Ansible Tower installer..."
       mkdir -p /root
@@ -122,10 +126,6 @@ mainSteps:
       log "Running Ansible Tower setup..."
       chmod +x "$EXTRACTED_FOLDER/setup.sh"
       cd "$EXTRACTED_FOLDER"
-
-      # Remove conflicting system Python packages that clash with AAP 2.4 bundle
-      log "Removing conflicting system Python packages..."
-      dnf remove -y python3-pycparser python3-cffi python3-cryptography --noautoremove || log "WARNING: Some conflicting packages may not have been installed"
 
       bash setup.sh -e required_ram=2048 2>&1 | tee /root/aap_setup.log || error_exit "Ansible Tower setup failed! Check /root/aap_setup.log for details"
 
