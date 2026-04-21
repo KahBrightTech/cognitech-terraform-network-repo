@@ -1048,7 +1048,7 @@ inputs = {
       name        = "/Standard/ansible/team-users"
       description = "Ansible Tower Team Users"
       type        = "String"
-      value       = file("${include.cloud.locals.repo.root}/documents/Ansible-Documents/ansible_users.json")
+      value       = jsonencode(jsondecode(file("${include.cloud.locals.repo.root}/documents/Ansible-Documents/ansible_users.json")))
     }
   ]
   backups = [
