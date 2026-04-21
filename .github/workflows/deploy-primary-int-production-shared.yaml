@@ -2,8 +2,8 @@ name: Deploy-primary-int-production-shared
 on:
   push:
     branches:
-      - main # Run on push to the main branch
-      - "*" # Run on push to any feature branch
+      - main
+      - "*"
     paths:
       - ".github/workflows/deploy-primary-int-production-shared.yaml"
       - "Terraform/deployments/int-production/Shared-account/primary/**/*"
@@ -100,12 +100,13 @@ jobs:
           echo "## Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           sed 's/\x1b\[[0-9;]*m//g' plan_output.txt | grep -oE "Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy\." | sort -u >> $GITHUB_STEP_SUMMARY || echo "No changes detected" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY 
+          echo "" >> $GITHUB_STEP_SUMMARY
+
   Approve:
     needs: Plan
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terragrunt_action == 'apply' && github.ref == 'refs/heads/main'
-    environment: # This is what allows environment secrets to work instead of repository secrets
+    environment:
       name: production
     steps:
       - name: Awaiting approval before applying changes
@@ -115,16 +116,10 @@ jobs:
     needs: Approve
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terragrunt_action == 'apply' && github.ref == 'refs/heads/main'
-    # environment:
-    #   name: production
-    env:
-      IAM_ROLE: arn:aws:iam::271457809232:role/int-prod-OIDCGitHubRole-role
-      REGION: us-east-1
-      DEPLOYMENT_PATH: Terraform/deployments/int-production/Shared-account/primary
-
     defaults:
       run:
         shell: bash
+        working-directory: ${{ env.DEPLOYMENT_PATH }}
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
@@ -154,17 +149,16 @@ jobs:
           sudo chmod +x /bin/terragrunt
 
       - name: Apply Terragrunt
-        working-directory: ${{ env.DEPLOYMENT_PATH }}
         run: terragrunt run-all apply --terragrunt-non-interactive
 
   Destroy:
     needs: Plan
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terragrunt_action == 'destroy' && github.ref == 'refs/heads/main'
-    env:
-      IAM_ROLE: arn:aws:iam::271457809232:role/int-prod-OIDCGitHubRole-role
-      REGION: us-east-1
-      DEPLOYMENT_PATH: Terraform/deployments/int-production/Shared-account/primary
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.DEPLOYMENT_PATH }}
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
@@ -194,5 +188,4 @@ jobs:
           sudo chmod +x /bin/terragrunt
 
       - name: Destroy Terragrunt
-        working-directory: ${{ env.DEPLOYMENT_PATH }}
         run: terragrunt run-all destroy --terragrunt-non-interactive
