@@ -1,18 +1,26 @@
 schemaVersion: '2.2'
-description: "Document to configure Ansible Automation Platform post-installation."
+description: "Document to configure Ansible Automation Platform post-installation: creates organization, teams (DevOps, SysOps, SecOps), users from SSM parameter, execution environment, and assigns permissions."
 parameters:
-  AnsibleTowerUsername:
-    type: String
-    description: "Red Hat subscription username"
-    default: "{{ssm:/Standard/ansible/username}}"
-  AnsibleTowerPassword:
-    type: String
-    description: "Red Hat subscription password"
-    default: "{{ssm:/Standard/ansible/password}}"
   AdminPassword:
     type: String
     description: "Ansible Automation Platform admin password"
     default: "{{ssm:/Standard/ansible/password}}"
+  OrgName:
+    type: String
+    description: "Name of the organization to create"
+    default: "Test-Organization"
+  DefaultUserPassword:
+    type: String
+    description: "Default password for newly created users"
+    default: "{{ssm:/Standard/ansible/password}}"
+  TeamUsersJson:
+    type: String
+    description: "JSON mapping of teams to users, stored in SSM Parameter Store"
+    default: "{{ssm:/Standard/ansible/team-users}}"
+  EEImage:
+    type: String
+    description: "Container image for the execution environment"
+    default: "registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest"
 
 mainSteps:
 # -------------------------------------------------------------------
@@ -45,69 +53,11 @@ mainSteps:
     - Linux
 
 # -------------------------------------------------------------------
-# Step 2: Activate Red Hat subscription
+# Step 2: Create Organization
 # -------------------------------------------------------------------
 - action: aws:runShellScript
-  name: ActivateSubscription
-  description: Activates AAP subscription using Red Hat credentials
-  inputs:
-    timeoutSeconds: 300
-    runCommand:
-    - |
-      #!/bin/bash -e
-      log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
-      error_exit() { log "ERROR: $1"; exit 1; }
-
-      ANSIBLE_TOWER_USERNAME="{{ AnsibleTowerUsername }}"
-      ANSIBLE_TOWER_PASSWORD="{{ AnsibleTowerPassword }}"
-      ADMIN_PASSWORD="{{ AdminPassword }}"
-
-      log "Activating subscription via Red Hat credentials..."
-
-      SUBS_RESPONSE=$(curl -sk -X POST https://localhost/api/v2/config/ \
-        -H "Content-Type: application/json" \
-        -u "admin:$ADMIN_PASSWORD" \
-        -d "{
-          \"subscriptions_username\": \"$ANSIBLE_TOWER_USERNAME\",
-          \"subscriptions_password\": \"$ANSIBLE_TOWER_PASSWORD\"
-        }")
-
-      SUB_POOL_ID=$(echo "$SUBS_RESPONSE" | python3 -c "
-      import sys, json
-      data = json.load(sys.stdin)
-      if isinstance(data, list) and len(data) > 0:
-          print(data[0].get('pool_id', ''))
-      elif isinstance(data, dict) and 'subscriptions' in data:
-          subs = data['subscriptions']
-          if len(subs) > 0:
-              print(subs[0].get('pool_id', ''))
-      " 2>/dev/null)
-
-      if [ -n "$SUB_POOL_ID" ]; then
-        log "Found subscription pool: $SUB_POOL_ID"
-        curl -sk -X POST https://localhost/api/v2/config/ \
-          -H "Content-Type: application/json" \
-          -u "admin:$ADMIN_PASSWORD" \
-          -d "{
-            \"subscriptions_username\": \"$ANSIBLE_TOWER_USERNAME\",
-            \"subscriptions_password\": \"$ANSIBLE_TOWER_PASSWORD\",
-            \"pool_id\": \"$SUB_POOL_ID\"
-          }" || error_exit "Failed to attach subscription"
-        log "Subscription activated successfully."
-      else
-        error_exit "Could not find available subscriptions. Response: $SUBS_RESPONSE"
-      fi
-  precondition:
-    StringEquals:
-    - platformType
-    - Linux
-
-# -------------------------------------------------------------------
-# Step 3: Verify subscription
-# -------------------------------------------------------------------
-- action: aws:runShellScript
-  name: VerifySubscription
-  description: Verifies the AAP subscription is active
+  name: CreateOrganization
+  description: Creates an organization in AAP
   inputs:
     timeoutSeconds: 120
     runCommand:
@@ -117,19 +67,498 @@ mainSteps:
       error_exit() { log "ERROR: $1"; exit 1; }
 
       ADMIN_PASSWORD="{{ AdminPassword }}"
+      ORG_NAME="{{ OrgName }}"
+      AAP_URL="https://localhost"
 
-      log "Verifying subscription status..."
-      LICENSE_STATUS=$(curl -sk -u "admin:$ADMIN_PASSWORD" https://localhost/api/v2/config/ | python3 -c "
+      api() {
+        local method="$1" endpoint="$2" data="$3"
+        if [ -n "$data" ]; then
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}" -d "$data"
+        else
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}"
+        fi
+      }
+
+      log "Creating organization '$ORG_NAME'..."
+      ORG_RESPONSE=$(api POST /api/v2/organizations/ "{
+        \"name\": \"$ORG_NAME\",
+        \"description\": \"Organization created by SSM automation\"
+      }")
+
+      ORG_ID=$(echo "$ORG_RESPONSE" | python3 -c "
       import sys, json
       data = json.load(sys.stdin)
-      print(data.get('license_info', {}).get('license_type', 'unknown'))
+      print(data.get('id', ''))
       " 2>/dev/null)
 
-      if [ "$LICENSE_STATUS" = "enterprise" ] || [ "$LICENSE_STATUS" = "open" ]; then
-        log "Subscription is active. License type: $LICENSE_STATUS"
+      if [ -n "$ORG_ID" ] && [ "$ORG_ID" != "None" ]; then
+        log "Organization '$ORG_NAME' created (ID: $ORG_ID)"
       else
-        error_exit "Subscription status is '$LICENSE_STATUS'. Manual activation may be required."
+        EXISTING=$(api GET "/api/v2/organizations/?name=$ORG_NAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+        if [ -n "$EXISTING" ] && [ "$EXISTING" != "None" ]; then
+          ORG_ID="$EXISTING"
+          log "Organization '$ORG_NAME' already exists (ID: $ORG_ID). Continuing..."
+        else
+          error_exit "Failed to create organization. Response: $ORG_RESPONSE"
+        fi
       fi
+
+      # Verify
+      VERIFY_NAME=$(api GET "/api/v2/organizations/$ORG_ID/" | python3 -c "
+      import sys, json
+      print(json.load(sys.stdin).get('name', ''))
+      " 2>/dev/null)
+
+      if [ "$VERIFY_NAME" = "$ORG_NAME" ]; then
+        log "Organization verified successfully."
+      else
+        error_exit "Organization verification failed."
+      fi
+  precondition:
+    StringEquals:
+    - platformType
+    - Linux
+
+# -------------------------------------------------------------------
+# Step 3: Create Users from SSM JSON Parameter
+# -------------------------------------------------------------------
+- action: aws:runShellScript
+  name: CreateUsers
+  description: Creates all users defined in the SSM team-users JSON parameter
+  inputs:
+    timeoutSeconds: 300
+    runCommand:
+    - |
+      #!/bin/bash -e
+      log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+      error_exit() { log "ERROR: $1"; exit 1; }
+
+      ADMIN_PASSWORD="{{ AdminPassword }}"
+      DEFAULT_PASSWORD="{{ DefaultUserPassword }}"
+      TEAM_USERS_JSON='{{ TeamUsersJson }}'
+      AAP_URL="https://localhost"
+
+      api() {
+        local method="$1" endpoint="$2" data="$3"
+        if [ -n "$data" ]; then
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}" -d "$data"
+        else
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}"
+        fi
+      }
+
+      # Parse JSON and extract all unique users across all teams
+      log "Parsing user list from SSM parameter..."
+      USERS=$(echo "$TEAM_USERS_JSON" | python3 -c "
+      import sys, json
+      data = json.load(sys.stdin)
+      seen = set()
+      for team, users in data.items():
+          for user in users:
+              uname = user['username']
+              if uname not in seen:
+                  seen.add(uname)
+                  print(f'{uname}|{user.get(\"email\", uname + \"@example.com\")}|{user.get(\"first_name\", \"\")}|{user.get(\"last_name\", \"\")}')
+      " 2>/dev/null)
+
+      if [ -z "$USERS" ]; then
+        error_exit "No users found in SSM parameter. Verify /Standard/ansible/team-users is populated."
+      fi
+
+      USER_COUNT=0
+      SKIP_COUNT=0
+
+      while IFS='|' read -r USERNAME EMAIL FIRST_NAME LAST_NAME; do
+        log "Creating user '$USERNAME'..."
+        USER_RESPONSE=$(api POST /api/v2/users/ "{
+          \"username\": \"$USERNAME\",
+          \"password\": \"$DEFAULT_PASSWORD\",
+          \"email\": \"$EMAIL\",
+          \"first_name\": \"$FIRST_NAME\",
+          \"last_name\": \"$LAST_NAME\",
+          \"is_superuser\": false
+        }")
+
+        USER_ID=$(echo "$USER_RESPONSE" | python3 -c "
+      import sys, json
+      data = json.load(sys.stdin)
+      print(data.get('id', ''))
+      " 2>/dev/null)
+
+        if [ -n "$USER_ID" ] && [ "$USER_ID" != "None" ]; then
+          log "User '$USERNAME' created (ID: $USER_ID)"
+          USER_COUNT=$((USER_COUNT + 1))
+        else
+          # Check if user already exists
+          EXISTING=$(api GET "/api/v2/users/?username=$USERNAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+          if [ -n "$EXISTING" ] && [ "$EXISTING" != "None" ]; then
+            log "User '$USERNAME' already exists (ID: $EXISTING). Skipping..."
+            SKIP_COUNT=$((SKIP_COUNT + 1))
+          else
+            log "WARNING: Failed to create user '$USERNAME'. Response: $USER_RESPONSE"
+          fi
+        fi
+      done <<< "$USERS"
+
+      log "User creation complete. Created: $USER_COUNT, Skipped (existing): $SKIP_COUNT"
+  precondition:
+    StringEquals:
+    - platformType
+    - Linux
+
+# -------------------------------------------------------------------
+# Step 4: Create Teams and Assign Users
+# -------------------------------------------------------------------
+- action: aws:runShellScript
+  name: CreateTeamsAndAssignUsers
+  description: Creates DevOps, SysOps, SecOps teams and assigns users to them based on SSM JSON
+  inputs:
+    timeoutSeconds: 300
+    runCommand:
+    - |
+      #!/bin/bash -e
+      log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+      error_exit() { log "ERROR: $1"; exit 1; }
+
+      ADMIN_PASSWORD="{{ AdminPassword }}"
+      ORG_NAME="{{ OrgName }}"
+      TEAM_USERS_JSON='{{ TeamUsersJson }}'
+      AAP_URL="https://localhost"
+
+      api() {
+        local method="$1" endpoint="$2" data="$3"
+        if [ -n "$data" ]; then
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}" -d "$data"
+        else
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}"
+        fi
+      }
+
+      # Get organization ID
+      ORG_ID=$(api GET "/api/v2/organizations/?name=$ORG_NAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+      [ -z "$ORG_ID" ] || [ "$ORG_ID" = "None" ] && error_exit "Organization '$ORG_NAME' not found."
+
+      # Team name mapping
+      declare -A TEAM_DISPLAY_NAMES
+      TEAM_DISPLAY_NAMES[devops]="DevOps"
+      TEAM_DISPLAY_NAMES[sysops]="SysOps"
+      TEAM_DISPLAY_NAMES[secops]="SecOps"
+
+      # Get list of teams from JSON
+      TEAM_KEYS=$(echo "$TEAM_USERS_JSON" | python3 -c "
+      import sys, json
+      data = json.load(sys.stdin)
+      for key in data.keys():
+          print(key)
+      " 2>/dev/null)
+
+      for TEAM_KEY in $TEAM_KEYS; do
+        TEAM_NAME="${TEAM_DISPLAY_NAMES[$TEAM_KEY]:-$TEAM_KEY}"
+
+        # Create team
+        log "Creating team '$TEAM_NAME'..."
+        TEAM_RESPONSE=$(api POST /api/v2/teams/ "{
+          \"name\": \"$TEAM_NAME\",
+          \"description\": \"$TEAM_NAME team created by SSM automation\",
+          \"organization\": $ORG_ID
+        }")
+
+        TEAM_ID=$(echo "$TEAM_RESPONSE" | python3 -c "
+      import sys, json
+      data = json.load(sys.stdin)
+      print(data.get('id', ''))
+      " 2>/dev/null)
+
+        if [ -n "$TEAM_ID" ] && [ "$TEAM_ID" != "None" ]; then
+          log "Team '$TEAM_NAME' created (ID: $TEAM_ID)"
+        else
+          EXISTING=$(api GET "/api/v2/teams/?name=$TEAM_NAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+          if [ -n "$EXISTING" ] && [ "$EXISTING" != "None" ]; then
+            TEAM_ID="$EXISTING"
+            log "Team '$TEAM_NAME' already exists (ID: $TEAM_ID). Continuing..."
+          else
+            log "WARNING: Failed to create team '$TEAM_NAME'. Skipping..."
+            continue
+          fi
+        fi
+
+        # Get users for this team
+        TEAM_USERNAMES=$(echo "$TEAM_USERS_JSON" | python3 -c "
+      import sys, json
+      data = json.load(sys.stdin)
+      for user in data.get('$TEAM_KEY', []):
+          print(user['username'])
+      " 2>/dev/null)
+
+        # Assign each user to the team
+        for USERNAME in $TEAM_USERNAMES; do
+          USER_ID=$(api GET "/api/v2/users/?username=$USERNAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+
+          if [ -n "$USER_ID" ] && [ "$USER_ID" != "None" ]; then
+            api POST "/api/v2/teams/$TEAM_ID/users/" "{\"id\": $USER_ID}" > /dev/null 2>&1
+            log "User '$USERNAME' added to team '$TEAM_NAME'."
+          else
+            log "WARNING: User '$USERNAME' not found in AAP. Skipping..."
+          fi
+        done
+
+        # Verify team membership
+        MEMBER_COUNT=$(api GET "/api/v2/teams/$TEAM_ID/users/" | python3 -c "
+      import sys, json
+      print(json.load(sys.stdin).get('count', 0))
+      " 2>/dev/null)
+        log "Team '$TEAM_NAME' has $MEMBER_COUNT member(s)."
+      done
+
+      log "Team creation and user assignment complete."
+  precondition:
+    StringEquals:
+    - platformType
+    - Linux
+
+# -------------------------------------------------------------------
+# Step 5: Create Execution Environment
+# -------------------------------------------------------------------
+- action: aws:runShellScript
+  name: CreateExecutionEnvironment
+  description: Creates an execution environment in AAP
+  inputs:
+    timeoutSeconds: 120
+    runCommand:
+    - |
+      #!/bin/bash -e
+      log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+      error_exit() { log "ERROR: $1"; exit 1; }
+
+      ADMIN_PASSWORD="{{ AdminPassword }}"
+      ORG_NAME="{{ OrgName }}"
+      EE_IMAGE="{{ EEImage }}"
+      EE_NAME="Supported-Execution-Environment"
+      AAP_URL="https://localhost"
+
+      api() {
+        local method="$1" endpoint="$2" data="$3"
+        if [ -n "$data" ]; then
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}" -d "$data"
+        else
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}"
+        fi
+      }
+
+      # Get organization ID
+      ORG_ID=$(api GET "/api/v2/organizations/?name=$ORG_NAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+      [ -z "$ORG_ID" ] || [ "$ORG_ID" = "None" ] && error_exit "Organization '$ORG_NAME' not found."
+
+      log "Creating Execution Environment '$EE_NAME'..."
+      EE_RESPONSE=$(api POST /api/v2/execution_environments/ "{
+        \"name\": \"$EE_NAME\",
+        \"image\": \"$EE_IMAGE\",
+        \"description\": \"Supported EE created by SSM automation\",
+        \"organization\": $ORG_ID,
+        \"pull\": \"missing\"
+      }")
+
+      EE_ID=$(echo "$EE_RESPONSE" | python3 -c "
+      import sys, json
+      data = json.load(sys.stdin)
+      print(data.get('id', ''))
+      " 2>/dev/null)
+
+      if [ -n "$EE_ID" ] && [ "$EE_ID" != "None" ]; then
+        log "Execution Environment '$EE_NAME' created (ID: $EE_ID)"
+      else
+        EXISTING=$(api GET "/api/v2/execution_environments/?name=$EE_NAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+        if [ -n "$EXISTING" ] && [ "$EXISTING" != "None" ]; then
+          EE_ID="$EXISTING"
+          log "Execution Environment '$EE_NAME' already exists (ID: $EE_ID). Continuing..."
+        else
+          error_exit "Failed to create Execution Environment. Response: $EE_RESPONSE"
+        fi
+      fi
+
+      # Verify
+      VERIFY_NAME=$(api GET "/api/v2/execution_environments/$EE_ID/" | python3 -c "
+      import sys, json
+      print(json.load(sys.stdin).get('name', ''))
+      " 2>/dev/null)
+
+      if [ "$VERIFY_NAME" = "$EE_NAME" ]; then
+        log "Execution Environment verified successfully."
+      else
+        error_exit "Execution Environment verification failed."
+      fi
+
+      # List all EEs
+      log "Available Execution Environments:"
+      api GET /api/v2/execution_environments/ | python3 -c "
+      import sys, json
+      for ee in json.load(sys.stdin).get('results', []):
+          print(f'  - {ee[\"name\"]} (image: {ee[\"image\"]})')
+      " 2>/dev/null
+  precondition:
+    StringEquals:
+    - platformType
+    - Linux
+
+# -------------------------------------------------------------------
+# Step 6: Assign Permissions to All Teams
+# -------------------------------------------------------------------
+- action: aws:runShellScript
+  name: AssignPermissions
+  description: Assigns Member, Execute, and Project Admin roles to all teams on the organization
+  inputs:
+    timeoutSeconds: 300
+    runCommand:
+    - |
+      #!/bin/bash -e
+      log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+      error_exit() { log "ERROR: $1"; exit 1; }
+
+      ADMIN_PASSWORD="{{ AdminPassword }}"
+      ORG_NAME="{{ OrgName }}"
+      AAP_URL="https://localhost"
+
+      api() {
+        local method="$1" endpoint="$2" data="$3"
+        if [ -n "$data" ]; then
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}" -d "$data"
+        else
+          curl -sk -X "$method" "${AAP_URL}${endpoint}" \
+            -H "Content-Type: application/json" \
+            -u "admin:${ADMIN_PASSWORD}"
+        fi
+      }
+
+      # Get organization ID
+      ORG_ID=$(api GET "/api/v2/organizations/?name=$ORG_NAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+      [ -z "$ORG_ID" ] || [ "$ORG_ID" = "None" ] && error_exit "Organization '$ORG_NAME' not found."
+
+      # List available roles for reference
+      log "Available roles on organization '$ORG_NAME':"
+      api GET "/api/v2/organizations/$ORG_ID/object_roles/" | python3 -c "
+      import sys, json
+      for role in json.load(sys.stdin).get('results', []):
+          print(f'  - {role[\"name\"]} (ID: {role[\"id\"]}): {role.get(\"description\", \"\")}')
+      " 2>/dev/null
+
+      # Teams to assign roles to
+      TEAMS="DevOps SysOps SecOps"
+      ROLES="Member Execute Project Admin"
+
+      for TEAM_NAME in $TEAMS; do
+        # Get team ID
+        TEAM_ID=$(api GET "/api/v2/teams/?name=$TEAM_NAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+
+        if [ -z "$TEAM_ID" ] || [ "$TEAM_ID" = "None" ]; then
+          log "WARNING: Team '$TEAM_NAME' not found. Skipping..."
+          continue
+        fi
+
+        log "Assigning roles to team '$TEAM_NAME' (ID: $TEAM_ID)..."
+
+        # Assign each role
+        for ROLE_NAME in "Member" "Execute" "Project Admin"; do
+          ROLE_ID=$(api GET "/api/v2/organizations/$ORG_ID/object_roles/" | python3 -c "
+      import sys, json
+      for role in json.load(sys.stdin).get('results', []):
+          if role.get('name') == '$ROLE_NAME':
+              print(role.get('id', '')); break
+      " 2>/dev/null)
+
+          if [ -n "$ROLE_ID" ] && [ "$ROLE_ID" != "None" ]; then
+            api POST "/api/v2/roles/$ROLE_ID/teams/" "{\"id\": $TEAM_ID}" > /dev/null 2>&1
+            log "  Team '$TEAM_NAME' granted '$ROLE_NAME' role."
+          else
+            log "  WARNING: Could not find '$ROLE_NAME' role. Skipping..."
+          fi
+        done
+      done
+
+      echo ""
+      log "============================================="
+      log "Configuration Summary"
+      log "============================================="
+
+      # Print summary for each team
+      for TEAM_NAME in $TEAMS; do
+        TEAM_ID=$(api GET "/api/v2/teams/?name=$TEAM_NAME" | python3 -c "
+      import sys, json
+      results = json.load(sys.stdin).get('results', [])
+      if results: print(results[0].get('id', ''))
+      " 2>/dev/null)
+
+        if [ -n "$TEAM_ID" ] && [ "$TEAM_ID" != "None" ]; then
+          MEMBER_COUNT=$(api GET "/api/v2/teams/$TEAM_ID/users/" | python3 -c "
+      import sys, json
+      print(json.load(sys.stdin).get('count', 0))
+      " 2>/dev/null)
+
+          ROLE_LIST=$(api GET "/api/v2/teams/$TEAM_ID/roles/" | python3 -c "
+      import sys, json
+      roles = json.load(sys.stdin).get('results', [])
+      print(', '.join(r['name'] for r in roles))
+      " 2>/dev/null)
+
+          log "  Team: $TEAM_NAME | Members: $MEMBER_COUNT | Roles: $ROLE_LIST"
+        fi
+      done
+
+      log ""
+      log "Permission assignment complete."
   precondition:
     StringEquals:
     - platformType

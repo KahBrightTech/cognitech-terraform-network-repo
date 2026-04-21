@@ -1,0 +1,12 @@
+{
+  "devops": [
+    {"username": "jdoe", "email": "jdoe@example.com", "first_name": "John", "last_name": "Doe"},
+    {"username": "asmith", "email": "asmith@example.com", "first_name": "Alice", "last_name": "Smith"}
+  ],
+  "sysops": [
+    {"username": "bwilson", "email": "bwilson@example.com", "first_name": "Bob", "last_name": "Wilson"}
+  ],
+  "secops": [
+    {"username": "cjones", "email": "cjones@example.com", "first_name": "Carol", "last_name": "Jones"}
+  ]
+}
