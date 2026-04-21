@@ -1116,6 +1116,12 @@ inputs = {
       schedule_expression = "cron(0 2 ? * SUN *)" # Every Sunday at 2 AM
     },
     {
+      name            = "ansible-tower-post-install-config"
+      content         = file("${include.cloud.locals.repo.root}/documents/AnsiblePostInstallConfiguration.yaml")
+      document_type   = "Automation"
+      document_format = "YAML"
+    },
+    {
       name               = "universal-user-credentials"
       content            = file("${include.cloud.locals.repo.root}/documents/UniversalUserCreation.yaml")
       document_type      = "Command"
