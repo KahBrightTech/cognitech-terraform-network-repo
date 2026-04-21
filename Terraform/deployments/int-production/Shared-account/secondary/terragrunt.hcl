@@ -1105,7 +1105,7 @@ inputs = {
   ssm_documents = [
     {
       name               = "ansible-tower-install"
-      content            = file("${include.cloud.locals.repo.root}/documents/AnsibleInstall.yaml")
+      content            = file("${include.cloud.locals.repo.root}/documents/Ansible-Documents/Intp-AnsibleInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true
@@ -1117,7 +1117,7 @@ inputs = {
     },
     {
       name            = "ansible-tower-post-install-config"
-      content         = file("${include.cloud.locals.repo.root}/documents/AnsiblePostInstallConfiguration.yaml")
+      content         = file("${include.cloud.locals.repo.root}/documents/Ansible-Documents/AnsiblePostInstallConfiguration.yaml")
       document_type   = "Command"
       document_format = "YAML"
     },
