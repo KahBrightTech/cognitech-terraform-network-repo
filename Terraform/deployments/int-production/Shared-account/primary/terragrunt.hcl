@@ -1045,7 +1045,7 @@ inputs = {
       secret_key  = "user"
     },
     {
-      name        = "/Standard/ansible/team-users}"
+      name        = "/Standard/ansible/team-users"
       description = "Ansible Tower Team Users"
       type        = "String"
       value       = file("${include.cloud.locals.repo.root}/documents/Ansible-Documents/ansible_users.json")
