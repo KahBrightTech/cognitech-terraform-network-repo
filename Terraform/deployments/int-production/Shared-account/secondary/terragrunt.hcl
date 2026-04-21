@@ -1118,7 +1118,7 @@ inputs = {
     {
       name            = "ansible-tower-post-install-config"
       content         = file("${include.cloud.locals.repo.root}/documents/AnsiblePostInstallConfiguration.yaml")
-      document_type   = "Automation"
+      document_type   = "Command"
       document_format = "YAML"
     },
     {

@@ -16,7 +16,7 @@ include "env" {
 # Locals 
 #-------------------------------------------------------
 locals {
-  region_context     = "primary"
+  region_context     = "secondary"
   deploy_globally    = "true"
   internal           = "private"
   external           = "public"
@@ -1118,7 +1118,7 @@ inputs = {
     {
       name            = "ansible-tower-post-install-config"
       content         = file("${include.cloud.locals.repo.root}/documents/AnsiblePostInstallConfiguration.yaml")
-      document_type   = "Command"
+      document_type   = "Automation"
       document_format = "YAML"
     },
     {
