@@ -526,6 +526,7 @@ variable "ssm_parameters" {
     type        = string
     value       = optional(string)
     secret_key  = optional(string)
+    file_path   = optional(string)
     tier        = optional(string, "Standard") # Default to Standard if not specified
     overwrite   = optional(bool, false)        # Default to false if not specified
   }))

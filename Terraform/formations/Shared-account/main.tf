@@ -358,7 +358,10 @@ module "ssm_parameters" {
   ssm_parameter = merge(
     each.value,
     {
-      value = each.value.secret_key != null ? module.secrets[each.value.secret_key].name : each.value.value
+      value = (
+        each.value.secret_key != null
+        ? module.secrets[each.value.secret_key].name : each.value.file_path != null ? file(each.value.file_path) : each.value.value
+      )
     }
   )
 }
