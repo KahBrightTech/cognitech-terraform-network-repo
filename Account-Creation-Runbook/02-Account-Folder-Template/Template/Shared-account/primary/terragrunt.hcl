@@ -39,8 +39,7 @@ locals {
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
-  deploy_awx          = true
-  vpn_ip              = "69.143.134.56/32"
+  deploy_awx          = false
 
   # Composite variables 
   tags = merge(
