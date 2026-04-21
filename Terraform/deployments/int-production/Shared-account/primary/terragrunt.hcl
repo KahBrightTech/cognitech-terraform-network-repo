@@ -1976,22 +1976,19 @@ inputs = {
       }
       instance_type               = "t3.2xlarge"
       key_name                    = "${local.vpc_name_abr}-key-pair"
+      instance_profile_key        = "${local.vpc_name_abr}"
       associate_public_ip_address = true
       volume_size                 = 30
       root_device_name            = "xvdf"
       vpc_security_group_keys     = ["awx-app"]
-      tags = {
-        "Name"           = "INTPP-SHR-L-ANSIBLE-01"
-        "DNS_Prefix"     = "ans01"
-        "AnsibleInstall" = "True"
-        "CreateUser"     = "True"
-      }
+      user_data_base64            = filebase64("${include.cloud.locals.repo.root}/bash-scripts/ssm_agent_install.sh")
     }
     alb = {
       name                = "${local.vpc_name_abr}-awx"
       internal            = false
       type                = "application"
       vpc_name            = local.vpc_name_abr
+      vpc_name_abr        = local.vpc_name_abr
       security_group_keys = ["awx-alb"]
       use_private_subnets = false
       subnet_keys = [
@@ -2000,17 +1997,6 @@ inputs = {
       enable_deletion_protection = false
       enable_access_logs         = false
       create_default_listener    = true
-      default_listener = {
-        port        = 443
-        protocol    = "HTTPS"
-        action_type = "fixed-response"
-        ssl_policy  = "ELBSecurityPolicy-2016-08"
-        fixed_response = {
-          content_type = "text/plain"
-          message_body = "Oops! The page you are looking for does not exist."
-          status_code  = "200"
-        }
-      }
     }
     target_group = {
       name        = "${local.vpc_name_abr}-awx-tg"
@@ -2025,23 +2011,6 @@ inputs = {
         matcher  = "200"
       }
     }
-    # alb_listener = {
-    #   action   = "forward"
-    #   port     = 443
-    #   protocol = "HTTPS"
-    #   vpc_name = local.vpc_name_abr
-    #   target_group = {
-    #     name     = "awx-tg"
-    #     port     = 80
-    #     protocol = "HTTP"
-    #     health_check = {
-    #       protocol = "HTTP"
-    #       port     = 80
-    #       path     = "/"
-    #       matcher  = "200"
-    #     }
-    #   }
-    # },
     alb_listener_rule = [
       {
         key                  = "awx"
@@ -2069,7 +2038,7 @@ inputs = {
       max_size                  = 3
       desired_capacity          = 1
       health_check_type         = "ELB"
-      health_check_grace_period = 600
+      health_check_grace_period = 2400 # Gives ample time for the AWX instance to initialize and pass health checks before being marked unhealthy and terminated
       attach_target_groups = [
         "${local.vpc_name_abr}-awx-tg"
       ]
@@ -2079,7 +2048,12 @@ inputs = {
       timeouts = {
         delete = "10m"
       }
-      tags = local.tags
+      tags = merge(local.tags,
+        {
+          "AnsibleInstall" = "True"
+          "CreateUser"     = "True"
+        }
+      )
       additional_tags = [
         {
           key                 = "Name"

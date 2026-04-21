@@ -51,12 +51,6 @@ locals {
     }
   )
 }
-# #-------------------------------------------------------
-# # Dependencies 
-# #-------------------------------------------------------
-# dependency "network" {
-#   config_path = "../../../network/Shared-account/${local.region_context}"
-# }
 #-------------------------------------------------------
 # Source  
 #-------------------------------------------------------
@@ -740,57 +734,12 @@ inputs = {
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_config_state_policy.json"
     },
     {
-      name                 = "${local.vpc_name_abr}-src-replication-bucket"
-      description          = "The source replication bucket"
-      enable_versioning    = true
-      enable_bucket_policy = false
-      # encryption = {
-      #   enabled            = true
-      #   sse_algorithm      = "aws:kms"
-      #   kms_master_key_id  = "arn:aws:kms:us-east-1:730335294148:key/784d68ea-880c-4755-ae12-beb3037aefc2"
-      #   bucket_key_enabled = false
-      # }
-      # replication = {
-      #   role_arn = "arn:aws:iam::${local.account_id}:role/${local.aws_account_name}-${local.region_prefix}-${local.vpc_name}-source-replication-role"
-      #   rules = [
-      #     {
-      #       id     = "replication-rule-1"
-      #       status = "Enabled"
-      #       destination = {
-      #         bucket_arn    = "arn:aws:s3:::mdproduction-use1-shared-services-dest-replication-bucket"
-      #         storage_class = "STANDARD"
-      #         access_control_translation = {
-      #           owner = "Destination"
-      #         }
-      #         account_id = "485147667400"
-      #         replication_time = {
-      #           minutes = "15"
-      #         }
-      #         encryption_configuration = {
-      #           replica_kms_key_id = "arn:aws:kms:${local.region}:485147667400:key/mrk-587301af90c9440c813284f882515d18"
-      #         }
-      #         replica_modification = {
-      #           enabled = true
-      #         }
-      #       }
-      #     }
-      #   ]
-      # }
-    },
-    {
       key               = "audit-bucket"
       name              = "${local.vpc_name_abr}-audit-bucket"
       description       = "The audit bucket for different apps"
       enable_versioning = true
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_audit_policy.json"
     },
-    # {
-    #   key               = "report-bucket"
-    #   name              = "${local.vpc_name_abr}-report-bucket"
-    #   description       = "The report bucket for different apps"
-    #   enable_versioning = true
-    #   policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_batch_report_bucket.json"
-    # },
     {
       key               = "software-bucket"
       name              = "${local.vpc_name_abr}-software-bucket"
@@ -799,21 +748,6 @@ inputs = {
       objects = [
         {
           key = "Ansible_Tower/"
-        }
-      ]
-    },
-    {
-      key                  = "datasync-bucket"
-      name                 = "${local.vpc_name_abr}-datasync-bucket"
-      description          = "The data sync bucket for different apps"
-      enable_versioning    = false
-      enable_bucket_policy = false
-      objects = [
-        {
-          key = "Data/"
-        },
-        {
-          key = "SMB/"
         }
       ]
     }
@@ -897,32 +831,32 @@ inputs = {
       ]
       create_custom_policy = false
     },
-    {
-      name               = "${local.vpc_name_abr}-ec2-nodes"
-      description        = "IAM Role for ${local.vpc_name_abr} EC2 Nodes"
-      path               = "/"
-      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
-      managed_policy_arns = [
-        "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser",
-        "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
-        "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
-        "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly",
-        "arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/AWSCertificateManagerReadOnly",
-        "arn:aws:iam::aws:policy/AWSAppMeshFullAccess",
-        "arn:aws:iam::aws:policy/AWSCloudMapFullAccess",
-        "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-      ]
-      policy = {
-        name        = "${local.vpc_name_abr}-ec2-nodes"
-        description = "IAM policy for ${local.vpc_name_abr} EC2 Nodes"
-        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_ec2_nodes.json"
-      }
-    },
+    # {
+    #   name               = "${local.vpc_name_abr}-ec2-nodes"
+    #   description        = "IAM Role for ${local.vpc_name_abr} EC2 Nodes"
+    #   path               = "/"
+    #   assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+    #   managed_policy_arns = [
+    #     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser",
+    #     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
+    #     "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+    #     "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+    #     "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    #     "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+    #     "arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly",
+    #     "arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess",
+    #     "arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess",
+    #     "arn:aws:iam::aws:policy/AWSCertificateManagerReadOnly",
+    #     "arn:aws:iam::aws:policy/AWSAppMeshFullAccess",
+    #     "arn:aws:iam::aws:policy/AWSCloudMapFullAccess",
+    #     "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+    #   ]
+    #   policy = {
+    #     name        = "${local.vpc_name_abr}-ec2-nodes"
+    #     description = "IAM policy for ${local.vpc_name_abr} EC2 Nodes"
+    #     policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_ec2_nodes.json"
+    #   }
+    # },
     {
       name               = "${local.vpc_name_abr}-cw-observability"
       description        = "IAM Role for ${local.vpc_name_abr} CloudWatch Observability"
@@ -2042,22 +1976,19 @@ inputs = {
       }
       instance_type               = "t3.2xlarge"
       key_name                    = "${local.vpc_name_abr}-key-pair"
+      instance_profile_key        = "${local.vpc_name_abr}"
       associate_public_ip_address = true
       volume_size                 = 30
       root_device_name            = "xvdf"
       vpc_security_group_keys     = ["awx-app"]
-      tags = {
-        "Name"           = "INTPP-SHR-L-ANSIBLE-01"
-        "DNS_Prefix"     = "ans01"
-        "AnsibleInstall" = "True"
-        "CreateUser"     = "True"
-      }
+      user_data_base64            = filebase64("${include.cloud.locals.repo.root}/bash-scripts/ssm_agent_install.sh")
     }
     alb = {
       name                = "${local.vpc_name_abr}-awx"
       internal            = false
       type                = "application"
       vpc_name            = local.vpc_name_abr
+      vpc_name_abr        = local.vpc_name_abr
       security_group_keys = ["awx-alb"]
       use_private_subnets = false
       subnet_keys = [
@@ -2066,17 +1997,6 @@ inputs = {
       enable_deletion_protection = false
       enable_access_logs         = false
       create_default_listener    = true
-      default_listener = {
-        port        = 443
-        protocol    = "HTTPS"
-        action_type = "fixed-response"
-        ssl_policy  = "ELBSecurityPolicy-2016-08"
-        fixed_response = {
-          content_type = "text/plain"
-          message_body = "Oops! The page you are looking for does not exist."
-          status_code  = "200"
-        }
-      }
     }
     target_group = {
       name        = "${local.vpc_name_abr}-awx-tg"
@@ -2091,23 +2011,6 @@ inputs = {
         matcher  = "200"
       }
     }
-    # alb_listener = {
-    #   action   = "forward"
-    #   port     = 443
-    #   protocol = "HTTPS"
-    #   vpc_name = local.vpc_name_abr
-    #   target_group = {
-    #     name     = "awx-tg"
-    #     port     = 80
-    #     protocol = "HTTP"
-    #     health_check = {
-    #       protocol = "HTTP"
-    #       port     = 80
-    #       path     = "/"
-    #       matcher  = "200"
-    #     }
-    #   }
-    # },
     alb_listener_rule = [
       {
         key                  = "awx"
@@ -2135,7 +2038,7 @@ inputs = {
       max_size                  = 3
       desired_capacity          = 1
       health_check_type         = "ELB"
-      health_check_grace_period = 600
+      health_check_grace_period = 2400 # Gives ample time for the AWX instance to initialize and pass health checks before being marked unhealthy and terminated
       attach_target_groups = [
         "${local.vpc_name_abr}-awx-tg"
       ]
@@ -2145,7 +2048,12 @@ inputs = {
       timeouts = {
         delete = "10m"
       }
-      tags = local.tags
+      tags = merge(local.tags,
+        {
+          "AnsibleInstall" = "True"
+          "CreateUser"     = "True"
+        }
+      )
       additional_tags = [
         {
           key                 = "Name"
