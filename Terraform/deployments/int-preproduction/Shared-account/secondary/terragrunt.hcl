@@ -1171,7 +1171,7 @@ inputs = {
   ssm_documents = [
     {
       name               = "ansible-tower-install"
-      content            = file("${include.cloud.locals.repo.root}/documents/AnsibleInstall.yaml")
+      content            = file("${include.cloud.locals.repo.root}/documents/Ansible-Documents/AnsibleInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true
@@ -2029,7 +2029,6 @@ inputs = {
       }
     }
   ]
-
   deploy_ansible = {
     deploy_awx          = local.deploy_awx
     attach_to_elb       = true
@@ -2047,7 +2046,7 @@ inputs = {
       volume_size                 = 30
       root_device_name            = "xvdf"
       vpc_security_group_keys     = ["awx-app"]
-      user_data                   = file("${include.cloud.locals.repo.root}/bash-scripts/ssm_agent_install.sh")
+      user_data_base64            = filebase64("${include.cloud.locals.repo.root}/bash-scripts/ssm_agent_install.sh")
     }
     alb = {
       name                = "${local.vpc_name_abr}-awx"
@@ -2104,7 +2103,7 @@ inputs = {
       max_size                  = 3
       desired_capacity          = 1
       health_check_type         = "ELB"
-      health_check_grace_period = 600
+      health_check_grace_period = 2400 # Gives ample time for the AWX instance to initialize and pass health checks before being marked unhealthy and terminated
       attach_target_groups = [
         "${local.vpc_name_abr}-awx-tg"
       ]
@@ -2186,7 +2185,6 @@ generate "k8s-providers" {
       }
     }
   }
-
   provider "kubernetes" {
     host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)

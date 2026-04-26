@@ -1,0 +1,139 @@
+schemaVersion: '2.2'
+description: "Document to install and configure Ansible Tower on Linux servers using AWS Systems Manager (SSM)."
+parameters:
+  AnsibleTowerUsername:
+    type: String
+    description: "Red Hat subscription username"
+    default: "{{ssm:/Standard/ansible/username}}"
+  AnsibleTowerPassword:
+    type: String
+    description: "Red Hat subscription password"
+    default: "{{ssm:/Standard/ansible/password}}"
+  AnsibleS3BucketName:
+    type: String
+    description: "S3 Bucket Name for Ansible Tower installer"
+    default: "{{ssm:/Standard/ansible/bucketName}}"
+  AnsibleS3BucketPrefix:
+    type: String
+    description: "S3 Bucket Prefix for Ansible Tower installer"
+    default: "Ansible_Tower"
+  AnsibleTowerArchiveName:
+    type: String
+    description: "Ansible Tower archive filename"
+    default: "ansible-automation-platform-setup-bundle-2.4-1-x86_64.tar.gz"
+
+mainSteps:
+- action: aws:runShellScript
+  name: InstallAndConfigureAnsibleTower
+  description: Installs and configures Ansible Tower on Linux servers
+  inputs:
+    timeoutSeconds: 7200
+    runCommand:
+    - |
+      #!/bin/bash -e
+      # Logging and error handling functions
+      log() {
+          echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+      }
+
+      error_exit() {
+          log "ERROR: $1"
+          exit 1
+      }
+
+      log "Starting Ansible Tower installation..."
+
+      # Use SSM-resolved parameters (do not log them)
+      ANSIBLE_TOWER_USERNAME="{{ AnsibleTowerUsername }}"
+      ANSIBLE_TOWER_PASSWORD="{{ AnsibleTowerPassword }}"
+
+      log "Configuration:"
+      log "  S3 Bucket: {{ AnsibleS3BucketName }}"
+      log "  S3 Prefix: {{ AnsibleS3BucketPrefix }}"
+      log "  Archive Name: {{ AnsibleTowerArchiveName }}"
+
+      export PATH=/usr/local/bin:$PATH
+
+      # Install AWS CLI if missing
+      if ! command -v aws &> /dev/null; then
+        log "Installing AWS CLI..."
+        yum install unzip -y || error_exit "Failed to install unzip"
+        curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" || error_exit "Failed to download AWS CLI"
+        rm -rf aws
+        unzip -o awscliv2.zip || error_exit "Failed to extract AWS CLI"
+        ./aws/install || error_exit "Failed to install AWS CLI"
+        log "AWS CLI installed successfully"
+      fi
+
+      # Validate S3 file exists
+      S3_URI="s3://{{ AnsibleS3BucketName }}/{{ AnsibleS3BucketPrefix }}/{{ AnsibleTowerArchiveName }}"
+      log "Validating S3 file exists at $S3_URI..."
+      aws s3 ls "$S3_URI" &> /dev/null || error_exit "Ansible Tower archive not found in S3"
+
+      log "Registering with Red Hat Subscription Manager..."
+      set +x   # disable debug logging to prevent password leakage
+      if subscription-manager register --username "$ANSIBLE_TOWER_USERNAME" --password "$ANSIBLE_TOWER_PASSWORD"; then
+        log "Red Hat registration successful."
+      else
+        log "Instance already registered or failed to register. Continuing..."
+      fi
+      set -x   # re-enable debug logging
+
+      # Clean and rebuild dnf cache to prevent stale cache errors
+      log "Cleaning dnf cache..."
+      dnf clean all
+      rm -rf /var/cache/dnf/*
+      dnf makecache
+
+      # Remove conflicting system Python packages BEFORE updating
+      log "Removing conflicting system Python packages..."
+      dnf remove -y python3-pycparser python3-cffi python3-cryptography --noautoremove 2>/dev/null || log "WARNING: Some packages may not have been installed"
+
+      log "Updating system packages..."
+      yum update -y --skip-broken --allowerasing || log "WARNING: Package update failed but continuing..."
+
+      log "Downloading Ansible Tower installer..."
+      mkdir -p /root
+      aws s3 cp "$S3_URI" "/root/" --no-progress || error_exit "Failed to download archive"
+
+      FILE_SIZE=$(stat -c%s "/root/{{ AnsibleTowerArchiveName }}" 2>/dev/null || echo "unknown")
+      log "Downloaded file size: $FILE_SIZE bytes"
+
+      log "Extracting Ansible Tower archive..."
+      tar -xzf "/root/{{ AnsibleTowerArchiveName }}" -C /root/ || error_exit "Failed to extract archive"
+
+      EXTRACTED_FOLDER=$(find /root -maxdepth 1 -type d -name "*ansible*" | grep -v "^/root$" | head -1)
+      [ -z "$EXTRACTED_FOLDER" ] && error_exit "Could not find extracted Ansible Tower folder!"
+
+      log "Found extracted folder: $EXTRACTED_FOLDER"
+
+      [ ! -f "$EXTRACTED_FOLDER/inventory" ] && error_exit "Inventory file not found!"
+      cp "$EXTRACTED_FOLDER/inventory" "$EXTRACTED_FOLDER/inventory.backup"
+      log "Backup of inventory file created"
+
+      log "Configuring inventory file..."
+      set +x  # prevent logging secrets
+      sed -i "s|admin_password=.*|admin_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
+      sed -i "s|pg_password=.*|pg_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
+      sed -i "s|register_username=.*|register_username='$ANSIBLE_TOWER_USERNAME'|" "$EXTRACTED_FOLDER/inventory"
+      sed -i "s|register_password=.*|register_password='$ANSIBLE_TOWER_PASSWORD'|" "$EXTRACTED_FOLDER/inventory"
+      set -x
+
+      echo "" >> "$EXTRACTED_FOLDER/inventory"
+      echo "[automationcontroller]" >> "$EXTRACTED_FOLDER/inventory"
+      echo "ansible ansible_connection=local" >> "$EXTRACTED_FOLDER/inventory"
+
+      log "Running Ansible Tower setup..."
+      chmod +x "$EXTRACTED_FOLDER/setup.sh"
+      cd "$EXTRACTED_FOLDER"
+
+      bash setup.sh -e required_ram=2048 2>&1 | tee /root/aap_setup.log || error_exit "Ansible Tower setup failed! Check /root/aap_setup.log for details"
+
+      log "Installation completed successfully!"
+      log "You can now access Ansible Tower at: https://$(hostname)/api/"
+      log "Default admin username: admin"
+      log "Admin password is stored securely and not logged."
+  precondition:
+    StringEquals:
+    - platformType
+    - Linux
