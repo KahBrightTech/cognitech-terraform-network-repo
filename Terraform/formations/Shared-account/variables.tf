@@ -1899,3 +1899,51 @@ variable "deploy_ansible" {
     }))
   })
 }
+
+
+variable "lambdas" {
+  description = "Lambda functions to be created"
+  type = list(object({
+    function_name       = string
+    description         = string
+    runtime             = string
+    handler             = string
+    timeout             = optional(number)
+    private_bucket_name = string
+    lambda_s3_key       = string
+    layer_description   = optional(string)
+    layer_s3_key        = optional(string)
+    env_variables       = optional(map(string))
+  }))
+  default = null
+}
+
+variable "lambda-invocations" {
+  description = "The Lambda function invocation permissions variables"
+  type = list(object({
+    key            = string
+    function_name  = optional(string)
+    function_key   = optional(string)
+    statement_id   = string
+    principal      = string
+    source_arn     = optional(string)
+    source_key     = optional(string)
+    source_account = optional(string)
+  }))
+  default = null
+}
+
+variable "events" {
+  description = "EventBridge configuration object."
+  type = list(object({
+    event_bus_name   = optional(string)
+    rule_name        = optional(string)
+    event_pattern    = optional(string)
+    rule_description = optional(string, "")
+    rule_enabled     = optional(bool, true)
+    target_arn       = optional(string)
+    target_key       = optional(string)
+    tags             = optional(map(string), {})
+  }))
+  default = null
+}

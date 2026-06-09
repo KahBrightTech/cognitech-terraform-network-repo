@@ -303,7 +303,7 @@ locals {
           }
         }
         app_vpc = {
-          user_acceptance_test = {
+          user-acceptance-test = {
             vpc = "10.4.1.0/24"
             public_subnets = {
               sbnt1 = {

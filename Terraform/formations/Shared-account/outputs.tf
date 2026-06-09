@@ -208,3 +208,28 @@ output "awx" {
   value       = module.deploy_awx
   sensitive   = true
 }
+
+#-------------------------------------------------------
+# Lambda outputs
+#-------------------------------------------------------
+output "lambdas" {
+  description = "Output for all Lambda functions"
+  value       = module.lambdas
+}
+
+
+#-------------------------------------------------------
+# Lambda invocation outputs
+#-------------------------------------------------------
+output "lambda_invocations" {
+  description = "Output for all Lambda invocations"
+  value       = module.lambda-invocations
+}
+
+#-------------------------------------------------------
+# Event outputs
+#-------------------------------------------------------
+output "events" {
+  description = "Output for all Event rules"
+  value       = module.events
+}

@@ -144,7 +144,7 @@ locals {
       eks_node_tagger = {
         runtime             = "python3.12"
         handler             = "eks_instance_tagger_lambda.lambda_handler" # This is a combination of the file name and the function name in the code. For example, if your code file is named "function.py" and the function you want to execute is named "lambda_handler", then the handler would be "function.lambda_handler".
-        private_bucket_name = "int-preproduction-use1-dev-software-bucket"
+        private_bucket_name = "ansibleautomationbucket"
         lambda_s3_key       = "lambda/functions/function.zip"
         timeout             = "120"
         layer_s3_key        = "lambda/layers/layer.zip"
