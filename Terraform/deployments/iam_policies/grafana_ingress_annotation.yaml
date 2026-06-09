@@ -1,0 +1,10 @@
+kubernetes.io/ingress.class: alb
+alb.ingress.kubernetes.io/scheme: internet-facing
+alb.ingress.kubernetes.io/target-type: ip
+alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+alb.ingress.kubernetes.io/ssl-redirect: "443"
+alb.ingress.kubernetes.io/healthcheck-path: /login
+external-dns.alpha.kubernetes.io/hostname: grafana.novutechnologies.net
+alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:271457809232:certificate/8a83d478-e044-43e0-aced-01994edc5dcc
+alb.ingress.kubernetes.io/security-groups: sg-REPLACE_WITH_ALB_SECURITY_GROUP
+alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"

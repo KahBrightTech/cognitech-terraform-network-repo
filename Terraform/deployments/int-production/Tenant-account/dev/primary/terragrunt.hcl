@@ -35,7 +35,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name            = "development"
   vpc_name_abr        = "dev"
-  create_eks_cluster  = true
+  create_eks_cluster  = false
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
@@ -1352,6 +1352,20 @@ inputs = {
         external_dns_policy                   = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
         external_dns_domain_filters           = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
         external_dns_version                  = "1.14.3"
+        enable_kube_prometheus_stack          = true
+        kube_prometheus_stack_version         = "69.8.2"
+        grafana_namespace                     = "monitoring"
+        grafana_service_type                  = "ClusterIP"
+        grafana_ingress_enabled               = true
+        grafana_ingress_class_name            = "alb"
+        grafana_ingress_annotations           = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/grafana_ingress_annotation.yaml"))
+        grafana_persistence_enabled           = true
+        grafana_persistence_size              = "20Gi"
+        grafana_persistence_storage_class     = "gp3"
+        prometheus_retention                  = "30d"
+        prometheus_persistence_enabled        = true
+        prometheus_persistence_size           = "100Gi"
+        prometheus_persistence_storage_class  = "gp3"
       }
     }
   ]
