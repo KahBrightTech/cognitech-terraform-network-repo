@@ -35,7 +35,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name            = "user-acceptance-test"
   vpc_name_abr        = "uat"
-  create_eks_cluster  = false
+  create_eks_cluster  = true
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
@@ -1373,7 +1373,7 @@ inputs = {
 
   firehose_streams = [
     {
-      create_firehose = false
+      create_firehose = true
       key             = "${local.vpc_name_abr}-firehose"
       name            = "${local.vpc_name_abr}-firehose"
       vpc_name        = local.vpc_name_abr
@@ -1403,7 +1403,7 @@ inputs = {
 
   opensearch_domains = [
     {
-      create_opensearch = false
+      create_opensearch = true
       key               = "${local.vpc_name_abr}-es"
       domain_name       = "${local.vpc_name_abr}-es"
       vpc_name          = local.vpc_name_abr
