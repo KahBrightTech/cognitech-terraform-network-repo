@@ -33,8 +33,8 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Tenant-account"
   ## Updates these variables as per the product/service
-  vpc_name            = "development"
-  vpc_name_abr        = "dev"
+  vpc_name            = "user_acceptance_test"
+  vpc_name_abr        = "uat"
   create_eks_cluster  = false
   create_ecs_cluster  = false
   create_postgres_rds = false
