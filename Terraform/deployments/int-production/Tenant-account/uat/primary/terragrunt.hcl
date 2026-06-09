@@ -1388,17 +1388,20 @@ inputs = {
         compression_format  = "GZIP"
       }
       opensearch_configuration = {
+        # Networking note:
+        # - Public OpenSearch domain: keep this block without vpc_config.
+        # - Private OpenSearch domain: add vpc_config here AND set opensearch_domains[].vpc_options below.
         domain_key = "${local.vpc_name_abr}-es"
         index_name = "${local.vpc_name_abr}-logs"
         type_name  = "_doc"
-        vpc_config = {
-          use_private_subnets = false
-          subnet_keys = [
-            include.env.locals.subnet_prefix.primary,
-            include.env.locals.subnet_prefix.secondary
-          ]
-          security_group_keys = ["firehose"]
-        }
+        # vpc_config = {
+        #   use_private_subnets = true
+        #   subnet_keys = [
+        #     include.env.locals.subnet_prefix.primary,
+        #     include.env.locals.subnet_prefix.secondary
+        #   ]
+        #   security_group_keys = ["firehose"]
+        # }
       }
     }
   ]
@@ -1421,12 +1424,18 @@ inputs = {
         volume_size = 10
         volume_type = "gp3"
       }
-      vpc_options = {
-        subnet_keys = [
-          include.env.locals.subnet_prefix.primary
-        ]
-        security_group_keys = ["opensearch"]
-      }
+      # Domain networking note:
+      # - null => public domain endpoint.
+      # - object => private VPC endpoint (must match Firehose vpc_config above).
+      # vpc_options = {
+      #   use_private_subnets = true
+      #   subnet_keys = [
+      #     include.env.locals.subnet_prefix.primary,
+      #     include.env.locals.subnet_prefix.secondary
+      #   ]
+      #   security_group_keys = ["opensearch"]
+      # }
+      vpc_options = null
     }
   ]
 
