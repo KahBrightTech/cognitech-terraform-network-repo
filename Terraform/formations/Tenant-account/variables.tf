@@ -1782,13 +1782,14 @@ variable "events" {
 variable "firehose_streams" {
   description = "Firehose delivery streams configuration object."
   type = list(object({
-    key            = string
-    name           = string
-    vpc_name       = optional(string, null)
-    destination    = optional(string, "extended_s3")
-    role_arn       = optional(string)
-    role_key       = optional(string)
-    create_cw_role = optional(bool, true)
+    key             = string
+    name            = string
+    create_firehose = optional(bool, true)
+    vpc_name        = optional(string, null)
+    destination     = optional(string, "extended_s3")
+    role_arn        = optional(string)
+    role_key        = optional(string)
+    create_cw_role  = optional(bool, true)
     # CloudWatch Logging
     enable_cloudwatch_logging     = optional(bool, true)
     cloudwatch_log_retention_days = optional(number, 14)
@@ -1852,10 +1853,11 @@ variable "firehose_streams" {
 variable "opensearch_domains" {
   description = "AWS OpenSearch domain configuration."
   type = list(object({
-    key            = string
-    domain_name    = string
-    vpc_name       = optional(string, null)
-    engine_version = optional(string, "OpenSearch_2.11")
+    key               = string
+    domain_name       = string
+    create_opensearch = optional(bool, true)
+    vpc_name          = optional(string, null)
+    engine_version    = optional(string, "OpenSearch_2.11")
     # Cluster configuration
     cluster_config = optional(object({
       instance_type            = optional(string, "r6g.large.search")

@@ -703,7 +703,7 @@ module "eks" {
 #--------------------------------------------------------------------
 module "firehose_streams" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-Firehose?ref=v1.6.47"
-  for_each = (var.firehose_streams != null) ? { for item in var.firehose_streams : item.key => item } : {}
+  for_each = (var.firehose_streams != null) ? { for item in var.firehose_streams : item.key => item if item.create_firehose } : {}
   common   = var.common
   firehose = merge(
     each.value,
@@ -751,7 +751,7 @@ module "firehose_streams" {
 #--------------------------------------------------------------------
 module "opensearch_domains" {
   source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-OpenSearch?ref=v1.6.48"
-  for_each = (var.opensearch_domains != null) ? { for item in var.opensearch_domains : item.key => item } : {}
+  for_each = (var.opensearch_domains != null) ? { for item in var.opensearch_domains : item.key => item if item.create_opensearch } : {}
   common   = var.common
   opensearch = merge(
     each.value,
