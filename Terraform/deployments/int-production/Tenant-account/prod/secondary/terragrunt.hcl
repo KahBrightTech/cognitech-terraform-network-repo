@@ -33,13 +33,14 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Tenant-account"
   ## Updates these variables as per the product/service
-  vpc_name            = "system-int-testing"
-  vpc_name_abr        = "sit"
+  vpc_name            = "production"
+  vpc_name_abr        = "prod"
   create_eks_cluster  = false
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
+
 
   # Composite variables 
   tags = merge(
@@ -50,6 +51,7 @@ locals {
     }
   )
 }
+
 #-------------------------------------------------------
 # Dependencies 
 #-------------------------------------------------------
@@ -199,6 +201,18 @@ inputs = {
           name        = "ecs-instance"
           description = "standard ${local.vpc_name} ecs instance security group"
           vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "firehose"
+          name        = "firehose"
+          description = "standard ${local.vpc_name} firehose service security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "opensearch"
+          name        = "opensearch"
+          description = "standard ${local.vpc_name} opensearch service security group"
+          vpc_name    = local.vpc_name_abr
         }
       ]
       security_group_rules = [
@@ -314,6 +328,39 @@ inputs = {
               }
             ]
           )
+        },
+        {
+          sg_key  = "firehose"
+          ingress = []
+          egress = [
+            {
+              key         = "egress-all-traffic"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "BASE - Outbound all traffic to the Internet"
+              ip_protocol = "-1"
+            }
+          ]
+        },
+        {
+          sg_key = "opensearch"
+          ingress = [
+            {
+              key           = "ingress-443-firehose-sg"
+              source_sg_key = "firehose"
+              description   = "BASE - Inbound traffic from Firehose SG to OpenSearch on tcp port 443"
+              from_port     = 443
+              to_port       = 443
+              ip_protocol   = "tcp"
+            }
+          ]
+          egress = [
+            {
+              key         = "egress-all-traffic"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "BASE - Outbound all traffic to the Internet"
+              ip_protocol = "-1"
+            }
+          ]
         },
         {
           sg_key = "nlb"
@@ -683,6 +730,12 @@ inputs = {
       policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_app_policy.json"
     },
     {
+      name              = "${local.vpc_name_abr}-firehose-backup"
+      description       = "The Firehose bucket for different apps"
+      enable_versioning = true
+      policy            = "${include.cloud.locals.repo.root}/iam_policies/s3_firehose_bucket.json"
+    },
+    {
       key               = "audit-bucket"
       name              = "${local.vpc_name_abr}-audit-bucket"
       description       = "The audit bucket for different apps"
@@ -904,13 +957,15 @@ inputs = {
     #     }
     #   }
   ]
+
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = false
-      create_service_accounts = false
-      enable_eks_pia          = false
-      create_rbac             = false
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
+      create_rbac             = true
+      create_namespaces       = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_arn                = dependency.platform.outputs.IAM_roles.shared-eks.iam_role_arn
@@ -996,6 +1051,14 @@ inputs = {
           }
         ]
       }
+      namespaces = [
+        {
+          name = "infogrid"
+          labels = {
+            team = "infogrid-devops"
+          }
+        }
+      ]
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
         include.env.locals.subnet_prefix.secondary
@@ -1191,6 +1254,19 @@ inputs = {
           }
         },
         {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
+          description               = "IAM Role for ${local.vpc_name_abr} Fluent Bit Service Account"
+          path                      = "/"
+          service_account_namespace = "amazon-cloudwatch" # No assume role policy provided so automatically uses OIDC for federation
+          service_account_name      = "fluent-bit"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
+            description = "IAM policy for ${local.vpc_name_abr} Fluent Bit Service Account."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fluent_bit_dev.json"
+          }
+        },
+        {
           key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
           name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
           description        = "IAM Role for ${local.vpc_name_abr} Secrets PIA Service Account"
@@ -1260,13 +1336,14 @@ inputs = {
         enable_vpc_cni                        = true
         enable_kube_proxy                     = true
         enable_coredns                        = true
-        enable_cloudwatch_observability       = true
+        enable_cloudwatch_observability       = false
         enable_secrets_manager_csi_driver     = true
         enable_metrics_server                 = true
         enableSecretRotation                  = true
         enable_pod_identity_agent             = true
         enable_external_dns                   = true
         enable_ebs_csi_driver                 = true
+        enable_fluent_bit                     = true
         rotationPollInterval                  = "2m"
         cloudwatch_observability_role_arn     = dependency.platform.outputs.IAM_roles.shared-cw-observability.iam_role_arn
         ebs_csi_driver_role_key               = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
@@ -1276,6 +1353,79 @@ inputs = {
         external_dns_policy                   = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
         external_dns_domain_filters           = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
         external_dns_version                  = "1.14.3"
+        enable_kube_prometheus_stack          = true
+        kube_prometheus_stack_version         = "69.8.2"
+        grafana_namespace                     = "monitoring"
+        grafana_service_type                  = "ClusterIP"
+        grafana_ingress_enabled               = true
+        grafana_ingress_class_name            = "alb"
+        grafana_ingress_annotations           = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/grafana_ingress_annotation.yaml"))
+        grafana_persistence_enabled           = true
+        grafana_persistence_size              = "20Gi"
+        grafana_persistence_storage_class     = "gp3"
+        prometheus_retention                  = "30d"
+        prometheus_persistence_enabled        = true
+        prometheus_persistence_size           = "100Gi"
+        prometheus_persistence_storage_class  = "gp3"
+      }
+    }
+  ]
+
+  firehose_streams = [
+    {
+      create_firehose = true
+      key             = "${local.vpc_name_abr}-firehose"
+      name            = "${local.vpc_name_abr}-firehose"
+      vpc_name        = local.vpc_name_abr
+      destination     = "opensearch"
+      role_arn        = dependency.platform.outputs.IAM_roles.shared-firehose.iam_role_arn
+      s3_configuration = { # This is required even when the destination is OpenSearch because Firehose uses S3 as a backup for failed deliveries to OpenSearch
+        bucket_key          = "${local.vpc_name_abr}-firehose-backup"
+        prefix              = "firehose/${local.vpc_name_abr}-logs/"
+        error_output_prefix = "firehose/${local.vpc_name_abr}-logs/errors/"
+        buffering_size      = 5
+        buffering_interval  = 300
+        compression_format  = "GZIP"
+      }
+      opensearch_configuration = {
+        domain_key = "${local.vpc_name_abr}-es"
+        index_name = "${local.vpc_name_abr}-logs"
+        type_name  = "_doc"
+        vpc_config = {
+          use_private_subnets = false
+          subnet_keys = [
+            include.env.locals.subnet_prefix.primary,
+            include.env.locals.subnet_prefix.secondary
+          ]
+          security_group_keys = ["firehose"]
+        }
+      }
+    }
+  ]
+
+  opensearch_domains = [
+    {
+      create_opensearch = true
+      key               = "${local.vpc_name_abr}-es"
+      domain_name       = "${local.vpc_name_abr}-es"
+      vpc_name          = local.vpc_name_abr
+      engine_version    = "OpenSearch_2.3"
+      cluster_config = {
+        instance_type            = "t3.small.search"
+        instance_count           = 2
+        dedicated_master_enabled = false
+        zone_awareness_enabled   = false
+      }
+      ebs_options = {
+        ebs_enabled = true
+        volume_size = 10
+        volume_type = "gp3"
+      }
+      vpc_options = {
+        subnet_keys = [
+          include.env.locals.subnet_prefix.primary
+        ]
+        security_group_keys = ["opensearch"]
       }
     }
   ]
@@ -1520,43 +1670,6 @@ inputs = {
       }
     }
   ]
-
-  lambdas = [
-    {
-      function_name       = "${local.vpc_name_abr}-eks_node_tagger"
-      description         = "Lambda function to tag EKS nodes"
-      runtime             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.runtime
-      handler             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.handler
-      timeout             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.timeout
-      private_bucket_name = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.private_bucket_name
-      lambda_s3_key       = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lambda_s3_key
-      layer_description   = "Lambda Layer for shared libraries for all functions"
-      layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
-      env_variables = {
-        VPC_NAME_ABR = local.vpc_name_abr
-      }
-    }
-  ]
-
-  events = [
-    {
-      rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
-      event_pattern    = <<-EOF
-      {
-        "source": ["aws.ec2"],
-        "detail-type": ["EC2 Instance State-change Notification"],
-        "detail": {
-          "state": ["running"]
-        }
-      }
-      EOF
-      rule_description = "EventBridge rule to trigger tagging newly created EKS nodes on EC2 instance state change"
-      target_key       = "${local.vpc_name_abr}-eks_node_tagger"
-      tags = {
-        Used_for = "eks-node-tagging"
-      }
-    }
-  ]
 }
 
 #-------------------------------------------------------
@@ -1635,4 +1748,3 @@ generate "k8s-providers" {
   %{endif}
   EOF
 }
-

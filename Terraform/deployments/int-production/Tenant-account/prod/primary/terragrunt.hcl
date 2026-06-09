@@ -1373,7 +1373,7 @@ inputs = {
 
   firehose_streams = [
     {
-      create_firehose = false
+      create_firehose = true
       key             = "${local.vpc_name_abr}-firehose"
       name            = "${local.vpc_name_abr}-firehose"
       vpc_name        = local.vpc_name_abr
@@ -1392,8 +1392,10 @@ inputs = {
         index_name = "${local.vpc_name_abr}-logs"
         type_name  = "_doc"
         vpc_config = {
+          use_private_subnets = false
           subnet_keys = [
-            include.env.locals.subnet_prefix.primary
+            include.env.locals.subnet_prefix.primary,
+            include.env.locals.subnet_prefix.secondary
           ]
           security_group_keys = ["firehose"]
         }
@@ -1403,7 +1405,7 @@ inputs = {
 
   opensearch_domains = [
     {
-      create_opensearch = false
+      create_opensearch = true
       key               = "${local.vpc_name_abr}-es"
       domain_name       = "${local.vpc_name_abr}-es"
       vpc_name          = local.vpc_name_abr
@@ -1427,26 +1429,6 @@ inputs = {
       }
     }
   ]
-
-  # events = [
-  #   {
-  #     rule_name        = "${local.vpc_name_abr}-eks-node-tagger-rule"
-  #     event_pattern    = <<-EOF
-  #     {
-  #       "source": ["aws.ec2"],
-  #       "detail-type": ["EC2 Instance State-change Notification"],
-  #       "detail": {
-  #         "state": ["running"]
-  #       }
-  #     }
-  #     EOF
-  #     rule_description = "EventBridge rule to trigger tagging newly created EKS nodes on EC2 instance state change"
-  #     target_key       = "${local.vpc_name_abr}-eks_node_tagger"
-  #     tags = {
-  #       Used_for = "eks-node-tagging"
-  #     }
-  #   }
-  # ]
 
   rds_instances = [
     {
@@ -1688,33 +1670,6 @@ inputs = {
       }
     }
   ]
-
-  # lambdas = [
-  #   {
-  #     function_name       = "${local.vpc_name_abr}-eks_node_tagger"
-  #     description         = "Lambda function to tag EKS nodes"
-  #     runtime             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.runtime
-  #     handler             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.handler
-  #     timeout             = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.timeout
-  #     private_bucket_name = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.private_bucket_name
-  #     lambda_s3_key       = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.lambda_s3_key
-  #     layer_description   = "Lambda Layer for shared libraries for all functions"
-  #     layer_s3_key        = include.cloud.locals.lambda[include.env.locals.name_abr].eks_node_tagger.layer_s3_key
-  #     env_variables = {
-  #       VPC_NAME_ABR = local.vpc_name_abr
-  #     }
-  #   }
-  # ]
-
-  # lambda-invocations = [
-  #   {
-  #     key          = "eventbridge-eks-node-tagger-invocation"
-  #     function_key = "${local.vpc_name_abr}-eks_node_tagger"
-  #     statement_id = "AllowEventBridgeInvoke"
-  #     principal    = "events.amazonaws.com"
-  #     source_key   = "${local.vpc_name_abr}-eks-node-tagger-rule"
-  #   }
-  # ]
 }
 
 #-------------------------------------------------------
