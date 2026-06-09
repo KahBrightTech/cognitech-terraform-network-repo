@@ -39,7 +39,7 @@ locals {
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
-  deploy_awx          = true
+  deploy_awx          = false
   vpn_ip              = "69.143.134.56/32"
 
   # Composite variables 
@@ -831,32 +831,32 @@ inputs = {
       ]
       create_custom_policy = false
     },
-    # {
-    #   name               = "${local.vpc_name_abr}-ec2-nodes"
-    #   description        = "IAM Role for ${local.vpc_name_abr} EC2 Nodes"
-    #   path               = "/"
-    #   assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
-    #   managed_policy_arns = [
-    #     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser",
-    #     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
-    #     "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
-    #     "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-    #     "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-    #     "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
-    #     "arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly",
-    #     "arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess",
-    #     "arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess",
-    #     "arn:aws:iam::aws:policy/AWSCertificateManagerReadOnly",
-    #     "arn:aws:iam::aws:policy/AWSAppMeshFullAccess",
-    #     "arn:aws:iam::aws:policy/AWSCloudMapFullAccess",
-    #     "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-    #   ]
-    #   policy = {
-    #     name        = "${local.vpc_name_abr}-ec2-nodes"
-    #     description = "IAM policy for ${local.vpc_name_abr} EC2 Nodes"
-    #     policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_ec2_nodes.json"
-    #   }
-    # },
+    {
+      name               = "${local.vpc_name_abr}-ec2-nodes"
+      description        = "IAM Role for ${local.vpc_name_abr} EC2 Nodes"
+      path               = "/"
+      assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/ec2_trust_policy.json"
+      managed_policy_arns = [
+        "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser",
+        "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
+        "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+        "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+        "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly",
+        "arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/AWSCertificateManagerReadOnly",
+        "arn:aws:iam::aws:policy/AWSAppMeshFullAccess",
+        "arn:aws:iam::aws:policy/AWSCloudMapFullAccess",
+        "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+      ]
+      policy = {
+        name        = "${local.vpc_name_abr}-ec2-nodes"
+        description = "IAM policy for ${local.vpc_name_abr} EC2 Nodes"
+        policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_role_for_ec2_nodes.json"
+      }
+    },
     {
       name               = "${local.vpc_name_abr}-cw-observability"
       description        = "IAM Role for ${local.vpc_name_abr} CloudWatch Observability"
@@ -1111,7 +1111,7 @@ inputs = {
   ssm_documents = [
     {
       name               = "ansible-tower-install"
-      content            = file("${include.cloud.locals.repo.root}/documents/Ansible-Documents/Intp-AnsibleInstall.yaml")
+      content            = file("${include.cloud.locals.repo.root}/documents/Ansible-Documents/AnsibleInstall.yaml")
       document_type      = "Command"
       document_format    = "YAML"
       create_association = true
