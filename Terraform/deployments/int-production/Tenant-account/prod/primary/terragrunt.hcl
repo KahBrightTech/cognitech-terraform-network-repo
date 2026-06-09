@@ -1373,11 +1373,12 @@ inputs = {
 
   firehose_streams = [
     {
-      key         = "${local.vpc_name_abr}-firehose"
-      name        = "${local.vpc_name_abr}-firehose"
-      vpc_name    = local.vpc_name_abr
-      destination = "opensearch"
-      role_arn    = dependency.platform.outputs.IAM_roles.shared-firehose.iam_role_arn
+      create_firehose = false
+      key             = "${local.vpc_name_abr}-firehose"
+      name            = "${local.vpc_name_abr}-firehose"
+      vpc_name        = local.vpc_name_abr
+      destination     = "opensearch"
+      role_arn        = dependency.platform.outputs.IAM_roles.shared-firehose.iam_role_arn
       s3_configuration = { # This is required even when the destination is OpenSearch because Firehose uses S3 as a backup for failed deliveries to OpenSearch
         bucket_key          = "${local.vpc_name_abr}-firehose-backup"
         prefix              = "firehose/${local.vpc_name_abr}-logs/"
@@ -1402,10 +1403,11 @@ inputs = {
 
   opensearch_domains = [
     {
-      key            = "${local.vpc_name_abr}-es"
-      domain_name    = "${local.vpc_name_abr}-es"
-      vpc_name       = local.vpc_name_abr
-      engine_version = "OpenSearch_2.3"
+      create_opensearch = false
+      key               = "${local.vpc_name_abr}-es"
+      domain_name       = "${local.vpc_name_abr}-es"
+      vpc_name          = local.vpc_name_abr
+      engine_version    = "OpenSearch_2.3"
       cluster_config = {
         instance_type            = "t3.small.search"
         instance_count           = 2
