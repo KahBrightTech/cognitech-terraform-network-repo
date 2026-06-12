@@ -1390,7 +1390,7 @@ inputs = {
         # Networking note:
         # - Public OpenSearch domain: keep this block without vpc_config.
         # - Private OpenSearch domain: add vpc_config here AND set opensearch_domains[].vpc_options below.
-        domain_key = "${local.vpc_name_abr}-es"
+        domain_key = "${local.vpc_name_abr}-es-logs"
         index_name = "${local.vpc_name_abr}-logs"
         # vpc_config = {
         #   use_private_subnets = true

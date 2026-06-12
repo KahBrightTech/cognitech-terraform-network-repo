@@ -1373,7 +1373,7 @@ inputs = {
 
   firehose_streams = [
     {
-      create_firehose = true
+      create_firehose = false
       key             = "${local.vpc_name_abr}-firehose"
       name            = "${local.vpc_name_abr}-firehose"
       vpc_name        = local.vpc_name_abr
@@ -1404,7 +1404,7 @@ inputs = {
 
   opensearch_domains = [
     {
-      create_opensearch = true
+      create_opensearch = false
       key               = "${local.vpc_name_abr}-es"
       domain_name       = "${local.vpc_name_abr}-es"
       vpc_name          = local.vpc_name_abr
