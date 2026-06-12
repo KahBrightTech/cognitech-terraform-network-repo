@@ -35,7 +35,7 @@ locals {
   ## Updates these variables as per the product/service
   vpc_name            = "user-acceptance-test"
   vpc_name_abr        = "uat"
-  create_eks_cluster  = true
+  create_eks_cluster  = false
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
@@ -1353,6 +1353,7 @@ inputs = {
         external_dns_domain_filters           = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
         external_dns_version                  = "1.14.3"
         enable_kube_prometheus_stack          = true
+        kube_prometheus_stack_timeout         = 1800
         kube_prometheus_stack_version         = "69.8.2"
         grafana_namespace                     = "monitoring"
         grafana_service_type                  = "ClusterIP"
@@ -1423,6 +1424,7 @@ inputs = {
         volume_type = "gp3"
       }
       access_policies = file("${include.cloud.locals.repo.root}/iam_policies/opensearch_firehose_access_policy.json")
+      source_ip_cidr  = local.vpn_ip
       # Domain networking note:
       # - null => public domain endpoint.
       # - object => private VPC endpoint (must match Firehose vpc_config above).

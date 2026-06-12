@@ -585,7 +585,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.54"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.56"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -755,6 +755,33 @@ module "opensearch_domains" {
   common   = var.common
   opensearch = merge(
     each.value,
+    {
+      access_policies = each.value.access_policies != null ? replace(
+        replace(
+          replace(
+            replace(
+              replace(
+                replace(
+                  each.value.access_policies,
+                  "[[account_number]]",
+                  data.aws_caller_identity.current.account_id
+                ),
+                "[[source_ip]]",
+                coalesce(each.value.source_ip_cidr, var.opensearch_source_ip_cidr, "[[source_ip]]")
+              ),
+              "[[resource_name]]",
+              each.value.domain_name
+            ),
+            "[[region]]",
+            data.aws_region.current.name
+          ),
+          "[[admin_role_arn]]",
+          try(data.aws_iam_roles.admin_role.arns[0], "")
+        ),
+        "[[domain_arn]]",
+        "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${each.value.domain_name}"
+      ) : null
+    },
     {
       vpc_options = each.value.vpc_options != null ? merge(
         each.value.vpc_options,

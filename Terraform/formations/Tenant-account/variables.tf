@@ -1173,6 +1173,7 @@ variable "eks" {
       fluent_bit_firehose_delivery_stream             = optional(string)
       fluent_bit_firehose_delivery_stream_key         = optional(string)
       enable_kube_prometheus_stack                    = optional(bool, false)
+      kube_prometheus_stack_timeout                   = optional(number, 1800)
       kube_prometheus_stack_version                   = optional(string)
       grafana_namespace                               = optional(string)
       grafana_service_type                            = optional(string)
@@ -1916,6 +1917,8 @@ variable "opensearch_domains" {
 
     # Access policies (JSON string)
     access_policies = optional(string, null)
+    # Optional per-domain source IP CIDR for [[source_ip]] placeholder replacement
+    source_ip_cidr = optional(string, null)
     # Auto-tune
     auto_tune_desired_state = optional(string, null) # ENABLED or DISABLED
     # Advanced options
@@ -1932,4 +1935,10 @@ variable "opensearch_domains" {
     tags = optional(map(string), {})
   }))
   default = null
+}
+
+variable "opensearch_source_ip_cidr" {
+  description = "Optional CIDR used to replace [[source_ip]] placeholder in OpenSearch access policies."
+  type        = string
+  default     = null
 }
