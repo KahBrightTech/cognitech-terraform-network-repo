@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowAdminRole",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::271457809232:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_7f215b32fef26e47"
+      },
+      "Action": "es:ESHttp*",
+      "Resource": "arn:aws:es:us-east-1:271457809232:domain/intp-use1-uat-es-logs/*"
+    },
+    {
+      "Sid": "AllowFromMyPublicIP",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "es:ESHttp*",
+      "Resource": "arn:aws:es:us-east-1:271457809232:domain/intp-use1-uat-es-logs/*",
+      "Condition": {
+        "IpAddress": {
+          "aws:SourceIp": "69.143.134.56/32"
+        }
+      }
+    }
+  ]
+}

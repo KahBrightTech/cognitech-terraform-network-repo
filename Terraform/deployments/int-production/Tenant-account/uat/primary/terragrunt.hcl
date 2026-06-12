@@ -960,11 +960,11 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = true
-      create_service_accounts = true
-      enable_eks_pia          = true
-      create_rbac             = true
-      create_namespaces       = true
+      create_node_group       = false
+      create_service_accounts = false
+      enable_eks_pia          = false
+      create_rbac             = false
+      create_namespaces       = false
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_arn                = dependency.platform.outputs.IAM_roles.shared-eks.iam_role_arn
@@ -1372,7 +1372,7 @@ inputs = {
 
   firehose_streams = [
     {
-      create_firehose = true
+      create_firehose = false
       key             = "${local.vpc_name_abr}-firehose"
       name            = "${local.vpc_name_abr}-firehose"
       vpc_name        = local.vpc_name_abr
@@ -1406,7 +1406,7 @@ inputs = {
 
   opensearch_domains = [
     {
-      create_opensearch = true
+      create_opensearch = false
       key               = "${local.vpc_name_abr}-es-logs"
       domain_name       = "${local.vpc_name_abr}-es-logs"
       vpc_name          = local.vpc_name_abr
@@ -1422,6 +1422,7 @@ inputs = {
         volume_size = 10
         volume_type = "gp3"
       }
+      access_policies = file("${include.cloud.locals.repo.root}/iam_policies/opensearch_firehose_access_policy.json")
       # Domain networking note:
       # - null => public domain endpoint.
       # - object => private VPC endpoint (must match Firehose vpc_config above).
