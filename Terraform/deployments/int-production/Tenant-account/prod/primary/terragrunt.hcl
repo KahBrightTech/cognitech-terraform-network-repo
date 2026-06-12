@@ -1390,7 +1390,6 @@ inputs = {
       opensearch_configuration = {
         domain_key = "${local.vpc_name_abr}-es"
         index_name = "${local.vpc_name_abr}-logs"
-        type_name  = "_doc"
         vpc_config = {
           use_private_subnets = false
           subnet_keys = [

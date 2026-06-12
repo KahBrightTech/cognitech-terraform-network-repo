@@ -1392,7 +1392,6 @@ inputs = {
         # - Private OpenSearch domain: add vpc_config here AND set opensearch_domains[].vpc_options below.
         domain_key = "${local.vpc_name_abr}-es"
         index_name = "${local.vpc_name_abr}-logs"
-        type_name  = "_doc"
         # vpc_config = {
         #   use_private_subnets = true
         #   subnet_keys = [
@@ -1408,8 +1407,8 @@ inputs = {
   opensearch_domains = [
     {
       create_opensearch = true
-      key               = "${local.vpc_name_abr}-es"
-      domain_name       = "${local.vpc_name_abr}-es"
+      key               = "${local.vpc_name_abr}-es-logs"
+      domain_name       = "${local.vpc_name_abr}-es-logs"
       vpc_name          = local.vpc_name_abr
       engine_version    = "OpenSearch_2.3"
       cluster_config = {
