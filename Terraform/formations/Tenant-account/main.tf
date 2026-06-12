@@ -776,7 +776,7 @@ module "opensearch_domains" {
             data.aws_region.current.name
           ),
           "[[admin_role_arn]]",
-          try(data.aws_iam_roles.admin_role.arns[0], "")
+          try(tolist(data.aws_iam_roles.admin_role.arns)[0], "")
         ),
         "[[domain_arn]]",
         "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${each.value.domain_name}"
