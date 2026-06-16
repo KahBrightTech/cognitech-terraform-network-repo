@@ -1354,6 +1354,7 @@ inputs = {
         external_dns_domain_filters           = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
         external_dns_version                  = "1.14.3"
         enable_kube_prometheus_stack          = true
+        kube_prometheus_stack_timeout         = 1800
         kube_prometheus_stack_version         = "69.8.2"
         grafana_namespace                     = "monitoring"
         grafana_service_type                  = "ClusterIP"
@@ -1373,7 +1374,7 @@ inputs = {
 
   firehose_streams = [
     {
-      create_firehose = true
+ope      create_firehose = true
       key             = "${local.vpc_name_abr}-firehose"
       name            = "${local.vpc_name_abr}-firehose"
       vpc_name        = local.vpc_name_abr
@@ -1388,25 +1389,28 @@ inputs = {
         compression_format  = "GZIP"
       }
       opensearch_configuration = {
-        domain_key = "${local.vpc_name_abr}-es"
+        # Networking note:
+        # - Public OpenSearch domain: keep this block without vpc_config.
+        # - Private OpenSearch domain: add vpc_config here AND set opensearch_domains[].vpc_options below.
+        domain_key = "${local.vpc_name_abr}-es-logs"
         index_name = "${local.vpc_name_abr}-logs"
-        vpc_config = {
-          use_private_subnets = false
-          subnet_keys = [
-            include.env.locals.subnet_prefix.primary,
-            include.env.locals.subnet_prefix.secondary
-          ]
-          security_group_keys = ["firehose"]
-        }
+        # vpc_config = {
+        #   use_private_subnets = true
+        #   subnet_keys = [
+        #     include.env.locals.subnet_prefix.primary,
+        #     include.env.locals.subnet_prefix.secondary
+        #   ]
+        #   security_group_keys = ["firehose"]
+        # }
       }
     }
   ]
 
   opensearch_domains = [
     {
-      create_opensearch = true
-      key               = "${local.vpc_name_abr}-es"
-      domain_name       = "${local.vpc_name_abr}-es"
+      create_opensearch = false
+      key               = "${local.vpc_name_abr}-es-logs"
+      domain_name       = "${local.vpc_name_abr}-es-logs"
       vpc_name          = local.vpc_name_abr
       engine_version    = "OpenSearch_2.3"
       cluster_config = {
@@ -1420,12 +1424,20 @@ inputs = {
         volume_size = 10
         volume_type = "gp3"
       }
-      vpc_options = {
-        subnet_keys = [
-          include.env.locals.subnet_prefix.primary
-        ]
-        security_group_keys = ["opensearch"]
-      }
+      access_policies = file("${include.cloud.locals.repo.root}/iam_policies/opensearch_firehose_access_policy.json")
+      source_ip_cidr  = local.vpn_ip
+      # Domain networking note:
+      # - null => public domain endpoint.
+      # - object => private VPC endpoint (must match Firehose vpc_config above).
+      # vpc_options = {
+      #   use_private_subnets = true
+      #   subnet_keys = [
+      #     include.env.locals.subnet_prefix.primary,
+      #     include.env.locals.subnet_prefix.secondary
+      #   ]
+      #   security_group_keys = ["opensearch"]
+      # }
+      vpc_options = null
     }
   ]
 
