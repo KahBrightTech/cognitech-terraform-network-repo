@@ -1408,7 +1408,7 @@ inputs = {
 
   opensearch_domains = [
     {
-      create_opensearch = false
+      create_opensearch = true
       key               = "${local.vpc_name_abr}-es-logs"
       domain_name       = "${local.vpc_name_abr}-es-logs"
       vpc_name          = local.vpc_name_abr
@@ -1758,4 +1758,4 @@ generate "k8s-providers" {
   }
   %{endif}
   EOF
-}
+} 
