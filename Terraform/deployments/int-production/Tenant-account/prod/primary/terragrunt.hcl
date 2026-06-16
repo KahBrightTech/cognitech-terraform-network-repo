@@ -1374,7 +1374,7 @@ inputs = {
 
   firehose_streams = [
     {
-ope      create_firehose = true
+      create_firehose = true
       key             = "${local.vpc_name_abr}-firehose"
       name            = "${local.vpc_name_abr}-firehose"
       vpc_name        = local.vpc_name_abr
