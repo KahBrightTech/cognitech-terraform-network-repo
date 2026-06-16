@@ -41,6 +41,7 @@ locals {
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
 
+
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
@@ -767,7 +768,19 @@ inputs = {
     }
   ]
 
-  secrets        = []
+  secrets = [
+    {
+      key                     = "opensearch"
+      name_prefix             = include.cloud.locals.secret_names.opensearch
+      description             = "OpenSearch master user credentials."
+      recovery_window_in_days = 7
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username = "${get_env("TF_VAR_OPENSEARCH_USERNAME")}"
+        password = "${get_env("TF_VAR_OPENSEARCH_PASSWORD")}"
+      }
+    }
+  ]
   ssm_parameters = []
 
   ssm_documents = []
@@ -1422,6 +1435,26 @@ inputs = {
         ebs_enabled = true
         volume_size = 10
         volume_type = "gp3"
+      }
+      # Fine-grained access control with master user authentication
+      advanced_security_options = {
+        enabled                        = true
+        internal_user_database_enabled = true
+        master_user_options = {
+          master_user_name     = "${get_env("TF_VAR_OPENSEARCH_USERNAME")}"
+          master_user_password = "${get_env("TF_VAR_OPENSEARCH_PASSWORD")}"
+        }
+      }
+      # Encryption at rest (required for fine-grained access control)
+      encrypt_at_rest = {
+        enabled = true
+      }
+      # Node-to-node encryption (required for fine-grained access control)
+      node_to_node_encryption = true
+      # Domain endpoint options (enforce HTTPS)
+      domain_endpoint_options = {
+        enforce_https       = true
+        tls_security_policy = "Policy-Min-TLS-1-2-2019-07"
       }
       access_policies = file("${include.cloud.locals.repo.root}/iam_policies/opensearch_firehose_access_policy.json")
       source_ip_cidr  = local.vpn_ip

@@ -1912,7 +1912,6 @@ variable "opensearch_domains" {
         master_user_arn      = optional(string, null)
         master_user_name     = optional(string, null)
         master_user_password = optional(string, null)
-        secret_key           = optional(string, null) # Key to retrieve credentials from Secrets Manager
       }), null)
     }), null)
 

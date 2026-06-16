@@ -783,21 +783,6 @@ module "opensearch_domains" {
       ) : null
     },
     {
-      # Retrieve username and password from Secrets Manager if secret_key is provided
-      advanced_security_options = each.value.advanced_security_options != null ? merge(
-        each.value.advanced_security_options,
-        each.value.advanced_security_options.master_user_options != null && each.value.advanced_security_options.master_user_options.secret_key != null ? {
-          master_user_options = merge(
-            each.value.advanced_security_options.master_user_options,
-            {
-              master_user_name     = jsondecode(module.secrets[each.value.advanced_security_options.master_user_options.secret_key].secret_string)["username"]
-              master_user_password = jsondecode(module.secrets[each.value.advanced_security_options.master_user_options.secret_key].secret_string)["password"]
-            }
-          )
-        } : {}
-      ) : null
-    },
-    {
       vpc_options = each.value.vpc_options != null ? merge(
         each.value.vpc_options,
         {

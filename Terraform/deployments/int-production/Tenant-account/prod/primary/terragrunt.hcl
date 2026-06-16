@@ -1386,7 +1386,7 @@ inputs = {
 
   firehose_streams = [
     {
-      create_firehose = true
+      create_firehose = false
       key             = "${local.vpc_name_abr}-firehose"
       name            = "${local.vpc_name_abr}-firehose"
       vpc_name        = local.vpc_name_abr
@@ -1420,7 +1420,7 @@ inputs = {
 
   opensearch_domains = [
     {
-      create_opensearch = true
+      create_opensearch = false
       key               = "${local.vpc_name_abr}-es-logs"
       domain_name       = "${local.vpc_name_abr}-es-logs"
       vpc_name          = local.vpc_name_abr
@@ -1441,7 +1441,8 @@ inputs = {
         enabled                        = true
         internal_user_database_enabled = true
         master_user_options = {
-          secret_key = "opensearch"
+          master_user_name     = "${get_env("TF_VAR_OPENSEARCH_USERNAME")}"
+          master_user_password = "${get_env("TF_VAR_OPENSEARCH_PASSWORD")}"
         }
       }
       # Encryption at rest (required for fine-grained access control)
