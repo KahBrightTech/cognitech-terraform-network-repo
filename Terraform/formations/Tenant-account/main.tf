@@ -585,7 +585,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.56"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.57"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -780,6 +780,21 @@ module "opensearch_domains" {
         ),
         "[[domain_arn]]",
         "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${each.value.domain_name}"
+      ) : null
+    },
+    {
+      # Retrieve username and password from Secrets Manager if secret_key is provided
+      advanced_security_options = each.value.advanced_security_options != null ? merge(
+        each.value.advanced_security_options,
+        each.value.advanced_security_options.master_user_options != null && each.value.advanced_security_options.master_user_options.secret_key != null ? {
+          master_user_options = merge(
+            each.value.advanced_security_options.master_user_options,
+            {
+              master_user_name     = jsondecode(module.secrets[each.value.advanced_security_options.master_user_options.secret_key].secret_string)["username"]
+              master_user_password = jsondecode(module.secrets[each.value.advanced_security_options.master_user_options.secret_key].secret_string)["password"]
+            }
+          )
+        } : {}
       ) : null
     },
     {

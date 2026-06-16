@@ -160,14 +160,15 @@ locals {
     }
   }
   secret_names = {
-    ansible   = "ansible-authentication"
-    user      = "user-login"
-    docker    = "docker-auth"
-    keys      = "ec2-private-key-pairs"
-    iam_user  = "user"
-    eks_node  = "eks-node-private-key"
-    eks_db_sa = "eks-db-service-account"
-    smtp      = "smtp-credentials"
+    ansible    = "ansible-authentication"
+    user       = "user-login"
+    docker     = "docker-auth"
+    keys       = "ec2-private-key-pairs"
+    iam_user   = "user"
+    eks_node   = "eks-node-private-key"
+    eks_db_sa  = "eks-db-service-account"
+    smtp       = "smtp-credentials"
+    opensearch = "opensearch-authentication"
   }
   # RAM principals as a list of strings (Organization ARN)
   ram_principals = [
