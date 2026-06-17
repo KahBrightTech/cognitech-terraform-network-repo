@@ -973,11 +973,11 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = false
-      create_service_accounts = false
-      enable_eks_pia          = false
-      create_rbac             = false
-      create_namespaces       = false
+      create_node_group       = true
+      create_service_accounts = true
+      enable_eks_pia          = true
+      create_rbac             = true
+      create_namespaces       = true
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_arn                = dependency.platform.outputs.IAM_roles.shared-eks.iam_role_arn
@@ -1420,7 +1420,7 @@ inputs = {
 
   opensearch_domains = [
     {
-      create_opensearch = true 
+      create_opensearch = true
       key               = "${local.vpc_name_abr}-es-logs"
       domain_name       = "${local.vpc_name_abr}-es-logs"
       vpc_name          = local.vpc_name_abr
