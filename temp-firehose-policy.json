@@ -1,0 +1,45 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "FirehoseS3Access",
+      "Effect": "Allow",
+      "Action": [
+        "s3:AbortMultipartUpload",
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:ListBucketMultipartUploads",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::int-production-use1-prod-firehose-backup",
+        "arn:aws:s3:::int-production-use1-prod-firehose-backup/*"
+      ]
+    },
+    {
+      "Sid": "FirehoseOpenSearchAccess",
+      "Effect": "Allow",
+      "Action": [
+        "es:DescribeElasticsearchDomain",
+        "es:DescribeElasticsearchDomains",
+        "es:DescribeElasticsearchDomainConfig",
+        "es:ESHttpPost",
+        "es:ESHttpPut",
+        "es:ESHttpGet"
+      ],
+      "Resource": [
+        "arn:aws:es:us-east-1:271457809232:domain/intp-use1-prod-es-logs",
+        "arn:aws:es:us-east-1:271457809232:domain/intp-use1-prod-es-logs/*"
+      ]
+    },
+    {
+      "Sid": "FirehoseLogsAccess",
+      "Effect": "Allow",
+      "Action": [
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
