@@ -1456,7 +1456,7 @@ inputs = {
         enforce_https       = true
         tls_security_policy = "Policy-Min-TLS-1-2-2019-07"
       }
-      access_policies = file("${include.cloud.locals.repo.root}/iam_policies/opensearch_firehose_access_policy.json")
+      access_policies = file("${include.cloud.locals.repo.root}/iam_policies/opensearch_fgac_access_policy.json")
       source_ip_cidr  = local.vpn_ip
       # Domain networking note:
       # - null => public domain endpoint.
