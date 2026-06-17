@@ -1119,7 +1119,7 @@ variable "eks" {
       name   = optional(string, "")
       labels = optional(map(string), {})
     })))
-    version                 = optional(string, "1.34")
+    version                 = optional(string, "1.35")
     oidc_thumbprint         = optional(string)
     is_this_ec2_node_group  = optional(bool, false)
     use_private_subnets     = optional(bool, false)

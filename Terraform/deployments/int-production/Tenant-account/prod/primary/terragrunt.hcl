@@ -37,7 +37,7 @@ locals {
   vpc_name_abr = "prod"
 
   ## eks related variables
-  create_eks_cluster      = true
+  create_eks_cluster      = false
   create_opensearch       = false
   create_firehose         = false
   create_node_group       = false
@@ -45,7 +45,7 @@ locals {
   enable_eks_pia          = false
   create_rbac             = false
   create_namespaces       = false
-  enable_fluent_bit       = false
+  enable_fluent_bit       = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
 
   ## other variables
   create_ecs_cluster  = false
