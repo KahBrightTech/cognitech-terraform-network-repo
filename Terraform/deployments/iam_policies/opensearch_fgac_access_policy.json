@@ -7,7 +7,7 @@
         "AWS": "*"
       },
       "Action": "es:*",
-      "Resource": "arn:aws:es:[[region]]:[[account_number]]:domain/[[resource_name]]/*"
+      "Resource": "arn:aws:es:[[region]]:[[account_number]]:domain/[[name_abr]]-[[region_prefix]]-[[resource_name]]/*"
     }
   ]
 }

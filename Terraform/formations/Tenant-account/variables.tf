@@ -1181,6 +1181,7 @@ variable "eks" {
       grafana_ingress_class_name                      = optional(string)
       grafana_ingress_hosts                           = optional(list(string), [])
       grafana_ingress_annotations                     = optional(map(string), {})
+      grafana_ingress_security_group_key              = optional(string)
       grafana_persistence_enabled                     = optional(bool, false)
       grafana_persistence_size                        = optional(string)
       grafana_persistence_storage_class               = optional(string)

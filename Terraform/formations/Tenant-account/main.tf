@@ -668,6 +668,15 @@ module "eks" {
         {
           cloudwatch_observability_role_arn   = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
           fluent_bit_firehose_delivery_stream = each.value.fluent_bit_firehose_delivery_stream_key != null ? module.firehose_streams[each.value.fluent_bit_firehose_delivery_stream_key].name : each.value.fluent_bit_firehose_delivery_stream
+        } : {},
+        (each.value.eks_addons.grafana_ingress_security_group_key != null && each.value.eks_addons.grafana_ingress_annotations != null) ?
+        {
+          grafana_ingress_annotations = merge(
+            each.value.eks_addons.grafana_ingress_annotations,
+            {
+              "alb.ingress.kubernetes.io/security-groups" = module.customer_vpc[each.value.vpc_name].security_group[each.value.eks_addons.grafana_ingress_security_group_key].id
+            }
+          )
         } : {}
       ) : null
     },
@@ -762,24 +771,32 @@ module "opensearch_domains" {
             replace(
               replace(
                 replace(
-                  each.value.access_policies,
-                  "[[account_number]]",
-                  data.aws_caller_identity.current.account_id
+                  replace(
+                    replace(
+                      each.value.access_policies,
+                      "[[account_number]]",
+                      data.aws_caller_identity.current.account_id
+                    ),
+                    "[[source_ip]]",
+                    coalesce(each.value.source_ip_cidr, var.opensearch_source_ip_cidr, "[[source_ip]]")
+                  ),
+                  "[[resource_name]]",
+                  each.value.domain_name
                 ),
-                "[[source_ip]]",
-                coalesce(each.value.source_ip_cidr, var.opensearch_source_ip_cidr, "[[source_ip]]")
+                "[[region]]",
+                data.aws_region.current.name
               ),
-              "[[resource_name]]",
-              each.value.domain_name
+              "[[admin_role_arn]]",
+              try(tolist(data.aws_iam_roles.admin_role.arns)[0], "")
             ),
-            "[[region]]",
-            data.aws_region.current.name
+            "[[domain_arn]]",
+            "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${each.value.domain_name}"
           ),
-          "[[admin_role_arn]]",
-          try(tolist(data.aws_iam_roles.admin_role.arns)[0], "")
+          "[[name_abr]]",
+          try(var.common.account_name_abr, "")
         ),
-        "[[domain_arn]]",
-        "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${each.value.domain_name}"
+        "[[region_prefix]]",
+        try(var.common.region_prefix, "")
       ) : null
     },
     {

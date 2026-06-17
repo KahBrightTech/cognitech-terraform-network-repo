@@ -6,5 +6,5 @@ alb.ingress.kubernetes.io/ssl-redirect: "443"
 alb.ingress.kubernetes.io/healthcheck-path: /login
 external-dns.alpha.kubernetes.io/hostname: grafana.novutechnologies.net
 alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:271457809232:certificate/8a83d478-e044-43e0-aced-01994edc5dcc
-alb.ingress.kubernetes.io/security-groups: sg-0313546f112fd7048
+# Security group is dynamically added by the module based on grafana_ingress_security_group_key
 alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
