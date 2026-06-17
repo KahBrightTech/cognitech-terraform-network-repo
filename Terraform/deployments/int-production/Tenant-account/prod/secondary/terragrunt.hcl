@@ -768,7 +768,19 @@ inputs = {
     }
   ]
 
-  secrets        = []
+  secrets = [
+    {
+      key                     = "opensearch"
+      name_prefix             = include.cloud.locals.secret_names.opensearch
+      description             = "OpenSearch master user credentials."
+      recovery_window_in_days = 7
+      policy                  = file("${include.cloud.locals.repo.root}/iam_policies/secrets_manager_policy.json")
+      value = {
+        username = "${get_env("TF_VAR_OPENSEARCH_USERNAME")}"
+        password = "${get_env("TF_VAR_OPENSEARCH_PASSWORD")}"
+      }
+    }
+  ]
   ssm_parameters = []
 
   ssm_documents = []
@@ -1361,6 +1373,9 @@ inputs = {
         grafana_ingress_enabled               = true
         grafana_ingress_class_name            = "alb"
         grafana_ingress_annotations           = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/grafana_ingress_annotation.yaml"))
+        grafana_ingress_security_group_key    = "alb"                   # Change to use a different security group (e.g., "app", "nlb", etc.)
+        grafana_ingress_certificate_key       = "${local.vpc_name_abr}" # Use certificate key to lookup from module.certificates
+        grafana_ingress_hostname              = "grafana.${include.env.locals.public_domain}"
         grafana_persistence_enabled           = true
         grafana_persistence_size              = "20Gi"
         grafana_persistence_storage_class     = "gp3"
@@ -1408,7 +1423,7 @@ inputs = {
 
   opensearch_domains = [
     {
-      create_opensearch = false
+      create_opensearch = true
       key               = "${local.vpc_name_abr}-es-logs"
       domain_name       = "${local.vpc_name_abr}-es-logs"
       vpc_name          = local.vpc_name_abr
@@ -1424,7 +1439,27 @@ inputs = {
         volume_size = 10
         volume_type = "gp3"
       }
-      access_policies = file("${include.cloud.locals.repo.root}/iam_policies/opensearch_firehose_access_policy.json")
+      # Fine-grained access control with master user authentication
+      advanced_security_options = {
+        enabled                        = true
+        internal_user_database_enabled = true
+        master_user_options = {
+          master_user_name     = "${get_env("TF_VAR_OPENSEARCH_USERNAME")}"
+          master_user_password = "${get_env("TF_VAR_OPENSEARCH_PASSWORD")}"
+        }
+      }
+      # Encryption at rest (required for fine-grained access control)
+      encrypt_at_rest = {
+        enabled = true
+      }
+      # Node-to-node encryption (required for fine-grained access control)
+      node_to_node_encryption = true
+      # Domain endpoint options (enforce HTTPS)
+      domain_endpoint_options = {
+        enforce_https       = true
+        tls_security_policy = "Policy-Min-TLS-1-2-2019-07"
+      }
+      access_policies = file("${include.cloud.locals.repo.root}/iam_policies/opensearch_fgac_access_policy.json")
       source_ip_cidr  = local.vpn_ip
       # Domain networking note:
       # - null => public domain endpoint.
@@ -1682,7 +1717,6 @@ inputs = {
     }
   ]
 }
-
 #-------------------------------------------------------
 # State Configuration
 #-------------------------------------------------------
