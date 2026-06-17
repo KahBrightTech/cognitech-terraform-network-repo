@@ -664,10 +664,10 @@ module "eks" {
     {
       eks_addons = each.value.eks_addons != null ? merge(
         each.value.eks_addons,
-        (each.value.eks_addons.cloudwatch_observability_role_key != null || each.value.eks_addons.cloudwatch_observability_role_arn != null || each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null) ?
+        (each.value.eks_addons.cloudwatch_observability_role_key != null || each.value.eks_addons.cloudwatch_observability_role_arn != null || (each.value.eks_addons.enable_fluent_bit && each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key]))) ?
         {
           cloudwatch_observability_role_arn   = each.value.eks_addons.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.eks_addons.cloudwatch_observability_role_key].iam_role_arn : each.value.eks_addons.cloudwatch_observability_role_arn
-          fluent_bit_firehose_delivery_stream = each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null ? module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key].firehose_delivery_stream_name : each.value.eks_addons.fluent_bit_firehose_delivery_stream
+          fluent_bit_firehose_delivery_stream = (each.value.eks_addons.enable_fluent_bit && each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key])) ? module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key].firehose_delivery_stream_name : each.value.eks_addons.fluent_bit_firehose_delivery_stream
         } : {},
         (each.value.eks_addons.grafana_ingress_security_group_key != null || each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null || each.value.eks_addons.grafana_ingress_hostname != null) && each.value.eks_addons.grafana_ingress_annotations != null ?
         {
