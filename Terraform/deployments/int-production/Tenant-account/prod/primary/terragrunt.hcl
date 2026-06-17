@@ -38,7 +38,7 @@ locals {
 
   ## eks related variables
   create_eks_cluster      = true
-  create_open_search      = false
+  create_opensearch       = false
   create_firehose         = false
   create_node_group       = false
   create_service_accounts = false
