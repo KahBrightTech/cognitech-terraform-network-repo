@@ -1376,14 +1376,17 @@ inputs = {
         grafana_ingress_annotations             = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/grafana_ingress_annotation.yaml"))
         grafana_ingress_security_group_key      = "alb"                   # Change to use a different security group (e.g., "app", "nlb", etc.)
         grafana_ingress_certificate_key         = "${local.vpc_name_abr}" # Use certificate key to lookup from module.certificates
-        grafana_ingress_hostname                = "grafana.${local.vpc_name_abr}.${include.env.locals.public_domain}"
-        grafana_persistence_enabled             = true
-        grafana_persistence_size                = "20Gi"
-        grafana_persistence_storage_class       = "gp3"
-        prometheus_retention                    = "30d"
-        prometheus_persistence_enabled          = true
-        prometheus_persistence_size             = "100Gi"
-        prometheus_persistence_storage_class    = "gp3"
+        # External-dns will automatically create Route53 A records (alias to ALB) for this hostname.
+        # It only creates DNS records for resources with the external-dns.alpha.kubernetes.io/hostname annotation.
+        # Set to null to disable automatic DNS record creation and manage DNS manually.
+        grafana_ingress_hostname             = "grafana.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+        grafana_persistence_enabled          = true
+        grafana_persistence_size             = "20Gi"
+        grafana_persistence_storage_class    = "gp3"
+        prometheus_retention                 = "30d"
+        prometheus_persistence_enabled       = true
+        prometheus_persistence_size          = "100Gi"
+        prometheus_persistence_storage_class = "gp3"
       }
     }
   ]
