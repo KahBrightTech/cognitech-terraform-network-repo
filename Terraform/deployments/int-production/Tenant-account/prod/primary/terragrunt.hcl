@@ -1275,7 +1275,7 @@ inputs = {
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
             description = "IAM policy for ${local.vpc_name_abr} Fluent Bit Service Account."
-            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fluent_bit_dev.json"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fluent_bit.json"
           }
         },
         {
@@ -1357,6 +1357,7 @@ inputs = {
         enable_ebs_csi_driver                   = true
         enable_fluent_bit                       = true
         fluent_bit_firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
+        fluent_bit_role_key                     = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
         rotationPollInterval                    = "2m"
         cloudwatch_observability_role_arn       = dependency.platform.outputs.IAM_roles.shared-cw-observability.iam_role_arn
         ebs_csi_driver_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
