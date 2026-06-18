@@ -37,18 +37,18 @@ locals {
   vpc_name_abr = "prod"
 
   ## eks related variables
-  create_eks_cluster      = false
-  create_node_group       = false
-  create_service_accounts = false
-  enable_eks_pia          = false
-  create_rbac             = false
-  create_namespaces       = false
+  create_eks_cluster      = true
+  create_node_group       = true
+  create_service_accounts = true
+  enable_eks_pia          = true
+  create_rbac             = true
+  create_namespaces       = true
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
   enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
-  enable_cloudwatch_observability = false # Set to false if enabling fluent bit plus firehose → opensearch
-  enable_kube_prometheus_stack    = false
+  enable_cloudwatch_observability = true  # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_kube_prometheus_stack    = true
   ## other variables
   create_ecs_cluster  = false
   create_postgres_rds = false
@@ -78,6 +78,7 @@ dependency "platform" {
 terraform {
   source = "../../../../..//formations/Tenant-account"
 }
+
 #-------------------------------------------------------
 # Inputs 
 #-------------------------------------------------------
@@ -1088,6 +1089,12 @@ inputs = {
           name = "movienight"
           labels = {
             app = "movienight"
+          }
+        },
+        {
+          name = "healthpath"
+          labels = {
+            app = "healthpath"
           }
         }
       ]
