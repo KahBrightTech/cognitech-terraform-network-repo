@@ -48,6 +48,7 @@ locals {
   create_firehose                 = false
   enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
   enable_cloudwatch_observability = true  # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_kube_prometheus_stack    = true
   ## other variables
   create_ecs_cluster  = false
   create_postgres_rds = false
@@ -1380,7 +1381,7 @@ inputs = {
         external_dns_policy                     = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
         external_dns_domain_filters             = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
         external_dns_version                    = "1.14.3"
-        enable_kube_prometheus_stack            = true
+        enable_kube_prometheus_stack            = local.enable_kube_prometheus_stack
         kube_prometheus_stack_timeout           = 1800
         kube_prometheus_stack_version           = "69.8.2"
         grafana_namespace                       = "monitoring"
