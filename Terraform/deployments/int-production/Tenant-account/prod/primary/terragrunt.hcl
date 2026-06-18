@@ -1087,7 +1087,7 @@ inputs = {
         {
           name = "movienight"
           labels = {
-            app = "Movienight"
+            app = "movienight"
           }
         }
       ]
