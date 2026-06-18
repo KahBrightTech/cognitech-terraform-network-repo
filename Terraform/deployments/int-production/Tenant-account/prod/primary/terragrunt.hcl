@@ -1083,6 +1083,12 @@ inputs = {
           labels = {
             team = "infogrid-devops"
           }
+        },
+        {
+          name = "movienight"
+          labels = {
+            app = "Movienight"
+          }
         }
       ]
       subnet_keys = [
