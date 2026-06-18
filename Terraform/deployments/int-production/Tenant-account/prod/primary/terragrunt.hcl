@@ -37,7 +37,7 @@ locals {
   vpc_name_abr = "prod"
 
   ## eks related variables
-  create_eks_cluster      = true
+  create_eks_cluster      = false
   create_node_group       = false
   create_service_accounts = false
   enable_eks_pia          = false
@@ -47,7 +47,7 @@ locals {
   create_opensearch               = false
   create_firehose                 = false
   enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
-  enable_cloudwatch_observability = false  # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_cloudwatch_observability = false # Set to false if enabling fluent bit plus firehose → opensearch
   enable_kube_prometheus_stack    = false
   ## other variables
   create_ecs_cluster  = false
@@ -1299,6 +1299,19 @@ inputs = {
           }
         },
         {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
+          description               = "IAM Role for ${local.vpc_name_abr} Cluster Autoscaler Service Account"
+          path                      = "/"
+          service_account_namespace = "kube-system" # No assume role policy provided so automatically uses OIDC for federation
+          service_account_name      = "cluster-autoscaler"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
+            description = "IAM policy for ${local.vpc_name_abr} Cluster Autoscaler Service Account."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cluster-autoscaler-policy.json"
+          }
+        },
+        {
           key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
           name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
           description        = "IAM Role for ${local.vpc_name_abr} Secrets PIA Service Account"
@@ -1384,6 +1397,7 @@ inputs = {
         enable_aws_load_balancer_controller     = true
         aws_load_balancer_controller_role_key   = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
         external_dns_role_key                   = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
+        cluster_autoscaler_role_key             = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
         external_dns_policy                     = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
         external_dns_domain_filters             = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
         external_dns_version                    = "1.14.3"
