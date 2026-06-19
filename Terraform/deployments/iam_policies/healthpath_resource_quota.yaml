@@ -1,12 +1,18 @@
-apiVersion: v1
-kind: ResourceQuota
+apiVersion: v1 # Kubernetes API version for core resources
+kind: ResourceQuota # Resource type: limits aggregate resource usage in a namespace
 metadata:
-  name: "healthpath-quota"
-  namespace: "healthpath"
+  # Metadata block for naming/identifying the object
+  name: "healthpath-quota" # Name of this ResourceQuota object (cosmetic; module sets actual name)
+  namespace: "healthpath" # Namespace the quota applies to (module overrides this from the namespace name)
 spec:
+  # Desired state / specification of the quota
   hard:
-    requests.cpu: "4"
-    requests.memory: 8Gi
-    limits.cpu: "8"
-    limits.memory: 16Gi
-    pods: "20"
+    # Hard caps on the TOTAL across all pods in the namespace (every value here is a MAXIMUM).
+    # Per pod: a REQUEST is the amount that pod is guaranteed/reserved (its floor); a LIMIT is the max that pod may use (its ceiling).
+    # In this quota: the numbers cap the SUM of all pods' requests and the SUM of all pods' limits — they are budgets, not minimums.
+    # Runtime behavior when a pod exceeds its own limit: CPU is throttled; memory triggers an OOMKill.
+    requests.cpu: "4" # Budget cap: the SUM of every pod's CPU request must be <= 4 vCPU (used by the scheduler)
+    requests.memory: 8Gi # Budget cap: the SUM of every pod's memory request must be <= 8 GiB (used by the scheduler)
+    limits.cpu: "8" # Budget cap: the SUM of every pod's CPU limit must be <= 8 vCPU (CPU throttled when a pod exceeds its limit)
+    limits.memory: 16Gi # Budget cap: the SUM of every pod's memory limit must be <= 16 GiB (pod OOMKilled when it exceeds its limit)
+    pods: "20" # Maximum number of pods allowed in the namespace
