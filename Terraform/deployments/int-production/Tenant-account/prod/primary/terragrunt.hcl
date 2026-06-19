@@ -1370,11 +1370,12 @@ inputs = {
           ]
         },
         {
-          key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-cw-observability"
-          name               = "${local.vpc_name_abr}-cw-observability"
-          description        = "IAM Role for ${local.vpc_name_abr} CloudWatch Observability"
-          path               = "/"
-          assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-trust-policy.json"
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-cw-observability"
+          name                      = "${local.vpc_name_abr}-cw-observability"
+          description               = "IAM Role for ${local.vpc_name_abr} CloudWatch Observability"
+          path                      = "/"
+          service_account_namespace = "amazon-cloudwatch"
+          service_account_name      = "cloudwatch-agent"
           policy = {
             name        = "${local.vpc_name_abr}-cw-observability"
             description = "IAM policy for ${local.vpc_name_abr} CloudWatch Observability"
