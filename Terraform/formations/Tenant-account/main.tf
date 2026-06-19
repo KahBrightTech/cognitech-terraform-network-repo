@@ -597,19 +597,7 @@ module "eks" {
       role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
     },
     {
-      namespaces = (each.value.create_namespaces == true && each.value.namespaces != null && length(each.value.namespaces) > 0) ? [
-        for ns in each.value.namespaces : merge(
-          ns,
-          (ns.resource_quota != null && ns.resource_quota.yaml_file != null) ? {
-            resource_quota = merge(
-              ns.resource_quota,
-              {
-                yaml_file = replace(ns.resource_quota.yaml_file, "[[namespace]]", ns.name)
-              }
-            )
-          } : {}
-        )
-      ] : null
+      namespaces = (each.value.create_namespaces == true && each.value.namespaces != null && length(each.value.namespaces) > 0) ? each.value.namespaces : null
     },
     {
       subnet_ids = each.value.subnet_keys != null ? flatten([
