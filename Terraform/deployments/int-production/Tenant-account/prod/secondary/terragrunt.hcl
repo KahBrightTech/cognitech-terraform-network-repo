@@ -33,9 +33,23 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Tenant-account"
   ## Updates these variables as per the product/service
-  vpc_name            = "production"
-  vpc_name_abr        = "prod"
-  create_eks_cluster  = false
+  vpc_name     = "production"
+  vpc_name_abr = "prod"
+
+  ## eks related variables
+  create_eks_cluster      = true
+  create_node_group       = true
+  create_service_accounts = true
+  enable_eks_pia          = true
+  create_rbac             = true
+  create_namespaces       = true
+  ## eks monitoring
+  create_opensearch               = false
+  create_firehose                 = false
+  enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
+  enable_cloudwatch_observability = true  # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_kube_prometheus_stack    = true
+  ## other variables
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
@@ -64,6 +78,7 @@ dependency "platform" {
 terraform {
   source = "../../../../..//formations/Tenant-account"
 }
+
 #-------------------------------------------------------
 # Inputs 
 #-------------------------------------------------------
@@ -973,11 +988,11 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
-      create_node_group       = true
-      create_service_accounts = true
-      enable_eks_pia          = true
-      create_rbac             = true
-      create_namespaces       = true
+      create_node_group       = local.create_node_group
+      create_service_accounts = local.create_service_accounts
+      enable_eks_pia          = local.enable_eks_pia
+      create_rbac             = local.create_rbac
+      create_namespaces       = local.create_namespaces
       key                     = include.env.locals.eks_cluster_keys.primary_cluster
       name                    = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
       role_arn                = dependency.platform.outputs.IAM_roles.shared-eks.iam_role_arn
@@ -1068,6 +1083,18 @@ inputs = {
           name = "infogrid"
           labels = {
             team = "infogrid-devops"
+          }
+        },
+        {
+          name = "movienight"
+          labels = {
+            app = "movienight"
+          }
+        },
+        {
+          name = "healthpath"
+          labels = {
+            app = "healthpath"
           }
         }
       ]
@@ -1275,7 +1302,20 @@ inputs = {
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
             description = "IAM policy for ${local.vpc_name_abr} Fluent Bit Service Account."
-            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fluent_bit_dev.json"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fluent_bit.json"
+          }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
+          description               = "IAM Role for ${local.vpc_name_abr} Cluster Autoscaler Service Account"
+          path                      = "/"
+          service_account_namespace = "kube-system" # No assume role policy provided so automatically uses OIDC for federation
+          service_account_name      = "cluster-autoscaler"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
+            description = "IAM policy for ${local.vpc_name_abr} Cluster Autoscaler Service Account."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cluster-autoscaler-policy.json"
           }
         },
         {
@@ -1345,51 +1385,58 @@ inputs = {
         }
       ]
       eks_addons = {
-        enable_vpc_cni                        = true
-        enable_kube_proxy                     = true
-        enable_coredns                        = true
-        enable_cloudwatch_observability       = false
-        enable_secrets_manager_csi_driver     = true
-        enable_metrics_server                 = true
-        enableSecretRotation                  = true
-        enable_pod_identity_agent             = true
-        enable_external_dns                   = true
-        enable_ebs_csi_driver                 = true
-        enable_fluent_bit                     = true
-        rotationPollInterval                  = "2m"
-        cloudwatch_observability_role_arn     = dependency.platform.outputs.IAM_roles.shared-cw-observability.iam_role_arn
-        ebs_csi_driver_role_key               = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
-        enable_aws_load_balancer_controller   = true
-        aws_load_balancer_controller_role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
-        external_dns_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
-        external_dns_policy                   = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
-        external_dns_domain_filters           = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
-        external_dns_version                  = "1.14.3"
-        enable_kube_prometheus_stack          = true
-        kube_prometheus_stack_timeout         = 1800
-        kube_prometheus_stack_version         = "69.8.2"
-        grafana_namespace                     = "monitoring"
-        grafana_service_type                  = "ClusterIP"
-        grafana_ingress_enabled               = true
-        grafana_ingress_class_name            = "alb"
-        grafana_ingress_annotations           = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/grafana_ingress_annotation.yaml"))
-        grafana_ingress_security_group_key    = "alb"                   # Change to use a different security group (e.g., "app", "nlb", etc.)
-        grafana_ingress_certificate_key       = "${local.vpc_name_abr}" # Use certificate key to lookup from module.certificates
-        grafana_ingress_hostname              = "grafana.${include.env.locals.public_domain}"
-        grafana_persistence_enabled           = true
-        grafana_persistence_size              = "20Gi"
-        grafana_persistence_storage_class     = "gp3"
-        prometheus_retention                  = "30d"
-        prometheus_persistence_enabled        = true
-        prometheus_persistence_size           = "100Gi"
-        prometheus_persistence_storage_class  = "gp3"
+        enable_vpc_cni                          = true
+        enable_kube_proxy                       = true
+        enable_coredns                          = true
+        enable_cloudwatch_observability         = local.enable_cloudwatch_observability
+        enable_secrets_manager_csi_driver       = true
+        enable_metrics_server                   = true
+        enableSecretRotation                    = true
+        enable_pod_identity_agent               = true
+        enable_external_dns                     = true
+        enable_ebs_csi_driver                   = true
+        enable_cluster_autoscaler               = true
+        enable_fluent_bit                       = local.enable_fluent_bit
+        fluent_bit_firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
+        fluent_bit_role_key                     = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
+        rotationPollInterval                    = "2m"
+        cloudwatch_observability_role_arn       = dependency.platform.outputs.IAM_roles.shared-cw-observability.iam_role_arn
+        ebs_csi_driver_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+        enable_aws_load_balancer_controller     = true
+        aws_load_balancer_controller_role_key   = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+        external_dns_role_key                   = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
+        cluster_autoscaler_role_key             = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
+        external_dns_policy                     = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
+        external_dns_domain_filters             = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
+        external_dns_version                    = "1.14.3"
+        enable_kube_prometheus_stack            = local.enable_kube_prometheus_stack
+        kube_prometheus_stack_timeout           = 1800
+        kube_prometheus_stack_version           = "69.8.2"
+        grafana_namespace                       = "monitoring"
+        grafana_service_type                    = "ClusterIP"
+        grafana_ingress_enabled                 = true
+        grafana_ingress_class_name              = "alb"
+        grafana_ingress_annotations             = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/grafana_ingress_annotation.yaml"))
+        grafana_ingress_security_group_key      = "alb"                   # Change to use a different security group (e.g., "app", "nlb", etc.)
+        grafana_ingress_certificate_key         = "${local.vpc_name_abr}" # Use certificate key to lookup from module.certificates
+        # External-dns will automatically create Route53 A records (alias to ALB) for this hostname.
+        # It only creates DNS records for resources with the external-dns.alpha.kubernetes.io/hostname annotation.
+        # Set to null to disable automatic DNS record creation and manage DNS manually.
+        grafana_ingress_hostname             = "grafana.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+        grafana_persistence_enabled          = true
+        grafana_persistence_size             = "20Gi"
+        grafana_persistence_storage_class    = "gp3"
+        prometheus_retention                 = "30d"
+        prometheus_persistence_enabled       = true
+        prometheus_persistence_size          = "100Gi"
+        prometheus_persistence_storage_class = "gp3"
       }
     }
   ]
 
   firehose_streams = [
     {
-      create_firehose = true
+      create_firehose = local.create_firehose
       key             = "${local.vpc_name_abr}-firehose"
       name            = "${local.vpc_name_abr}-firehose"
       vpc_name        = local.vpc_name_abr
@@ -1423,7 +1470,7 @@ inputs = {
 
   opensearch_domains = [
     {
-      create_opensearch = true
+      create_opensearch = local.create_opensearch
       key               = "${local.vpc_name_abr}-es-logs"
       domain_name       = "${local.vpc_name_abr}-es-logs"
       vpc_name          = local.vpc_name_abr

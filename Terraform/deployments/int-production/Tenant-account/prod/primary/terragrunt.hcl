@@ -1395,6 +1395,7 @@ inputs = {
         enable_pod_identity_agent               = true
         enable_external_dns                     = true
         enable_ebs_csi_driver                   = true
+        enable_cluster_autoscaler               = true
         enable_fluent_bit                       = local.enable_fluent_bit
         fluent_bit_firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
         fluent_bit_role_key                     = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
