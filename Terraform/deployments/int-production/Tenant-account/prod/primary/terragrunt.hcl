@@ -1096,6 +1096,9 @@ inputs = {
           labels = {
             app = "healthpath"
           }
+          resource_quota = {
+            yaml_file = file("${include.cloud.locals.repo.root}/iam_policies/healthpath_resource_quota.yaml")
+          }
         }
       ]
       subnet_keys = [

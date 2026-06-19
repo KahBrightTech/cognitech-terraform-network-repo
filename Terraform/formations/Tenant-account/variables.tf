@@ -1118,8 +1118,14 @@ variable "eks" {
     namespaces = optional(list(object({
       name   = optional(string, "")
       labels = optional(map(string), {})
+      resource_quota = optional(object({
+        name      = optional(string)
+        hard      = optional(map(string), {})
+        scopes    = optional(list(string))
+        yaml_file = optional(string)
+      }))
     })))
-    version                 = optional(string, "1.35")
+    version                 = optional(string, "1.36")
     oidc_thumbprint         = optional(string)
     is_this_ec2_node_group  = optional(bool, false)
     use_private_subnets     = optional(bool, false)
