@@ -1268,7 +1268,7 @@ inputs = {
         },
         {
           key                       = "ssm-access"
-          service_account_namespace = "ssm-access"
+          service_account_namespace = "pulsehub"
           service_account_keys      = ["ssm-access"]
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ssm-role"
         },
