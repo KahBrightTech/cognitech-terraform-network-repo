@@ -1098,7 +1098,13 @@ inputs = {
           resource_quota = {
             yaml_file = "${include.cloud.locals.repo.root}/iam_policies/healthpath_resource_quota.yaml"
           }
-        }
+        },
+        {
+          name = "pulsehub"
+          labels = {
+            app = "pulsehub"
+          }
+        },
       ]
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
@@ -1245,7 +1251,13 @@ inputs = {
           key       = "secrets-pia"
           name      = "secrets-pia"
           namespace = "default"
+        },
+        {
+          key       = "ssm-access"
+          name      = "ssm-access"
+          namespace = "pulsehub"
         }
+
       ]
       eks_pia = [
         {
@@ -1253,6 +1265,12 @@ inputs = {
           service_account_namespace = "default"
           service_account_keys      = ["s3-access"]
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3-role"
+        },
+        {
+          key                       = "ssm-access"
+          service_account_namespace = "ssm-access"
+          service_account_keys      = ["ssm-access"]
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ssm-role"
         },
         {
           key                       = "ebs-csi-driver"
@@ -1344,6 +1362,20 @@ inputs = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-s3"
             description = "IAM policy for ${local.vpc_name_abr} S3 Access"
             policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_s3_access_policy.json"
+          }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-ssm-role"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-ssm"
+          description               = "IAM Role for ${local.vpc_name_abr} SSM Access"
+          path                      = "/"
+          assume_role_policy        = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          service_account_namespace = "default"
+          service_account_name      = "secrets"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-ssm"
+            description = "IAM policy for ${local.vpc_name_abr} SSM Access"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_ssm_access_policy.json"
           }
         },
         {
