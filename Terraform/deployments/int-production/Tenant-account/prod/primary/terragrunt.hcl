@@ -36,18 +36,18 @@ locals {
   vpc_name     = "production"
   vpc_name_abr = "prod"
   ## eks related variables
-  create_eks_cluster      = false
-  create_node_group       = false
-  create_service_accounts = false
-  enable_eks_pia          = false
-  create_rbac             = false
-  create_namespaces       = false
+  create_eks_cluster      = true
+  create_node_group       = true
+  create_service_accounts = true
+  enable_eks_pia          = true
+  create_rbac             = true
+  create_namespaces       = true
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
   enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
-  enable_cloudwatch_observability = false # Set to false if enabling fluent bit plus firehose → opensearch
-  enable_kube_prometheus_stack    = false
+  enable_cloudwatch_observability = true  # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_kube_prometheus_stack    = true
   ## other variables
   create_ecs_cluster  = false
   create_postgres_rds = false
@@ -1279,6 +1279,12 @@ inputs = {
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
         },
         {
+          key                       = "fsx-csi-driver"
+          service_account_namespace = "kube-system"           # This is the default namespace used by the FSx CSI Driver
+          service_account_name      = "fsx-csi-controller-sa" # This is the default controller SA name used by the FSx CSI Driver
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
+        },
+        {
           key                       = "secrets-pia"
           service_account_namespace = "default"
           service_account_keys      = ["secrets-pia"]
@@ -1415,7 +1421,19 @@ inputs = {
             description = "IAM policy for ${local.vpc_name_abr} CloudWatch Observability"
             policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-policy.json"
           }
-        }
+        },
+        {
+          key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
+          name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
+          description        = "IAM Role for ${local.vpc_name_abr} FSx CSI Driver Service Account"
+          path               = "/"
+          assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
+            description = "IAM policy for ${local.vpc_name_abr} FSx CSI Driver Service Account."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fsx_csi_driver_policy.json"
+          }
+        },
       ]
       eks_node_groups = [
         {
@@ -1442,6 +1460,7 @@ inputs = {
         enable_pod_identity_agent               = true
         enable_external_dns                     = true
         enable_ebs_csi_driver                   = true
+        enable_fsx_csi_driver                   = true
         enable_cluster_autoscaler               = true
         enable_fluent_bit                       = local.enable_fluent_bit
         fluent_bit_firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
