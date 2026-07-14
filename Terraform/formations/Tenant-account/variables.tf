@@ -1135,6 +1135,8 @@ variable "eks" {
     enable_eks_pia          = optional(bool, false)
     eks_addons = optional(object({
       enable_vpc_cni                                  = optional(bool, false)
+      enable_prefix_delegation                        = optional(bool, false)
+      warm_prefix_target                              = optional(number, 1)
       enable_kube_proxy                               = optional(bool, false)
       enable_coredns                                  = optional(bool, false)
       enable_metrics_server                           = optional(bool, false)

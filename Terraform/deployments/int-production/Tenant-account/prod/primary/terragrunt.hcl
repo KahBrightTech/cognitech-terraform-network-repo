@@ -1451,6 +1451,7 @@ inputs = {
       ]
       eks_addons = {
         enable_vpc_cni                          = true
+        enable_prefix_delegation                = true
         enable_kube_proxy                       = true
         enable_coredns                          = true
         enable_cloudwatch_observability         = local.enable_cloudwatch_observability
