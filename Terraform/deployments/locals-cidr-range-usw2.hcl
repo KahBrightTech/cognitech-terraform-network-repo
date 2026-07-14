@@ -327,25 +327,25 @@ locals {
             }
           }
           production = {
-            vpc = "10.40.4.0/24"
+            vpc = "10.40.32.0/19"
             public_subnets = {
               sbnt1 = {
-                primary   = "10.40.4.0/27"
-                secondary = "10.40.4.32/27"
+                primary   = "10.40.32.0/22"
+                secondary = "10.40.36.0/22"
               }
               sbnt2 = {
-                primary   = "10.40.4.64/27"
-                secondary = "10.40.4.96/27"
+                primary   = "10.40.40.0/22"
+                secondary = "10.40.44.0/22"
               }
             }
             private_subnets = {
               sbnt1 = {
-                primary   = "10.40.4.128/27"
-                secondary = "10.40.4.160/27"
+                primary   = "10.40.48.0/22"
+                secondary = "10.40.52.0/22"
               }
               sbnt2 = {
-                primary   = "10.40.4.192/27"
-                secondary = "10.40.4.224/27"
+                primary   = "10.40.56.0/22"
+                secondary = "10.40.60.0/22"
               }
             }
           }
