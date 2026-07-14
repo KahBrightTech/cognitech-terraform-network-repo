@@ -33,8 +33,8 @@ locals {
   internet_cidr      = "0.0.0.0/0"
   deployment         = "Tenant-account"
   ## Updates these variables as per the product/service
-  vpc_name     = "production"
-  vpc_name_abr = "prod"
+  vpc_name     = "user-acceptance-test"
+  vpc_name_abr = "uat"
 
   ## eks related variables
   create_eks_cluster      = false
@@ -54,7 +54,6 @@ locals {
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
-
 
   # Composite variables 
   tags = merge(
@@ -1096,7 +1095,16 @@ inputs = {
           labels = {
             app = "healthpath"
           }
-        }
+          resource_quota = {
+            yaml_file = "${include.cloud.locals.repo.root}/iam_policies/healthpath_resource_quota.yaml"
+          }
+        },
+        {
+          name = "pulsehub"
+          labels = {
+            app = "pulsehub"
+          }
+        },
       ]
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
@@ -1124,6 +1132,12 @@ inputs = {
           key         = "eks-cluster-secondary"
           name        = "eks-cluster-secondary"
           description = "standard ${local.vpc_name} eks cluster secondary security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "fsx-lustre"
+          name        = "fsx-lustre"
+          description = "standard ${local.vpc_name} fsx lustre security group"
           vpc_name    = local.vpc_name_abr
         }
       ]
@@ -1188,6 +1202,22 @@ inputs = {
               from_port   = 30000
               to_port     = 32767
               ip_protocol = "tcp"
+            },
+            {
+              key           = "ingress-988-fsx-lustre-sg"
+              source_sg_key = "fsx-lustre"
+              description   = "FSX - Inbound Lustre (LNET) traffic from FSx Lustre SG on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-1018-1023-fsx-lustre-sg"
+              source_sg_key = "fsx-lustre"
+              description   = "FSX - Inbound Lustre traffic from FSx Lustre SG on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
             }
           ]
           egress_rules = [
@@ -1210,6 +1240,77 @@ inputs = {
             }
           ]
           egress_rules = []
+        },
+        {
+          sg_key = "fsx-lustre"
+          ingress_rules = [
+            {
+              key           = "ingress-988-eks-nodes-sg"
+              source_sg_key = "eks-nodes"
+              description   = "FSX - Inbound Lustre (LNET) traffic from EKS Nodes SG on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-1018-1023-eks-nodes-sg"
+              source_sg_key = "eks-nodes"
+              description   = "FSX - Inbound Lustre traffic from EKS Nodes SG on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-988-self-sg"
+              source_sg_key = "fsx-lustre"
+              description   = "FSX - Inbound Lustre (LNET) traffic from itself on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-1018-1023-self-sg"
+              source_sg_key = "fsx-lustre"
+              description   = "FSX - Inbound Lustre traffic from itself on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
+            }
+          ]
+          egress_rules = [
+            {
+              key           = "egress-988-eks-nodes-sg"
+              target_sg_key = "eks-nodes"
+              description   = "FSX - Outbound Lustre (LNET) traffic to EKS Nodes SG on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-1018-1023-eks-nodes-sg"
+              target_sg_key = "eks-nodes"
+              description   = "FSX - Outbound Lustre traffic to EKS Nodes SG on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-988-self-sg"
+              target_sg_key = "fsx-lustre"
+              description   = "FSX - Outbound Lustre (LNET) traffic to itself on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-1018-1023-self-sg"
+              target_sg_key = "fsx-lustre"
+              description   = "FSX - Outbound Lustre traffic to itself on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
+            }
+          ]
         }
       ]
       launch_templates = [
@@ -1243,7 +1344,13 @@ inputs = {
           key       = "secrets-pia"
           name      = "secrets-pia"
           namespace = "default"
+        },
+        {
+          key       = "ssm-access"
+          name      = "ssm-access"
+          namespace = "pulsehub"
         }
+
       ]
       eks_pia = [
         {
@@ -1253,10 +1360,22 @@ inputs = {
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-s3-role"
         },
         {
+          key                       = "ssm-access"
+          service_account_namespace = "pulsehub"
+          service_account_keys      = ["ssm-access"]
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ssm-role"
+        },
+        {
           key                       = "ebs-csi-driver"
           service_account_namespace = "kube-system"           # This is the default namespace used by the EBS CSI Driver
           service_account_name      = "ebs-csi-controller-sa" # This is the default name used by the EBS CSI Driver
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+        },
+        {
+          key                       = "fsx-csi-driver"
+          service_account_namespace = "kube-system"           # This is the default namespace used by the FSx CSI Driver
+          service_account_name      = "fsx-csi-controller-sa" # This is the default controller SA name used by the FSx CSI Driver
+          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
         },
         {
           key                       = "secrets-pia"
@@ -1345,6 +1464,20 @@ inputs = {
           }
         },
         {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-ssm-role"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-ssm"
+          description               = "IAM Role for ${local.vpc_name_abr} SSM Access"
+          path                      = "/"
+          assume_role_policy        = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          service_account_namespace = "default"
+          service_account_name      = "secrets"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-ssm"
+            description = "IAM policy for ${local.vpc_name_abr} SSM Access"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_ssm_access_policy.json"
+          }
+        },
+        {
           key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
           name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns"
           description               = "IAM Role for ${local.vpc_name_abr} External DNS Access"
@@ -1368,7 +1501,32 @@ inputs = {
             "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy",
             "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
           ]
-        }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-cw-observability"
+          name                      = "${local.vpc_name_abr}-cw-observability"
+          description               = "IAM Role for ${local.vpc_name_abr} CloudWatch Observability"
+          path                      = "/"
+          service_account_namespace = "amazon-cloudwatch"
+          service_account_name      = "cloudwatch-agent"
+          policy = {
+            name        = "${local.vpc_name_abr}-cw-observability"
+            description = "IAM policy for ${local.vpc_name_abr} CloudWatch Observability"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/eks-cloudwatch-observability-policy.json"
+          }
+        },
+        {
+          key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
+          name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
+          description        = "IAM Role for ${local.vpc_name_abr} FSx CSI Driver Service Account"
+          path               = "/"
+          assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
+            description = "IAM policy for ${local.vpc_name_abr} FSx CSI Driver Service Account."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fsx_csi_driver_policy.json"
+          }
+        },
       ]
       eks_node_groups = [
         {
@@ -1386,6 +1544,7 @@ inputs = {
       ]
       eks_addons = {
         enable_vpc_cni                          = true
+        enable_prefix_delegation                = true
         enable_kube_proxy                       = true
         enable_coredns                          = true
         enable_cloudwatch_observability         = local.enable_cloudwatch_observability
@@ -1395,13 +1554,15 @@ inputs = {
         enable_pod_identity_agent               = true
         enable_external_dns                     = true
         enable_ebs_csi_driver                   = true
+        enable_fsx_csi_driver                   = true
         enable_cluster_autoscaler               = true
         enable_fluent_bit                       = local.enable_fluent_bit
         fluent_bit_firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
         fluent_bit_role_key                     = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
         rotationPollInterval                    = "2m"
-        cloudwatch_observability_role_arn       = dependency.platform.outputs.IAM_roles.shared-cw-observability.iam_role_arn
+        cloudwatch_observability_role_key       = "${include.env.locals.eks_cluster_keys.primary_cluster}-cw-observability"
         ebs_csi_driver_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+        fsx_csi_driver_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
         enable_aws_load_balancer_controller     = true
         aws_load_balancer_controller_role_key   = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
         external_dns_role_key                   = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"

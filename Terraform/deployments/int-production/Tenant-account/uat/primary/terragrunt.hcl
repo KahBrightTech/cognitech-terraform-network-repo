@@ -1133,6 +1133,12 @@ inputs = {
           name        = "eks-cluster-secondary"
           description = "standard ${local.vpc_name} eks cluster secondary security group"
           vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "fsx-lustre"
+          name        = "fsx-lustre"
+          description = "standard ${local.vpc_name} fsx lustre security group"
+          vpc_name    = local.vpc_name_abr
         }
       ]
       security_group_rules = [
@@ -1196,6 +1202,22 @@ inputs = {
               from_port   = 30000
               to_port     = 32767
               ip_protocol = "tcp"
+            },
+            {
+              key           = "ingress-988-fsx-lustre-sg"
+              source_sg_key = "fsx-lustre"
+              description   = "FSX - Inbound Lustre (LNET) traffic from FSx Lustre SG on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-1018-1023-fsx-lustre-sg"
+              source_sg_key = "fsx-lustre"
+              description   = "FSX - Inbound Lustre traffic from FSx Lustre SG on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
             }
           ]
           egress_rules = [
@@ -1218,6 +1240,77 @@ inputs = {
             }
           ]
           egress_rules = []
+        },
+        {
+          sg_key = "fsx-lustre"
+          ingress_rules = [
+            {
+              key           = "ingress-988-eks-nodes-sg"
+              source_sg_key = "eks-nodes"
+              description   = "FSX - Inbound Lustre (LNET) traffic from EKS Nodes SG on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-1018-1023-eks-nodes-sg"
+              source_sg_key = "eks-nodes"
+              description   = "FSX - Inbound Lustre traffic from EKS Nodes SG on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-988-self-sg"
+              source_sg_key = "fsx-lustre"
+              description   = "FSX - Inbound Lustre (LNET) traffic from itself on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "ingress-1018-1023-self-sg"
+              source_sg_key = "fsx-lustre"
+              description   = "FSX - Inbound Lustre traffic from itself on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
+            }
+          ]
+          egress_rules = [
+            {
+              key           = "egress-988-eks-nodes-sg"
+              target_sg_key = "eks-nodes"
+              description   = "FSX - Outbound Lustre (LNET) traffic to EKS Nodes SG on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-1018-1023-eks-nodes-sg"
+              target_sg_key = "eks-nodes"
+              description   = "FSX - Outbound Lustre traffic to EKS Nodes SG on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-988-self-sg"
+              target_sg_key = "fsx-lustre"
+              description   = "FSX - Outbound Lustre (LNET) traffic to itself on tcp port 988"
+              from_port     = 988
+              to_port       = 988
+              ip_protocol   = "tcp"
+            },
+            {
+              key           = "egress-1018-1023-self-sg"
+              target_sg_key = "fsx-lustre"
+              description   = "FSX - Outbound Lustre traffic to itself on tcp ports 1018-1023"
+              from_port     = 1018
+              to_port       = 1023
+              ip_protocol   = "tcp"
+            }
+          ]
         }
       ]
       launch_templates = [
