@@ -36,24 +36,23 @@ locals {
   vpc_name     = "production"
   vpc_name_abr = "prod"
   ## eks related variables
-  create_eks_cluster      = true
-  create_node_group       = true
-  create_service_accounts = true
-  enable_eks_pia          = true
-  create_rbac             = true
-  create_namespaces       = true
+  create_eks_cluster      = false
+  create_node_group       = false
+  create_service_accounts = false
+  enable_eks_pia          = false
+  create_rbac             = false
+  create_namespaces       = false
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
   enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
-  enable_cloudwatch_observability = true  # Set to false if enabling fluent bit plus firehose → opensearch
-  enable_kube_prometheus_stack    = true
+  enable_cloudwatch_observability = false # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_kube_prometheus_stack    = false
   ## other variables
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
-
 
   # Composite variables 
   tags = merge(
@@ -1451,6 +1450,7 @@ inputs = {
       ]
       eks_addons = {
         enable_vpc_cni                          = true
+        enable_prefix_delegation                = true
         enable_kube_proxy                       = true
         enable_coredns                          = true
         enable_cloudwatch_observability         = local.enable_cloudwatch_observability

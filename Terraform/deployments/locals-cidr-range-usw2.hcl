@@ -304,25 +304,25 @@ locals {
         }
         app_vpc = {
           user_acceptance_test = {
-            vpc = "10.40.1.0/24"
+            vpc = "10.40.64.0/19"
             public_subnets = {
               sbnt1 = {
-                primary   = "10.40.1.0/27"
-                secondary = "10.40.1.32/27"
+                primary   = "10.40.64.0/22"
+                secondary = "10.40.68.0/22"
               }
               sbnt2 = {
-                primary   = "10.40.1.64/27"
-                secondary = "10.40.1.96/27"
+                primary   = "10.40.72.0/22"
+                secondary = "10.40.76.0/22"
               }
             }
             private_subnets = {
               sbnt1 = {
-                primary   = "10.40.1.128/27"
-                secondary = "10.40.1.160/27"
+                primary   = "10.40.80.0/22"
+                secondary = "10.40.84.0/22"
               }
               sbnt2 = {
-                primary   = "10.40.1.192/27"
-                secondary = "10.40.1.224/27"
+                primary   = "10.40.88.0/22"
+                secondary = "10.40.92.0/22"
               }
             }
           }
