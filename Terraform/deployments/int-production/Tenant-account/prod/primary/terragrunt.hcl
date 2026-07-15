@@ -36,7 +36,7 @@ locals {
   vpc_name     = "production"
   vpc_name_abr = "prod"
   ## eks related variables
-  create_eks_cluster      = true
+  create_eks_cluster      = false
   create_node_group       = false
   create_service_accounts = false
   enable_eks_pia          = false
@@ -46,7 +46,7 @@ locals {
   create_opensearch               = false
   create_firehose                 = false
   enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
-  enable_cloudwatch_observability = false  # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_cloudwatch_observability = false # Set to false if enabling fluent bit plus firehose → opensearch
   enable_kube_prometheus_stack    = false
   ## other variables
   create_ecs_cluster  = false
