@@ -1348,8 +1348,13 @@ inputs = {
           key       = "ssm-access"
           name      = "ssm-access"
           namespace = "pulsehub"
+        },
+        {
+          key       = "secret-access"
+          name      = "secret-access"
+          namespace = "infogrid"
+          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
         }
-
       ]
       eks_pia = [
         {
@@ -1394,6 +1399,19 @@ inputs = {
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
             description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+          }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
+          description               = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+          path                      = "/"
+          service_account_namespace = "infogrid"
+          service_account_name      = "secret-access"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
+            description = "IAM policy for ${local.vpc_name_abr} Infogrid Secret Access Service Account"
             policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
           }
         },
