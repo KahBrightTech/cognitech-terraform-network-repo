@@ -46,7 +46,7 @@ locals {
   create_opensearch               = false
   create_firehose                 = false
   enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
-  enable_cloudwatch_observability = true # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_cloudwatch_observability = true  # Set to false if enabling fluent bit plus firehose → opensearch
   enable_kube_prometheus_stack    = true
   ## other variables
   create_ecs_cluster  = false
