@@ -1622,7 +1622,7 @@ inputs = {
         prometheus_persistence_storage_class = "gp3"
         karpenter = {
           controller_role_key     = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
-          node_role_name          = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
+          node_role_arn           = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
           interruption_queue_name = "${local.vpc_name_abr}-karpenter-interruption-queue"
           nodepool_manifest_file  = "${get_terragrunt_dir()}/../../../../iam_policies/karpenter/prod_nodepool.yaml"
         }
