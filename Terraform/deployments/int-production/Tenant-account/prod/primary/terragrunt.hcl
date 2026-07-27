@@ -1544,6 +1544,18 @@ inputs = {
             policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fsx_csi_driver_policy.json"
           }
         },
+        {
+          key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          description        = "IAM Role for ${local.vpc_name_abr} Karpenter Controller"
+          path               = "/"
+          assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/karpenter_trust_policy.json"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+            description = "IAM policy for ${local.vpc_name_abr} Karpenter Controller."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/karpenter_controller_policy.json"
+          }
+        }
       ]
       eks_node_groups = [
         {
@@ -1573,6 +1585,7 @@ inputs = {
         enable_ebs_csi_driver                   = true
         enable_fsx_csi_driver                   = true
         enable_cluster_autoscaler               = true
+        enable_karpenter                        = true
         enable_fluent_bit                       = local.enable_fluent_bit
         fluent_bit_firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
         fluent_bit_role_key                     = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
@@ -1608,6 +1621,12 @@ inputs = {
         prometheus_persistence_enabled       = true
         prometheus_persistence_size          = "100Gi"
         prometheus_persistence_storage_class = "gp3"
+        karpenter = {
+          controller_role_key     = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          node_role_name          = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
+          interruption_queue_name = "${local.vpc_name_abr}-karpenter-interruption-queue"
+          nodepool_manifest_file  = "${include.cloud.locals.repo.root}/karpenter/prod_nodepool.yaml"
+        }
       }
     }
   ]

@@ -1149,6 +1149,7 @@ variable "eks" {
       enable_fsx_csi_driver                           = optional(bool, false)
       enable_aws_load_balancer_controller             = optional(bool, false)
       enable_cluster_autoscaler                       = optional(bool, false)
+      enable_karpenter                                = optional(bool, false)
       enable_external_dns                             = optional(bool, false)
       vpc_cni_version                                 = optional(string)
       kube_proxy_version                              = optional(string)
@@ -1165,53 +1166,64 @@ variable "eks" {
       cluster_autoscaler_version                      = optional(string)
       cluster_autoscaler_role_arn                     = optional(string)
       cluster_autoscaler_role_key                     = optional(string)
-      privateca_issuer_version                        = optional(string)
-      external_dns_version                            = optional(string)
-      cloudwatch_observability_role_arn               = optional(string)
-      cloudwatch_observability_role_key               = optional(string)
-      ebs_csi_driver_role_arn                         = optional(string)
-      ebs_csi_driver_role_key                         = optional(string)
-      efs_csi_driver_role_arn                         = optional(string)
-      efs_csi_driver_role_key                         = optional(string)
-      fsx_csi_driver_role_arn                         = optional(string)
-      fsx_csi_driver_role_key                         = optional(string)
-      aws_load_balancer_controller_role_key           = optional(string)
-      external_dns_role_arn                           = optional(string)
-      external_dns_role_key                           = optional(string)
-      external_dns_namespace                          = optional(string)
-      external_dns_policy                             = optional(string)
-      external_dns_domain_filters                     = optional(list(string))
-      external_dns_sources                            = optional(list(string))
-      external_dns_log_level                          = optional(string)
-      enableSecretRotation                            = optional(bool, false)
-      rotationPollInterval                            = optional(string)
-      enable_fluent_bit                               = optional(bool, false)
-      fluent_bit_version                              = optional(string)
-      fluent_bit_namespace                            = optional(string)
-      fluent_bit_role_arn                             = optional(string)
-      fluent_bit_role_key                             = optional(string)
-      fluent_bit_firehose_delivery_stream             = optional(string)
-      fluent_bit_firehose_delivery_stream_key         = optional(string)
-      enable_kube_prometheus_stack                    = optional(bool, false)
-      kube_prometheus_stack_timeout                   = optional(number, 1800)
-      kube_prometheus_stack_version                   = optional(string)
-      grafana_namespace                               = optional(string)
-      grafana_service_type                            = optional(string)
-      grafana_ingress_enabled                         = optional(bool, false)
-      grafana_ingress_class_name                      = optional(string)
-      grafana_ingress_hosts                           = optional(list(string), [])
-      grafana_ingress_annotations                     = optional(map(string), {})
-      grafana_ingress_security_group_key              = optional(string)
-      grafana_ingress_certificate_key                 = optional(string)
-      grafana_ingress_certificate_arn                 = optional(string)
-      grafana_ingress_hostname                        = optional(string)
-      grafana_persistence_enabled                     = optional(bool, false)
-      grafana_persistence_size                        = optional(string)
-      grafana_persistence_storage_class               = optional(string)
-      prometheus_retention                            = optional(string)
-      prometheus_persistence_enabled                  = optional(bool, false)
-      prometheus_persistence_size                     = optional(string)
-      prometheus_persistence_storage_class            = optional(string)
+      karpenter = optional(object({
+        chart_version           = optional(string, "1.1.1")
+        namespace               = optional(string, "kube-system")
+        controller_role_key     = optional(string)
+        controller_role_arn     = optional(string)
+        node_role_key           = optional(string)
+        node_role_arn           = optional(string)
+        node_role_name          = optional(string)
+        interruption_queue_name = optional(string)
+        nodepool_manifest_file  = optional(string)
+      }))
+      privateca_issuer_version                = optional(string)
+      external_dns_version                    = optional(string)
+      cloudwatch_observability_role_arn       = optional(string)
+      cloudwatch_observability_role_key       = optional(string)
+      ebs_csi_driver_role_arn                 = optional(string)
+      ebs_csi_driver_role_key                 = optional(string)
+      efs_csi_driver_role_arn                 = optional(string)
+      efs_csi_driver_role_key                 = optional(string)
+      fsx_csi_driver_role_arn                 = optional(string)
+      fsx_csi_driver_role_key                 = optional(string)
+      aws_load_balancer_controller_role_key   = optional(string)
+      external_dns_role_arn                   = optional(string)
+      external_dns_role_key                   = optional(string)
+      external_dns_namespace                  = optional(string)
+      external_dns_policy                     = optional(string)
+      external_dns_domain_filters             = optional(list(string))
+      external_dns_sources                    = optional(list(string))
+      external_dns_log_level                  = optional(string)
+      enableSecretRotation                    = optional(bool, false)
+      rotationPollInterval                    = optional(string)
+      enable_fluent_bit                       = optional(bool, false)
+      fluent_bit_version                      = optional(string)
+      fluent_bit_namespace                    = optional(string)
+      fluent_bit_role_arn                     = optional(string)
+      fluent_bit_role_key                     = optional(string)
+      fluent_bit_firehose_delivery_stream     = optional(string)
+      fluent_bit_firehose_delivery_stream_key = optional(string)
+      enable_kube_prometheus_stack            = optional(bool, false)
+      kube_prometheus_stack_timeout           = optional(number, 1800)
+      kube_prometheus_stack_version           = optional(string)
+      grafana_namespace                       = optional(string)
+      grafana_service_type                    = optional(string)
+      grafana_ingress_enabled                 = optional(bool, false)
+      grafana_ingress_class_name              = optional(string)
+      grafana_ingress_hosts                   = optional(list(string), [])
+      grafana_ingress_annotations             = optional(map(string), {})
+      grafana_ingress_security_group_key      = optional(string)
+      grafana_ingress_certificate_key         = optional(string)
+      grafana_ingress_certificate_arn         = optional(string)
+      grafana_ingress_hostname                = optional(string)
+      grafana_persistence_enabled             = optional(bool, false)
+      grafana_persistence_size                = optional(string)
+      grafana_persistence_storage_class       = optional(string)
+      prometheus_retention                    = optional(string)
+      prometheus_persistence_enabled          = optional(bool, false)
+      prometheus_persistence_size             = optional(string)
+      prometheus_persistence_storage_class    = optional(string)
     }))
     key_pair = object({
       name               = optional(string)
@@ -1320,12 +1332,17 @@ variable "eks" {
       ami_type                   = optional(string)
       disk_size                  = optional(number)
       labels                     = optional(map(string), {})
-      tags                       = optional(map(string), {})
-      version                    = optional(string)
-      force_update_version       = optional(bool, false)
-      capacity_type              = optional(string, "ON_DEMAND")
-      ec2_instance_name          = optional(string, "eks_node_group")
-      launch_template_key        = optional(string)
+      taints = optional(list(object({
+        key    = string
+        value  = optional(string)
+        effect = string # NO_SCHEDULE, PREFER_NO_SCHEDULE, or NO_EXECUTE
+      })))
+      tags                 = optional(map(string), {})
+      version              = optional(string)
+      force_update_version = optional(bool, false)
+      capacity_type        = optional(string, "ON_DEMAND")
+      ec2_instance_name    = optional(string, "eks_node_group")
+      launch_template_key  = optional(string)
       launch_template = optional(object({
         id      = string
         version = optional(string, "$Latest")
@@ -1965,4 +1982,156 @@ variable "opensearch_source_ip_cidr" {
   description = "Optional CIDR used to replace [[source_ip]] placeholder in OpenSearch access policies."
   type        = string
   default     = null
+}
+
+variable "cognito" {
+  description = "AWS Cognito user pool, clients, domain, and identity pool configuration."
+  type = list(object({
+    create_cognito             = optional(bool, true)
+    key                        = string
+    name                       = string
+    deletion_protection        = optional(string, "INACTIVE")
+    alias_attributes           = optional(list(string), null)
+    username_attributes        = optional(list(string), null)
+    auto_verified_attributes   = optional(list(string), ["email"])
+    mfa_configuration          = optional(string, "OFF")
+    software_token_mfa_enabled = optional(bool, false)
+    username_configuration = optional(object({
+      case_sensitive = optional(bool, false)
+    }))
+    password_policy = optional(object({
+      minimum_length                   = optional(number, 8)
+      require_lowercase                = optional(bool, true)
+      require_numbers                  = optional(bool, true)
+      require_symbols                  = optional(bool, true)
+      require_uppercase                = optional(bool, true)
+      temporary_password_validity_days = optional(number, 7)
+    }))
+    sms_configuration = optional(object({
+      external_id    = string
+      sns_caller_arn = string
+      sns_region     = optional(string, null)
+    }))
+    email_configuration = optional(object({
+      email_sending_account  = optional(string, "COGNITO_DEFAULT") # COGNITO_DEFAULT or DEVELOPER
+      from_email_address     = optional(string, null)
+      reply_to_email_address = optional(string, null)
+      source_arn             = optional(string, null)
+      configuration_set      = optional(string, null)
+    }))
+    admin_create_user_config = optional(object({
+      allow_admin_create_user_only = optional(bool, false)
+      invite_email_subject         = optional(string, null)
+      invite_email_message         = optional(string, null)
+      invite_sms_message           = optional(string, null)
+    }))
+    device_configuration = optional(object({
+      challenge_required_on_new_device      = optional(bool, false)
+      device_only_remembered_on_user_prompt = optional(bool, false)
+    }))
+    advanced_security_mode = optional(string, "OFF") # OFF, AUDIT, ENFORCED
+    schema_attributes = optional(list(object({
+      name                     = string
+      attribute_data_type      = string # String, Number, DateTime, Boolean
+      developer_only_attribute = optional(bool, false)
+      mutable                  = optional(bool, true)
+      required                 = optional(bool, false)
+      string_constraints = optional(object({
+        min_length = optional(string, null)
+        max_length = optional(string, null)
+      }), null)
+      number_constraints = optional(object({
+        min_value = optional(string, null)
+        max_value = optional(string, null)
+      }), null)
+    })))
+    verification_message_template = optional(object({
+      default_email_option  = optional(string, "CONFIRM_WITH_CODE") # CONFIRM_WITH_CODE or CONFIRM_WITH_LINK
+      email_message         = optional(string, null)
+      email_message_by_link = optional(string, null)
+      email_subject         = optional(string, null)
+      email_subject_by_link = optional(string, null)
+      sms_message           = optional(string, null)
+    }))
+    lambda_config = optional(object({
+      create_auth_challenge          = optional(string, null)
+      custom_message                 = optional(string, null)
+      define_auth_challenge          = optional(string, null)
+      post_authentication            = optional(string, null)
+      post_confirmation              = optional(string, null)
+      pre_authentication             = optional(string, null)
+      pre_sign_up                    = optional(string, null)
+      pre_token_generation           = optional(string, null)
+      user_migration                 = optional(string, null)
+      verify_auth_challenge_response = optional(string, null)
+      kms_key_id                     = optional(string, null)
+    }))
+    create_lambda_permissions = optional(bool, true)
+    domain = optional(object({
+      domain_name     = string
+      certificate_arn = optional(string, null)
+    }))
+    clients = optional(list(object({
+      name                                 = string
+      generate_secret                      = optional(bool, false)
+      explicit_auth_flows                  = optional(list(string), ["ALLOW_USER_SRP_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"])
+      allowed_oauth_flows                  = optional(list(string), [])
+      allowed_oauth_flows_user_pool_client = optional(bool, false)
+      allowed_oauth_scopes                 = optional(list(string), [])
+      callback_urls                        = optional(list(string), [])
+      logout_urls                          = optional(list(string), [])
+      supported_identity_providers         = optional(list(string), ["COGNITO"])
+      prevent_user_existence_errors        = optional(string, "ENABLED")
+      refresh_token_validity               = optional(number, 30)
+      access_token_validity                = optional(number, 60)
+      id_token_validity                    = optional(number, 60)
+      token_validity_units = optional(object({
+        access_token  = optional(string, "minutes")
+        id_token      = optional(string, "minutes")
+        refresh_token = optional(string, "days")
+      }), {})
+      read_attributes                               = optional(list(string), null)
+      write_attributes                              = optional(list(string), null)
+      enable_token_revocation                       = optional(bool, true)
+      enable_propagate_additional_user_context_data = optional(bool, false)
+      default_redirect_uri                          = optional(string, null)
+    })))
+    resource_servers = optional(list(object({
+      identifier = string
+      name       = string
+      scopes = list(object({
+        scope_name        = string
+        scope_description = string
+      }))
+    })))
+    user_groups = optional(list(object({
+      name        = string
+      description = optional(string, null)
+      precedence  = optional(number, null)
+      role_arn    = optional(string, null)
+    })))
+    identity_providers = optional(list(object({
+      provider_name     = string
+      provider_type     = string # SAML, Google, Facebook, LoginWithAmazon, SignInWithApple, OIDC
+      provider_details  = map(string)
+      attribute_mapping = optional(map(string), {})
+      idp_identifiers   = optional(list(string), [])
+    })), [])
+    identity_pool = optional(object({
+      create                           = optional(bool, false)
+      name                             = optional(string, null)
+      allow_unauthenticated_identities = optional(bool, false)
+      allow_classic_flow               = optional(bool, false)
+      authenticated_role_arn           = optional(string, null)
+      unauthenticated_role_arn         = optional(string, null)
+      server_side_token_check          = optional(bool, false)
+      additional_cognito_providers = optional(list(object({
+        client_id               = string
+        provider_name           = string
+        server_side_token_check = optional(bool, false)
+      })))
+    }))
+    tags = optional(map(string))
+  }))
+  default = null
 }

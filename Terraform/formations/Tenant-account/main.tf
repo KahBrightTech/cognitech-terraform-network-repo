@@ -585,7 +585,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.64"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.67"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -1115,4 +1115,15 @@ module "events" {
       target_arn = each.value.target_key != null ? module.lambdas[each.value.target_key].lambda_function_arn : each.value.target_arn
     }
   )
+}
+
+
+#--------------------------------------------------------------------
+# AWS Cognito
+#--------------------------------------------------------------------
+module "cognito" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-Cognito?ref=v1.6.65"
+  for_each = (var.cognito != null) ? { for item in var.cognito : item.create_cognito ? item.key : null => item if item.create_cognito } : {}
+  common   = var.common
+  cognito  = each.value
 }

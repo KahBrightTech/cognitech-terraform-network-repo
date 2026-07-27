@@ -242,3 +242,12 @@ output "opensearch_domains" {
   description = "Output for all OpenSearch domains"
   value       = module.opensearch_domains
 }
+
+
+#-------------------------------------------------------
+# Cognito outputs
+#-------------------------------------------------------
+output "cognito" {
+  description = "Output for all Cognito user pools"
+  value       = module.cognito
+}
