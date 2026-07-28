@@ -1544,11 +1544,12 @@ inputs = {
           }
         },
         {
-          key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
-          name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
-          description        = "IAM Role for ${local.vpc_name_abr} Karpenter Controller"
-          path               = "/"
-          assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/karpenter_trust_policy.json"
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          description               = "IAM Role for ${local.vpc_name_abr} Karpenter Controller"
+          path                      = "/"
+          service_account_namespace = "kube-system"
+          service_account_name      = "karpenter"
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
             description = "IAM policy for ${local.vpc_name_abr} Karpenter Controller."
