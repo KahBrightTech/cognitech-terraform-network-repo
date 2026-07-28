@@ -36,12 +36,13 @@ locals {
   vpc_name     = "production"
   vpc_name_abr = "prod"
   ## eks related variables
-  create_eks_cluster      = true
+  create_eks_cluster      = flase
   create_node_group       = false
   create_service_accounts = false
   enable_eks_pia          = false
   create_rbac             = false
   create_namespaces       = false
+  enable_karpenter        = false
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
@@ -1594,7 +1595,7 @@ inputs = {
         enable_ebs_csi_driver                   = true
         enable_fsx_csi_driver                   = true
         enable_cluster_autoscaler               = true
-        enable_karpenter                        = true
+        enable_karpenter                        = local.enable_karpenter
         enable_fluent_bit                       = local.enable_fluent_bit
         fluent_bit_firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
         fluent_bit_role_key                     = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
