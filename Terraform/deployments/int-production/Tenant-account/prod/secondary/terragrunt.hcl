@@ -53,7 +53,6 @@ locals {
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
-
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
@@ -1348,8 +1347,13 @@ inputs = {
           key       = "ssm-access"
           name      = "ssm-access"
           namespace = "pulsehub"
+        },
+        {
+          key       = "secret-access"
+          name      = "secret-access"
+          namespace = "infogrid"
+          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
         }
-
       ]
       eks_pia = [
         {
@@ -1394,6 +1398,19 @@ inputs = {
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
             description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+          }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
+          description               = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+          path                      = "/"
+          service_account_namespace = "infogrid"
+          service_account_name      = "secret-access"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
+            description = "IAM policy for ${local.vpc_name_abr} Infogrid Secret Access Service Account"
             policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
           }
         },
@@ -1526,6 +1543,18 @@ inputs = {
             policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fsx_csi_driver_policy.json"
           }
         },
+        {
+          key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          description        = "IAM Role for ${local.vpc_name_abr} Karpenter Controller"
+          path               = "/"
+          assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/karpenter_trust_policy.json"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+            description = "IAM policy for ${local.vpc_name_abr} Karpenter Controller."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/karpenter_controller_policy.json"
+          }
+        }
       ]
       eks_node_groups = [
         {
@@ -1539,6 +1568,16 @@ inputs = {
           max_size            = 4
           min_size            = 1
           launch_template_key = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          labels = {
+            "workload-type" = "system"
+          }
+          taints = [
+            {
+              key    = "workload-type"
+              value  = "system"
+              effect = "NO_SCHEDULE"
+            }
+          ]
         }
       ]
       eks_addons = {
