@@ -54,6 +54,7 @@ locals {
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
+  create_cognito      = true
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
@@ -1968,6 +1969,37 @@ inputs = {
             cooldown           = 300
           }
         }
+      }
+    }
+  ]
+  cognito = [
+    {
+      create_cognito           = local.create_cognito
+      key                      = "little-doctor-users"
+      name                     = "little-doctor-users"
+      username_attributes      = ["email"]
+      auto_verified_attributes = ["email"]
+      password_policy = {
+        minimum_length    = 12
+        require_lowercase = true
+        require_uppercase = true
+        require_numbers   = true
+        require_symbols   = true
+      }
+      clients = [
+        {
+          name            = "little-doctor-web"
+          generate_secret = false
+          explicit_auth_flows = [
+            "ALLOW_USER_SRP_AUTH",
+            "ALLOW_REFRESH_TOKEN_AUTH"
+          ]
+          prevent_user_existence_errors = "ENABLED"
+        }
+      ]
+      secret = {
+        create              = true
+        primary_client_name = "little-doctor-web"
       }
     }
   ]

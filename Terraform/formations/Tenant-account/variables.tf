@@ -1990,13 +1990,13 @@ variable "cognito" {
   type = list(object({
     create_cognito             = optional(bool, true)
     key                        = string
-    name                       = string
-    deletion_protection        = optional(string, "INACTIVE")
-    alias_attributes           = optional(list(string), null)
-    username_attributes        = optional(list(string), null)
+    deletion_protection        = optional(string, "INACTIVE") # ACTIVE or INACTIVE
+    alias_attributes           = optional(list(string), null) # e.g. ["email", "phone_number", "preferred_username"] - mutually exclusive with username_attributes
+    username_attributes        = optional(list(string), null) # e.g. ["email"] or ["phone_number"] - mutually exclusive with alias_attributes
     auto_verified_attributes   = optional(list(string), ["email"])
-    mfa_configuration          = optional(string, "OFF")
+    mfa_configuration          = optional(string, "OFF") # OFF, ON, OPTIONAL
     software_token_mfa_enabled = optional(bool, false)
+
     username_configuration = optional(object({
       case_sensitive = optional(bool, false)
     }))
@@ -2012,7 +2012,7 @@ variable "cognito" {
       external_id    = string
       sns_caller_arn = string
       sns_region     = optional(string, null)
-    }))
+    }), null)
     email_configuration = optional(object({
       email_sending_account  = optional(string, "COGNITO_DEFAULT") # COGNITO_DEFAULT or DEVELOPER
       from_email_address     = optional(string, null)
@@ -2044,7 +2044,7 @@ variable "cognito" {
       number_constraints = optional(object({
         min_value = optional(string, null)
         max_value = optional(string, null)
-      }), null)
+      }))
     })))
     verification_message_template = optional(object({
       default_email_option  = optional(string, "CONFIRM_WITH_CODE") # CONFIRM_WITH_CODE or CONFIRM_WITH_LINK
@@ -2117,7 +2117,7 @@ variable "cognito" {
       provider_details  = map(string)
       attribute_mapping = optional(map(string), {})
       idp_identifiers   = optional(list(string), [])
-    })), [])
+    })))
     identity_pool = optional(object({
       create                           = optional(bool, false)
       name                             = optional(string, null)
@@ -2130,9 +2130,19 @@ variable "cognito" {
         client_id               = string
         provider_name           = string
         server_side_token_check = optional(bool, false)
-      })))
+      })), [])
+    }))
+    secret = optional(object({
+      create                  = optional(bool, false)
+      name                    = optional(string, null)
+      description             = optional(string, null)
+      kms_key_id              = optional(string, null)
+      recovery_window_in_days = optional(number, 30)
+      primary_client_name     = optional(string, null)
+      additional_values       = optional(map(string), {})
     }))
     tags = optional(map(string))
   }))
   default = null
 }
+

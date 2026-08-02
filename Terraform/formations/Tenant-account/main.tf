@@ -1122,7 +1122,7 @@ module "events" {
 # AWS Cognito
 #--------------------------------------------------------------------
 module "cognito" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-Cognito?ref=v1.6.65"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-Cognito?ref=v1.6.77"
   for_each = (var.cognito != null) ? { for item in var.cognito : item.create_cognito ? item.key : null => item if item.create_cognito } : {}
   common   = var.common
   cognito  = each.value
