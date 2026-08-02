@@ -250,4 +250,5 @@ output "opensearch_domains" {
 output "cognito" {
   description = "Output for all Cognito user pools"
   value       = module.cognito
+  sensitive   = true
 }
