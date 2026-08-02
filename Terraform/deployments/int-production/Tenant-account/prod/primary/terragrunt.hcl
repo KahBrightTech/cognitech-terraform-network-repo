@@ -1320,7 +1320,7 @@ inputs = {
             os_release_date = "EKSAL2023"
           }
           associate_public_ip_address = true
-          instance_type               = "t3.medium"
+          instance_type               = "m6i.large"
           root_device_name            = "/dev/xvda"
           volume_size                 = 20
           vpc_security_group_keys     = ["eks-nodes", "eks_cluster_sg_id"]
