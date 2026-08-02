@@ -1990,6 +1990,7 @@ variable "cognito" {
   type = list(object({
     create_cognito             = optional(bool, true)
     key                        = string
+    name                       = string
     deletion_protection        = optional(string, "INACTIVE") # ACTIVE or INACTIVE
     alias_attributes           = optional(list(string), null) # e.g. ["email", "phone_number", "preferred_username"] - mutually exclusive with username_attributes
     username_attributes        = optional(list(string), null) # e.g. ["email"] or ["phone_number"] - mutually exclusive with alias_attributes
