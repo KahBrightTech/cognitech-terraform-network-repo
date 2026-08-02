@@ -1972,6 +1972,7 @@ inputs = {
       }
     }
   ]
+
   cognito = [
     {
       create_cognito           = local.create_cognito

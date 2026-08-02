@@ -1991,16 +1991,15 @@ variable "cognito" {
     create_cognito             = optional(bool, true)
     key                        = string
     name                       = string
-    deletion_protection        = optional(string, "INACTIVE") # ACTIVE or INACTIVE
-    alias_attributes           = optional(list(string), null) # e.g. ["email", "phone_number", "preferred_username"] - mutually exclusive with username_attributes
-    username_attributes        = optional(list(string), null) # e.g. ["email"] or ["phone_number"] - mutually exclusive with alias_attributes
+    deletion_protection        = optional(string, "INACTIVE")
+    alias_attributes           = optional(list(string), null)
+    username_attributes        = optional(list(string), null)
     auto_verified_attributes   = optional(list(string), ["email"])
-    mfa_configuration          = optional(string, "OFF") # OFF, ON, OPTIONAL
+    mfa_configuration          = optional(string, "OFF")
     software_token_mfa_enabled = optional(bool, false)
-
     username_configuration = optional(object({
       case_sensitive = optional(bool, false)
-    }))
+    }), {})
     password_policy = optional(object({
       minimum_length                   = optional(number, 8)
       require_lowercase                = optional(bool, true)
@@ -2008,33 +2007,33 @@ variable "cognito" {
       require_symbols                  = optional(bool, true)
       require_uppercase                = optional(bool, true)
       temporary_password_validity_days = optional(number, 7)
-    }))
+    }), {})
     sms_configuration = optional(object({
       external_id    = string
       sns_caller_arn = string
       sns_region     = optional(string, null)
     }), null)
     email_configuration = optional(object({
-      email_sending_account  = optional(string, "COGNITO_DEFAULT") # COGNITO_DEFAULT or DEVELOPER
+      email_sending_account  = optional(string, "COGNITO_DEFAULT")
       from_email_address     = optional(string, null)
       reply_to_email_address = optional(string, null)
       source_arn             = optional(string, null)
       configuration_set      = optional(string, null)
-    }))
+    }), {})
     admin_create_user_config = optional(object({
       allow_admin_create_user_only = optional(bool, false)
       invite_email_subject         = optional(string, null)
       invite_email_message         = optional(string, null)
       invite_sms_message           = optional(string, null)
-    }))
+    }), {})
     device_configuration = optional(object({
       challenge_required_on_new_device      = optional(bool, false)
       device_only_remembered_on_user_prompt = optional(bool, false)
-    }))
-    advanced_security_mode = optional(string, "OFF") # OFF, AUDIT, ENFORCED
+    }), {})
+    advanced_security_mode = optional(string, "OFF")
     schema_attributes = optional(list(object({
       name                     = string
-      attribute_data_type      = string # String, Number, DateTime, Boolean
+      attribute_data_type      = string
       developer_only_attribute = optional(bool, false)
       mutable                  = optional(bool, true)
       required                 = optional(bool, false)
@@ -2046,15 +2045,15 @@ variable "cognito" {
         min_value = optional(string, null)
         max_value = optional(string, null)
       }))
-    })))
+    })), [])
     verification_message_template = optional(object({
-      default_email_option  = optional(string, "CONFIRM_WITH_CODE") # CONFIRM_WITH_CODE or CONFIRM_WITH_LINK
+      default_email_option  = optional(string, "CONFIRM_WITH_CODE")
       email_message         = optional(string, null)
       email_message_by_link = optional(string, null)
       email_subject         = optional(string, null)
       email_subject_by_link = optional(string, null)
       sms_message           = optional(string, null)
-    }))
+    }), {})
     lambda_config = optional(object({
       create_auth_challenge          = optional(string, null)
       custom_message                 = optional(string, null)
@@ -2067,7 +2066,7 @@ variable "cognito" {
       user_migration                 = optional(string, null)
       verify_auth_challenge_response = optional(string, null)
       kms_key_id                     = optional(string, null)
-    }))
+    }), {})
     create_lambda_permissions = optional(bool, true)
     domain = optional(object({
       domain_name     = string
@@ -2097,7 +2096,7 @@ variable "cognito" {
       enable_token_revocation                       = optional(bool, true)
       enable_propagate_additional_user_context_data = optional(bool, false)
       default_redirect_uri                          = optional(string, null)
-    })))
+    })), [])
     resource_servers = optional(list(object({
       identifier = string
       name       = string
@@ -2105,20 +2104,20 @@ variable "cognito" {
         scope_name        = string
         scope_description = string
       }))
-    })))
+    })), [])
     user_groups = optional(list(object({
       name        = string
       description = optional(string, null)
       precedence  = optional(number, null)
       role_arn    = optional(string, null)
-    })))
+    })), [])
     identity_providers = optional(list(object({
       provider_name     = string
       provider_type     = string # SAML, Google, Facebook, LoginWithAmazon, SignInWithApple, OIDC
       provider_details  = map(string)
       attribute_mapping = optional(map(string), {})
       idp_identifiers   = optional(list(string), [])
-    })))
+    })), [])
     identity_pool = optional(object({
       create                           = optional(bool, false)
       name                             = optional(string, null)
@@ -2132,7 +2131,7 @@ variable "cognito" {
         provider_name           = string
         server_side_token_check = optional(bool, false)
       })), [])
-    }))
+    }), {})
     secret = optional(object({
       create                  = optional(bool, false)
       name                    = optional(string, null)
@@ -2141,8 +2140,8 @@ variable "cognito" {
       recovery_window_in_days = optional(number, 30)
       primary_client_name     = optional(string, null)
       additional_values       = optional(map(string), {})
-    }))
-    tags = optional(map(string))
+    }), {})
+    tags = optional(map(string), {})
   }))
   default = null
 }
