@@ -172,6 +172,13 @@ After the Terragrunt file changes are validated, continue through the deployment
 9. After approval, trigger or allow the workflow to continue to `apply` automatically.
 10. Keep monitoring workflow progress until the apply stage succeeds or fails.
 
+Monitoring rules:
+- After pushing the branch, keep checking the branch's workflow or status checks until they reach a terminal state: `success`, `failure`, `cancelled`, `skipped`, or a clear approval wait state.
+- Do not stop monitoring just because a pull request was opened or because a check first appears as `queued`, `in_progress`, `pending`, or `unknown`.
+- If the branch push is expected to trigger `plan`, keep checking until `plan` succeeds, fails, or it is clear that no run was triggered.
+- If no run was triggered, inspect the workflow trigger conditions for `push`, `pull_request`, `workflow_dispatch`, branch filters, and path filters before deciding the workflow is blocked.
+- Continue reporting the latest branch state using the branch name, workflow or check name, and current state until there is a terminal outcome or a concrete blocker.
+
 Apply rules:
 - Do not stop after `plan` if the user asked for full cluster creation.
 - Do not assume opening a pull request will start `plan`; first confirm whether the workflow is triggered by `push`, `pull_request`, or only `workflow_dispatch`.
