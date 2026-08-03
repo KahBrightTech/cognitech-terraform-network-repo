@@ -54,7 +54,7 @@ locals {
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
-  create_cognito      = false
+  create_cognito      = true
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
