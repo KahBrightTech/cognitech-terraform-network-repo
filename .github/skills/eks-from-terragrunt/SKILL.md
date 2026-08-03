@@ -48,6 +48,8 @@ Support two modes:
 - `create`: prepare and deploy the EKS cluster.
 - `delete`: reverse the EKS enablement changes and destroy the cluster through the normal workflow.
 
+For both `create` and `delete`, treat workflow tracking, merge sequencing, and `main`-only apply as the default execution path for this repo. Do not wait for the user to restate that the skill should watch the branch run, merge after a successful branch plan, monitor the `main` run, and continue to apply when the workflow policy allows it.
+
 For `create`, follow the enablement rules below.
 
 Before editing for `create`, read the nearest `locals-env.hcl`, then complete the git workflow to pull `main` and create the working branch before modifying the deployment file. Carry forward the discovered account context in the working summary so later plan, PR, and approval updates can refer to the resolved account identifier and cluster key.
@@ -154,6 +156,7 @@ Branch tracking rules:
 - Record the branch name in the working summary and use it consistently for all later status updates.
 - Report the branch name to the user after branch creation.
 - If a pull request is created, include the branch name and PR link or identifier in subsequent updates.
+- Record the branch workflow run identifier after the push-triggered `plan` starts and use that exact run for later status checks.
 - Do not edit the target `terragrunt.hcl` until the branch has been created successfully.
 
 ## Deployment execution
@@ -164,7 +167,7 @@ After the Terragrunt file changes are validated, continue through the deployment
 2. Push the branch.
 3. Push the branch and confirm the branch `plan` workflow run starts.
 4. Open or update the pull request for review and merge tracking.
-5. If this repo applies only from `main`, merge only after the branch `plan` succeeds.
+5. If this repo applies only from `main`, merge only after the tracked branch `plan` run reaches `status = completed` and `conclusion = success`.
 6. After merge, monitor the `main` plan run triggered by the merge commit.
 7. Trigger `apply` only from `main`, preferably with GitHub CLI when available.
 8. Keep monitoring workflow progress until the apply stage succeeds or fails.
@@ -173,6 +176,9 @@ Apply rules:
 - Do not stop after `plan` if the user asked for full cluster creation.
 - In this repo, branch pushes trigger `plan`, but `apply` is limited to `workflow_dispatch` on `main`.
 - Do not assume the PR itself triggers plan; verify the push-triggered workflow run for the branch.
+- Treat a branch run in `queued`, `in_progress`, or `requested` state as not ready to merge.
+- Treat a branch run with `status = completed` and any non-success conclusion as a blocker that must be investigated before merge.
+- Unless the user explicitly asks to stop after file preparation or after plan, continue automatically from branch tracking to merge readiness evaluation, then to `main` plan monitoring, then to `main` apply dispatch.
 - Do not require an explicit reviewer count unless branch protection or repo policy actually blocks the merge.
 - After the branch plan succeeds, merge to `main`, allow a short review window when the user wants one, then monitor the new `main` plan run.
 - If GitHub CLI is available, trigger apply with the repo's normal workflow path, for example `gh workflow run deploy-primary-int-production-prod.yaml --ref main -f terragrunt_action=apply`.
