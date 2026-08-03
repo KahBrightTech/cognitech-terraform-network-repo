@@ -1,6 +1,6 @@
 ---
 name: eks-from-terragrunt
-description: "Use when creating, preparing, deploying, deleting, or troubleshooting an EKS cluster from a Terragrunt deployment file in this repo. Ask for the target account and an optional terragrunt.hcl path, ensure the required EKS and monitoring locals are set correctly, handle optional OpenSearch enablement, create and track a branch from main, run plan, wait for reviewer approval, continue to auto-apply, monitor until success, troubleshoot failures until resolved or blocked, and delete the local branch after a successful create or delete apply."
+description: "Use when creating, preparing, deploying, deleting, or troubleshooting an EKS cluster from a Terragrunt deployment file in this repo. Resolve account context from the matching locals-env.hcl when available, otherwise ask for the target account and an optional terragrunt.hcl path, update main with a fast-forward pull, create and track a branch from main before making deployment changes, ensure the required EKS and monitoring locals are set correctly, handle optional OpenSearch enablement, run plan, wait for reviewer approval, continue to auto-apply, monitor until success, troubleshoot failures until resolved or blocked, and delete the local branch after a successful create or delete apply."
 ---
 
 # EKS From Terragrunt
@@ -10,10 +10,20 @@ Use this skill for the Cognitech Terraform network repo when the task is to prep
 ## Inputs
 
 Collect these inputs first:
-- Target account identifier from the user.
 - Optional absolute Terragrunt path, for example `C:\Users\Owner\Downloads\GitRepos\cognitech-repos\cognitech-terraform-network-repo\Terraform\deployments\int-production\Tenant-account\prod\primary\terragrunt.hcl`.
 - Whether OpenSearch logging should also be enabled for this deployment.
 - Whether the requested operation is EKS `create` or EKS `delete`.
+
+For `create` requests, resolve the account variables from the deployment's nearest `locals-env.hcl` before asking the user for them.
+
+- For the example path above, read `C:\Users\Owner\Downloads\GitRepos\cognitech-repos\cognitech-terraform-network-repo\Terraform\deployments\int-production\locals-env.hcl`.
+- Use that file to gather the environment account context, especially:
+	- `name_abr`
+	- `eks_roles`
+	- `eks_cluster_keys`
+- Treat `name_abr` as the target account identifier when the user did not provide one separately.
+- If the Terragrunt path is provided and the matching `locals-env.hcl` exists, do not ask the user for the target account identifier unless the file is missing the needed values.
+- If the path is not provided, or the matching `locals-env.hcl` is missing or incomplete, ask the minimum follow-up needed.
 
 If the path is not provided, resolve it from the account details by locating the matching deployment under `Terraform/deployments/<tier>/<account-type>/<environment>/<region>/terragrunt.hcl`.
 
@@ -22,6 +32,8 @@ If the account name alone is ambiguous, ask the minimum follow-up needed to iden
 - account type
 - environment folder
 - region context
+
+When deriving from `locals-env.hcl`, prefer the values in that file over inferred account metadata from folder names.
 
 ## Target file rules
 
@@ -38,6 +50,8 @@ Support two modes:
 - `delete`: reverse the EKS enablement changes and destroy the cluster through the normal workflow.
 
 For `create`, follow the enablement rules below.
+
+Before editing for `create`, read the nearest `locals-env.hcl`, then complete the git workflow to pull `main` and create the working branch before modifying the deployment file. Carry forward the discovered account context in the working summary so later plan, PR, and approval updates can refer to the resolved account identifier and cluster key.
 
 For `delete`, reverse those same flags:
 - `create_eks_cluster = false`
@@ -111,12 +125,13 @@ enable_cloudwatch_observability = false
 
 ## Git workflow
 
-After confirming the Terragrunt file updates are complete, prepare a branch from `main`.
+Before making any Terragrunt changes for `create` or `delete`, prepare a branch from `main`.
 
 1. Check the worktree state first.
 2. If unrelated local changes would block switching branches or pulling, stop and ask the user how to proceed. Do not reset or discard changes.
 3. If the worktree is in a safe state, update `main` with a fast-forward pull.
-4. Create a new branch from `main` before making any additional EKS changes.
+4. Create a new branch from `main` before making any EKS-related file changes.
+5. Make the Terragrunt changes on that new branch.
 
 Preferred command sequence:
 
@@ -138,6 +153,7 @@ Branch tracking rules:
 - Record the branch name in the working summary and use it consistently for all later status updates.
 - Report the branch name to the user after branch creation.
 - If a pull request is created, include the branch name and PR link or identifier in subsequent updates.
+- Do not edit the target `terragrunt.hcl` until the branch has been created successfully.
 
 ## Deployment execution
 
@@ -209,6 +225,7 @@ For delete mode validation:
 
 - Do not modify shared Terraform formation code unless the user explicitly asks.
 - Do not invent account metadata, IAM role ARNs, secrets, or cluster names.
+- When `locals-env.hcl` is available, source account metadata from that file instead of asking the user to restate it.
 - Do not run deployment commands unless the user asked for full cluster creation or deletion beyond file preparation.
 - Do not discard user changes to make the branch workflow easier.
 - Do not delete any branch before the corresponding create or delete apply has succeeded.
