@@ -170,8 +170,8 @@ After the Terragrunt file changes are validated, continue through the deployment
 7. If the workflow listens to `pull_request`, monitor the PR-triggered run.
 8. If the workflow listens to `workflow_dispatch`, open or update the pull request if needed, then trigger the branch `plan` run explicitly.
 9. Run or confirm a branch `plan` workflow first.
-10. If the user asked for merge-driven deployment, wait for the requested review threshold before merging. Treat one approval as the default threshold when the user says to wait for one review.
-11. After the review threshold is met and the branch plan is acceptable, merge the pull request to `main` using the repository's normal merge path.
+10. If the user asked for merge-driven deployment without a reviewer requirement, allow a short review window after the branch plan succeeds, then merge the pull request to `main` automatically if there are no blocking change requests or failing checks.
+11. When a short review window is requested, keep monitoring the PR for comments, change requests, or new failing checks during that window instead of merging immediately after the first successful branch plan.
 12. After merge, monitor the `main` branch workflow run triggered by that merge and wait for the post-merge `plan` result.
 13. If apply requires `workflow_dispatch` on `main`, trigger the `apply` run only after the merged `main` plan succeeds.
 14. If the apply workflow requires environment approval, wait for that approval state and continue monitoring.
@@ -182,7 +182,7 @@ Monitoring rules:
 - Do not stop monitoring just because a pull request was opened or because a check first appears as `queued`, `in_progress`, `pending`, or `unknown`.
 - If the branch push is expected to trigger `plan`, keep checking until `plan` succeeds, fails, or it is clear that no run was triggered.
 - Keep tracking the pull request status separately from the branch check status: branch name, PR number, review state, merge state, latest workflow name, and latest job state.
-- If the user asked for one review before merge, keep monitoring the PR until at least one approval is present and there are no blocking change requests.
+- If the user asked for a short review window before merge, keep monitoring the PR until that window has passed and there are still no blocking change requests or failing checks.
 - After merging, switch monitoring from the feature branch to the `main` branch run that corresponds to the merge commit.
 - Do not treat merge as completion; after merge, continue until the `main` plan run reaches a terminal state and any required `apply` run also reaches a terminal state.
 - If no run was triggered, inspect the workflow trigger conditions for `push`, `pull_request`, `workflow_dispatch`, branch filters, and path filters before deciding the workflow is blocked.
@@ -191,9 +191,10 @@ Monitoring rules:
 Apply rules:
 - Do not stop after `plan` if the user asked for full cluster creation.
 - Do not assume opening a pull request will start `plan`; first confirm whether the workflow is triggered by `push`, `pull_request`, or only `workflow_dispatch`.
-- If the user asked for PR review before merge, do not merge until the requested number of approvals is present.
+- If the user explicitly requires `apply` only from `main`, never use a feature-branch apply path even if the repository later adds one.
+- If the user removed the reviewer requirement, do not wait for approvals unless the repository itself blocks merge without them.
 - If the repo uses GitHub Actions environment approvals, wait for that approval after the `apply` workflow is triggered.
-- After the required PR review and successful merged `main` plan, proceed to auto-apply using the repo's normal workflow rather than inventing a manual local apply path.
+- After a successful merged `main` plan, proceed to auto-apply using the repo's normal workflow rather than inventing a manual local apply path.
 - Keep reporting the current state: branch, PR identifier, merge state, workflow identifier, latest job state, and whether the run is waiting on review, waiting on approval, running, succeeded, or failed.
 
 For `delete` mode, use the same branch, PR, plan, approval, and apply flow, but treat success as confirmed destruction of the EKS-managed resources represented by these locals.
