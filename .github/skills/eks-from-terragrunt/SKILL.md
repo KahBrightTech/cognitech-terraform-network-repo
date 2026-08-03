@@ -1,6 +1,5 @@
----
 name: eks-from-terragrunt
-description: "Use when creating, preparing, deploying, deleting, or troubleshooting an EKS cluster from a Terragrunt deployment file in this repo. Resolve account context from the matching locals-env.hcl when available, otherwise ask for the target account and an optional terragrunt.hcl path, update main with a fast-forward pull, create and track a branch from main before making deployment changes, ensure the required EKS and monitoring locals are set correctly, handle optional OpenSearch enablement, run plan, wait for reviewer approval, continue to auto-apply, monitor until success, troubleshoot failures until resolved or blocked, and delete the local branch after a successful create or delete apply."
+description: "Use when creating, preparing, deploying, deleting, or troubleshooting an EKS cluster from a Terragrunt deployment file in this repo. Resolve account context from the matching locals-env.hcl when available, otherwise ask for the target account and an optional terragrunt.hcl path, update main with a fast-forward pull, create and track a branch from main before making deployment changes, ensure the required EKS and monitoring locals are set correctly, handle optional OpenSearch enablement, verify workflow trigger patterns before choosing a branch name or relying on PR events, run plan, merge when the branch plan succeeds, trigger apply only from main, monitor until success, troubleshoot failures until resolved or blocked, and delete the local branch after a successful create or delete apply."
 ---
 
 # EKS From Terragrunt
@@ -48,6 +47,8 @@ Support two modes:
 
 - `create`: prepare and deploy the EKS cluster.
 - `delete`: reverse the EKS enablement changes and destroy the cluster through the normal workflow.
+
+For both `create` and `delete`, treat workflow tracking, merge sequencing, and `main`-only apply as the default execution path for this repo. Do not wait for the user to restate that the skill should watch the branch run, merge after a successful branch plan, monitor the `main` run, and continue to apply when the workflow policy allows it.
 
 For `create`, follow the enablement rules below.
 
@@ -145,7 +146,9 @@ git checkout -b <generated-branch-name>
 Branch naming guidance:
 - Generate a random branch suffix for uniqueness.
 - Base the branch name on the target deployment plus that random suffix.
-- Prefer a pattern like `eks/<tier>-<account-type>-<environment>-<region>-<random-suffix>`.
+- Inspect the target workflow trigger before choosing the branch format.
+- If the workflow uses `push.branches: [main, "*"]`, avoid `/` in branch names because `*` does not match slash-delimited names.
+- Prefer a slashless pattern like `eks-int-production-tenant-prod-primary-<random-suffix>` for this repo.
 - Use a short lowercase alphanumeric suffix, for example 6 to 8 characters.
 - If the branch name would be too long, shorten repeated deployment parts before shortening the random suffix.
 
@@ -153,6 +156,7 @@ Branch tracking rules:
 - Record the branch name in the working summary and use it consistently for all later status updates.
 - Report the branch name to the user after branch creation.
 - If a pull request is created, include the branch name and PR link or identifier in subsequent updates.
+- Record the branch workflow run identifier after the push-triggered `plan` starts and use that exact run for later status checks.
 - Do not edit the target `terragrunt.hcl` until the branch has been created successfully.
 
 ## Deployment execution
@@ -161,17 +165,24 @@ After the Terragrunt file changes are validated, continue through the deployment
 
 1. Commit the deployment changes on the new branch.
 2. Push the branch.
-3. Open or update the pull request that will trigger the deployment workflow.
-4. Run or confirm a `plan` workflow first.
-5. Wait for reviewer approval if the repository or environment requires approval before apply.
-6. After approval, trigger or allow the workflow to continue to `apply` automatically.
-7. Keep monitoring workflow progress until the apply stage succeeds or fails.
+3. Push the branch and confirm the branch `plan` workflow run starts.
+4. Open or update the pull request for review and merge tracking.
+5. If this repo applies only from `main`, merge only after the tracked branch `plan` run reaches `status = completed` and `conclusion = success`.
+6. After merge, monitor the `main` plan run triggered by the merge commit.
+7. Trigger `apply` only from `main`, preferably with GitHub CLI when available.
+8. Keep monitoring workflow progress until the apply stage succeeds or fails.
 
 Apply rules:
 - Do not stop after `plan` if the user asked for full cluster creation.
-- If the repo uses GitHub Actions approvals, wait for reviewer approval before apply.
-- After approval, proceed to auto-apply using the repo's normal workflow rather than inventing a manual local apply path.
-- Keep reporting the current state: branch, PR or workflow identifier, latest job state, and whether the run is waiting on approval, running, succeeded, or failed.
+- In this repo, branch pushes trigger `plan`, but `apply` is limited to `workflow_dispatch` on `main`.
+- Do not assume the PR itself triggers plan; verify the push-triggered workflow run for the branch.
+- Treat a branch run in `queued`, `in_progress`, or `requested` state as not ready to merge.
+- Treat a branch run with `status = completed` and any non-success conclusion as a blocker that must be investigated before merge.
+- Unless the user explicitly asks to stop after file preparation or after plan, continue automatically from branch tracking to merge readiness evaluation, then to `main` plan monitoring, then to `main` apply dispatch.
+- Do not require an explicit reviewer count unless branch protection or repo policy actually blocks the merge.
+- After the branch plan succeeds, merge to `main`, allow a short review window when the user wants one, then monitor the new `main` plan run.
+- If GitHub CLI is available, trigger apply with the repo's normal workflow path, for example `gh workflow run deploy-primary-int-production-prod.yaml --ref main -f terragrunt_action=apply`.
+- Keep checking branch, PR, and workflow state until a terminal success or failure state is reached, and report the current branch, PR identifier, workflow run identifier, and whether the run is waiting on approval, running, succeeded, or failed.
 
 For `delete` mode, use the same branch, PR, plan, approval, and apply flow, but treat success as confirmed destruction of the EKS-managed resources represented by these locals.
 
