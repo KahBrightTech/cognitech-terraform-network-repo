@@ -163,28 +163,38 @@ After the Terragrunt file changes are validated, continue through the deployment
 
 1. Commit the deployment changes on the new branch.
 2. Push the branch.
-3. Verify which workflow event actually triggers the deployment workflow for this repo.
-4. If the workflow listens to `push`, confirm the branch name matches the configured `push.branches` filter and monitor the push-triggered plan run.
-5. If the workflow listens to `pull_request`, open or update the pull request and monitor that run.
-6. If the workflow listens to `workflow_dispatch`, open or update the pull request if needed, then trigger the `plan` run explicitly.
-7. Run or confirm a `plan` workflow first.
-8. Wait for reviewer approval if the repository or environment requires approval before apply.
-9. After approval, trigger or allow the workflow to continue to `apply` automatically.
-10. Keep monitoring workflow progress until the apply stage succeeds or fails.
+3. Open or update the pull request when the repo flow expects PR review before merging to `main`.
+4. Record and report the PR number or link together with the branch name.
+5. Verify which workflow event actually triggers the deployment workflow for this repo.
+6. If the workflow listens to `push`, confirm the branch name matches the configured `push.branches` filter and monitor the push-triggered branch `plan` run.
+7. If the workflow listens to `pull_request`, monitor the PR-triggered run.
+8. If the workflow listens to `workflow_dispatch`, open or update the pull request if needed, then trigger the branch `plan` run explicitly.
+9. Run or confirm a branch `plan` workflow first.
+10. If the user asked for merge-driven deployment, wait for the requested review threshold before merging. Treat one approval as the default threshold when the user says to wait for one review.
+11. After the review threshold is met and the branch plan is acceptable, merge the pull request to `main` using the repository's normal merge path.
+12. After merge, monitor the `main` branch workflow run triggered by that merge and wait for the post-merge `plan` result.
+13. If apply requires `workflow_dispatch` on `main`, trigger the `apply` run only after the merged `main` plan succeeds.
+14. If the apply workflow requires environment approval, wait for that approval state and continue monitoring.
+15. Keep monitoring workflow progress until the apply stage succeeds or fails.
 
 Monitoring rules:
 - After pushing the branch, keep checking the branch's workflow or status checks until they reach a terminal state: `success`, `failure`, `cancelled`, `skipped`, or a clear approval wait state.
 - Do not stop monitoring just because a pull request was opened or because a check first appears as `queued`, `in_progress`, `pending`, or `unknown`.
 - If the branch push is expected to trigger `plan`, keep checking until `plan` succeeds, fails, or it is clear that no run was triggered.
+- Keep tracking the pull request status separately from the branch check status: branch name, PR number, review state, merge state, latest workflow name, and latest job state.
+- If the user asked for one review before merge, keep monitoring the PR until at least one approval is present and there are no blocking change requests.
+- After merging, switch monitoring from the feature branch to the `main` branch run that corresponds to the merge commit.
+- Do not treat merge as completion; after merge, continue until the `main` plan run reaches a terminal state and any required `apply` run also reaches a terminal state.
 - If no run was triggered, inspect the workflow trigger conditions for `push`, `pull_request`, `workflow_dispatch`, branch filters, and path filters before deciding the workflow is blocked.
 - Continue reporting the latest branch state using the branch name, workflow or check name, and current state until there is a terminal outcome or a concrete blocker.
 
 Apply rules:
 - Do not stop after `plan` if the user asked for full cluster creation.
 - Do not assume opening a pull request will start `plan`; first confirm whether the workflow is triggered by `push`, `pull_request`, or only `workflow_dispatch`.
-- If the repo uses GitHub Actions approvals, wait for reviewer approval before apply.
-- After approval, proceed to auto-apply using the repo's normal workflow rather than inventing a manual local apply path.
-- Keep reporting the current state: branch, PR or workflow identifier, latest job state, and whether the run is waiting on approval, running, succeeded, or failed.
+- If the user asked for PR review before merge, do not merge until the requested number of approvals is present.
+- If the repo uses GitHub Actions environment approvals, wait for that approval after the `apply` workflow is triggered.
+- After the required PR review and successful merged `main` plan, proceed to auto-apply using the repo's normal workflow rather than inventing a manual local apply path.
+- Keep reporting the current state: branch, PR identifier, merge state, workflow identifier, latest job state, and whether the run is waiting on review, waiting on approval, running, succeeded, or failed.
 
 For `delete` mode, use the same branch, PR, plan, approval, and apply flow, but treat success as confirmed destruction of the EKS-managed resources represented by these locals.
 
