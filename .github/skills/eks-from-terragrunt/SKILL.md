@@ -1,6 +1,6 @@
 ---
 name: eks-from-terragrunt
-description: "Use when creating, preparing, deploying, deleting, or troubleshooting an EKS cluster from a Terragrunt deployment file in this repo. Resolve account context from the matching locals-env.hcl when available, otherwise ask for the target account and an optional terragrunt.hcl path, update main with a fast-forward pull, create and track a branch from main before making deployment changes, ensure the required EKS and monitoring locals are set correctly, handle optional OpenSearch enablement, run plan, wait for reviewer approval, continue to auto-apply, monitor until success, troubleshoot failures until resolved or blocked, and delete the local branch after a successful create or delete apply."
+description: "Use when creating, preparing, deploying, deleting, or troubleshooting an EKS cluster from a Terragrunt deployment file in this repo. Resolve account context from the matching locals-env.hcl when available, otherwise ask for the target account and an optional terragrunt.hcl path, update main with a fast-forward pull, create and track a branch from main before making deployment changes, ensure the required EKS and monitoring locals are set correctly, handle optional OpenSearch enablement, verify the target workflow trigger pattern before choosing a branch name or expecting a PR to start plan, run plan, wait for reviewer approval, continue to auto-apply, monitor until success, troubleshoot failures until resolved or blocked, and delete the local branch after a successful create or delete apply."
 ---
 
 # EKS From Terragrunt
@@ -145,7 +145,9 @@ git checkout -b <generated-branch-name>
 Branch naming guidance:
 - Generate a random branch suffix for uniqueness.
 - Base the branch name on the target deployment plus that random suffix.
-- Prefer a pattern like `eks/<tier>-<account-type>-<environment>-<region>-<random-suffix>`.
+- Check the matching GitHub Actions workflow `push.branches` filter before choosing the branch format.
+- If the workflow uses `branches: ["*"]`, do not use `/` in the branch name because `*` will not match names like `eks/...`.
+- Prefer a slashless pattern like `eks-<tier>-<account-type>-<environment>-<region>-<random-suffix>` unless the workflow explicitly supports slash-delimited branch names such as `eks/**` or `**`.
 - Use a short lowercase alphanumeric suffix, for example 6 to 8 characters.
 - If the branch name would be too long, shorten repeated deployment parts before shortening the random suffix.
 
@@ -161,14 +163,18 @@ After the Terragrunt file changes are validated, continue through the deployment
 
 1. Commit the deployment changes on the new branch.
 2. Push the branch.
-3. Open or update the pull request that will trigger the deployment workflow.
-4. Run or confirm a `plan` workflow first.
-5. Wait for reviewer approval if the repository or environment requires approval before apply.
-6. After approval, trigger or allow the workflow to continue to `apply` automatically.
-7. Keep monitoring workflow progress until the apply stage succeeds or fails.
+3. Verify which workflow event actually triggers the deployment workflow for this repo.
+4. If the workflow listens to `push`, confirm the branch name matches the configured `push.branches` filter and monitor the push-triggered plan run.
+5. If the workflow listens to `pull_request`, open or update the pull request and monitor that run.
+6. If the workflow listens to `workflow_dispatch`, open or update the pull request if needed, then trigger the `plan` run explicitly.
+7. Run or confirm a `plan` workflow first.
+8. Wait for reviewer approval if the repository or environment requires approval before apply.
+9. After approval, trigger or allow the workflow to continue to `apply` automatically.
+10. Keep monitoring workflow progress until the apply stage succeeds or fails.
 
 Apply rules:
 - Do not stop after `plan` if the user asked for full cluster creation.
+- Do not assume opening a pull request will start `plan`; first confirm whether the workflow is triggered by `push`, `pull_request`, or only `workflow_dispatch`.
 - If the repo uses GitHub Actions approvals, wait for reviewer approval before apply.
 - After approval, proceed to auto-apply using the repo's normal workflow rather than inventing a manual local apply path.
 - Keep reporting the current state: branch, PR or workflow identifier, latest job state, and whether the run is waiting on approval, running, succeeded, or failed.
