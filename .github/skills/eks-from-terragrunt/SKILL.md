@@ -1,6 +1,6 @@
 ---
 name: eks-from-terragrunt
-description: "Use when creating, preparing, deploying, deleting, or troubleshooting an EKS cluster from a Terragrunt deployment file in this repo. Resolve account context from the matching locals-env.hcl when available, otherwise ask for the target account and an optional terragrunt.hcl path, update main with a fast-forward pull, create and track a branch from main before making deployment changes, ensure the required EKS and monitoring locals are set correctly, handle optional OpenSearch enablement, run plan, wait for reviewer approval, continue to auto-apply, monitor until success, troubleshoot failures until resolved or blocked, and delete the local branch after a successful create or delete apply."
+description: "Use when creating, preparing, deploying, deleting, or troubleshooting an EKS cluster from a Terragrunt deployment file in this repo. Resolve account context from the matching locals-env.hcl when available, otherwise ask for the target account and an optional terragrunt.hcl path, update main with a fast-forward pull, create and track a branch from main before making deployment changes, ensure the required EKS and monitoring locals are set correctly, handle optional OpenSearch enablement, verify the target workflow trigger pattern before choosing a branch name or expecting a PR to start plan, run plan, wait for reviewer approval, continue to auto-apply, monitor until success, troubleshoot failures until resolved or blocked, and delete the local branch after a successful create or delete apply."
 ---
 
 # EKS From Terragrunt
@@ -145,7 +145,9 @@ git checkout -b <generated-branch-name>
 Branch naming guidance:
 - Generate a random branch suffix for uniqueness.
 - Base the branch name on the target deployment plus that random suffix.
-- Prefer a pattern like `eks/<tier>-<account-type>-<environment>-<region>-<random-suffix>`.
+- Check the matching GitHub Actions workflow `push.branches` filter before choosing the branch format.
+- If the workflow uses `branches: ["*"]`, do not use `/` in the branch name because `*` will not match names like `eks/...`.
+- Prefer a slashless pattern like `eks-<tier>-<account-type>-<environment>-<region>-<random-suffix>` unless the workflow explicitly supports slash-delimited branch names such as `eks/**` or `**`.
 - Use a short lowercase alphanumeric suffix, for example 6 to 8 characters.
 - If the branch name would be too long, shorten repeated deployment parts before shortening the random suffix.
 
@@ -161,17 +163,39 @@ After the Terragrunt file changes are validated, continue through the deployment
 
 1. Commit the deployment changes on the new branch.
 2. Push the branch.
-3. Open or update the pull request that will trigger the deployment workflow.
-4. Run or confirm a `plan` workflow first.
-5. Wait for reviewer approval if the repository or environment requires approval before apply.
-6. After approval, trigger or allow the workflow to continue to `apply` automatically.
-7. Keep monitoring workflow progress until the apply stage succeeds or fails.
+3. Open or update the pull request when the repo flow expects PR review before merging to `main`.
+4. Record and report the PR number or link together with the branch name.
+5. Verify which workflow event actually triggers the deployment workflow for this repo.
+6. If the workflow listens to `push`, confirm the branch name matches the configured `push.branches` filter and monitor the push-triggered branch `plan` run.
+7. If the workflow listens to `pull_request`, monitor the PR-triggered run.
+8. If the workflow listens to `workflow_dispatch`, open or update the pull request if needed, then trigger the branch `plan` run explicitly.
+9. Run or confirm a branch `plan` workflow first.
+10. If the user asked for merge-driven deployment without a reviewer requirement, allow a short review window after the branch plan succeeds, then merge the pull request to `main` automatically if there are no blocking change requests or failing checks.
+11. When a short review window is requested, keep monitoring the PR for comments, change requests, or new failing checks during that window instead of merging immediately after the first successful branch plan.
+12. After merge, monitor the `main` branch workflow run triggered by that merge and wait for the post-merge `plan` result.
+13. If apply requires `workflow_dispatch` on `main`, trigger the `apply` run only after the merged `main` plan succeeds.
+14. If the apply workflow requires environment approval, wait for that approval state and continue monitoring.
+15. Keep monitoring workflow progress until the apply stage succeeds or fails.
+
+Monitoring rules:
+- After pushing the branch, keep checking the branch's workflow or status checks until they reach a terminal state: `success`, `failure`, `cancelled`, `skipped`, or a clear approval wait state.
+- Do not stop monitoring just because a pull request was opened or because a check first appears as `queued`, `in_progress`, `pending`, or `unknown`.
+- If the branch push is expected to trigger `plan`, keep checking until `plan` succeeds, fails, or it is clear that no run was triggered.
+- Keep tracking the pull request status separately from the branch check status: branch name, PR number, review state, merge state, latest workflow name, and latest job state.
+- If the user asked for a short review window before merge, keep monitoring the PR until that window has passed and there are still no blocking change requests or failing checks.
+- After merging, switch monitoring from the feature branch to the `main` branch run that corresponds to the merge commit.
+- Do not treat merge as completion; after merge, continue until the `main` plan run reaches a terminal state and any required `apply` run also reaches a terminal state.
+- If no run was triggered, inspect the workflow trigger conditions for `push`, `pull_request`, `workflow_dispatch`, branch filters, and path filters before deciding the workflow is blocked.
+- Continue reporting the latest branch state using the branch name, workflow or check name, and current state until there is a terminal outcome or a concrete blocker.
 
 Apply rules:
 - Do not stop after `plan` if the user asked for full cluster creation.
-- If the repo uses GitHub Actions approvals, wait for reviewer approval before apply.
-- After approval, proceed to auto-apply using the repo's normal workflow rather than inventing a manual local apply path.
-- Keep reporting the current state: branch, PR or workflow identifier, latest job state, and whether the run is waiting on approval, running, succeeded, or failed.
+- Do not assume opening a pull request will start `plan`; first confirm whether the workflow is triggered by `push`, `pull_request`, or only `workflow_dispatch`.
+- If the user explicitly requires `apply` only from `main`, never use a feature-branch apply path even if the repository later adds one.
+- If the user removed the reviewer requirement, do not wait for approvals unless the repository itself blocks merge without them.
+- If the repo uses GitHub Actions environment approvals, wait for that approval after the `apply` workflow is triggered.
+- After a successful merged `main` plan, proceed to auto-apply using the repo's normal workflow rather than inventing a manual local apply path.
+- Keep reporting the current state: branch, PR identifier, merge state, workflow identifier, latest job state, and whether the run is waiting on review, waiting on approval, running, succeeded, or failed.
 
 For `delete` mode, use the same branch, PR, plan, approval, and apply flow, but treat success as confirmed destruction of the EKS-managed resources represented by these locals.
 
