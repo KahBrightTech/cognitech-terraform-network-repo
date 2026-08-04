@@ -192,6 +192,12 @@
       "Action": "iam:GetInstanceProfile"
     },
     {
+      "Sid": "AllowInstanceProfileListActions",
+      "Effect": "Allow",
+      "Resource": "*",
+      "Action": "iam:ListInstanceProfiles"
+    },
+    {
       "Sid": "AllowAPIServerEndpointDiscovery",
       "Effect": "Allow",
       "Resource": "arn:aws:eks:[[region]]:[[account_number]]:cluster/[[cluster_name]]",
