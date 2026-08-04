@@ -9,10 +9,10 @@ spec:
   role: "[[node_role_name]]"
   subnetSelectorTerms:
   - tags:
-      Name: "[[account_name]]-[[region_prefix]]-*-sbnt*-public-*"
+      Name: "[[account_name]]-[[region_prefix]]-[[environment_abr]]-sbnt*-public-*"
   securityGroupSelectorTerms:
   - tags:
-      Name: "[[account_name]]-[[region_prefix]]-*eks-nodes*"
+      Name: "[[account_name]]-[[region_prefix]]-[[environment_abr]]-*eks-nodes*"
   blockDeviceMappings:
   - deviceName: /dev/xvda
     ebs:

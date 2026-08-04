@@ -89,6 +89,7 @@ inputs = {
     tags             = local.tags
     region           = local.region
     account_name_abr = include.env.locals.name_abr
+    environment_abr  = local.vpc_name_abr
   }
   vpcs = [
     {
