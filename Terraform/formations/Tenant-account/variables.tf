@@ -7,6 +7,7 @@ variable "common" {
     region_prefix    = string
     region           = string
     account_name_abr = optional(string)
+    environment_abr  = optional(string, "")
   })
   default = null
 }
