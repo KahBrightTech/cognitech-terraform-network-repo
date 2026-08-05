@@ -36,13 +36,13 @@ locals {
   vpc_name     = "production"
   vpc_name_abr = "prod"
   ## eks related variables
-  create_eks_cluster      = false
-  create_node_group       = false
-  create_service_accounts = false
-  enable_eks_pia          = false
-  create_rbac             = false
-  create_namespaces       = false
-  enable_karpenter        = false
+  create_eks_cluster      = true
+  create_node_group       = true
+  create_service_accounts = true
+  enable_eks_pia          = true
+  create_rbac             = true
+  create_namespaces       = true
+  enable_karpenter        = true
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
@@ -54,7 +54,7 @@ locals {
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
-  create_cognito      = false
+  create_cognito      = true
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
