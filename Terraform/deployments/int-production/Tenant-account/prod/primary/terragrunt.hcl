@@ -2048,14 +2048,13 @@ generate "k8s-providers" {
   }
 
   data "aws_eks_cluster" "current" {
-    count = local.primary_eks.create_eks_cluster ? 0 : 1
-    name  = local.primary_eks.name
+    name = local.primary_eks.name
   }
 
   provider "helm" {
     kubernetes = {
-      host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
-      cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
+      host                   = data.aws_eks_cluster.current.endpoint
+      cluster_ca_certificate = base64decode(data.aws_eks_cluster.current.certificate_authority[0].data)
       
       exec = {
         api_version = "client.authentication.k8s.io/v1beta1"
@@ -2064,7 +2063,7 @@ generate "k8s-providers" {
           "eks",
           "get-token",
           "--cluster-name",
-          try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
+          local.primary_eks.name,
           "--region",
           "${local.region}"
         ]
@@ -2073,8 +2072,8 @@ generate "k8s-providers" {
   }
 
   provider "kubernetes" {
-    host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
-    cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
+    host                   = data.aws_eks_cluster.current.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.current.certificate_authority[0].data)
     
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
@@ -2083,7 +2082,7 @@ generate "k8s-providers" {
         "eks",
         "get-token",
         "--cluster-name",
-        try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
+        local.primary_eks.name,
         "--region",
         "${local.region}"
       ]
@@ -2094,8 +2093,8 @@ generate "k8s-providers" {
     apply_retry_count      = 15
     load_config_file       = false
     lazy_load              = true
-    host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
-    cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
+    host                   = data.aws_eks_cluster.current.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.current.certificate_authority[0].data)
 
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
@@ -2104,7 +2103,7 @@ generate "k8s-providers" {
         "eks",
         "get-token",
         "--cluster-name",
-        try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
+        local.primary_eks.name,
         "--region",
         "${local.region}"
       ]
