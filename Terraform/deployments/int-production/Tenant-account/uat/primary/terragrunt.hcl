@@ -43,7 +43,7 @@ locals {
   enable_eks_pia          = true
   create_rbac             = true
   create_namespaces       = true
-  enable_karpenter        = false #This is deployed after the cluster is created to avoid the REST API error. 
+  enable_karpenter        = true #This is deployed after the cluster is created to avoid the REST API error. 
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
@@ -2041,6 +2041,27 @@ generate "k8s-providers" {
     host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
     
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name,
+        "--region",
+        "${local.region}"
+      ]
+    }
+  }
+
+  provider "kubectl" {
+    apply_retry_count      = 15
+    load_config_file       = false
+    lazy_load              = true
+    host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
+
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
