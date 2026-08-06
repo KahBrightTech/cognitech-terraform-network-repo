@@ -141,21 +141,19 @@ inputs = {
       # private_routes = {
       #   destination_cidr_block = "0.0.0.0/0"
       # }
-          primary_eks = one([
-            for item in var.eks : item
-            if item.key == "${include.env.locals.eks_cluster_keys.primary_cluster}"
-          ])
+      # nat_gateway = {
+      #   name     = "nat"
       #   type     = local.external
       #   vpc_name = local.vpc_name_abr
       # }
-          count = local.primary_eks.create_eks_cluster ? 0 : 1
-          name  = local.primary_eks.name
+      public_routes = {
+        destination_cidr_block = "0.0.0.0/0"
       }
       security_groups = [
         {
           key         = "bastion"
-            host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
-            cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
+          name        = "bastion"
+          description = "standard ${local.vpc_name} bastion security group"
           vpc_name    = local.vpc_name_abr
         },
         {
@@ -164,7 +162,7 @@ inputs = {
           description = "standard ${local.vpc_name} alb security group"
           vpc_name    = local.vpc_name_abr
         },
-                try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
+        {
           key         = "app"
           name        = "app"
           description = "standard ${local.vpc_name} app security group"
@@ -173,8 +171,8 @@ inputs = {
         {
           key         = "db"
           name        = "db"
-          host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
-          cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
+          description = "standard ${local.vpc_name} db security group"
+          vpc_name    = local.vpc_name_abr
         },
         {
           key         = "efs"
@@ -183,7 +181,7 @@ inputs = {
           vpc_name    = local.vpc_name_abr
         },
         {
-              try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
+          key         = "nlb"
           name        = "nlb"
           description = "standard ${local.vpc_name} nlb security group"
           vpc_name    = local.vpc_name_abr
@@ -194,8 +192,8 @@ inputs = {
           description = "standard ${local.vpc_name} ecs nlb internal security group"
           vpc_name    = local.vpc_name_abr
         },
-          host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
-          cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
+        {
+          key         = "ecs-frontend"
           name        = "ecs-frontend"
           description = "standard ${local.vpc_name} ecs frontend service security group"
           vpc_name    = local.vpc_name_abr
@@ -204,7 +202,7 @@ inputs = {
           key         = "ecs-backend"
           name        = "ecs-backend"
           description = "standard ${local.vpc_name} ecs backend service security group"
-              try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
+          vpc_name    = local.vpc_name_abr
         },
         {
           key         = "ecs-database"
