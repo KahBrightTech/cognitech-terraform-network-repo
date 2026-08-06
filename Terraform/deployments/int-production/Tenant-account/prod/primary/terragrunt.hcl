@@ -42,7 +42,7 @@ locals {
   enable_eks_pia          = true
   create_rbac             = true
   create_namespaces       = true
-  enable_karpenter        = true
+  enable_karpenter        = false
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
