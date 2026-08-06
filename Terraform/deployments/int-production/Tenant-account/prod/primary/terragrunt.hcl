@@ -141,19 +141,21 @@ inputs = {
       # private_routes = {
       #   destination_cidr_block = "0.0.0.0/0"
       # }
-      # nat_gateway = {
-      #   name     = "nat"
+          primary_eks = one([
+            for item in var.eks : item
+            if item.key == "${include.env.locals.eks_cluster_keys.primary_cluster}"
+          ])
       #   type     = local.external
       #   vpc_name = local.vpc_name_abr
       # }
-      public_routes = {
-        destination_cidr_block = "0.0.0.0/0"
+          count = local.primary_eks.create_eks_cluster ? 0 : 1
+          name  = local.primary_eks.name
       }
       security_groups = [
         {
           key         = "bastion"
-          name        = "bastion"
-          description = "standard ${local.vpc_name} bastion security group"
+            host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
+            cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
           vpc_name    = local.vpc_name_abr
         },
         {
@@ -162,7 +164,7 @@ inputs = {
           description = "standard ${local.vpc_name} alb security group"
           vpc_name    = local.vpc_name_abr
         },
-        {
+                try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
           key         = "app"
           name        = "app"
           description = "standard ${local.vpc_name} app security group"
@@ -171,8 +173,8 @@ inputs = {
         {
           key         = "db"
           name        = "db"
-          description = "standard ${local.vpc_name} db security group"
-          vpc_name    = local.vpc_name_abr
+          host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
+          cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
         },
         {
           key         = "efs"
@@ -181,7 +183,7 @@ inputs = {
           vpc_name    = local.vpc_name_abr
         },
         {
-          key         = "nlb"
+              try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
           name        = "nlb"
           description = "standard ${local.vpc_name} nlb security group"
           vpc_name    = local.vpc_name_abr
@@ -192,8 +194,8 @@ inputs = {
           description = "standard ${local.vpc_name} ecs nlb internal security group"
           vpc_name    = local.vpc_name_abr
         },
-        {
-          key         = "ecs-frontend"
+          host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
+          cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
           name        = "ecs-frontend"
           description = "standard ${local.vpc_name} ecs frontend service security group"
           vpc_name    = local.vpc_name_abr
@@ -202,7 +204,7 @@ inputs = {
           key         = "ecs-backend"
           name        = "ecs-backend"
           description = "standard ${local.vpc_name} ecs backend service security group"
-          vpc_name    = local.vpc_name_abr
+              try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
         },
         {
           key         = "ecs-database"
@@ -2036,16 +2038,26 @@ generate "aws-providers" {
   }
   EOF
 }
-
 generate "k8s-providers" {
   path      = "k8s-provider.tf"
   if_exists = "overwrite"
   contents  = <<-EOF
-  %{if local.create_eks_cluster}
+  locals {
+    primary_eks = one([
+      for item in var.eks : item
+      if item.key == "${include.env.locals.eks_cluster_keys.primary_cluster}"
+    ])
+  }
+
+  data "aws_eks_cluster" "current" {
+    count = local.primary_eks.create_eks_cluster ? 0 : 1
+    name  = local.primary_eks.name
+  }
+
   provider "helm" {
     kubernetes = {
-      host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
-      cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
+      host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
+      cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
       
       exec = {
         api_version = "client.authentication.k8s.io/v1beta1"
@@ -2054,7 +2066,7 @@ generate "k8s-providers" {
           "eks",
           "get-token",
           "--cluster-name",
-          module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name,
+          try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
           "--region",
           "${local.region}"
         ]
@@ -2063,8 +2075,8 @@ generate "k8s-providers" {
   }
 
   provider "kubernetes" {
-    host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
+    host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
+    cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
     
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
@@ -2073,7 +2085,7 @@ generate "k8s-providers" {
         "eks",
         "get-token",
         "--cluster-name",
-        module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name,
+        try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
         "--region",
         "${local.region}"
       ]
@@ -2084,8 +2096,8 @@ generate "k8s-providers" {
     apply_retry_count      = 15
     load_config_file       = false
     lazy_load              = true
-    host                   = module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_certificate_authority_data)
+    host                   = try(module.eks[local.primary_eks.key].eks_cluster_endpoint, data.aws_eks_cluster.current[0].endpoint)
+    cluster_ca_certificate = base64decode(try(module.eks[local.primary_eks.key].eks_cluster_certificate_authority_data, data.aws_eks_cluster.current[0].certificate_authority[0].data))
 
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
@@ -2094,12 +2106,11 @@ generate "k8s-providers" {
         "eks",
         "get-token",
         "--cluster-name",
-        module.eks["${include.env.locals.eks_cluster_keys.primary_cluster}"].eks_cluster_name,
+        try(module.eks[local.primary_eks.key].eks_cluster_name, data.aws_eks_cluster.current[0].name),
         "--region",
         "${local.region}"
       ]
     }
   }
-  %{endif}
   EOF
 }
