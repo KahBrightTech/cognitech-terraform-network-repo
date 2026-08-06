@@ -2040,6 +2040,12 @@ generate "k8s-providers" {
   path      = "k8s-provider.tf"
   if_exists = "overwrite"
   contents  = <<-EOF
+  provider "kubectl" {
+    apply_retry_count = 15
+    load_config_file  = false
+    lazy_load         = true
+  }
+
   %{if local.create_eks_cluster}
   provider "helm" {
     kubernetes = {
