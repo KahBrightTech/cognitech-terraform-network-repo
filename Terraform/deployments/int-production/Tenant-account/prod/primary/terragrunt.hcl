@@ -42,7 +42,7 @@ locals {
   enable_eks_pia          = true
   create_rbac             = true
   create_namespaces       = true
-  enable_karpenter        = false
+  enable_karpenter        = true #This is deployed after the cluster is created to avoid the REST API error. 
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false

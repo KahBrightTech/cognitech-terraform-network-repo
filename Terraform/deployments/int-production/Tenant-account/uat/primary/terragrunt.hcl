@@ -43,6 +43,7 @@ locals {
   enable_eks_pia          = false
   create_rbac             = false
   create_namespaces       = false
+  enable_karpenter        = false #This is deployed after the cluster is created to avoid the REST API error. 
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
@@ -54,7 +55,7 @@ locals {
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
-
+  create_cognito      = true
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
@@ -64,7 +65,6 @@ locals {
     }
   )
 }
-
 #-------------------------------------------------------
 # Dependencies 
 #-------------------------------------------------------
@@ -89,6 +89,7 @@ inputs = {
     tags             = local.tags
     region           = local.region
     account_name_abr = include.env.locals.name_abr
+    environment_abr  = local.vpc_name_abr
   }
   vpcs = [
     {
@@ -116,36 +117,36 @@ inputs = {
           vpc_name                    = local.vpc_name_abr
         }
       ]
-      # private_subnets = [
-      #   {
-      #     key                         = include.env.locals.subnet_prefix.primary
-      #     name                        = include.env.locals.subnet_prefix.primary
-      #     primary_availability_zone   = local.region_blk.availability_zones.primary
-      #     primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.primary
-      #     secondary_availability_zone = local.region_blk.availability_zones.secondary
-      #     secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt1.secondary
-      #     subnet_type                 = local.internal
-      #     vpc_name                    = local.vpc_name_abr
-      #   },
-      #   {
-      #     key                         = include.env.locals.subnet_prefix.secondary
-      #     name                        = include.env.locals.subnet_prefix.secondary
-      #     primary_availability_zone   = local.region_blk.availability_zones.primary
-      #     primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.primary
-      #     secondary_availability_zone = local.region_blk.availability_zones.secondary
-      #     secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments[local.vpc_name].private_subnets.sbnt2.secondary
-      #     subnet_type                 = local.internal
-      #     vpc_name                    = local.vpc_name_abr
-      #   }
-      # ]
-      # private_routes = {
-      #   destination_cidr_block = "0.0.0.0/0"
-      # }
-      # nat_gateway = {
-      #   name     = "nat"
-      #   type     = local.external
-      #   vpc_name = local.vpc_name_abr
-      # }
+      private_subnets = [
+        {
+          key                         = include.env.locals.subnet_prefix.primary
+          name                        = include.env.locals.subnet_prefix.primary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt1.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt1.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name_abr
+        },
+        {
+          key                         = include.env.locals.subnet_prefix.secondary
+          name                        = include.env.locals.subnet_prefix.secondary
+          primary_availability_zone   = local.region_blk.availability_zones.primary
+          primary_cidr_block          = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt2.primary
+          secondary_availability_zone = local.region_blk.availability_zones.secondary
+          secondary_cidr_block        = local.cidr_blocks[include.env.locals.name_abr].segments.app_vpc[local.vpc_name].private_subnets.sbnt2.secondary
+          subnet_type                 = local.internal
+          vpc_name                    = local.vpc_name_abr
+        }
+      ]
+      private_routes = {
+        destination_cidr_block = "0.0.0.0/0"
+      }
+      nat_gateway = {
+        name     = "nat"
+        type     = local.external
+        vpc_name = local.vpc_name_abr
+      }
       public_routes = {
         destination_cidr_block = "0.0.0.0/0"
       }
@@ -1106,6 +1107,12 @@ inputs = {
           }
         },
       ]
+      use_private_subnets     = true
+      endpoint_private_access = true
+      endpoint_public_access  = true
+      public_access_cidrs = [
+        "69.143.134.56/32"
+      ]
       subnet_keys = [
         include.env.locals.subnet_prefix.primary,
         include.env.locals.subnet_prefix.secondary
@@ -1320,8 +1327,8 @@ inputs = {
           ami_config = {
             os_release_date = "EKSAL2023"
           }
-          associate_public_ip_address = true
-          instance_type               = "t3.medium"
+          associate_public_ip_address = false
+          instance_type               = "m6i.large"
           root_device_name            = "/dev/xvda"
           volume_size                 = 20
           vpc_security_group_keys     = ["eks-nodes", "eks_cluster_sg_id"]
@@ -1349,8 +1356,13 @@ inputs = {
           key       = "ssm-access"
           name      = "ssm-access"
           namespace = "pulsehub"
+        },
+        {
+          key       = "secret-access"
+          name      = "secret-access"
+          namespace = "infogrid"
+          role_key  = "${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
         }
-
       ]
       eks_pia = [
         {
@@ -1395,6 +1407,19 @@ inputs = {
           policy = {
             name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-sa"
             description = "IAM policy for ${local.vpc_name_abr} Infogrid Service Account"
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
+          }
+        },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
+          description               = "IAM Role for ${local.vpc_name_abr} Infogrid Service Account"
+          path                      = "/"
+          service_account_namespace = "infogrid"
+          service_account_name      = "secret-access"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-secret-access"
+            description = "IAM policy for ${local.vpc_name_abr} Infogrid Secret Access Service Account"
             policy      = "${include.cloud.locals.repo.root}/iam_policies/secrets_manager_infogrid_eks_policy.json"
           }
         },
@@ -1527,19 +1552,43 @@ inputs = {
             policy      = "${include.cloud.locals.repo.root}/iam_policies/iam_fsx_csi_driver_policy.json"
           }
         },
+        {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          description               = "IAM Role for ${local.vpc_name_abr} Karpenter Controller"
+          path                      = "/"
+          service_account_namespace = "kube-system"
+          service_account_name      = "karpenter"
+          policy = {
+            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+            description = "IAM policy for ${local.vpc_name_abr} Karpenter Controller."
+            policy      = "${include.cloud.locals.repo.root}/iam_policies/karpenter_controller_policy.json"
+          }
+        }
       ]
       eks_node_groups = [
         {
           key             = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-          node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-groups"
+          node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-group"
           node_role_arn   = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
           subnet_keys = [
-            include.env.locals.subnet_prefix.primary
+            include.env.locals.subnet_prefix.primary,
+            include.env.locals.subnet_prefix.secondary
           ]
           desired_size        = 2
           max_size            = 4
           min_size            = 1
           launch_template_key = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          labels = {
+            "workload-type" = "system"
+          }
+          taints = [
+            {
+              key    = "workload-type"
+              value  = "system"
+              effect = "NO_SCHEDULE"
+            }
+          ]
         }
       ]
       eks_addons = {
@@ -1556,6 +1605,7 @@ inputs = {
         enable_ebs_csi_driver                   = true
         enable_fsx_csi_driver                   = true
         enable_cluster_autoscaler               = true
+        enable_karpenter                        = local.enable_karpenter
         enable_fluent_bit                       = local.enable_fluent_bit
         fluent_bit_firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
         fluent_bit_role_key                     = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
@@ -1572,7 +1622,7 @@ inputs = {
         external_dns_version                    = "1.14.3"
         enable_kube_prometheus_stack            = local.enable_kube_prometheus_stack
         kube_prometheus_stack_timeout           = 1800
-        kube_prometheus_stack_version           = "69.8.2"
+        kube_prometheus_stack_version           = "69.8.1"
         grafana_namespace                       = "monitoring"
         grafana_service_type                    = "ClusterIP"
         grafana_ingress_enabled                 = true
@@ -1591,6 +1641,12 @@ inputs = {
         prometheus_persistence_enabled       = true
         prometheus_persistence_size          = "100Gi"
         prometheus_persistence_storage_class = "gp3"
+        karpenter = {
+          controller_role_key     = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          node_role_arn           = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
+          interruption_queue_name = "${local.vpc_name_abr}-karpenter-interruption-queue"
+          nodepool_manifest_file  = "${get_terragrunt_dir()}/../../../../iam_policies/karpenter/prod_nodepool.yaml"
+        }
       }
     }
   ]
