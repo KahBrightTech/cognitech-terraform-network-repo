@@ -1697,22 +1697,34 @@ inputs = {
         prometheus_persistence_enabled          = true
         prometheus_persistence_size             = "100Gi"
         prometheus_persistence_storage_class    = "gp3"
-        ingress = [
-          {
-            name               = "${local.vpc_name_abr}-litdoc"
-            namespace          = "${local.vpc_name_abr}-litdoc"
-            ingress_class_name = "${local.vpc_name_abr}-litdoc"
-            nlb_name           = "${local.vpc_name_abr}-litdoc"
-            subnet_keys = [
-              include.env.locals.subnet_prefix.primary,
-              include.env.locals.subnet_prefix.secondary
-            ]
-            security_group_keys = ["litdoc-pod"]
-            service_annotations = {
-              "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internal"
+        ingress = {
+          type = "nginx"
+          nginx = [
+            {
+              name               = "${local.vpc_name_abr}-litdoc"
+              namespace          = "${local.vpc_name_abr}-litdoc"
+              ingress_class_name = "${local.vpc_name_abr}-litdoc"
+              nlb_name           = "${local.vpc_name_abr}-litdoc"
+              subnet_keys = [
+                include.env.locals.subnet_prefix.primary,
+                include.env.locals.subnet_prefix.secondary
+              ]
+              security_group_keys = ["litdoc-pod"]
+              service_annotations = {
+                "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internal"
+              }
+              values = [
+                {
+                  controller = {
+                    config = {
+                      use-forwarded-headers = "true"
+                    }
+                  }
+                }
+              ]
             }
-          }
-        ]
+          ]
+        }
         karpenter = {
           controller_role_key     = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
           node_role_arn           = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
