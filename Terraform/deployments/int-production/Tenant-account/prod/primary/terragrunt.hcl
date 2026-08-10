@@ -1348,9 +1348,9 @@ inputs = {
           ]
           egress_rules = [
             {
-              key           = "egress-8080-eks-little-doctor-pod-sg"
-              target_sg_key = "little-doctor-pod"
-              description   = "Tenant Account - Outbound traffic to EKS Little Doctor Pod SG on tcp port 8080"
+              key           = "egress-8080-eks-litdoc-pod-sg"
+              target_sg_key = "litdoc-pod"
+              description   = "Tenant Account - Outbound traffic to EKS Litdoc Pod SG on tcp port 8080"
               from_port     = 8080
               to_port       = 8080
               ip_protocol   = "tcp"
@@ -1358,7 +1358,7 @@ inputs = {
           ]
         },
         {
-          sg_key = "little-doctor-pod"
+          sg_key = "litdoc-pod"
           ingress_rules = [
             {
               key           = "ingress-8080-nginx-ingress-sg"
