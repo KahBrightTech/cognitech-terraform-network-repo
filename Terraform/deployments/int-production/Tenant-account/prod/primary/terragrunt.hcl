@@ -1698,7 +1698,6 @@ inputs = {
         prometheus_persistence_size             = "100Gi"
         prometheus_persistence_storage_class    = "gp3"
         ingress = {
-          type = "nginx"
           nginx = [
             {
               name               = "${local.vpc_name_abr}-litdoc"
