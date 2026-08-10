@@ -585,7 +585,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.89"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.90"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -666,7 +666,6 @@ module "eks" {
         each.value.eks_addons,
         (each.value.eks_addons.cloudwatch_observability_role_key != null || each.value.eks_addons.cloudwatch_observability_role_arn != null || (each.value.eks_addons.enable_fluent_bit && each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key]))) ?
         {
-          # cloudwatch_observability_role_arn   = each.value.eks_addons.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.eks_addons.cloudwatch_observability_role_key].iam_role_arn : each.value.eks_addons.cloudwatch_observability_role_arn
           fluent_bit_firehose_delivery_stream = (each.value.eks_addons.enable_fluent_bit && each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key])) ? module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key].firehose_delivery_stream_name : each.value.eks_addons.fluent_bit_firehose_delivery_stream
         } : {},
         (each.value.eks_addons.grafana_ingress_security_group_key != null || each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null || each.value.eks_addons.grafana_ingress_hostname != null) && each.value.eks_addons.grafana_ingress_annotations != null ?
@@ -682,6 +681,48 @@ module "eks" {
             each.value.eks_addons.grafana_ingress_hostname != null ? {
               "external-dns.alpha.kubernetes.io/hostname" = each.value.eks_addons.grafana_ingress_hostname
             } : {}
+          )
+        } : {}
+        ,
+        (each.value.eks_addons.enable_ingress && each.value.eks_addons.ingress != null) ? {
+          ingress = merge(
+            each.value.eks_addons.ingress,
+            {
+              nginx = each.value.eks_addons.ingress.nginx != null ? [
+                for nginx in each.value.eks_addons.ingress.nginx : merge(
+                  nginx,
+                  {
+                    name = startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}"
+                    release_name = nginx.release_name != null ? (
+                      startswith(nginx.release_name, "ingress-nginx-") ? nginx.release_name : "ingress-nginx-${nginx.release_name}"
+                    ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                    namespace = nginx.namespace != null ? (
+                      startswith(nginx.namespace, "ingress-nginx-") ? nginx.namespace : "ingress-nginx-${nginx.namespace}"
+                    ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                    ingress_class_name = nginx.ingress_class_name != null ? (
+                      startswith(nginx.ingress_class_name, "ingress-nginx-") ? nginx.ingress_class_name : "ingress-nginx-${nginx.ingress_class_name}"
+                    ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                    subnet_ids = nginx.subnet_keys != null ? flatten([
+                      for subnet_key in nginx.subnet_keys :
+                      (each.value.use_private_subnets == true) ?
+                      module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                      module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                    ]) : nginx.subnet_ids
+                  }
+                )
+              ] : null,
+              gateway_api = each.value.eks_addons.ingress.gateway_api != null ? merge(
+                each.value.eks_addons.ingress.gateway_api,
+                {
+                  subnet_ids = each.value.eks_addons.ingress.gateway_api.subnet_keys != null ? flatten([
+                    for subnet_key in each.value.eks_addons.ingress.gateway_api.subnet_keys :
+                    (each.value.use_private_subnets == true) ?
+                    module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                    module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                  ]) : each.value.eks_addons.ingress.gateway_api.subnet_ids
+                }
+              ) : null
+            }
           )
         } : {}
       ) : null

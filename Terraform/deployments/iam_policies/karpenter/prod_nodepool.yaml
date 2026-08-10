@@ -33,7 +33,7 @@ spec:
     metadata:
       labels:
         managed-by: karpenter
-        workload-type: general
+        workload-type: application
     spec:
       nodeClassRef:
         group: karpenter.k8s.aws

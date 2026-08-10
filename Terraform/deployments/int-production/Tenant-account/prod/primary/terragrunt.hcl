@@ -43,6 +43,8 @@ locals {
   create_rbac             = true
   create_namespaces       = true
   enable_karpenter        = true
+  enable_ingress          = true
+
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
@@ -1139,6 +1141,18 @@ inputs = {
           name        = "fsx-lustre"
           description = "standard ${local.vpc_name} fsx lustre security group"
           vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "nginx-ingress"
+          name        = "nginx-ingress"
+          description = "standard ${local.vpc_name} nginx ingress security group"
+          vpc_name    = local.vpc_name_abr
+        },
+        {
+          key         = "litdoc-pod"
+          name        = "litdoc-pod"
+          description = "standard ${local.vpc_name} litdoc pod security group"
+          vpc_name    = local.vpc_name_abr
         }
       ]
       security_group_rules = [
@@ -1148,25 +1162,25 @@ inputs = {
             {
               key           = "ingress-all-eks-sg"
               source_sg_key = "eks_cluster_sg_id"
-              description   = "BASE - Inbound traffic from EKS Cluster SG to EKS Nodes SG"
+              description   = "Tenant Account - Inbound traffic from EKS Cluster SG to EKS Nodes SG"
               ip_protocol   = "-1"
             },
             {
               key           = "ingress-self-sg"
               source_sg_key = "eks-nodes"
-              description   = "BASE - Inbound traffic from EKS Nodes SG to itself"
+              description   = "Tenant Account - Inbound traffic from EKS Nodes SG to itself"
               ip_protocol   = "-1"
             },
             {
               key               = "ingress-app-sg"
               source_vpc_sg_key = "app"
-              description       = "BASE - Inbound traffic from EKS Nodes SG to app SG"
+              description       = "Tenant Account - Inbound traffic from EKS Nodes SG to app SG"
               ip_protocol       = "-1"
             },
             {
               key               = "ingress-22-bastion-sg"
               source_vpc_sg_key = "bastion"
-              description       = "BASE - Inbound traffic from bastion SG on tcp port 22"
+              description       = "Tenant Account - Inbound traffic from bastion SG on tcp port 22"
               from_port         = 22
               to_port           = 22
               ip_protocol       = "tcp"
@@ -1174,7 +1188,7 @@ inputs = {
             {
               key               = "ingress-3389-bastion-sg"
               source_vpc_sg_key = "bastion"
-              description       = "BASE - Inbound traffic from bastion SG on tcp port 3389"
+              description       = "Tenant Account - Inbound traffic from bastion SG on tcp port 3389"
               from_port         = 3389
               to_port           = 3389
               ip_protocol       = "tcp"
@@ -1182,7 +1196,7 @@ inputs = {
             {
               key         = "ingress-80-my-ip"
               cidr_ipv4   = include.cloud.locals.external_cidrs.org_ip
-              description = "BASE - Inbound traffic from org IP on tcp port 80"
+              description = "Tenant Account - Inbound traffic from org IP on tcp port 80"
               from_port   = 80
               to_port     = 80
               ip_protocol = "tcp"
@@ -1190,7 +1204,7 @@ inputs = {
             {
               key         = "ingress-443-my-ip"
               cidr_ipv4   = include.cloud.locals.external_cidrs.org_ip
-              description = "BASE - Inbound traffic from org IP on tcp port 443"
+              description = "Tenant Account - Inbound traffic from org IP on tcp port 443"
               from_port   = 443
               to_port     = 443
               ip_protocol = "tcp"
@@ -1198,7 +1212,7 @@ inputs = {
             {
               key         = "ingress-30000-32767-my-ip"
               cidr_ipv4   = include.cloud.locals.external_cidrs.org_ip
-              description = "BASE - Inbound traffic from org IP on tcp port range 30000-32767 for nodeport test"
+              description = "Tenant Account - Inbound traffic from org IP on tcp port range 30000-32767 for nodeport test"
               from_port   = 30000
               to_port     = 32767
               ip_protocol = "tcp"
@@ -1206,7 +1220,7 @@ inputs = {
             {
               key           = "ingress-988-fsx-lustre-sg"
               source_sg_key = "fsx-lustre"
-              description   = "FSX - Inbound Lustre (LNET) traffic from FSx Lustre SG on tcp port 988"
+              description   = "Tenant Account - Inbound Lustre (LNET) traffic from FSx Lustre SG on tcp port 988"
               from_port     = 988
               to_port       = 988
               ip_protocol   = "tcp"
@@ -1214,7 +1228,7 @@ inputs = {
             {
               key           = "ingress-1018-1023-fsx-lustre-sg"
               source_sg_key = "fsx-lustre"
-              description   = "FSX - Inbound Lustre traffic from FSx Lustre SG on tcp ports 1018-1023"
+              description   = "Tenant Account - Inbound Lustre traffic from FSx Lustre SG on tcp ports 1018-1023"
               from_port     = 1018
               to_port       = 1023
               ip_protocol   = "tcp"
@@ -1235,7 +1249,7 @@ inputs = {
             {
               key           = "ingress-all-eks-nodes"
               source_sg_key = "eks-nodes"
-              description   = "BASE - Inbound traffic from EKS Nodes SG on all ports"
+              description   = "Tenant Account - Inbound traffic from EKS Nodes SG on all ports"
               ip_protocol   = "-1"
             }
           ]
@@ -1247,7 +1261,7 @@ inputs = {
             {
               key           = "ingress-988-eks-nodes-sg"
               source_sg_key = "eks-nodes"
-              description   = "FSX - Inbound Lustre (LNET) traffic from EKS Nodes SG on tcp port 988"
+              description   = "Tenant Account - Inbound Lustre (LNET) traffic from EKS Nodes SG on tcp port 988"
               from_port     = 988
               to_port       = 988
               ip_protocol   = "tcp"
@@ -1255,7 +1269,7 @@ inputs = {
             {
               key           = "ingress-1018-1023-eks-nodes-sg"
               source_sg_key = "eks-nodes"
-              description   = "FSX - Inbound Lustre traffic from EKS Nodes SG on tcp ports 1018-1023"
+              description   = "Tenant Account - Inbound Lustre traffic from EKS Nodes SG on tcp ports 1018-1023"
               from_port     = 1018
               to_port       = 1023
               ip_protocol   = "tcp"
@@ -1263,7 +1277,7 @@ inputs = {
             {
               key           = "ingress-988-self-sg"
               source_sg_key = "fsx-lustre"
-              description   = "FSX - Inbound Lustre (LNET) traffic from itself on tcp port 988"
+              description   = "Tenant Account - Inbound Lustre (LNET) traffic from itself on tcp port 988"
               from_port     = 988
               to_port       = 988
               ip_protocol   = "tcp"
@@ -1271,7 +1285,7 @@ inputs = {
             {
               key           = "ingress-1018-1023-self-sg"
               source_sg_key = "fsx-lustre"
-              description   = "FSX - Inbound Lustre traffic from itself on tcp ports 1018-1023"
+              description   = "Tenant Account - Inbound Lustre traffic from itself on tcp ports 1018-1023"
               from_port     = 1018
               to_port       = 1023
               ip_protocol   = "tcp"
@@ -1281,7 +1295,7 @@ inputs = {
             {
               key           = "egress-988-eks-nodes-sg"
               target_sg_key = "eks-nodes"
-              description   = "FSX - Outbound Lustre (LNET) traffic to EKS Nodes SG on tcp port 988"
+              description   = "Tenant Account - Outbound Lustre (LNET) traffic to EKS Nodes SG on tcp port 988"
               from_port     = 988
               to_port       = 988
               ip_protocol   = "tcp"
@@ -1289,7 +1303,7 @@ inputs = {
             {
               key           = "egress-1018-1023-eks-nodes-sg"
               target_sg_key = "eks-nodes"
-              description   = "FSX - Outbound Lustre traffic to EKS Nodes SG on tcp ports 1018-1023"
+              description   = "Tenant Account - Outbound Lustre traffic to EKS Nodes SG on tcp ports 1018-1023"
               from_port     = 1018
               to_port       = 1023
               ip_protocol   = "tcp"
@@ -1297,7 +1311,7 @@ inputs = {
             {
               key           = "egress-988-self-sg"
               target_sg_key = "fsx-lustre"
-              description   = "FSX - Outbound Lustre (LNET) traffic to itself on tcp port 988"
+              description   = "Tenant Account - Outbound Lustre (LNET) traffic to itself on tcp port 988"
               from_port     = 988
               to_port       = 988
               ip_protocol   = "tcp"
@@ -1305,10 +1319,62 @@ inputs = {
             {
               key           = "egress-1018-1023-self-sg"
               target_sg_key = "fsx-lustre"
-              description   = "FSX - Outbound Lustre traffic to itself on tcp ports 1018-1023"
+              description   = "Tenant Account - Outbound Lustre traffic to itself on tcp ports 1018-1023"
               from_port     = 1018
               to_port       = 1023
               ip_protocol   = "tcp"
+            }
+          ]
+        },
+        {
+          sg_key = "nginx-ingress"
+          ingress_rules = [
+            {
+              key         = "ingress-80-internet"
+              cidr_ipv4   = local.internet_cidr
+              description = "Tenant Account - Inbound traffic from Internet on tcp port 80"
+              from_port   = 80
+              to_port     = 80
+              ip_protocol = "tcp"
+            },
+            {
+              key         = "ingress-443-internet"
+              cidr_ipv4   = local.internet_cidr
+              description = "Tenant Account - Inbound traffic from Internet on tcp port 443"
+              from_port   = 443
+              to_port     = 443
+              ip_protocol = "tcp"
+            }
+          ]
+          egress_rules = [
+            {
+              key           = "egress-8080-eks-little-doctor-pod-sg"
+              target_sg_key = "little-doctor-pod"
+              description   = "Tenant Account - Outbound traffic to EKS Little Doctor Pod SG on tcp port 8080"
+              from_port     = 8080
+              to_port       = 8080
+              ip_protocol   = "tcp"
+            }
+          ]
+        },
+        {
+          sg_key = "little-doctor-pod"
+          ingress_rules = [
+            {
+              key           = "ingress-8080-nginx-ingress-sg"
+              source_sg_key = "nginx-ingress"
+              description   = "Tenant Account - Inbound traffic from NGINX Ingress SG on tcp port 8080"
+              from_port     = 8080
+              to_port       = 8080
+              ip_protocol   = "tcp"
+            }
+          ]
+          egress_rules = [
+            {
+              key         = "egress-all-traffic-internet"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "BASE - Outbound all traffic to the Interneton all ports"
+              ip_protocol = "-1"
             }
           ]
         }
@@ -1619,20 +1685,34 @@ inputs = {
         grafana_service_type                    = "ClusterIP"
         grafana_ingress_enabled                 = true
         grafana_ingress_class_name              = "alb"
+        enable_ingress                          = local.enable_ingress
         grafana_ingress_annotations             = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/grafana_ingress_annotation.yaml"))
-        grafana_ingress_security_group_key      = "alb"                   # Change to use a different security group (e.g., "app", "nlb", etc.)
-        grafana_ingress_certificate_key         = "${local.vpc_name_abr}" # Use certificate key to lookup from module.certificates
-        # External-dns will automatically create Route53 A records (alias to ALB) for this hostname.
-        # It only creates DNS records for resources with the external-dns.alpha.kubernetes.io/hostname annotation.
-        # Set to null to disable automatic DNS record creation and manage DNS manually.
-        grafana_ingress_hostname             = "grafana.${local.vpc_name_abr}.${include.env.locals.public_domain}"
-        grafana_persistence_enabled          = true
-        grafana_persistence_size             = "20Gi"
-        grafana_persistence_storage_class    = "gp3"
-        prometheus_retention                 = "30d"
-        prometheus_persistence_enabled       = true
-        prometheus_persistence_size          = "100Gi"
-        prometheus_persistence_storage_class = "gp3"
+        grafana_ingress_security_group_key      = "alb"
+        grafana_ingress_certificate_key         = "${local.vpc_name_abr}"
+        grafana_ingress_hostname                = "grafana.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+        grafana_persistence_enabled             = true
+        grafana_persistence_size                = "20Gi"
+        grafana_persistence_storage_class       = "gp3"
+        prometheus_retention                    = "30d"
+        prometheus_persistence_enabled          = true
+        prometheus_persistence_size             = "100Gi"
+        prometheus_persistence_storage_class    = "gp3"
+        ingress = [
+          {
+            name               = "${local.vpc_name_abr}-litdoc"
+            namespace          = "${local.vpc_name_abr}-litdoc"
+            ingress_class_name = "${local.vpc_name_abr}-litdoc"
+            nlb_name           = "${local.vpc_name_abr}-litdoc"
+            subnet_keys = [
+              include.env.locals.subnet_prefix.primary,
+              include.env.locals.subnet_prefix.secondary
+            ]
+            security_group_keys = ["litdoc-pod"]
+            service_annotations = {
+              "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internal"
+            }
+          }
+        ]
         karpenter = {
           controller_role_key     = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
           node_role_arn           = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
