@@ -1705,6 +1705,7 @@ inputs = {
               namespace          = "${local.vpc_name_abr}-litdoc"
               ingress_class_name = "${local.vpc_name_abr}-litdoc"
               nlb_name           = "${local.vpc_name_abr}-litdoc"
+              ssl_ports          = ["443"]
               subnet_keys = [
                 include.env.locals.subnet_prefix.primary,
                 include.env.locals.subnet_prefix.secondary

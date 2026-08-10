@@ -589,7 +589,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.96"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.6.97"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -693,6 +693,12 @@ module "eks" {
                       module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
                       module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
                     ]) : nginx.subnet_ids
+                    ssl_cert_arn = nginx.ssl_cert_arn != null ? nginx.ssl_cert_arn : (
+                      (
+                        contains([for port in try(nginx.ssl_ports, []) : lower(port)], "443") ||
+                        contains([for port in try(nginx.ssl_ports, []) : lower(port)], "https")
+                      ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
+                    )
                   }
                 )
               ] : null,
@@ -705,6 +711,12 @@ module "eks" {
                     module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
                     module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
                   ]) : each.value.eks_addons.ingress.gateway_api.subnet_ids
+                  ssl_cert_arn = each.value.eks_addons.ingress.gateway_api.ssl_cert_arn != null ? each.value.eks_addons.ingress.gateway_api.ssl_cert_arn : (
+                    (
+                      contains([for port in try(each.value.eks_addons.ingress.gateway_api.ssl_ports, []) : lower(port)], "443") ||
+                      contains([for port in try(each.value.eks_addons.ingress.gateway_api.ssl_ports, []) : lower(port)], "https")
+                    ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
+                  )
                 }
               ) : null
             }
