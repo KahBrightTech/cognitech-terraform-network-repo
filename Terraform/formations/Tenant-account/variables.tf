@@ -1282,6 +1282,7 @@ variable "eks" {
       kubecost_version                        = optional(string, "2.9.7")
       kubecost_namespace                      = optional(string, "kubecost")
       kubecost_timeout                        = optional(number, 900)
+      kubecost_storage_class                  = optional(string)
       kubecost_values                         = optional(list(any), [])
     }))
     key_pair = object({

@@ -1699,20 +1699,7 @@ inputs = {
         prometheus_persistence_storage_class    = "gp3"
         enable_kubecost                         = local.enable_kubecost
         kubecost_version                        = "2.8.7"
-        kubecost_values = [
-          {
-            persistentVolume = {
-              storageClass = "gp3"
-            }
-            prometheus = {
-              server = {
-                persistentVolume = {
-                  storageClass = "gp3"
-                }
-              }
-            }
-          }
-        ]
+        kubecost_storage_class                  = "gp3"
         ingress = {
           nginx = [
             {
