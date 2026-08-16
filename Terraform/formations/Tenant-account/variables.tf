@@ -1173,6 +1173,7 @@ variable "eks" {
         nginx = optional(list(object({
           name                = string
           version             = optional(string, "4.11.2")
+          timeout             = optional(number, 900)
           release_name        = optional(string)
           namespace           = optional(string)
           ingress_class_name  = optional(string)
