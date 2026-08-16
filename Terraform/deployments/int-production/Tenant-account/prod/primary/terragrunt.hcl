@@ -1350,12 +1350,10 @@ inputs = {
           ]
           egress_rules = [
             {
-              key           = "egress-8080-eks-litdoc-pod-sg"
-              target_sg_key = "litdoc-pod"
-              description   = "Tenant Account - Outbound traffic to EKS Litdoc Pod SG on tcp port 8080"
-              from_port     = 8080
-              to_port       = 8080
-              ip_protocol   = "tcp"
+              key         = "egress-all-traffic-internet"
+              cidr_ipv4   = "0.0.0.0/0"
+              description = "BASE - Outbound all traffic from EKS Nodes SG to Internet"
+              ip_protocol = "-1"
             }
           ]
         },
@@ -1712,6 +1710,9 @@ inputs = {
               ssl_policy         = "ELBSecurityPolicy-TLS-1-2-2017-01"
               subnet_keys = [
                 include.env.locals.subnet_prefix.primary
+              ]
+              security_group_keys = [
+                "nginx-ingress"
               ]
               service_annotations_file = "${include.cloud.locals.repo.root}/iam_policies/ingress_annotation_litdoc.yaml"
               values = [
