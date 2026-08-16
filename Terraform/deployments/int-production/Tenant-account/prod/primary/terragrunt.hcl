@@ -1700,6 +1700,7 @@ inputs = {
         prometheus_persistence_size             = "100Gi"
         prometheus_persistence_storage_class    = "gp3"
         enable_kubecost                         = local.enable_kubecost
+        kubecost_version                        = "2.8.7"
         ingress = {
           nginx = [
             {
