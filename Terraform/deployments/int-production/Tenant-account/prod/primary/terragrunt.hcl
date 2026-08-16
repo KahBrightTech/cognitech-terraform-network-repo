@@ -1710,8 +1710,7 @@ inputs = {
               ssl_ports          = ["443"]
               ssl_policy         = "ELBSecurityPolicy-TLS-1-2-2017-01"
               subnet_keys = [
-                include.env.locals.subnet_prefix.primary,
-                include.env.locals.subnet_prefix.secondary
+                include.env.locals.subnet_prefix.primary
               ]
               security_group_keys      = ["litdoc-pod"]
               service_annotations_file = "${include.cloud.locals.repo.root}/iam_policies/ingress_annotation_litdoc.yaml"
