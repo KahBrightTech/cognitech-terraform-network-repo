@@ -44,6 +44,7 @@ locals {
   create_namespaces       = true
   enable_karpenter        = true
   enable_ingress          = true
+  enable_kubecost         = true
 
   ## eks monitoring
   create_opensearch               = false
@@ -1698,6 +1699,7 @@ inputs = {
         prometheus_persistence_enabled          = true
         prometheus_persistence_size             = "100Gi"
         prometheus_persistence_storage_class    = "gp3"
+        enable_kubecost                         = local.enable_kubecost
         ingress = {
           nginx = [
             {

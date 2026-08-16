@@ -1279,6 +1279,11 @@ variable "eks" {
       prometheus_persistence_enabled          = optional(bool, false)
       prometheus_persistence_size             = optional(string)
       prometheus_persistence_storage_class    = optional(string)
+      enable_kubecost                         = optional(bool, false)
+      kubecost_version                        = optional(string, "2.9.7")
+      kubecost_namespace                      = optional(string, "kubecost")
+      kubecost_timeout                        = optional(number, 900)
+      kubecost_values                         = optional(list(any), [])
     }))
     key_pair = object({
       name               = optional(string)
