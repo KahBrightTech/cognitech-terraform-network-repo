@@ -1713,11 +1713,13 @@ inputs = {
               subnet_keys = [
                 include.env.locals.subnet_prefix.primary
               ]
-              security_group_keys      = ["litdoc-pod"]
               service_annotations_file = "${include.cloud.locals.repo.root}/iam_policies/ingress_annotation_litdoc.yaml"
               values = [
                 {
                   controller = {
+                    service = {
+                      enableHttp = false
+                    }
                     config = {
                       use-forwarded-headers = "true"
                     }
