@@ -1714,7 +1714,7 @@ inputs = {
               ]
               security_group_keys = ["litdoc-pod"]
               service_annotations = {
-                "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internal"
+                "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
               }
               values = [
                 {
