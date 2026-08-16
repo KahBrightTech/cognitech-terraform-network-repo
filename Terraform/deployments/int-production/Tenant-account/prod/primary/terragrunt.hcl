@@ -1708,14 +1708,13 @@ inputs = {
               ingress_class_name = "${local.vpc_name_abr}-litdoc"
               nlb_name           = "${local.vpc_name_abr}-litdoc"
               ssl_ports          = ["443"]
+              ssl_policy         = "ELBSecurityPolicy-TLS-1-2-2017-01"
               subnet_keys = [
                 include.env.locals.subnet_prefix.primary,
                 include.env.locals.subnet_prefix.secondary
               ]
-              security_group_keys = ["litdoc-pod"]
-              service_annotations = {
-                "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
-              }
+              security_group_keys      = ["litdoc-pod"]
+              service_annotations_file = "${include.cloud.locals.repo.root}/iam_policies/ingress_annotation_litdoc.yaml"
               values = [
                 {
                   controller = {
