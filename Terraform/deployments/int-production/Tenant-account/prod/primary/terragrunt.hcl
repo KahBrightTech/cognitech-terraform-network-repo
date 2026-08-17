@@ -1538,7 +1538,8 @@ inputs = {
           service_account_name      = "kubecost"
           create_custom_policy      = false
           managed_policy_arns = [
-            "arn:aws:iam::aws:policy/AWSBillingReadOnlyAccess"
+            "arn:aws:iam::aws:policy/AWSBillingReadOnlyAccess",
+            "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
           ]
         },
         {
