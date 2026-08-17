@@ -669,6 +669,39 @@ module "eks" {
         {
           cloudwatch_observability_role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
         } : {},
+        (each.value.eks_addons.grafana_ingress_security_group_key != null || each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null || each.value.eks_addons.grafana_ingress_hostname != null) && each.value.eks_addons.grafana_ingress_annotations != null ?
+        {
+          grafana_ingress_annotations = merge(
+            each.value.eks_addons.grafana_ingress_annotations,
+            each.value.eks_addons.grafana_ingress_security_group_key != null ? {
+              "alb.ingress.kubernetes.io/security-groups" = module.shared_vpc[each.value.vpc_name].security_group[each.value.eks_addons.grafana_ingress_security_group_key].id
+            } : {},
+            (each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null) ? {
+              "alb.ingress.kubernetes.io/certificate-arn" = each.value.eks_addons.grafana_ingress_certificate_key != null ? module.certificates[each.value.eks_addons.grafana_ingress_certificate_key].arn : each.value.eks_addons.grafana_ingress_certificate_arn
+            } : {},
+            each.value.eks_addons.grafana_ingress_hostname != null ? {
+              "external-dns.alpha.kubernetes.io/hostname" = each.value.eks_addons.grafana_ingress_hostname
+            } : {}
+          )
+        } : {},
+        (each.value.eks_addons.kubecost_ingress_security_group_key != null || each.value.eks_addons.kubecost_ingress_certificate_key != null || each.value.eks_addons.kubecost_ingress_certificate_arn != null || each.value.eks_addons.kubecost_ingress_hostname != null) && each.value.eks_addons.kubecost_ingress_annotations != null ?
+        {
+          kubecost_ingress_annotations = merge(
+            each.value.eks_addons.kubecost_ingress_annotations,
+            each.value.eks_addons.kubecost_ingress_security_group_key != null ? {
+              "alb.ingress.kubernetes.io/security-groups" = module.shared_vpc[each.value.vpc_name].security_group[each.value.eks_addons.kubecost_ingress_security_group_key].id
+            } : {},
+            (each.value.eks_addons.kubecost_ingress_certificate_key != null || each.value.eks_addons.kubecost_ingress_certificate_arn != null) ? {
+              "alb.ingress.kubernetes.io/certificate-arn" = each.value.eks_addons.kubecost_ingress_certificate_key != null ? module.certificates[each.value.eks_addons.kubecost_ingress_certificate_key].arn : each.value.eks_addons.kubecost_ingress_certificate_arn
+            } : {},
+            each.value.eks_addons.kubecost_ingress_hostname != null ? {
+              "external-dns.alpha.kubernetes.io/hostname" = each.value.eks_addons.kubecost_ingress_hostname
+            } : {}
+          )
+        } : {},
+        ((each.value.eks_addons.kubecost_ingress_hostname != null && length(each.value.eks_addons.kubecost_ingress_hosts) == 0) ? {
+          kubecost_ingress_hosts = [each.value.eks_addons.kubecost_ingress_hostname]
+        } : {}),
         (each.value.eks_addons.enable_ingress && each.value.eks_addons.ingress != null) ? {
           ingress = merge(
             each.value.eks_addons.ingress,

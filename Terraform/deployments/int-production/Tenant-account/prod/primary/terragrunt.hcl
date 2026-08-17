@@ -37,27 +37,27 @@ locals {
   vpc_name_abr = "prod"
   ## eks related variables
   create_eks_cluster      = true
-  create_node_group       = true
-  create_service_accounts = true
-  enable_eks_pia          = true
-  create_rbac             = true
-  create_namespaces       = true
-  enable_karpenter        = true
-  enable_ingress          = true
-  enable_kubecost         = true
+  create_node_group       = false
+  create_service_accounts = false
+  enable_eks_pia          = false
+  create_rbac             = false
+  create_namespaces       = false
+  enable_karpenter        = false
+  enable_ingress          = false
+  enable_kubecost         = false
 
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
   enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
-  enable_cloudwatch_observability = true  # Set to false if enabling fluent bit plus firehose → opensearch
-  enable_kube_prometheus_stack    = true
+  enable_cloudwatch_observability = false # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_kube_prometheus_stack    = false
   ## other variables
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
-  create_cognito      = true
+  create_cognito      = false
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
@@ -1212,6 +1212,14 @@ inputs = {
               ip_protocol = "tcp"
             },
             {
+              key           = "ingress-443-nginx-ingress-sg"
+              source_sg_key = "nginx-ingress"
+              description   = "Tenant Account - Inbound traffic from Nginx Ingress SG on tcp port 443"
+              from_port     = 443
+              to_port       = 443
+              ip_protocol   = "tcp"
+            },
+            {
               key         = "ingress-30000-32767-my-ip"
               cidr_ipv4   = include.cloud.locals.external_cidrs.org_ip
               description = "Tenant Account - Inbound traffic from org IP on tcp port range 30000-32767 for nodeport test"
@@ -1700,6 +1708,12 @@ inputs = {
         enable_kubecost                         = local.enable_kubecost
         kubecost_version                        = "2.8.7"
         kubecost_storage_class                  = "gp3"
+        kubecost_ingress_enabled                = true
+        kubecost_ingress_class_name             = "alb"
+        kubecost_ingress_annotations            = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/kubecost_ingress_annotation.yaml"))
+        kubecost_ingress_security_group_key     = "alb"
+        kubecost_ingress_certificate_key        = "${local.vpc_name_abr}"
+        kubecost_ingress_hostname               = "kubecost.${local.vpc_name_abr}.${include.env.locals.public_domain}"
         ingress = {
           nginx = [
             {
