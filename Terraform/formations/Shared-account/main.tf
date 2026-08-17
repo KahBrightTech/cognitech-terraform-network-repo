@@ -720,6 +720,11 @@ module "eks" {
                     ingress_class_name = nginx.ingress_class_name != null ? (
                       startswith(nginx.ingress_class_name, "ingress-nginx-") ? nginx.ingress_class_name : "ingress-nginx-${nginx.ingress_class_name}"
                     ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                    nlb_name = nginx.nlb_name != null ? (
+                      endswith(nginx.nlb_name, "-${var.common.region_prefix}-nlb") ? nginx.nlb_name : (
+                        length(nginx.nlb_name) > 0 ? "${trimsuffix(nginx.nlb_name, "-nlb")}-${var.common.region_prefix}-nlb" : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
+                      )
+                    ) : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
                     subnet_ids = nginx.subnet_keys != null ? flatten([
                       for subnet_key in nginx.subnet_keys :
                       (each.value.use_private_subnets == true) ?
