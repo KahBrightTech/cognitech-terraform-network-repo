@@ -1530,6 +1530,18 @@ inputs = {
           }
         },
         {
+          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-kubecost"
+          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-kubecost"
+          description               = "IAM Role for ${local.vpc_name_abr} Kubecost Service Account"
+          path                      = "/"
+          service_account_namespace = "kubecost"
+          service_account_name      = "kubecost"
+          create_custom_policy      = false
+          managed_policy_arns = [
+            "arn:aws:iam::aws:policy/AWSBillingReadOnlyAccess"
+          ]
+        },
+        {
           key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
           name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia"
           description        = "IAM Role for ${local.vpc_name_abr} Secrets PIA Service Account"
@@ -1683,6 +1695,7 @@ inputs = {
         aws_load_balancer_controller_role_key   = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
         external_dns_role_key                   = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
         cluster_autoscaler_role_key             = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
+        kubecost_role_key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-kubecost"
         external_dns_policy                     = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
         external_dns_domain_filters             = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
         external_dns_version                    = "1.14.3"
