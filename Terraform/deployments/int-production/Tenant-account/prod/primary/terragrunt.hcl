@@ -1728,6 +1728,13 @@ inputs = {
         kubecost_ingress_security_group_key     = "alb"
         kubecost_ingress_certificate_key        = "${local.vpc_name_abr}"
         kubecost_ingress_hostname               = "kubecost.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+        kubecost_values = [
+          {
+            ingress = {
+              pathType = "Prefix"
+            }
+          }
+        ]
         ingress = {
           nginx = [
             {
