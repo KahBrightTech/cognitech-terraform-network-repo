@@ -680,6 +680,15 @@ module "eks" {
             }
           ) : each.value.eks_addons.argocd_ingress_annotations
         },
+        {
+          cert_manager = each.value.eks_addons.cert_manager != null ? merge(
+            each.value.eks_addons.cert_manager,
+            {
+              route53_role_key = each.value.create_service_accounts ? each.value.eks_addons.cert_manager.route53_role_key : null
+              route53_role_arn = each.value.eks_addons.cert_manager.route53_role_arn
+            }
+          ) : each.value.eks_addons.cert_manager
+        },
         (each.value.eks_addons.grafana_ingress_security_group_key != null || each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null || each.value.eks_addons.grafana_ingress_hostname != null) && each.value.eks_addons.grafana_ingress_annotations != null ?
         {
           grafana_ingress_annotations = merge(
