@@ -668,10 +668,9 @@ module "eks" {
         {
           fluent_bit_firehose_delivery_stream = (each.value.eks_addons.enable_fluent_bit && each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key])) ? module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key].firehose_delivery_stream_name : each.value.eks_addons.fluent_bit_firehose_delivery_stream
         } : {},
-        length(each.value.eks_addons.argocd_ingress_security_group_keys) > 0 ?
         {
-          argocd_ingress_security_group_keys = []
-          argocd_ingress_annotations = merge(
+          argocd_ingress_security_group_keys = length(each.value.eks_addons.argocd_ingress_security_group_keys) > 0 ? tolist([]) : each.value.eks_addons.argocd_ingress_security_group_keys
+          argocd_ingress_annotations = length(each.value.eks_addons.argocd_ingress_security_group_keys) > 0 ? merge(
             each.value.eks_addons.argocd_ingress_annotations,
             {
               "alb.ingress.kubernetes.io/security-groups" = join(",", [
@@ -679,8 +678,8 @@ module "eks" {
                 module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
               ])
             }
-          )
-        } : {},
+          ) : each.value.eks_addons.argocd_ingress_annotations
+        },
         (each.value.eks_addons.grafana_ingress_security_group_key != null || each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null || each.value.eks_addons.grafana_ingress_hostname != null) && each.value.eks_addons.grafana_ingress_annotations != null ?
         {
           grafana_ingress_annotations = merge(
