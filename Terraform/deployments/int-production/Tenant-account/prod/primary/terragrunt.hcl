@@ -1156,12 +1156,6 @@ inputs = {
           name        = "litdoc-pod"
           description = "standard ${local.vpc_name} litdoc pod security group"
           vpc_name    = local.vpc_name_abr
-        },
-        {
-          key         = "alb"
-          name        = "alb"
-          description = "standard ${local.vpc_name} alb security group"
-          vpc_name    = local.vpc_name_abr
         }
       ]
       security_group_rules = [
@@ -1368,35 +1362,6 @@ inputs = {
               key         = "egress-all-traffic-internet"
               cidr_ipv4   = "0.0.0.0/0"
               description = "BASE - Outbound all traffic from EKS Nodes SG to Internet"
-              ip_protocol = "-1"
-            }
-          ]
-        },
-        {
-          sg_key = "alb"
-          ingress_rules = [
-            {
-              key         = "ingress-80-internet"
-              cidr_ipv4   = local.internet_cidr
-              description = "Tenant Account - Inbound traffic from Internet on tcp port 80"
-              from_port   = 80
-              to_port     = 80
-              ip_protocol = "tcp"
-            },
-            {
-              key         = "ingress-443-internet"
-              cidr_ipv4   = local.internet_cidr
-              description = "Tenant Account - Inbound traffic from Internet on tcp port 443"
-              from_port   = 443
-              to_port     = 443
-              ip_protocol = "tcp"
-            }
-          ]
-          egress_rules = [
-            {
-              key         = "egress-all-traffic-internet"
-              cidr_ipv4   = "0.0.0.0/0"
-              description = "BASE - Outbound all traffic from ALB SG to Internet"
               ip_protocol = "-1"
             }
           ]
