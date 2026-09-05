@@ -1,3 +1,4 @@
+
 #--------------------------------------------------------------------
 # Data
 #--------------------------------------------------------------------
@@ -14,7 +15,7 @@ data "aws_iam_roles" "network_role" {
   path_prefix = "/aws-reserved/sso.amazonaws.com/"
 }
 
-module "shared_vpc" {
+module "customer_vpc" {
   source   = "../Create-Network"
   for_each = var.vpcs != null ? { for vpc in var.vpcs : vpc.name => vpc } : {}
   vpc      = each.value
@@ -38,23 +39,21 @@ module "transit_gateway_attachment" {
   count  = var.tgw_attachments != null ? 1 : 0
   source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Transit-gateway-attachments?ref=v1.3.81"
   common = var.common
-  vpc_id = var.vpcs != null ? module.shared_vpc[var.tgw_attachments.name].vpc_id : null
+  vpc_id = var.vpcs != null ? module.customer_vpc[var.tgw_attachments.name].vpc_id : null
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway
   ]
-  tgw_attachments = merge(
-    var.tgw_attachments,
-    {
-      transit_gateway_id = var.tgw_attachments.transit_gateway_id != null ? var.tgw_attachments.transit_gateway_id : module.transit_gateway[0].transit_gateway_id
-      subnet_ids = compact([
-        module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id, # FYI you can only have one subnet per az for transit gateway attachments. So only using primary subnets here
-        module.shared_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
-      ])
-      name = var.tgw_attachments.name
-    }
-  )
+  tgw_attachments = {
+    transit_gateway_id = var.tgw_attachments.transit_gateway_id != null ? var.tgw_attachments.transit_gateway_id : module.transit_gateway[0].transit_gateway_id
+    subnet_ids = compact([
+      module.customer_vpc[var.tgw_attachments.name].private_subnet.sbnt1.primary_subnet_id, # FYI you can only have one subnet per az for transit gateway attachments. So only using primary subnets here
+      module.customer_vpc[var.tgw_attachments.name].private_subnet.sbnt1.secondary_subnet_id
+    ])
+    name = var.tgw_attachments.name
+  }
 }
+
 #--------------------------------------------------------------------
 # Transit Gateway route table - Creates Transit Gateway route tables
 #--------------------------------------------------------------------
@@ -63,7 +62,7 @@ module "transit_gateway_route_table" {
   for_each = var.tgw_route_table != null ? { for rt in var.tgw_route_table : rt.key => rt } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway
   ]
   tgw_route_table = {
@@ -80,7 +79,7 @@ module "transit_gateway_association" {
   for_each = var.tgw_associations != null ? { for assoc in var.tgw_associations : assoc.key => assoc } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway,
     module.transit_gateway_route_table
   ]
@@ -109,7 +108,7 @@ module "transit_gateway_propagation" {
   for_each = var.tgw_propagations != null ? { for prop in var.tgw_propagations : prop.key => prop } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway,
     module.transit_gateway_route_table
   ]
@@ -135,7 +134,7 @@ module "transit_gateway_route" {
   for_each = var.tgw_routes != null ? { for route in var.tgw_routes : route.key => route } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
   ]
   tgw_routes = {
     name                   = each.value.name
@@ -160,11 +159,11 @@ module "transit_gateway_subnet_route" {
   for_each = var.tgw_subnet_route != null ? { for route in var.tgw_subnet_route : route.name => route } : {}
   common   = var.common
   depends_on = [
-    module.shared_vpc,
+    module.customer_vpc,
     module.transit_gateway
   ]
   tgw_subnet_route = {
-    route_table_id     = each.value.create_public_route ? module.shared_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.shared_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
+    route_table_id     = each.value.create_public_route ? module.customer_vpc[each.value.vpc_name].public_routes[each.value.subnet_name].public_route_table_id : module.customer_vpc[each.value.vpc_name].private_routes[each.value.subnet_name].private_route_table_id
     transit_gateway_id = each.value.transit_gateway_id != null ? each.value.transit_gateway_id : module.transit_gateway[0].transit_gateway_id
     cidr_block         = each.value.cidr_block
     subnet_name        = each.value.subnet_name
@@ -218,7 +217,7 @@ module "s3_app_bucket" {
 # IAM Roles and Policies
 #--------------------------------------------------------------------
 module "iam_roles" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.6.45"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/IAM-Roles?ref=v1.5.44"
   for_each = (var.iam_roles != null) ? { for item in var.iam_roles : item.name => item } : {}
   common   = var.common
   iam_role = merge(
@@ -296,18 +295,18 @@ module "load_balancers" {
     {
       security_groups = [
         for sg_key in each.value.security_groups :
-        module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+        module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
       ]
       subnets = flatten([
         for subnet_key in each.value.subnets :
         (each.value.use_private_subnets == true) ?
-        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+        module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ])
       subnet_mappings = (each.value.subnet_mappings != null) ? [
         for mapping in each.value.subnet_mappings : {
           subnet_id = lookup(
-            module.shared_vpc[each.value.vpc_name].private_subnet[mapping.subnet_key],
+            module.customer_vpc[each.value.vpc_name].private_subnet[mapping.subnet_key],
             "${mapping.az_subnet_selector}_subnet_id",
             null
           )
@@ -358,10 +357,7 @@ module "ssm_parameters" {
   ssm_parameter = merge(
     each.value,
     {
-      value = (
-        each.value.secret_key != null
-        ? module.secrets[each.value.secret_key].name : each.value.file_path != null ? file(each.value.file_path) : each.value.value
-      )
+      value = each.value.secret_key != null ? module.secrets[each.value.secret_key].name : each.value.value
     }
   )
 }
@@ -376,7 +372,7 @@ module "target_groups" {
   target_group = merge(
     each.value,
     {
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
     }
   )
 }
@@ -400,7 +396,7 @@ module "alb_listeners" {
         ? try(module.certificates[each.value.certificate_key].arn, null)
         : try(module.certificates[each.value.vpc_name].arn, each.value.certificate_arn)
       )
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group_arn = (
         each.value.tg_name != null && each.value.tg_name != ""
         ? module.target_groups[each.value.tg_name].target_group_arn
@@ -461,7 +457,7 @@ module "nlb_listeners" {
         ? try(module.certificates[each.value.certificate_key].arn, null)
         : try(module.certificates[each.value.vpc_name].arn, each.value.certificate_arn)
       )
-      vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+      vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
       target_group_arn = (
         each.value.tg_name != null && each.value.tg_name != ""
         ? module.target_groups[each.value.tg_name].target_group_arn
@@ -589,7 +585,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.7.08"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.7.07"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -601,11 +597,14 @@ module "eks" {
       role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
     },
     {
+      namespaces = (each.value.create_namespaces == true && each.value.namespaces != null && length(each.value.namespaces) > 0) ? each.value.namespaces : null
+    },
+    {
       subnet_ids = each.value.subnet_keys != null ? flatten([
         for subnet_key in each.value.subnet_keys :
         (each.value.use_private_subnets == true) ?
-        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+        module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : each.value.subnet_ids
     },
     {
@@ -613,7 +612,7 @@ module "eks" {
         for sg in each.value.security_groups : merge(
           sg,
           {
-            vpc_id   = module.shared_vpc[each.value.vpc_name].vpc_id
+            vpc_id   = module.customer_vpc[each.value.vpc_name].vpc_id
             vpc_name = each.value.vpc_name
           }
         )
@@ -628,7 +627,7 @@ module "eks" {
               for ing_rule in rule.ingress_rules : merge(
                 ing_rule,
                 ing_rule.source_vpc_sg_key != null ? {
-                  source_sg_id = module.shared_vpc[each.value.vpc_name].security_group[ing_rule.source_vpc_sg_key].id
+                  source_sg_id = module.customer_vpc[each.value.vpc_name].security_group[ing_rule.source_vpc_sg_key].id
                 } : {}
               )
             ] : null
@@ -638,7 +637,7 @@ module "eks" {
               for egr_rule in rule.egress_rules : merge(
                 egr_rule,
                 egr_rule.target_vpc_sg_key != null ? {
-                  target_sg_id = module.shared_vpc[each.value.vpc_name].security_group[egr_rule.target_vpc_sg_key].id
+                  target_sg_id = module.customer_vpc[each.value.vpc_name].security_group[egr_rule.target_vpc_sg_key].id
                 } : {}
               )
             ] : null
@@ -647,179 +646,282 @@ module "eks" {
       ] : null
     },
     {
-      compute = merge(
-        each.value.compute,
-        {
-          launch_templates = each.value.compute.launch_templates != null ? [
-            for lt in each.value.compute.launch_templates : merge(
-              lt,
-              {
-                vpc_security_group_ids = concat(
-                  lt.account_security_group_keys != null ? [
-                    for sg_key in lt.account_security_group_keys : module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
-                  ] : [],
-                  lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
-                ),
-                vpc_security_group_keys = lt.vpc_security_group_keys
-              }
-            )
-          ] : null
-        },
-        {
-          eks_node_groups = each.value.compute.eks_node_groups != null ? [
-            for ng in each.value.compute.eks_node_groups : merge(
-              ng,
-              {
-                node_role_arn = ng.node_role_key != null ? module.iam_roles[ng.node_role_key].iam_role_arn : ng.node_role_arn
-              },
-              {
-                subnet_ids = ng.subnet_keys != null ? flatten([
-                  for subnet_key in ng.subnet_keys :
-                  (each.value.use_private_subnets == true) ?
-                  module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                  module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-                ]) : ng.subnet_ids
-              },
-              {
-                source_security_group_ids = ng.source_security_group_keys != null ? [
-                  for sg_key in ng.source_security_group_keys :
-                  module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
-                ] : ng.source_security_group_ids
-              }
-            )
-          ] : null
-        }
-      )
+      launch_templates = each.value.launch_templates != null ? [
+        for lt in each.value.launch_templates : merge(
+          lt,
+          {
+            vpc_security_group_ids = concat(
+              lt.account_security_group_keys != null ? [
+                for sg_key in lt.account_security_group_keys : module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+              ] : [],
+              lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
+            ),
+            vpc_security_group_keys = lt.vpc_security_group_keys
+          }
+        )
+      ] : null
     },
     {
-      ingress = merge(
-        each.value.ingress,
+      eks_addons = each.value.eks_addons != null ? merge(
+        each.value.eks_addons,
+        (each.value.eks_addons.cloudwatch_observability_role_key != null || each.value.eks_addons.cloudwatch_observability_role_arn != null || (each.value.eks_addons.enable_fluent_bit && each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key]))) ?
         {
-          nginx = each.value.ingress.nginx != null ? [
-            for nginx in each.value.ingress.nginx : merge(
-              nginx,
-              {
-                name = startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}"
-                release_name = nginx.release_name != null ? (
-                  startswith(nginx.release_name, "ingress-nginx-") ? nginx.release_name : "ingress-nginx-${nginx.release_name}"
-                ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
-                namespace = nginx.namespace != null ? (
-                  startswith(nginx.namespace, "ingress-nginx-") ? nginx.namespace : "ingress-nginx-${nginx.namespace}"
-                ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
-                ingress_class_name = nginx.ingress_class_name != null ? (
-                  startswith(nginx.ingress_class_name, "ingress-nginx-") ? nginx.ingress_class_name : "ingress-nginx-${nginx.ingress_class_name}"
-                ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
-                nlb_name = nginx.nlb_name != null ? (
-                  endswith(nginx.nlb_name, "-${var.common.region_prefix}-nlb") ? nginx.nlb_name : (
-                    length(nginx.nlb_name) > 0 ? "${trimsuffix(nginx.nlb_name, "-nlb")}-${var.common.region_prefix}-nlb" : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
-                  )
-                ) : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
-                subnet_ids = nginx.subnet_keys != null ? flatten([
-                  for subnet_key in nginx.subnet_keys :
-                  (each.value.use_private_subnets == true) ?
-                  module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                  module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-                ]) : nginx.subnet_ids
-                ssl_cert_arn = nginx.ssl_cert_arn != null ? nginx.ssl_cert_arn : (
-                  (
-                    contains([for port in try(nginx.ssl_ports, []) : lower(port)], "443") ||
-                    contains([for port in try(nginx.ssl_ports, []) : lower(port)], "https")
-                  ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
-                )
-              }
-            )
-          ] : null
-        },
-        {
-          gateway_api = each.value.ingress.gateway_api != null ? merge(
-            each.value.ingress.gateway_api,
-            {
-              subnet_ids = each.value.ingress.gateway_api.subnet_keys != null ? flatten([
-                for subnet_key in each.value.ingress.gateway_api.subnet_keys :
-                (each.value.use_private_subnets == true) ?
-                module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-              ]) : each.value.ingress.gateway_api.subnet_ids
-              ssl_cert_arn = each.value.ingress.gateway_api.ssl_cert_arn != null ? each.value.ingress.gateway_api.ssl_cert_arn : (
-                (
-                  contains([for port in try(each.value.ingress.gateway_api.ssl_ports, []) : lower(port)], "443") ||
-                  contains([for port in try(each.value.ingress.gateway_api.ssl_ports, []) : lower(port)], "https")
-                ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
-              )
-            }
-          ) : null
-        }
-      )
-    },
-    {
-      addons = merge(
-        each.value.addons,
-        (each.value.cloudwatch_observability_role_key != null || each.value.cloudwatch_observability_role_arn != null) ?
-        {
-          cloudwatch_observability = merge(
-            each.value.addons.cloudwatch_observability,
-            {
-              role_arn = each.value.cloudwatch_observability_role_key != null ? module.iam_roles[each.value.cloudwatch_observability_role_key].iam_role_arn : each.value.cloudwatch_observability_role_arn
-            }
-          )
+          fluent_bit_firehose_delivery_stream = (each.value.eks_addons.enable_fluent_bit && each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key])) ? module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key].firehose_delivery_stream_name : each.value.eks_addons.fluent_bit_firehose_delivery_stream
         } : {},
         {
-          cert_manager = merge(
-            each.value.addons.cert_manager,
+          argocd_ingress_security_group_keys = length(each.value.eks_addons.argocd_ingress_security_group_keys) > 0 ? tolist([]) : each.value.eks_addons.argocd_ingress_security_group_keys
+          argocd_ingress_annotations = length(each.value.eks_addons.argocd_ingress_security_group_keys) > 0 ? merge(
+            each.value.eks_addons.argocd_ingress_annotations,
             {
-              route53_role_key = each.value.create_service_accounts ? each.value.addons.cert_manager.route53_role_key : null
-              route53_role_arn = each.value.addons.cert_manager.route53_role_arn
+              "alb.ingress.kubernetes.io/security-groups" = join(",", [
+                for sg_key in each.value.eks_addons.argocd_ingress_security_group_keys :
+                module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+              ])
+            }
+          ) : each.value.eks_addons.argocd_ingress_annotations
+        },
+        {
+          cert_manager = each.value.eks_addons.cert_manager != null ? merge(
+            each.value.eks_addons.cert_manager,
+            {
+              route53_role_key = each.value.create_service_accounts ? each.value.eks_addons.cert_manager.route53_role_key : null
+              route53_role_arn = each.value.eks_addons.cert_manager.route53_role_arn
+            }
+          ) : each.value.eks_addons.cert_manager
+        },
+        (each.value.eks_addons.grafana_ingress_security_group_key != null || each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null || each.value.eks_addons.grafana_ingress_hostname != null) && each.value.eks_addons.grafana_ingress_annotations != null ?
+        {
+          grafana_ingress_annotations = merge(
+            each.value.eks_addons.grafana_ingress_annotations,
+            each.value.eks_addons.grafana_ingress_security_group_key != null ? {
+              "alb.ingress.kubernetes.io/security-groups" = module.customer_vpc[each.value.vpc_name].security_group[each.value.eks_addons.grafana_ingress_security_group_key].id
+            } : {},
+            (each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null) ? {
+              "alb.ingress.kubernetes.io/certificate-arn" = each.value.eks_addons.grafana_ingress_certificate_key != null ? module.certificates[each.value.eks_addons.grafana_ingress_certificate_key].arn : each.value.eks_addons.grafana_ingress_certificate_arn
+            } : {},
+            each.value.eks_addons.grafana_ingress_hostname != null ? {
+              "external-dns.alpha.kubernetes.io/hostname" = each.value.eks_addons.grafana_ingress_hostname
+            } : {}
+          )
+        } : {}
+        ,
+        (each.value.eks_addons.kubecost_ingress_security_group_key != null || each.value.eks_addons.kubecost_ingress_certificate_key != null || each.value.eks_addons.kubecost_ingress_certificate_arn != null || each.value.eks_addons.kubecost_ingress_hostname != null) && each.value.eks_addons.kubecost_ingress_annotations != null ?
+        {
+          kubecost_ingress_annotations = merge(
+            each.value.eks_addons.kubecost_ingress_annotations,
+            each.value.eks_addons.kubecost_ingress_security_group_key != null ? {
+              "alb.ingress.kubernetes.io/security-groups" = module.customer_vpc[each.value.vpc_name].security_group[each.value.eks_addons.kubecost_ingress_security_group_key].id
+            } : {},
+            (each.value.eks_addons.kubecost_ingress_certificate_key != null || each.value.eks_addons.kubecost_ingress_certificate_arn != null) ? {
+              "alb.ingress.kubernetes.io/certificate-arn" = each.value.eks_addons.kubecost_ingress_certificate_key != null ? module.certificates[each.value.eks_addons.kubecost_ingress_certificate_key].arn : each.value.eks_addons.kubecost_ingress_certificate_arn
+            } : {},
+            each.value.eks_addons.kubecost_ingress_hostname != null ? {
+              "external-dns.alpha.kubernetes.io/hostname" = each.value.eks_addons.kubecost_ingress_hostname
+            } : {}
+          )
+        } : {},
+        ((each.value.eks_addons.kubecost_ingress_hostname != null && length(each.value.eks_addons.kubecost_ingress_hosts) == 0) ? {
+          kubecost_ingress_hosts = [each.value.eks_addons.kubecost_ingress_hostname]
+        } : {})
+        ,
+        (each.value.eks_addons.enable_ingress && each.value.eks_addons.ingress != null) ? {
+          ingress = merge(
+            each.value.eks_addons.ingress,
+            {
+              nginx = each.value.eks_addons.ingress.nginx != null ? [
+                for nginx in each.value.eks_addons.ingress.nginx : merge(
+                  nginx,
+                  {
+                    name = startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}"
+                    release_name = nginx.release_name != null ? (
+                      startswith(nginx.release_name, "ingress-nginx-") ? nginx.release_name : "ingress-nginx-${nginx.release_name}"
+                    ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                    namespace = nginx.namespace != null ? (
+                      startswith(nginx.namespace, "ingress-nginx-") ? nginx.namespace : "ingress-nginx-${nginx.namespace}"
+                    ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                    ingress_class_name = nginx.ingress_class_name != null ? (
+                      startswith(nginx.ingress_class_name, "ingress-nginx-") ? nginx.ingress_class_name : "ingress-nginx-${nginx.ingress_class_name}"
+                    ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                    nlb_name = nginx.nlb_name != null ? (
+                      endswith(nginx.nlb_name, "-${var.common.region_prefix}-nlb") ? nginx.nlb_name : (
+                        length(nginx.nlb_name) > 0 ? "${trimsuffix(nginx.nlb_name, "-nlb")}-${var.common.region_prefix}-nlb" : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
+                      )
+                    ) : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
+                    subnet_ids = nginx.subnet_keys != null ? flatten([
+                      for subnet_key in nginx.subnet_keys :
+                      (each.value.use_private_subnets == true) ?
+                      module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                      module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                    ]) : nginx.subnet_ids
+                    ssl_cert_arn = nginx.ssl_cert_arn != null ? nginx.ssl_cert_arn : (
+                      (
+                        contains([for port in try(nginx.ssl_ports, []) : lower(port)], "443") ||
+                        contains([for port in try(nginx.ssl_ports, []) : lower(port)], "https")
+                      ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
+                    )
+                  }
+                )
+              ] : null,
+              gateway_api = each.value.eks_addons.ingress.gateway_api != null ? merge(
+                each.value.eks_addons.ingress.gateway_api,
+                {
+                  subnet_ids = each.value.eks_addons.ingress.gateway_api.subnet_keys != null ? flatten([
+                    for subnet_key in each.value.eks_addons.ingress.gateway_api.subnet_keys :
+                    (each.value.use_private_subnets == true) ?
+                    module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                    module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                  ]) : each.value.eks_addons.ingress.gateway_api.subnet_ids
+                  ssl_cert_arn = each.value.eks_addons.ingress.gateway_api.ssl_cert_arn != null ? each.value.eks_addons.ingress.gateway_api.ssl_cert_arn : (
+                    (
+                      contains([for port in try(each.value.eks_addons.ingress.gateway_api.ssl_ports, []) : lower(port)], "443") ||
+                      contains([for port in try(each.value.eks_addons.ingress.gateway_api.ssl_ports, []) : lower(port)], "https")
+                    ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
+                  )
+                }
+              ) : null
             }
           )
-        },
-        {
-          kube_prometheus_stack = merge(
-            each.value.addons.kube_prometheus_stack,
-            (each.value.addons.kube_prometheus_stack.grafana_ingress_security_group_key != null || each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_key != null || each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_arn != null || each.value.addons.kube_prometheus_stack.grafana_ingress_hostname != null) && each.value.addons.kube_prometheus_stack.grafana_ingress_annotations != null ?
-            {
-              grafana_ingress_annotations = merge(
-                each.value.addons.kube_prometheus_stack.grafana_ingress_annotations,
-                each.value.addons.kube_prometheus_stack.grafana_ingress_security_group_key != null ? {
-                  "alb.ingress.kubernetes.io/security-groups" = module.shared_vpc[each.value.vpc_name].security_group[each.value.addons.kube_prometheus_stack.grafana_ingress_security_group_key].id
-                } : {},
-                (each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_key != null || each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_arn != null) ? {
-                  "alb.ingress.kubernetes.io/certificate-arn" = each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_key != null ? module.certificates[each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_key].arn : each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_arn
-                } : {},
-                each.value.addons.kube_prometheus_stack.grafana_ingress_hostname != null ? {
-                  "external-dns.alpha.kubernetes.io/hostname" = each.value.addons.kube_prometheus_stack.grafana_ingress_hostname
-                } : {}
-              )
-            } : {}
-          )
-        },
-        {
-          kubecost = merge(
-            each.value.addons.kubecost,
-            (each.value.addons.kubecost.ingress_security_group_key != null || each.value.addons.kubecost.ingress_certificate_key != null || each.value.addons.kubecost.ingress_certificate_arn != null || each.value.addons.kubecost.ingress_hostname != null) && each.value.addons.kubecost.ingress_annotations != null ?
-            {
-              ingress_annotations = merge(
-                each.value.addons.kubecost.ingress_annotations,
-                each.value.addons.kubecost.ingress_security_group_key != null ? {
-                  "alb.ingress.kubernetes.io/security-groups" = module.shared_vpc[each.value.vpc_name].security_group[each.value.addons.kubecost.ingress_security_group_key].id
-                } : {},
-                (each.value.addons.kubecost.ingress_certificate_key != null || each.value.addons.kubecost.ingress_certificate_arn != null) ? {
-                  "alb.ingress.kubernetes.io/certificate-arn" = each.value.addons.kubecost.ingress_certificate_key != null ? module.certificates[each.value.addons.kubecost.ingress_certificate_key].arn : each.value.addons.kubecost.ingress_certificate_arn
-                } : {},
-                each.value.addons.kubecost.ingress_hostname != null ? {
-                  "external-dns.alpha.kubernetes.io/hostname" = each.value.addons.kubecost.ingress_hostname
-                } : {}
-              )
-            } : {},
-            (each.value.addons.kubecost.ingress_hostname != null && length(each.value.addons.kubecost.ingress_hosts) == 0) ? {
-              ingress_hosts = [each.value.addons.kubecost.ingress_hostname]
-            } : {}
-          )
-        }
-      )
+        } : {}
+      ) : null
+    },
+    {
+      eks_node_groups = each.value.eks_node_groups != null ? [
+        for ng in each.value.eks_node_groups : merge(
+          ng,
+          {
+            node_role_arn = ng.node_role_key != null ? module.iam_roles[ng.node_role_key].iam_role_arn : ng.node_role_arn
+          },
+          {
+            subnet_ids = ng.subnet_keys != null ? flatten([
+              for subnet_key in ng.subnet_keys :
+              (each.value.use_private_subnets == true) ?
+              module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+              module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+            ]) : ng.subnet_ids
+          },
+          {
+            source_security_group_ids = ng.source_security_group_keys != null ? [
+              for sg_key in ng.source_security_group_keys :
+              module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+            ] : ng.source_security_group_ids
+          }
+        )
+      ] : null
     }
   )
 }
 
+#--------------------------------------------------------------------
+# Creates Firehose delivery streams
+#--------------------------------------------------------------------
+module "firehose_streams" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-Firehose?ref=v1.6.47"
+  for_each = (var.firehose_streams != null) ? { for item in var.firehose_streams : item.key => item if item.create_firehose } : {}
+  common   = var.common
+  firehose = merge(
+    each.value,
+    {
+      role_arn = each.value.role_key != null ? module.iam_roles[each.value.role_key].iam_role_arn : each.value.role_arn
+    },
+    {
+      s3_configuration = each.value.s3_configuration != null ? merge(
+        each.value.s3_configuration,
+        {
+          bucket_arn = each.value.s3_configuration.bucket_key != null ? module.s3_app_bucket[each.value.s3_configuration.bucket_key].arn : each.value.s3_configuration.bucket_arn
+        }
+      ) : null
+    },
+    {
+      opensearch_configuration = each.value.opensearch_configuration != null ? merge(
+        each.value.opensearch_configuration,
+        {
+          domain_arn = each.value.opensearch_configuration.domain_key != null ? module.opensearch_domains[each.value.opensearch_configuration.domain_key].domain_arn : each.value.opensearch_configuration.domain_arn
+        },
+        {
+          vpc_config = each.value.opensearch_configuration.vpc_config != null ? merge(
+            each.value.opensearch_configuration.vpc_config,
+            {
+              subnet_ids = each.value.opensearch_configuration.vpc_config.subnet_keys != null ? flatten([
+                for subnet_key in each.value.opensearch_configuration.vpc_config.subnet_keys :
+                (each.value.opensearch_configuration.vpc_config.use_private_subnets == true) ?
+                module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+              ]) : each.value.opensearch_configuration.vpc_config.subnet_ids,
+              security_group_ids = each.value.opensearch_configuration.vpc_config.security_group_keys != null ? [
+                for sg_key in each.value.opensearch_configuration.vpc_config.security_group_keys :
+                module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+              ] : each.value.opensearch_configuration.vpc_config.security_group_ids
+            }
+          ) : null
+        }
+      ) : null
+    }
+  )
+}
+
+#--------------------------------------------------------------------
+# Creates Opensearch domains
+#--------------------------------------------------------------------
+module "opensearch_domains" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-OpenSearch?ref=v1.6.48"
+  for_each = (var.opensearch_domains != null) ? { for item in var.opensearch_domains : item.key => item if item.create_opensearch } : {}
+  common   = var.common
+  opensearch = merge(
+    each.value,
+    {
+      access_policies = each.value.access_policies != null ? replace(
+        replace(
+          replace(
+            replace(
+              replace(
+                replace(
+                  replace(
+                    replace(
+                      each.value.access_policies,
+                      "[[account_number]]",
+                      data.aws_caller_identity.current.account_id
+                    ),
+                    "[[source_ip]]",
+                    coalesce(each.value.source_ip_cidr, var.opensearch_source_ip_cidr, "[[source_ip]]")
+                  ),
+                  "[[resource_name]]",
+                  each.value.domain_name
+                ),
+                "[[region]]",
+                data.aws_region.current.name
+              ),
+              "[[admin_role_arn]]",
+              try(tolist(data.aws_iam_roles.admin_role.arns)[0], "")
+            ),
+            "[[domain_arn]]",
+            "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${each.value.domain_name}"
+          ),
+          "[[name_abr]]",
+          try(var.common.account_name_abr, "")
+        ),
+        "[[region_prefix]]",
+        try(var.common.region_prefix, "")
+      ) : null
+    },
+    {
+      vpc_options = each.value.vpc_options != null ? merge(
+        each.value.vpc_options,
+        {
+          subnet_ids = each.value.vpc_options.subnet_keys != null ? flatten([
+            for subnet_key in each.value.vpc_options.subnet_keys :
+            (each.value.vpc_options.use_private_subnets == true) ?
+            module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+            module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+          ]) : each.value.vpc_options.subnet_ids,
+          security_group_ids = each.value.vpc_options.security_group_keys != null ? [
+            for sg_key in each.value.vpc_options.security_group_keys :
+            module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+          ] : each.value.vpc_options.security_group_ids
+        }
+      ) : null
+    }
+  )
+}
 
 #--------------------------------------------------------------------
 # Creates RDS instances
@@ -834,14 +936,14 @@ module "rds" {
       subnet_ids = each.value.subnet_keys != null ? flatten([
         for subnet_key in each.value.subnet_keys :
         (each.value.use_private_subnets == true) ?
-        module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+        module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+        module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
       ]) : each.value.subnet_ids
     },
     {
       vpc_security_group_ids = each.value.vpc_security_group_keys != null ? [
         for sg_key in each.value.vpc_security_group_keys :
-        module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+        module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
       ] : each.value.vpc_security_group_ids
     }
   )
@@ -1009,12 +1111,12 @@ module "ecs_clusters" {
                 subnets = svc.network_configuration.subnet_keys != null ? flatten([
                   for subnet_key in svc.network_configuration.subnet_keys :
                   (each.value.use_private_subnets == true) ?
-                  module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                  module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                  module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                  module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
                 ]) : svc.network_configuration.subnets
                 security_groups = svc.network_configuration.security_group_keys != null ? [
                   for sg_key in svc.network_configuration.security_group_keys :
-                  module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+                  module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
                 ] : svc.network_configuration.security_groups
               }
             ) : null
@@ -1027,7 +1129,7 @@ module "ecs_clusters" {
         for ns in each.value.cloud_map_namespaces : merge(
           ns,
           {
-            vpc_id = each.value.vpc_name != null ? module.shared_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
+            vpc_id = each.value.vpc_name != null ? module.customer_vpc[each.value.vpc_name].vpc_id : each.value.vpc_id
           }
         )
       ] : null
@@ -1044,7 +1146,7 @@ module "ecs_clusters" {
                 instance_profile = lt.iam_instance_profile_key != null ? module.ec2_profiles[lt.iam_instance_profile_key].instance_profile_name : lt.iam_instance_profile
                 vpc_security_group_ids = lt.vpc_security_group_keys != null ? [
                   for sg_key in lt.vpc_security_group_keys :
-                  module.shared_vpc[each.value.vpc_name].security_group[sg_key].id
+                  module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
                 ] : lt.vpc_security_group_ids
               }
             )
@@ -1055,8 +1157,8 @@ module "ecs_clusters" {
               subnet_ids = each.value.ec2_autoscaling.autoscaling_group.subnet_keys != null ? flatten([
                 for subnet_key in each.value.ec2_autoscaling.autoscaling_group.subnet_keys :
                 (each.value.use_private_subnets == true) ?
-                module.shared_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                module.shared_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
               ]) : each.value.ec2_autoscaling.autoscaling_group.subnet_ids
               attach_target_groups = each.value.ec2_autoscaling.autoscaling_group.target_group_keys != null ? [
                 for tg_key in each.value.ec2_autoscaling.autoscaling_group.target_group_keys :
@@ -1071,76 +1173,6 @@ module "ecs_clusters" {
 }
 
 #--------------------------------------------------------------------
-# Deploy-AWX
-#--------------------------------------------------------------------
-module "deploy_awx" {
-  source = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-Ansible?ref=v1.6.53"
-  count  = var.deploy_ansible != null && var.deploy_ansible.deploy_awx == true ? 1 : 0
-  common = var.common
-  deploy_ansible = merge(var.deploy_ansible, {
-    launch_template = var.deploy_ansible.launch_template != null ? merge(var.deploy_ansible.launch_template, {
-      key_name         = var.deploy_ansible.launch_template.key_name != null ? module.ec2_key_pairs[var.deploy_ansible.launch_template.key_name].name : var.deploy_ansible.launch_template.key_name
-      instance_profile = var.deploy_ansible.launch_template.instance_profile_key != null ? module.ec2_profiles[var.deploy_ansible.launch_template.instance_profile_key].instance_profile_name : var.deploy_ansible.launch_template.instance_profile
-      vpc_security_group_ids = var.deploy_ansible.launch_template.vpc_security_group_keys != null ? [
-        for sg_key in var.deploy_ansible.launch_template.vpc_security_group_keys :
-        module.shared_vpc[var.deploy_ansible.vpc_name].security_group[sg_key].id
-      ] : var.deploy_ansible.launch_template.vpc_security_group_ids
-    }) : null
-    alb = var.deploy_ansible.alb != null ? merge(var.deploy_ansible.alb, {
-      security_groups = var.deploy_ansible.alb.security_group_keys != null ? [
-        for sg_key in var.deploy_ansible.alb.security_group_keys :
-        module.shared_vpc[var.deploy_ansible.alb.vpc_name].security_group[sg_key].id
-      ] : var.deploy_ansible.alb.security_groups
-      subnets = var.deploy_ansible.alb.subnet_keys != null ? flatten([
-        for subnet_key in var.deploy_ansible.alb.subnet_keys :
-        (var.deploy_ansible.alb.use_private_subnets == true) ?
-        module.shared_vpc[var.deploy_ansible.alb.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[var.deploy_ansible.alb.vpc_name].public_subnet[subnet_key].subnet_ids
-      ]) : var.deploy_ansible.alb.subnets
-      default_listener = var.deploy_ansible.alb.create_default_listener == true ? merge(
-        {
-          certificate_arn = try(lookup(var.deploy_ansible.alb, "default_listener", {}).certificate_arn, null) != null ? lookup(var.deploy_ansible.alb, "default_listener", {}).certificate_arn : try(module.certificates[var.deploy_ansible.alb.vpc_name_abr].arn, null)
-        },
-        { port        = 443
-          protocol    = "HTTPS"
-          action_type = "fixed-response"
-          ssl_policy  = "ELBSecurityPolicy-2016-08"
-          fixed_response = {
-            content_type = "text/plain"
-            message_body = "Oops! The page you are looking for does not exist."
-            status_code  = "200"
-          }
-        }
-      ) : null
-      subnet_mappings = (var.deploy_ansible.alb.subnet_mappings != null) ? [
-        for mapping in var.deploy_ansible.alb.subnet_mappings : {
-          subnet_id = lookup(
-            module.shared_vpc[var.deploy_ansible.alb.vpc_name].private_subnet[mapping.subnet_key],
-            "${mapping.az_subnet_selector}_subnet_id",
-            null
-          )
-          private_ipv4_address = mapping.private_ipv4_address
-        }
-      ] : []
-    }) : null
-    target_group = var.deploy_ansible.target_group != null ? merge(var.deploy_ansible.target_group, {
-      vpc_id = var.deploy_ansible.target_group.vpc_name != null ? module.shared_vpc[var.deploy_ansible.target_group.vpc_name].vpc_id : var.deploy_ansible.target_group.vpc_id
-    }) : null
-    alb_listener = var.deploy_ansible.alb_listener != null ? merge(var.deploy_ansible.alb_listener, {
-      vpc_id = var.deploy_ansible.alb_listener.vpc_name != null ? module.shared_vpc[var.deploy_ansible.alb_listener.vpc_name].vpc_id : var.deploy_ansible.alb_listener.vpc_id
-    }) : null
-    asg = var.deploy_ansible.asg != null ? merge(var.deploy_ansible.asg, {
-      subnet_ids = var.deploy_ansible.asg.subnet_keys != null ? flatten([
-        for subnet_key in var.deploy_ansible.asg.subnet_keys :
-        (var.deploy_ansible.asg.use_private_subnets == true) ?
-        module.shared_vpc[var.deploy_ansible.vpc_name].private_subnet[subnet_key].subnet_ids :
-        module.shared_vpc[var.deploy_ansible.vpc_name].public_subnet[subnet_key].subnet_ids
-      ]) : var.deploy_ansible.asg.subnet_ids
-    }) : null
-  })
-}
-
-#--------------------------------------------------------------------
 # Creates Lambdas
 #--------------------------------------------------------------------
 module "lambdas" {
@@ -1149,7 +1181,6 @@ module "lambdas" {
   common   = var.common
   Lambda   = each.value
 }
-
 
 #--------------------------------------------------------------------
 # Creates Lambdas
@@ -1182,4 +1213,15 @@ module "events" {
       target_arn = each.value.target_key != null ? module.lambdas[each.value.target_key].lambda_function_arn : each.value.target_arn
     }
   )
+}
+
+
+#--------------------------------------------------------------------
+# AWS Cognito
+#--------------------------------------------------------------------
+module "cognito" {
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/AWS-Cognito?ref=v1.6.80"
+  for_each = (var.cognito != null) ? { for item in var.cognito : item.create_cognito ? item.key : null => item if item.create_cognito } : {}
+  common   = var.common
+  cognito  = each.value
 }

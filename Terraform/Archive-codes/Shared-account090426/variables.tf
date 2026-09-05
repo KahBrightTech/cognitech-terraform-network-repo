@@ -527,6 +527,7 @@ variable "ssm_parameters" {
     type        = string
     value       = optional(string)
     secret_key  = optional(string)
+    file_path   = optional(string)
     tier        = optional(string, "Standard") # Default to Standard if not specified
     overwrite   = optional(bool, false)        # Default to false if not specified
   }))
@@ -1044,7 +1045,6 @@ variable "eks" {
     name                                        = string
     create_eks_cluster                          = optional(bool, false)
     create_rbac                                 = optional(bool, false)
-    create_namespaces                           = optional(bool, false)
     role_arn                                    = optional(string)
     role_key                                    = optional(string)
     subnet_ids                                  = optional(list(string))
@@ -1131,79 +1131,103 @@ variable "eks" {
     is_this_ec2_node_group  = optional(bool, false)
     use_private_subnets     = optional(bool, false)
     vpc_name                = optional(string)
+    create_node_group       = optional(bool, false)
     create_service_accounts = optional(bool, false)
     enable_eks_pia          = optional(bool, false)
-    # All compute-related resources: node groups, launch templates, the node
-    # key pair, Karpenter, and Cluster Autoscaler.
-    compute = optional(object({
-      create_node_group = optional(bool, false)
-      key_pair = optional(object({
-        name               = optional(string)
-        name_prefix        = optional(string)
-        secret_name        = optional(string)
-        secret_description = optional(string)
-        policy             = optional(string)
-      }))
-      launch_templates = optional(list(object({
-        key              = optional(string)
-        name             = optional(string)
-        instance_profile = optional(string)
-        custom_ami       = optional(string)
-        ami_config = object({
-          os_release_date  = optional(string)
-          os_base_packages = optional(string)
-        })
-        instance_type               = optional(string)
-        key_name                    = optional(string)
-        ec2_ssh_key                 = optional(string)
-        associate_public_ip_address = optional(bool)
-        vpc_security_group_ids      = optional(list(string))
-        vpc_security_group_keys     = optional(list(string))
-        account_security_group_keys = optional(list(string))
-        tags                        = optional(map(string))
-        user_data                   = optional(string)
-        volume_size                 = optional(number)
-        root_device_name            = optional(string)
-      })))
-      eks_node_groups = optional(list(object({
-        key                        = optional(string)
-        cluster_key                = optional(string)
-        cluster_name               = optional(string)
-        node_group_name            = string
-        node_role_arn              = optional(string)
-        node_role_key              = optional(string)
-        subnet_ids                 = optional(list(string))
-        subnet_keys                = optional(list(string))
-        desired_size               = number
-        max_size                   = number
-        min_size                   = number
-        instance_types             = optional(list(string), [])
-        enable_remote_access       = optional(bool, false)
-        ec2_ssh_key                = optional(string, "")
-        source_security_group_ids  = optional(list(string), [])
-        source_security_group_keys = optional(list(string), [])
-        ami_type                   = optional(string)
-        disk_size                  = optional(number)
-        labels                     = optional(map(string), {})
-        taints = optional(list(object({
-          key    = string
-          value  = optional(string)
-          effect = string # NO_SCHEDULE, PREFER_NO_SCHEDULE, or NO_EXECUTE
+    eks_addons = optional(object({
+      enable_vpc_cni                                  = optional(bool, false)
+      enable_prefix_delegation                        = optional(bool, false)
+      warm_prefix_target                              = optional(number, 1)
+      enable_kube_proxy                               = optional(bool, false)
+      enable_coredns                                  = optional(bool, false)
+      enable_metrics_server                           = optional(bool, false)
+      enable_cloudwatch_observability                 = optional(bool, false)
+      enable_secrets_manager_csi_driver               = optional(bool, false)
+      enable_privateca_issuer                         = optional(bool, false)
+      enable_pod_identity_agent                       = optional(bool, false)
+      enable_ebs_csi_driver                           = optional(bool, false)
+      enable_efs_csi_driver                           = optional(bool, false)
+      enable_fsx_csi_driver                           = optional(bool, false)
+      enable_aws_load_balancer_controller             = optional(bool, false)
+      enable_ingress                                  = optional(bool, false)
+      enable_cluster_autoscaler                       = optional(bool, false)
+      enable_karpenter                                = optional(bool, false)
+      enable_external_dns                             = optional(bool, false)
+      vpc_cni_version                                 = optional(string)
+      kube_proxy_version                              = optional(string)
+      coredns_version                                 = optional(string)
+      metrics_server_version                          = optional(string)
+      cloudwatch_observability_version                = optional(string)
+      secrets_manager_csi_driver_version              = optional(string)
+      pod_identity_agent_version                      = optional(string)
+      ebs_csi_driver_version                          = optional(string)
+      efs_csi_driver_version                          = optional(string)
+      fsx_csi_driver_version                          = optional(string)
+      secrets_manager_csi_driver_aws_provider_version = optional(string)
+      aws_load_balancer_controller_version            = optional(string)
+      cluster_autoscaler_version                      = optional(string)
+      cluster_autoscaler_role_arn                     = optional(string)
+      cluster_autoscaler_role_key                     = optional(string)
+      ingress = optional(object({
+        type = optional(string, "nginx")
+        nginx = optional(list(object({
+          name               = string
+          version            = optional(string, "4.11.2")
+          release_name       = optional(string)
+          namespace          = optional(string)
+          ingress_class_name = optional(string)
+          replica_count      = optional(number, 2)
+          scheme             = optional(string, "internet-facing")
+          target_type        = optional(string, "ip")
+          nlb_name           = optional(string)
+          tls_secret = optional(object({
+            name        = string
+            namespace   = optional(string)
+            certificate = string
+            private_key = string
+          }))
+          ssl_cert_arn                      = optional(string)
+          ssl_policy                        = optional(string)
+          ssl_ports                         = optional(list(string))
+          subnet_keys                       = optional(list(string))
+          subnet_keys                       = optional(list(string))
+          subnet_ids                        = optional(list(string))
+          load_balancer_security_group_keys = optional(list(string))
+          load_balancer_security_group_ids  = optional(list(string))
+          security_group_keys               = optional(list(string))
+          security_group_ids                = optional(list(string))
+          service_annotations               = optional(map(string))
+          service_annotations_file          = optional(string)
+          values                            = optional(list(any))
         })))
-        tags                 = optional(map(string), {})
-        version              = optional(string)
-        force_update_version = optional(bool, false)
-        capacity_type        = optional(string, "ON_DEMAND")
-        ec2_instance_name    = optional(string, "eks_node_group")
-        launch_template_key  = optional(string)
-        launch_template = optional(object({
-          id      = string
-          version = optional(string, "$Latest")
+        gateway_api = optional(object({
+          version                           = optional(string, "2.6.7")
+          release_name                      = optional(string, "ngf")
+          namespace                         = optional(string, "nginx-gateway")
+          gateway_class_name                = optional(string, "nginx")
+          controller_name                   = optional(string, "gateway.nginx.org/nginx-gateway-controller")
+          nginx_replicas                    = optional(number, 2)
+          fabric_replicas                   = optional(number, 1)
+          scheme                            = optional(string, "internet-facing")
+          target_type                       = optional(string, "ip")
+          nlb_name                          = optional(string)
+          ssl_cert_arn                      = optional(string)
+          ssl_policy                        = optional(string)
+          ssl_ports                         = optional(list(string))
+          subnet_keys                       = optional(list(string))
+          subnet_keys                       = optional(list(string))
+          subnet_ids                        = optional(list(string))
+          load_balancer_security_group_keys = optional(list(string))
+          load_balancer_security_group_ids  = optional(list(string))
+          security_group_keys               = optional(list(string))
+          security_group_ids                = optional(list(string))
+          service_annotations               = optional(map(string))
+          service_annotations_file          = optional(string)
+          values                            = optional(list(any))
         }))
-      })))
+      }))
       karpenter = optional(object({
-        enabled                 = optional(bool, false)
-        chart_version           = optional(string, "1.13.0")
+        chart_version           = optional(string, "1.1.1")
         namespace               = optional(string, "kube-system")
         controller_role_key     = optional(string)
         controller_role_arn     = optional(string)
@@ -1212,225 +1236,99 @@ variable "eks" {
         node_role_name          = optional(string)
         interruption_queue_name = optional(string)
         nodepool_manifest_file  = optional(string)
-      }), {})
-      cluster_autoscaler = optional(object({
-        enabled  = optional(bool, false)
-        version  = optional(string)
-        role_arn = optional(string)
-        role_key = optional(string)
-      }), {})
-    }), {})
-
-    # All ingress-facing resources: nginx/gateway API ingress controllers,
-    # the AWS Load Balancer Controller, External DNS, and ArgoCD's ingress.
-    ingress = optional(object({
-      enabled = optional(bool, false)
-      nginx = optional(list(object({
-        name                              = string
-        version                           = optional(string, "4.11.2")
-        timeout                           = optional(number, 900)
-        release_name                      = optional(string)
-        namespace                         = optional(string)
-        ingress_class_name                = optional(string)
-        replica_count                     = optional(number, 2)
-        scheme                            = optional(string, "internet-facing")
-        target_type                       = optional(string, "ip")
-        nlb_name                          = optional(string)
-        ssl_cert_arn                      = optional(string)
-        ssl_policy                        = optional(string)
-        ssl_ports                         = optional(list(string))
-        subnet_keys                       = optional(list(string))
-        subnet_ids                        = optional(list(string))
-        load_balancer_security_group_keys = optional(list(string))
-        load_balancer_security_group_ids  = optional(list(string))
-        security_group_keys               = optional(list(string))
-        security_group_ids                = optional(list(string))
-        service_annotations               = optional(map(string))
-        service_annotations_file          = optional(string)
-        values                            = optional(list(any))
-      })), [])
-      gateway_api = optional(object({
-        version                           = optional(string, "2.6.7")
-        release_name                      = optional(string, "ngf")
-        namespace                         = optional(string, "nginx-gateway")
-        gateway_class_name                = optional(string, "nginx")
-        controller_name                   = optional(string, "gateway.nginx.org/nginx-gateway-controller")
-        nginx_replicas                    = optional(number, 2)
-        fabric_replicas                   = optional(number, 1)
-        scheme                            = optional(string, "internet-facing")
-        target_type                       = optional(string, "ip")
-        nlb_name                          = optional(string)
-        ssl_cert_arn                      = optional(string)
-        ssl_policy                        = optional(string)
-        ssl_ports                         = optional(list(string))
-        subnet_keys                       = optional(list(string))
-        subnet_ids                        = optional(list(string))
-        load_balancer_security_group_keys = optional(list(string))
-        load_balancer_security_group_ids  = optional(list(string))
-        security_group_keys               = optional(list(string))
-        security_group_ids                = optional(list(string))
-        service_annotations               = optional(map(string))
-        service_annotations_file          = optional(string)
-        values                            = optional(list(any))
       }))
-      aws_load_balancer_controller = optional(object({
-        enabled  = optional(bool, false)
-        version  = optional(string)
-        role_arn = optional(string)
-        role_key = optional(string)
-      }), {})
-      external_dns = optional(object({
-        enabled        = optional(bool, false)
-        version        = optional(string)
-        role_arn       = optional(string)
-        role_key       = optional(string)
-        namespace      = optional(string)
-        policy         = optional(string)
-        domain_filters = optional(list(string))
-        sources        = optional(list(string))
-        log_level      = optional(string)
-      }), {})
-      argocd = optional(object({
-        enabled                     = optional(bool, false)
-        version                     = optional(string, "8.1.2")
-        release_name                = optional(string, "argocd")
-        namespace                   = optional(string, "argocd")
-        timeout                     = optional(number, 900)
-        ha_enabled                  = optional(bool, false)
-        server_insecure             = optional(bool, true)
-        server_replicas             = optional(number, 2)
-        admin_password_bcrypt       = optional(string)
-        ingress_enabled             = optional(bool, true)
-        ingress_class_name          = optional(string, "alb")
-        ingress_host                = optional(string)
-        ingress_extra_hosts         = optional(list(string), [])
-        ingress_scheme              = optional(string, "internet-facing")
-        ingress_target_type         = optional(string, "ip")
-        ingress_group_name          = optional(string)
-        alb_name                    = optional(string)
-        certificate_arn             = optional(string)
-        ssl_policy                  = optional(string)
-        ingress_subnet_ids          = optional(list(string), [])
-        ingress_security_group_ids  = optional(list(string), [])
-        ingress_security_group_keys = optional(list(string), [])
-        ingress_annotations_file    = optional(string)
-        ingress_annotations         = optional(map(string), {})
-        values                      = optional(list(any), [])
-      }), {})
-    }), {})
-
-    # All remaining cluster addons (core networking, CSI drivers,
-    # observability, cert-manager, etc.).
-    addons = optional(object({
-      vpc_cni = optional(object({
-        enabled                  = optional(bool, false)
-        version                  = optional(string)
-        enable_prefix_delegation = optional(bool, false)
-        warm_prefix_target       = optional(number, 1)
-      }), {})
-      kube_proxy = optional(object({
-        enabled = optional(bool, false)
-        version = optional(string)
-      }), {})
-      coredns = optional(object({
-        enabled = optional(bool, false)
-        version = optional(string)
-      }), {})
-      metrics_server = optional(object({
-        enabled = optional(bool, false)
-        version = optional(string)
-      }), {})
-      pod_identity_agent = optional(object({
-        enabled = optional(bool, false)
-        version = optional(string)
-      }), {})
-      cloudwatch_observability = optional(object({
-        enabled  = optional(bool, false)
-        version  = optional(string)
-        role_arn = optional(string)
-        role_key = optional(string)
-      }), {})
-      ebs_csi_driver = optional(object({
-        enabled  = optional(bool, false)
-        version  = optional(string)
-        role_arn = optional(string)
-        role_key = optional(string)
-      }), {})
-      efs_csi_driver = optional(object({
-        enabled  = optional(bool, false)
-        version  = optional(string)
-        role_arn = optional(string)
-        role_key = optional(string)
-      }), {})
-      fsx_csi_driver = optional(object({
-        enabled  = optional(bool, false)
-        version  = optional(string)
-        role_arn = optional(string)
-        role_key = optional(string)
-      }), {})
-      privateca_issuer = optional(object({
-        enabled = optional(bool, false)
-        version = optional(string)
-      }), {})
-      secrets_manager_csi_driver = optional(object({
-        enabled                = optional(bool, false)
-        aws_provider_version   = optional(string)
-        enable_secret_rotation = optional(bool, false)
-        rotation_poll_interval = optional(string)
-      }), {})
-      fluent_bit = optional(object({
-        enabled                      = optional(bool, false)
-        version                      = optional(string)
-        namespace                    = optional(string)
-        role_arn                     = optional(string)
-        role_key                     = optional(string)
-        firehose_delivery_stream     = optional(string)
-        firehose_delivery_stream_key = optional(string)
-      }), {})
-      kube_prometheus_stack = optional(object({
-        enabled                              = optional(bool, false)
-        upgrade_install                      = optional(bool, true)
-        timeout                              = optional(number, 1800)
-        version                              = optional(string)
-        grafana_namespace                    = optional(string)
-        grafana_service_type                 = optional(string)
-        grafana_ingress_enabled              = optional(bool, false)
-        grafana_ingress_class_name           = optional(string)
-        grafana_ingress_hosts                = optional(list(string), [])
-        grafana_ingress_annotations          = optional(map(string), {})
-        grafana_ingress_security_group_key   = optional(string)
-        grafana_ingress_certificate_key      = optional(string)
-        grafana_ingress_certificate_arn      = optional(string)
-        grafana_ingress_hostname             = optional(string)
-        grafana_persistence_enabled          = optional(bool, false)
-        grafana_persistence_size             = optional(string)
-        grafana_persistence_storage_class    = optional(string)
-        prometheus_retention                 = optional(string)
-        prometheus_persistence_enabled       = optional(bool, false)
-        prometheus_persistence_size          = optional(string)
-        prometheus_persistence_storage_class = optional(string)
-      }), {})
-      kubecost = optional(object({
-        enabled                    = optional(bool, false)
-        version                    = optional(string, "2.9.7")
-        namespace                  = optional(string, "kubecost")
-        timeout                    = optional(number, 900)
-        storage_class              = optional(string)
-        role_arn                   = optional(string)
-        role_key                   = optional(string)
-        ingress_enabled            = optional(bool, false)
-        ingress_class_name         = optional(string)
-        ingress_hosts              = optional(list(string), [])
-        ingress_annotations        = optional(map(string), {})
-        ingress_security_group_key = optional(string)
-        ingress_certificate_key    = optional(string)
-        ingress_certificate_arn    = optional(string)
-        ingress_hostname           = optional(string)
-        values                     = optional(list(any), [])
-      }), {})
+      privateca_issuer_version                = optional(string)
+      external_dns_version                    = optional(string)
+      cloudwatch_observability_role_arn       = optional(string)
+      cloudwatch_observability_role_key       = optional(string)
+      ebs_csi_driver_role_arn                 = optional(string)
+      ebs_csi_driver_role_key                 = optional(string)
+      efs_csi_driver_role_arn                 = optional(string)
+      efs_csi_driver_role_key                 = optional(string)
+      fsx_csi_driver_role_arn                 = optional(string)
+      fsx_csi_driver_role_key                 = optional(string)
+      aws_load_balancer_controller_role_key   = optional(string)
+      external_dns_role_arn                   = optional(string)
+      external_dns_role_key                   = optional(string)
+      external_dns_namespace                  = optional(string)
+      external_dns_policy                     = optional(string)
+      external_dns_domain_filters             = optional(list(string))
+      external_dns_sources                    = optional(list(string))
+      external_dns_log_level                  = optional(string)
+      enableSecretRotation                    = optional(bool, false)
+      rotationPollInterval                    = optional(string)
+      enable_fluent_bit                       = optional(bool, false)
+      fluent_bit_version                      = optional(string)
+      fluent_bit_namespace                    = optional(string)
+      fluent_bit_role_arn                     = optional(string)
+      fluent_bit_role_key                     = optional(string)
+      fluent_bit_firehose_delivery_stream     = optional(string)
+      fluent_bit_firehose_delivery_stream_key = optional(string)
+      enable_kube_prometheus_stack            = optional(bool, false)
+      kube_prometheus_stack_upgrade_install   = optional(bool, true)
+      kube_prometheus_stack_timeout           = optional(number, 1800)
+      kube_prometheus_stack_version           = optional(string)
+      grafana_namespace                       = optional(string)
+      grafana_service_type                    = optional(string)
+      grafana_ingress_enabled                 = optional(bool, false)
+      grafana_ingress_class_name              = optional(string)
+      grafana_ingress_hosts                   = optional(list(string), [])
+      grafana_ingress_annotations             = optional(map(string), {})
+      grafana_ingress_security_group_key      = optional(string)
+      grafana_ingress_certificate_key         = optional(string)
+      grafana_ingress_certificate_arn         = optional(string)
+      grafana_ingress_hostname                = optional(string)
+      grafana_persistence_enabled             = optional(bool, false)
+      grafana_persistence_size                = optional(string)
+      grafana_persistence_storage_class       = optional(string)
+      prometheus_retention                    = optional(string)
+      prometheus_persistence_enabled          = optional(bool, false)
+      prometheus_persistence_size             = optional(string)
+      prometheus_persistence_storage_class    = optional(string)
+      enable_kubecost                         = optional(bool, false)
+      kubecost_version                        = optional(string, "2.9.7")
+      kubecost_namespace                      = optional(string, "kubecost")
+      kubecost_timeout                        = optional(number, 900)
+      kubecost_storage_class                  = optional(string)
+      kubecost_role_arn                       = optional(string)
+      kubecost_role_key                       = optional(string)
+      kubecost_ingress_enabled                = optional(bool, false)
+      kubecost_ingress_class_name             = optional(string)
+      kubecost_ingress_hosts                  = optional(list(string), [])
+      kubecost_ingress_annotations            = optional(map(string), {})
+      kubecost_ingress_security_group_key     = optional(string)
+      kubecost_ingress_certificate_key        = optional(string)
+      kubecost_ingress_certificate_arn        = optional(string)
+      kubecost_ingress_hostname               = optional(string)
+      kubecost_values                         = optional(list(any), [])
+      enable_argocd                           = optional(bool, false)
+      argocd_version                          = optional(string, "8.1.2")
+      argocd_release_name                     = optional(string, "argocd")
+      argocd_namespace                        = optional(string, "argocd")
+      argocd_timeout                          = optional(number, 900)
+      argocd_ha_enabled                       = optional(bool, false)
+      argocd_server_insecure                  = optional(bool, true)
+      argocd_server_replicas                  = optional(number, 2)
+      argocd_admin_password_bcrypt            = optional(string)
+      argocd_ingress_enabled                  = optional(bool, true)
+      argocd_ingress_class_name               = optional(string, "alb")
+      argocd_ingress_host                     = optional(string)
+      argocd_ingress_extra_hosts              = optional(list(string), [])
+      argocd_ingress_scheme                   = optional(string, "internet-facing")
+      argocd_ingress_target_type              = optional(string, "ip")
+      argocd_ingress_group_name               = optional(string)
+      argocd_alb_name                         = optional(string)
+      argocd_certificate_arn                  = optional(string)
+      argocd_ssl_policy                       = optional(string)
+      argocd_ingress_subnet_ids               = optional(list(string), [])
+      argocd_ingress_security_group_ids       = optional(list(string), [])
+      argocd_ingress_security_group_keys      = optional(list(string), [])
+      argocd_ingress_annotations_file         = optional(string)
+      argocd_ingress_annotations              = optional(map(string), {})
+      argocd_values                           = optional(list(any), [])
+      enable_cert_manager                     = optional(bool, false)
+      cert_manager_version                    = optional(string)
       cert_manager = optional(object({
-        enabled                = optional(bool, false)
-        version                = optional(string)
         namespace              = optional(string, "cert-manager")
         install_crds           = optional(bool, true)
         create_cluster_issuer  = optional(bool, false)
@@ -1442,29 +1340,14 @@ variable "eks" {
         route53_role_key       = optional(string)
         route53_role_arn       = optional(string)
       }), {})
-      awx_operator = optional(object({
-        enabled              = optional(bool, false)
-        version              = optional(string)
-        release_name         = optional(string)
-        namespace            = optional(string)
-        service_account_name = optional(string)
-        role_arn             = optional(string)
-        role_key             = optional(string)
-        values               = optional(list(any), [])
-        # AWX instance (the operator only reconciles this CR into an actual running AWX + UI).
-        create_instance            = optional(bool, false)
-        instance_name              = optional(string, "awx")
-        service_type               = optional(string, "ClusterIP")
-        ingress_enabled            = optional(bool, false)
-        ingress_class_name         = optional(string)
-        ingress_hostname           = optional(string)
-        ingress_annotations        = optional(map(string), {})
-        ingress_security_group_key = optional(string)
-        ingress_certificate_key    = optional(string)
-        ingress_certificate_arn    = optional(string)
-        spec                       = optional(any, {})
-      }), {})
-    }), {})
+    }))
+    key_pair = object({
+      name               = optional(string)
+      name_prefix        = optional(string)
+      secret_name        = optional(string)
+      secret_description = optional(string)
+      policy             = optional(string)
+    })
     security_groups = optional(list(object({
       key         = optional(string)
       name        = optional(string)
@@ -1524,6 +1407,63 @@ variable "eks" {
         source_vpc_sg_key = optional(string)
       })))
     })))
+    launch_templates = optional(list(object({
+      key              = optional(string)
+      name             = optional(string)
+      instance_profile = optional(string)
+      custom_ami       = optional(string)
+      ami_config = object({
+        os_release_date  = optional(string)
+        os_base_packages = optional(string)
+      })
+      instance_type               = optional(string)
+      key_name                    = optional(string)
+      ec2_ssh_key                 = optional(string)
+      associate_public_ip_address = optional(bool)
+      vpc_security_group_ids      = optional(list(string))
+      vpc_security_group_keys     = optional(list(string))
+      account_security_group_keys = optional(list(string))
+      tags                        = optional(map(string))
+      user_data                   = optional(string)
+      volume_size                 = optional(number)
+      root_device_name            = optional(string)
+    })))
+    eks_node_groups = optional(list(object({
+      key                        = optional(string)
+      cluster_key                = optional(string)
+      cluster_name               = optional(string)
+      node_group_name            = string
+      node_role_arn              = optional(string)
+      node_role_key              = optional(string)
+      subnet_ids                 = optional(list(string))
+      subnet_keys                = optional(list(string))
+      desired_size               = number
+      max_size                   = number
+      min_size                   = number
+      instance_types             = optional(list(string), [])
+      enable_remote_access       = optional(bool, false)
+      ec2_ssh_key                = optional(string, "")
+      source_security_group_ids  = optional(list(string), [])
+      source_security_group_keys = optional(list(string), [])
+      ami_type                   = optional(string)
+      disk_size                  = optional(number)
+      labels                     = optional(map(string), {})
+      taints = optional(list(object({
+        key    = string
+        value  = optional(string)
+        effect = string # NO_SCHEDULE, PREFER_NO_SCHEDULE, or NO_EXECUTE
+      })))
+      tags                 = optional(map(string), {})
+      version              = optional(string)
+      force_update_version = optional(bool, false)
+      capacity_type        = optional(string, "ON_DEMAND")
+      ec2_instance_name    = optional(string, "eks_node_group")
+      launch_template_key  = optional(string)
+      launch_template = optional(object({
+        id      = string
+        version = optional(string, "$Latest")
+      }))
+    })))
     service_accounts = optional(list(object({
       key       = optional(string)
       name      = string
@@ -1577,18 +1517,11 @@ variable "eks" {
     condition = alltrue([
       for item in coalesce(var.eks, []) :
       !(
-        try(item.addons.cloudwatch_observability.enabled, false) &&
-        try(item.addons.fluent_bit.enabled, false)
+        try(item.eks_addons.enable_cloudwatch_observability, false) &&
+        try(item.eks_addons.enable_fluent_bit, false)
       )
     ])
     error_message = "CloudWatch Observability and Fluent Bit addons cannot both be enabled on the same EKS cluster. Please enable only one."
-  }
-  validation {
-    condition = alltrue([
-      for item in coalesce(var.eks, []) :
-      !(try(item.compute.karpenter.enabled, false) && try(item.compute.cluster_autoscaler.enabled, false))
-    ])
-    error_message = "Configure only one autoscaler at a time: either compute.karpenter or compute.cluster_autoscaler."
   }
 }
 
@@ -1957,6 +1890,194 @@ variable "ecs_clusters" {
 }
 
 
+variable "deploy_ansible" {
+  description = "Ansible deployment configuration"
+  type = object({
+    deploy_awx          = optional(bool, false)
+    attach_to_elb       = optional(bool, false)
+    vpc_name            = optional(string)
+    use_private_subnets = optional(bool, false)
+    launch_template = optional(object({
+      name                 = string
+      instance_profile     = optional(string)
+      instance_profile_key = optional(string)
+      custom_ami           = optional(string)
+      ami_config = object({
+        os_release_date  = optional(string)
+        os_base_packages = optional(string)
+      })
+      instance_type               = optional(string)
+      key_name                    = optional(string)
+      associate_public_ip_address = optional(bool)
+      vpc_security_group_ids      = optional(list(string))
+      vpc_security_group_keys     = optional(list(string))
+      tags                        = optional(map(string))
+      user_data                   = optional(string)
+      user_data_base64            = optional(string)
+      volume_size                 = optional(number)
+      root_device_name            = optional(string)
+    }))
+    alb = optional(object({
+      name                = string
+      internal            = optional(bool, false)
+      type                = optional(string, "application")
+      security_groups     = optional(list(string))
+      security_group_keys = optional(list(string))
+      vpc_name            = string
+      vpc_name_abr        = optional(string)
+      use_private_subnets = optional(bool, false)
+      subnets             = optional(list(string))
+      subnet_keys         = optional(list(string))
+      subnet_mappings = optional(list(object({
+        subnet_id            = string
+        private_ipv4_address = optional(string)
+      })))
+      enable_deletion_protection = optional(bool, false)
+      enable_access_logs         = optional(bool, false)
+      access_logs_bucket         = optional(string)
+      access_logs_prefix         = optional(string)
+      create_default_listener    = optional(bool, false)
+      default_listener = optional(object({
+        port            = optional(number, 443)
+        protocol        = optional(string, "HTTPS")
+        action_type     = optional(string, "fixed-response")
+        ssl_policy      = optional(string, "ELBSecurityPolicy-2016-08")
+        certificate_arn = optional(string)
+        certificate_key = optional(string)
+        fixed_response = optional(object({
+          content_type = optional(string, "text/plain")
+          message_body = optional(string, "Oops! The page you are looking for does not exist.")
+          status_code  = optional(string, "200")
+        }))
+      }))
+    }))
+    target_group = optional(object({
+      name               = optional(string)
+      port               = optional(number)
+      protocol           = optional(string)
+      preserve_client_ip = optional(bool)
+      target_type        = optional(string)
+      tags               = optional(map(string))
+      vpc_id             = optional(string)
+      vpc_name           = optional(string)
+      vpc_name_abr       = optional(string)
+      attachments = optional(list(object({
+        target_id = optional(string)
+        port      = optional(number)
+      })))
+      stickiness = optional(object({
+        enabled         = optional(bool)
+        type            = optional(string)
+        cookie_duration = optional(number)
+        cookie_name     = optional(string)
+      }))
+      health_check = optional(object({
+        protocol = optional(string)
+        port     = optional(number)
+        path     = optional(string)
+        matcher  = optional(string)
+      }))
+    }))
+    alb_listener = optional(object({
+      alb_arn          = optional(string)
+      action           = optional(string, "forward")
+      port             = optional(number)
+      protocol         = optional(string)
+      ssl_policy       = optional(string)
+      certificate_arn  = optional(string)
+      alt_alb_hostname = optional(string)
+      vpc_id           = optional(string)
+      vpc_name         = optional(string)
+      fixed_response = optional(object({
+        content_type = optional(string, "text/plain")
+        message_body = optional(string, "Oops! The page you are looking for does not exist.")
+        status_code  = optional(string, "200")
+      }))
+      sni_certificates = optional(list(object({
+        domain_name     = optional(string)
+        certificate_arn = optional(string)
+      })))
+      target_group_arn = optional(string)
+      target_group = optional(object({
+        name         = optional(string)
+        port         = optional(number)
+        protocol     = optional(string)
+        vpc_name_abr = optional(string)
+        attachments = optional(list(object({
+          target_id = optional(string)
+          port      = optional(number)
+        })))
+        stickiness = optional(object({
+          enabled         = optional(bool)
+          type            = optional(string)
+          cookie_duration = optional(number)
+          cookie_name     = optional(string)
+        }))
+        health_check = object({
+          protocol = optional(string)
+          port     = optional(number)
+          path     = optional(string)
+          matcher  = optional(string)
+        })
+      }))
+    }))
+    alb_listener_rule = optional(list(object({
+      key                  = string
+      listener_arn         = optional(string)
+      use_default_listener = optional(bool, false)
+      use_alb_listener     = optional(bool, false)
+      priority             = optional(number)
+      type                 = string
+      target_groups = list(object({
+        arn                      = optional(string)
+        use_created_target_group = optional(bool, false)
+        weight                   = optional(number)
+      }))
+      conditions = list(object({
+        host_headers         = optional(list(string))
+        http_request_methods = optional(list(string))
+        path_patterns        = optional(list(string))
+        source_ips           = optional(list(string))
+        http_headers = optional(list(object({
+          name   = string
+          values = list(string)
+        })))
+        query_strings = optional(list(object({
+          key   = optional(string)
+          value = string
+        })))
+      }))
+    })))
+    asg = optional(object({
+      name                      = optional(string)
+      min_size                  = optional(number)
+      max_size                  = optional(number)
+      health_check_type         = optional(string)
+      health_check_grace_period = optional(number)
+      force_delete              = optional(bool)
+      desired_capacity          = optional(number)
+      subnet_ids                = optional(list(string))
+      subnet_keys               = optional(list(string))
+      use_private_subnets       = optional(bool, false)
+      attach_target_groups      = optional(list(string))
+      launch_template = optional(object({
+        id      = string
+        version = optional(string, "$Latest")
+      }))
+      timeouts = optional(object({
+        delete = optional(string)
+      }))
+      tags = optional(map(string))
+      additional_tags = optional(list(object({
+        key                 = string
+        value               = string
+        propagate_at_launch = optional(bool, true)
+      })))
+    }))
+  })
+}
+
+
 variable "lambdas" {
   description = "Lambda functions to be created"
   type = list(object({
@@ -2003,328 +2124,3 @@ variable "events" {
   }))
   default = null
 }
-
-variable "firehose_streams" {
-  description = "Firehose delivery streams configuration object."
-  type = list(object({
-    key             = string
-    name            = string
-    create_firehose = optional(bool, true)
-    vpc_name        = optional(string, null)
-    destination     = optional(string, "extended_s3")
-    role_arn        = optional(string)
-    role_key        = optional(string)
-    create_cw_role  = optional(bool, true)
-    # CloudWatch Logging
-    enable_cloudwatch_logging     = optional(bool, true)
-    cloudwatch_log_retention_days = optional(number, 14)
-    # S3 Configuration (required for extended_s3, also used as backup destination for opensearch)
-    s3_configuration = optional(object({
-      bucket_arn          = optional(string)
-      bucket_key          = optional(string)
-      bucket_key_prefix   = optional(string)
-      prefix              = optional(string, "")
-      error_output_prefix = optional(string, "errors/")
-      buffering_size      = optional(number, 5)   # MB
-      buffering_interval  = optional(number, 300) # seconds
-      compression_format  = optional(string, "GZIP")
-    }), null)
-    # Processing configuration (Lambda transformation, etc.)
-    processing_configuration = optional(object({
-      enabled = optional(bool, true)
-      processors = optional(list(object({
-        type = string
-        parameters = list(object({
-          parameter_name  = string
-          parameter_value = string
-        }))
-      })), [])
-    }), null)
-    # OpenSearch destination configuration
-    opensearch_configuration = optional(object({
-      domain_arn            = optional(string)
-      domain_key            = optional(string)
-      index_name            = optional(string)
-      index_rotation_period = optional(string, "OneDay") # NoRotation, OneHour, OneDay, OneWeek, OneMonth
-      type_name             = optional(string, null)
-      buffering_size        = optional(number, 5)   # MB
-      buffering_interval    = optional(number, 300) # seconds
-      retry_duration        = optional(number, 300) # seconds
-      s3_backup_mode        = optional(string, "FailedDocumentsOnly")
-      vpc_config = optional(object({
-        use_private_subnets = optional(bool, false)
-        subnet_ids          = optional(list(string))
-        subnet_keys         = optional(list(string))
-        security_group_ids  = optional(list(string))
-        security_group_keys = optional(list(string))
-      }), null)
-    }), null)
-    # Kinesis stream as source (optional)
-    kinesis_source_configuration = optional(object({
-      kinesis_stream_arn = string
-      role_arn           = string
-    }), null)
-    # Server-side encryption
-    server_side_encryption = optional(object({
-      enabled  = optional(bool, true)
-      key_type = optional(string, "AWS_OWNED_CMK")
-      key_arn  = optional(string, null)
-    }), null)
-    tags = optional(map(string), {})
-  }))
-  default = null
-}
-
-variable "opensearch_domains" {
-  description = "AWS OpenSearch domain configuration."
-  type = list(object({
-    key               = string
-    domain_name       = string
-    create_opensearch = optional(bool, true)
-    vpc_name          = optional(string, null)
-    engine_version    = optional(string, "OpenSearch_2.11")
-    # Cluster configuration
-    cluster_config = optional(object({
-      instance_type            = optional(string, "r6g.large.search")
-      instance_count           = optional(number, 2)
-      dedicated_master_enabled = optional(bool, false)
-      dedicated_master_type    = optional(string, null)
-      dedicated_master_count   = optional(number, null)
-      zone_awareness_enabled   = optional(bool, true)
-      availability_zone_count  = optional(number, 2)
-      warm_enabled             = optional(bool, false)
-      warm_type                = optional(string, null)
-      warm_count               = optional(number, null)
-    }), {})
-    # EBS options
-    ebs_options = optional(object({
-      ebs_enabled = optional(bool, true)
-      volume_type = optional(string, "gp3")
-      volume_size = optional(number, 100)
-      iops        = optional(number, 3000)
-      throughput  = optional(number, 125)
-    }), {})
-    # Encryption at rest
-    encrypt_at_rest = optional(object({
-      enabled    = optional(bool, true)
-      kms_key_id = optional(string, null)
-    }), {})
-    # Node-to-node encryption
-    node_to_node_encryption = optional(bool, true)
-    # Domain endpoint options
-    domain_endpoint_options = optional(object({
-      enforce_https                   = optional(bool, true)
-      tls_security_policy             = optional(string, "Policy-Min-TLS-1-2-2019-07")
-      custom_endpoint_enabled         = optional(bool, false)
-      custom_endpoint                 = optional(string, null)
-      custom_endpoint_certificate_arn = optional(string, null)
-    }), {})
-    # VPC options (null = public domain)
-    vpc_options = optional(object({
-      use_private_subnets = optional(bool, false)
-      subnet_ids          = optional(list(string))
-      subnet_keys         = optional(list(string))
-      security_group_ids  = optional(list(string))
-      security_group_keys = optional(list(string))
-    }), null)
-    # Fine-grained access control
-    advanced_security_options = optional(object({
-      enabled                        = optional(bool, true)
-      anonymous_auth_enabled         = optional(bool, false)
-      internal_user_database_enabled = optional(bool, false)
-      master_user_options = optional(object({
-        master_user_arn      = optional(string, null)
-        master_user_name     = optional(string, null)
-        master_user_password = optional(string, null)
-      }), null)
-    }), null)
-
-    # Access policies (JSON string)
-    access_policies = optional(string, null)
-    # Optional per-domain source IP CIDR for [[source_ip]] placeholder replacement
-    source_ip_cidr = optional(string, null)
-    # Auto-tune
-    auto_tune_desired_state = optional(string, null) # ENABLED or DISABLED
-    # Advanced options
-    advanced_options = optional(map(string), null)
-    # Log publishing
-    log_publishing = optional(object({
-      index_slow_logs_enabled     = optional(bool, false)
-      search_slow_logs_enabled    = optional(bool, false)
-      es_application_logs_enabled = optional(bool, true)
-      audit_logs_enabled          = optional(bool, false)
-      log_retention_days          = optional(number, 14)
-    }), {})
-
-    tags = optional(map(string), {})
-  }))
-  default = null
-}
-
-variable "opensearch_source_ip_cidr" {
-  description = "Optional CIDR used to replace [[source_ip]] placeholder in OpenSearch access policies."
-  type        = string
-  default     = null
-}
-
-variable "cognito" {
-  description = "AWS Cognito user pool, clients, domain, and identity pool configuration."
-  type = list(object({
-    create_cognito             = optional(bool, true)
-    key                        = string
-    name                       = string
-    deletion_protection        = optional(string, "INACTIVE")
-    alias_attributes           = optional(list(string), null)
-    username_attributes        = optional(list(string), null)
-    auto_verified_attributes   = optional(list(string), ["email"])
-    mfa_configuration          = optional(string, "OFF")
-    software_token_mfa_enabled = optional(bool, false)
-    username_configuration = optional(object({
-      case_sensitive = optional(bool, false)
-    }), {})
-    password_policy = optional(object({
-      minimum_length                   = optional(number, 8)
-      require_lowercase                = optional(bool, true)
-      require_numbers                  = optional(bool, true)
-      require_symbols                  = optional(bool, true)
-      require_uppercase                = optional(bool, true)
-      temporary_password_validity_days = optional(number, 7)
-    }), {})
-    sms_configuration = optional(object({
-      external_id    = string
-      sns_caller_arn = string
-      sns_region     = optional(string, null)
-    }), null)
-    email_configuration = optional(object({
-      email_sending_account  = optional(string, "COGNITO_DEFAULT")
-      from_email_address     = optional(string, null)
-      reply_to_email_address = optional(string, null)
-      source_arn             = optional(string, null)
-      configuration_set      = optional(string, null)
-    }), {})
-    admin_create_user_config = optional(object({
-      allow_admin_create_user_only = optional(bool, false)
-      invite_email_subject         = optional(string, null)
-      invite_email_message         = optional(string, null)
-      invite_sms_message           = optional(string, null)
-    }), {})
-    device_configuration = optional(object({
-      challenge_required_on_new_device      = optional(bool, false)
-      device_only_remembered_on_user_prompt = optional(bool, false)
-    }), {})
-    advanced_security_mode = optional(string, "OFF")
-    schema_attributes = optional(list(object({
-      name                     = string
-      attribute_data_type      = string
-      developer_only_attribute = optional(bool, false)
-      mutable                  = optional(bool, true)
-      required                 = optional(bool, false)
-      string_constraints = optional(object({
-        min_length = optional(string, null)
-        max_length = optional(string, null)
-      }), null)
-      number_constraints = optional(object({
-        min_value = optional(string, null)
-        max_value = optional(string, null)
-      }))
-    })), [])
-    verification_message_template = optional(object({
-      default_email_option  = optional(string, "CONFIRM_WITH_CODE")
-      email_message         = optional(string, null)
-      email_message_by_link = optional(string, null)
-      email_subject         = optional(string, null)
-      email_subject_by_link = optional(string, null)
-      sms_message           = optional(string, null)
-    }), {})
-    lambda_config = optional(object({
-      create_auth_challenge          = optional(string, null)
-      custom_message                 = optional(string, null)
-      define_auth_challenge          = optional(string, null)
-      post_authentication            = optional(string, null)
-      post_confirmation              = optional(string, null)
-      pre_authentication             = optional(string, null)
-      pre_sign_up                    = optional(string, null)
-      pre_token_generation           = optional(string, null)
-      user_migration                 = optional(string, null)
-      verify_auth_challenge_response = optional(string, null)
-      kms_key_id                     = optional(string, null)
-    }), {})
-    create_lambda_permissions = optional(bool, true)
-    domain = optional(object({
-      domain_name     = string
-      certificate_arn = optional(string, null)
-    }))
-    clients = optional(list(object({
-      name                                 = string
-      generate_secret                      = optional(bool, false)
-      explicit_auth_flows                  = optional(list(string), ["ALLOW_USER_SRP_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"])
-      allowed_oauth_flows                  = optional(list(string), [])
-      allowed_oauth_flows_user_pool_client = optional(bool, false)
-      allowed_oauth_scopes                 = optional(list(string), [])
-      callback_urls                        = optional(list(string), [])
-      logout_urls                          = optional(list(string), [])
-      supported_identity_providers         = optional(list(string), ["COGNITO"])
-      prevent_user_existence_errors        = optional(string, "ENABLED")
-      refresh_token_validity               = optional(number, 30)
-      access_token_validity                = optional(number, 60)
-      id_token_validity                    = optional(number, 60)
-      token_validity_units = optional(object({
-        access_token  = optional(string, "minutes")
-        id_token      = optional(string, "minutes")
-        refresh_token = optional(string, "days")
-      }), {})
-      read_attributes                               = optional(list(string), null)
-      write_attributes                              = optional(list(string), null)
-      enable_token_revocation                       = optional(bool, true)
-      enable_propagate_additional_user_context_data = optional(bool, false)
-      default_redirect_uri                          = optional(string, null)
-    })), [])
-    resource_servers = optional(list(object({
-      identifier = string
-      name       = string
-      scopes = list(object({
-        scope_name        = string
-        scope_description = string
-      }))
-    })), [])
-    user_groups = optional(list(object({
-      name        = string
-      description = optional(string, null)
-      precedence  = optional(number, null)
-      role_arn    = optional(string, null)
-    })), [])
-    identity_providers = optional(list(object({
-      provider_name     = string
-      provider_type     = string # SAML, Google, Facebook, LoginWithAmazon, SignInWithApple, OIDC
-      provider_details  = map(string)
-      attribute_mapping = optional(map(string), {})
-      idp_identifiers   = optional(list(string), [])
-    })), [])
-    identity_pool = optional(object({
-      create                           = optional(bool, false)
-      name                             = optional(string, null)
-      allow_unauthenticated_identities = optional(bool, false)
-      allow_classic_flow               = optional(bool, false)
-      authenticated_role_arn           = optional(string, null)
-      unauthenticated_role_arn         = optional(string, null)
-      server_side_token_check          = optional(bool, false)
-      additional_cognito_providers = optional(list(object({
-        client_id               = string
-        provider_name           = string
-        server_side_token_check = optional(bool, false)
-      })), [])
-    }), {})
-    secret = optional(object({
-      create                  = optional(bool, false)
-      name                    = optional(string, null)
-      description             = optional(string, null)
-      kms_key_id              = optional(string, null)
-      recovery_window_in_days = optional(number, 30)
-      primary_client_name     = optional(string, null)
-      additional_values       = optional(map(string), {})
-    }), {})
-    tags = optional(map(string), {})
-  }))
-  default = null
-}
-

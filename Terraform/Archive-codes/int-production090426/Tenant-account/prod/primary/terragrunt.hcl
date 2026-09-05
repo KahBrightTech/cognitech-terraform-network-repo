@@ -36,30 +36,29 @@ locals {
   vpc_name     = "production"
   vpc_name_abr = "prod"
   ## eks related variables
-  create_eks_cluster      = true
-  create_node_group       = true
-  create_service_accounts = true
-  enable_eks_pia          = true
-  create_rbac             = true
-  create_namespaces       = true
-  enable_karpenter        = true
-  enable_ingress          = true
-  enable_kubecost         = true
-  enable_argocd           = true
-  enable_awx_operator     = true
+  create_eks_cluster      = false
+  create_node_group       = false
+  create_service_accounts = false
+  enable_eks_pia          = false
+  create_rbac             = false
+  create_namespaces       = false
+  enable_karpenter        = false
+  enable_ingress          = false
+  enable_kubecost         = false
+  enable_argocd           = false
 
   ## eks monitoring
   create_opensearch               = false
   create_firehose                 = false
   enable_fluent_bit               = false # Set to true to enable Fluent Bit logging. When enabled, logs are sent to Firehose → OpenSearch (requires create_firehose = true and create_opensearch = true)
-  enable_cloudwatch_observability = true  # Set to false if enabling fluent bit plus firehose → opensearch
-  enable_kube_prometheus_stack    = true
+  enable_cloudwatch_observability = false # Set to false if enabling fluent bit plus firehose → opensearch
+  enable_kube_prometheus_stack    = false
   ## other variables
   create_ecs_cluster  = false
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
-  create_cognito      = true
+  create_cognito      = false
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
@@ -993,6 +992,7 @@ inputs = {
   eks = [
     {
       create_eks_cluster      = local.create_eks_cluster
+      create_node_group       = local.create_node_group
       create_service_accounts = local.create_service_accounts
       enable_eks_pia          = local.enable_eks_pia
       create_rbac             = local.create_rbac
@@ -1119,65 +1119,12 @@ inputs = {
         "eks-cluster-secondary"
       ]
       vpc_name = "${local.vpc_name_abr}"
-      compute = {
-        create_node_group = local.create_node_group
-        key_pair = {
-          name               = "${local.vpc_name_abr}-eks-node-key"
-          name_prefix        = "${local.vpc_name_abr}-eks-node-key"
-          secret_name        = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.eks_node}"
-          secret_description = "Private key for ${local.vpc_name_abr} EKS Nodes"
-          create_secret      = true
-        }
-        launch_templates = [
-          {
-            key  = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-            name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-            ami_config = {
-              os_release_date = "EKSAL2023"
-            }
-            associate_public_ip_address = true
-            instance_type               = "m6i.large"
-            root_device_name            = "/dev/xvda"
-            volume_size                 = 20
-            vpc_security_group_keys     = ["eks-nodes", "eks_cluster_sg_id"]
-            account_security_group_keys = ["app"]
-          }
-        ]
-        eks_node_groups = [
-          {
-            key             = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-            node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-group"
-            node_role_arn   = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
-            subnet_keys = [
-              include.env.locals.subnet_prefix.primary
-            ]
-            desired_size        = 2
-            max_size            = 4
-            min_size            = 1
-            launch_template_key = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
-            labels = {
-              "workload-type" = "system"
-            }
-            taints = [
-              {
-                key    = "workload-type"
-                value  = "system"
-                effect = "NO_SCHEDULE"
-              }
-            ]
-          }
-        ]
-        karpenter = {
-          enabled                 = local.enable_karpenter
-          controller_role_key     = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
-          node_role_arn           = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
-          interruption_queue_name = "${local.vpc_name_abr}-karpenter-interruption-queue"
-          nodepool_manifest_file  = "${get_terragrunt_dir()}/../../../../iam_policies/karpenter/prod_nodepool.yaml"
-        }
-        cluster_autoscaler = {
-          enabled  = true
-          role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
-        }
+      key_pair = {
+        name               = "${local.vpc_name_abr}-eks-node-key"
+        name_prefix        = "${local.vpc_name_abr}-eks-node-key"
+        secret_name        = "${local.vpc_name_abr}-${include.cloud.locals.secret_names.eks_node}"
+        secret_description = "Private key for ${local.vpc_name_abr} EKS Nodes"
+        create_secret      = true
       }
       security_groups = [
         {
@@ -1441,6 +1388,21 @@ inputs = {
           ]
         }
       ]
+      launch_templates = [
+        {
+          key  = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          ami_config = {
+            os_release_date = "EKSAL2023"
+          }
+          associate_public_ip_address = true
+          instance_type               = "m6i.large"
+          root_device_name            = "/dev/xvda"
+          volume_size                 = 20
+          vpc_security_group_keys     = ["eks-nodes", "eks_cluster_sg_id"]
+          account_security_group_keys = ["app"]
+        }
+      ]
       service_accounts = [
         {
           key       = "infogrid"
@@ -1500,12 +1462,6 @@ inputs = {
           service_account_namespace = "default"
           service_account_keys      = ["secrets-pia"]
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-secrets-pia-role"
-        },
-        {
-          key                       = "awx-ec2-inventory"
-          service_account_namespace = "awx"
-          service_account_name      = "awx" # Verify this matches the ServiceAccount the AWX operator actually creates for the app pods (defaults to the AWX CR/instance name) after first deploy.
-          role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-awx-ec2-inventory"
         },
       ]
       iam_roles = [
@@ -1702,124 +1658,60 @@ inputs = {
             description = "IAM policy for ${local.vpc_name_abr} Karpenter Controller."
             policy      = "${include.cloud.locals.repo.root}/iam_policies/karpenter_controller_policy.json"
           }
-        },
-        {
-          key                       = "${include.env.locals.eks_cluster_keys.primary_cluster}-awx-operator"
-          name                      = "${include.env.locals.eks_cluster_keys.primary_cluster}-awx-operator"
-          description               = "IAM Role for ${local.vpc_name_abr} AWX Operator Service Account"
-          path                      = "/"
-          service_account_namespace = "awx"
-          service_account_name      = "awx-operator-controller-manager"
-          create_custom_policy      = false # No AWS API access required by default; attach managed_policy_arns here if AWX needs to reach AWS services.
-        },
-        {
-          key                = "${include.env.locals.eks_cluster_keys.primary_cluster}-awx-ec2-inventory"
-          name               = "${include.env.locals.eks_cluster_keys.primary_cluster}-awx-ec2-inventory"
-          description        = "IAM Role for ${local.vpc_name_abr} AWX EC2 dynamic inventory (Pod Identity)"
-          path               = "/"
-          assume_role_policy = "${include.cloud.locals.repo.root}/iam_policies/pia_trust_policy.json"
-          policy = {
-            name        = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-awx-ec2-inventory"
-            description = "EC2 read-only permissions for AWX aws_ec2 dynamic inventory"
-            policy      = "${include.cloud.locals.repo.root}/iam_policies/pia_ec2_describe_policy.json"
-          }
         }
       ]
-      ingress = {
-        enabled = local.enable_ingress
-        nginx = [
-          {
-            name               = "${local.vpc_name_abr}-litdoc"
-            namespace          = "${local.vpc_name_abr}-litdoc"
-            ingress_class_name = "${local.vpc_name_abr}-litdoc"
-            nlb_name           = "${local.vpc_name_abr}-litdoc"
-            ssl_ports          = ["443"]
-            ssl_policy         = "ELBSecurityPolicy-TLS-1-2-2017-01"
-            subnet_keys = [
-              include.env.locals.subnet_prefix.primary
-            ]
-            security_group_keys = [
-              "nginx-ingress"
-            ]
-            service_annotations_file = "${include.cloud.locals.repo.root}/iam_policies/ingress_annotation_litdoc.yaml"
-            values = [
-              {
-                controller = {
-                  service = {
-                    enableHttp = false
-                  }
-                  config = {
-                    use-forwarded-headers = "true"
-                  }
-                }
-              }
-            ]
+      eks_node_groups = [
+        {
+          key             = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          node_group_name = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}-node-group"
+          node_role_arn   = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
+          subnet_keys = [
+            include.env.locals.subnet_prefix.primary
+          ]
+          desired_size        = 2
+          max_size            = 4
+          min_size            = 1
+          launch_template_key = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
+          labels = {
+            "workload-type" = "system"
           }
-        ]
-        aws_load_balancer_controller = {
-          enabled  = true
-          role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+          taints = [
+            {
+              key    = "workload-type"
+              value  = "system"
+              effect = "NO_SCHEDULE"
+            }
+          ]
         }
-        external_dns = {
-          enabled        = true
-          role_key       = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
-          policy         = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
-          domain_filters = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
-          version        = "1.14.3"
-        }
-        argocd = {
-          enabled                     = local.enable_argocd
-          ingress_enabled             = true
-          ingress_class_name          = "alb"
-          ingress_host                = "argocd.${local.vpc_name_abr}.${include.env.locals.public_domain}"
-          ingress_scheme              = "internet-facing"
-          ingress_target_type         = "ip"
-          ingress_security_group_keys = ["alb"]
-          ingress_annotations_file    = "${include.cloud.locals.repo.root}/iam_policies/argocd_ingress_annotation.yaml"
-        }
-      }
-      addons = {
-        vpc_cni = {
-          enabled                  = true
-          enable_prefix_delegation = true
-        }
-        kube_proxy = {
-          enabled = true
-        }
-        coredns = {
-          enabled = true
-        }
-        metrics_server = {
-          enabled = true
-        }
-        pod_identity_agent = {
-          enabled = true
-        }
-        cloudwatch_observability = {
-          enabled  = local.enable_cloudwatch_observability
-          role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-cw-observability"
-        }
-        ebs_csi_driver = {
-          enabled  = true
-          role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
-        }
-        fsx_csi_driver = {
-          enabled  = true
-          role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
-        }
-        secrets_manager_csi_driver = {
-          enabled                = true
-          enable_secret_rotation = true
-          rotation_poll_interval = "2m"
-        }
-        fluent_bit = {
-          enabled                      = local.enable_fluent_bit
-          role_key                     = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
-          firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
-        }
+      ]
+      eks_addons = {
+        enable_vpc_cni                          = true
+        enable_prefix_delegation                = true
+        enable_kube_proxy                       = true
+        enable_coredns                          = true
+        enable_cloudwatch_observability         = local.enable_cloudwatch_observability
+        enable_secrets_manager_csi_driver       = true
+        enable_metrics_server                   = true
+        enableSecretRotation                    = true
+        enable_pod_identity_agent               = true
+        enable_external_dns                     = true
+        enable_ebs_csi_driver                   = true
+        enable_fsx_csi_driver                   = true
+        enable_cluster_autoscaler               = true
+        enable_karpenter                        = local.enable_karpenter
+        enable_fluent_bit                       = local.enable_fluent_bit
+        fluent_bit_firehose_delivery_stream_key = "${local.vpc_name_abr}-firehose"
+        fluent_bit_role_key                     = "${include.env.locals.eks_cluster_keys.primary_cluster}-fluent-bit"
+        rotationPollInterval                    = "2m"
+        cloudwatch_observability_role_key       = "${include.env.locals.eks_cluster_keys.primary_cluster}-cw-observability"
+        ebs_csi_driver_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-ebs-csi-driver"
+        fsx_csi_driver_role_key                 = "${include.env.locals.eks_cluster_keys.primary_cluster}-fsx-csi-driver"
+        enable_aws_load_balancer_controller     = true
+        aws_load_balancer_controller_role_key   = "${include.env.locals.eks_cluster_keys.primary_cluster}-elb-controller"
+        external_dns_role_key                   = "${include.env.locals.eks_cluster_keys.primary_cluster}-external-dns-role"
+        enable_cert_manager                     = true
+        cert_manager_version                    = "v1.16.2"
         cert_manager = {
-          enabled               = true
-          version               = "v1.16.2"
           namespace             = "cert-manager"
           install_crds          = true
           create_cluster_issuer = true
@@ -1828,44 +1720,83 @@ inputs = {
           route53_region        = local.region
           route53_role_key      = "${include.env.locals.eks_cluster_keys.primary_cluster}-cert-manager-role"
         }
-        awx_operator = {
-          enabled                    = local.enable_awx_operator
-          role_key                   = "${include.env.locals.eks_cluster_keys.primary_cluster}-awx-operator"
-          ingress_hostname           = "awx.${local.vpc_name_abr}.${include.env.locals.public_domain}"
-          ingress_security_group_key = "alb"
-          ingress_certificate_key    = "${local.vpc_name_abr}"
+        enable_argocd                        = local.enable_argocd
+        argocd_ingress_enabled               = true
+        argocd_ingress_class_name            = "alb"
+        argocd_ingress_host                  = "argocd.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+        argocd_ingress_scheme                = "internet-facing"
+        argocd_ingress_target_type           = "ip"
+        argocd_ingress_security_group_keys   = ["alb"]
+        argocd_ingress_annotations_file      = "${include.cloud.locals.repo.root}/iam_policies/argocd_ingress_annotation.yaml"
+        cluster_autoscaler_role_key          = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
+        kubecost_role_key                    = "${include.env.locals.eks_cluster_keys.primary_cluster}-kubecost"
+        external_dns_policy                  = "sync"                                  # This determines if external-dns creates/deletes DNS records or just syncs existing ones. Another option is "upsert-only"
+        external_dns_domain_filters          = ["${include.env.locals.public_domain}"] # Add your Route53 hosted zone domain
+        external_dns_version                 = "1.14.3"
+        enable_kube_prometheus_stack         = local.enable_kube_prometheus_stack
+        kube_prometheus_stack_timeout        = 1800
+        kube_prometheus_stack_version        = "69.8.1"
+        grafana_namespace                    = "monitoring"
+        grafana_service_type                 = "ClusterIP"
+        grafana_ingress_enabled              = true
+        grafana_ingress_class_name           = "alb"
+        enable_ingress                       = local.enable_ingress
+        grafana_ingress_annotations          = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/grafana_ingress_annotation.yaml"))
+        grafana_ingress_security_group_key   = "alb"
+        grafana_ingress_certificate_key      = "${local.vpc_name_abr}"
+        grafana_ingress_hostname             = "grafana.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+        grafana_persistence_enabled          = true
+        grafana_persistence_size             = "20Gi"
+        grafana_persistence_storage_class    = "gp3"
+        prometheus_retention                 = "30d"
+        prometheus_persistence_enabled       = true
+        prometheus_persistence_size          = "100Gi"
+        prometheus_persistence_storage_class = "gp3"
+        enable_kubecost                      = local.enable_kubecost
+        kubecost_version                     = "2.8.7"
+        kubecost_storage_class               = "gp3"
+        kubecost_ingress_enabled             = true
+        kubecost_ingress_class_name          = "alb"
+        kubecost_ingress_annotations         = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/kubecost_ingress_annotation.yaml"))
+        kubecost_ingress_security_group_key  = "alb"
+        kubecost_ingress_certificate_key     = "${local.vpc_name_abr}"
+        kubecost_ingress_hostname            = "kubecost.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+        ingress = {
+          nginx = [
+            {
+              name               = "${local.vpc_name_abr}-litdoc"
+              namespace          = "${local.vpc_name_abr}-litdoc"
+              ingress_class_name = "${local.vpc_name_abr}-litdoc"
+              nlb_name           = "${local.vpc_name_abr}-litdoc"
+              ssl_ports          = ["443"]
+              ssl_policy         = "ELBSecurityPolicy-TLS-1-2-2017-01"
+              subnet_keys = [
+                include.env.locals.subnet_prefix.primary
+              ]
+              security_group_keys = [
+                "nginx-ingress"
+              ]
+              service_annotations_file = "${include.cloud.locals.repo.root}/iam_policies/ingress_annotation_litdoc.yaml"
+              values = [
+                {
+                  controller = {
+                    service = {
+                      enableHttp = false
+                    }
+                    config = {
+                      use-forwarded-headers = "true"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
         }
-        kube_prometheus_stack = {
-          enabled                              = local.enable_kube_prometheus_stack
-          timeout                              = 1800
-          version                              = "69.8.1"
-          grafana_namespace                    = "monitoring"
-          grafana_service_type                 = "ClusterIP"
-          grafana_ingress_enabled              = true
-          grafana_ingress_class_name           = "alb"
-          grafana_ingress_annotations          = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/grafana_ingress_annotation.yaml"))
-          grafana_ingress_security_group_key   = "alb"
-          grafana_ingress_certificate_key      = "${local.vpc_name_abr}"
-          grafana_ingress_hostname             = "grafana.${local.vpc_name_abr}.${include.env.locals.public_domain}"
-          grafana_persistence_enabled          = true
-          grafana_persistence_size             = "20Gi"
-          grafana_persistence_storage_class    = "gp3"
-          prometheus_retention                 = "30d"
-          prometheus_persistence_enabled       = true
-          prometheus_persistence_size          = "100Gi"
-          prometheus_persistence_storage_class = "gp3"
-        }
-        kubecost = {
-          enabled                    = local.enable_kubecost
-          version                    = "2.8.7"
-          storage_class              = "gp3"
-          role_key                   = "${include.env.locals.eks_cluster_keys.primary_cluster}-kubecost"
-          ingress_enabled            = true
-          ingress_class_name         = "alb"
-          ingress_annotations        = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/kubecost_ingress_annotation.yaml"))
-          ingress_security_group_key = "alb"
-          ingress_certificate_key    = "${local.vpc_name_abr}"
-          ingress_hostname           = "kubecost.${local.vpc_name_abr}.${include.env.locals.public_domain}"
+        karpenter = {
+          controller_role_key     = "${include.env.locals.eks_cluster_keys.primary_cluster}-karpenter-controller"
+          node_role_arn           = dependency.platform.outputs.IAM_roles.shared-ec2-nodes.iam_role_arn
+          interruption_queue_name = "${local.vpc_name_abr}-karpenter-interruption-queue"
+          nodepool_manifest_file  = "${get_terragrunt_dir()}/../../../../iam_policies/karpenter/prod_nodepool.yaml"
         }
       }
     }

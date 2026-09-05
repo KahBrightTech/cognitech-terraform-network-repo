@@ -585,7 +585,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.7.07"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.7.08"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -646,167 +646,218 @@ module "eks" {
       ] : null
     },
     {
-      launch_templates = each.value.launch_templates != null ? [
-        for lt in each.value.launch_templates : merge(
-          lt,
-          {
-            vpc_security_group_ids = concat(
-              lt.account_security_group_keys != null ? [
-                for sg_key in lt.account_security_group_keys : module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
-              ] : [],
-              lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
-            ),
-            vpc_security_group_keys = lt.vpc_security_group_keys
-          }
-        )
-      ] : null
+      compute = merge(
+        each.value.compute,
+        {
+          launch_templates = each.value.compute.launch_templates != null ? [
+            for lt in each.value.compute.launch_templates : merge(
+              lt,
+              {
+                vpc_security_group_ids = concat(
+                  lt.account_security_group_keys != null ? [
+                    for sg_key in lt.account_security_group_keys : module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+                  ] : [],
+                  lt.vpc_security_group_ids != null ? lt.vpc_security_group_ids : []
+                ),
+                vpc_security_group_keys = lt.vpc_security_group_keys
+              }
+            )
+          ] : null
+        },
+        {
+          eks_node_groups = each.value.compute.eks_node_groups != null ? [
+            for ng in each.value.compute.eks_node_groups : merge(
+              ng,
+              {
+                node_role_arn = ng.node_role_key != null ? module.iam_roles[ng.node_role_key].iam_role_arn : ng.node_role_arn
+              },
+              {
+                subnet_ids = ng.subnet_keys != null ? flatten([
+                  for subnet_key in ng.subnet_keys :
+                  (each.value.use_private_subnets == true) ?
+                  module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                  module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                ]) : ng.subnet_ids
+              },
+              {
+                source_security_group_ids = ng.source_security_group_keys != null ? [
+                  for sg_key in ng.source_security_group_keys :
+                  module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+                ] : ng.source_security_group_ids
+              }
+            )
+          ] : null
+        }
+      )
     },
     {
-      eks_addons = each.value.eks_addons != null ? merge(
-        each.value.eks_addons,
-        (each.value.eks_addons.cloudwatch_observability_role_key != null || each.value.eks_addons.cloudwatch_observability_role_arn != null || (each.value.eks_addons.enable_fluent_bit && each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key]))) ?
+      ingress = merge(
+        each.value.ingress,
         {
-          fluent_bit_firehose_delivery_stream = (each.value.eks_addons.enable_fluent_bit && each.value.eks_addons.fluent_bit_firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key])) ? module.firehose_streams[each.value.eks_addons.fluent_bit_firehose_delivery_stream_key].firehose_delivery_stream_name : each.value.eks_addons.fluent_bit_firehose_delivery_stream
-        } : {},
-        {
-          argocd_ingress_security_group_keys = length(each.value.eks_addons.argocd_ingress_security_group_keys) > 0 ? tolist([]) : each.value.eks_addons.argocd_ingress_security_group_keys
-          argocd_ingress_annotations = length(each.value.eks_addons.argocd_ingress_security_group_keys) > 0 ? merge(
-            each.value.eks_addons.argocd_ingress_annotations,
-            {
-              "alb.ingress.kubernetes.io/security-groups" = join(",", [
-                for sg_key in each.value.eks_addons.argocd_ingress_security_group_keys :
-                module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
-              ])
-            }
-          ) : each.value.eks_addons.argocd_ingress_annotations
-        },
-        {
-          cert_manager = each.value.eks_addons.cert_manager != null ? merge(
-            each.value.eks_addons.cert_manager,
-            {
-              route53_role_key = each.value.create_service_accounts ? each.value.eks_addons.cert_manager.route53_role_key : null
-              route53_role_arn = each.value.eks_addons.cert_manager.route53_role_arn
-            }
-          ) : each.value.eks_addons.cert_manager
-        },
-        (each.value.eks_addons.grafana_ingress_security_group_key != null || each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null || each.value.eks_addons.grafana_ingress_hostname != null) && each.value.eks_addons.grafana_ingress_annotations != null ?
-        {
-          grafana_ingress_annotations = merge(
-            each.value.eks_addons.grafana_ingress_annotations,
-            each.value.eks_addons.grafana_ingress_security_group_key != null ? {
-              "alb.ingress.kubernetes.io/security-groups" = module.customer_vpc[each.value.vpc_name].security_group[each.value.eks_addons.grafana_ingress_security_group_key].id
-            } : {},
-            (each.value.eks_addons.grafana_ingress_certificate_key != null || each.value.eks_addons.grafana_ingress_certificate_arn != null) ? {
-              "alb.ingress.kubernetes.io/certificate-arn" = each.value.eks_addons.grafana_ingress_certificate_key != null ? module.certificates[each.value.eks_addons.grafana_ingress_certificate_key].arn : each.value.eks_addons.grafana_ingress_certificate_arn
-            } : {},
-            each.value.eks_addons.grafana_ingress_hostname != null ? {
-              "external-dns.alpha.kubernetes.io/hostname" = each.value.eks_addons.grafana_ingress_hostname
-            } : {}
-          )
-        } : {}
-        ,
-        (each.value.eks_addons.kubecost_ingress_security_group_key != null || each.value.eks_addons.kubecost_ingress_certificate_key != null || each.value.eks_addons.kubecost_ingress_certificate_arn != null || each.value.eks_addons.kubecost_ingress_hostname != null) && each.value.eks_addons.kubecost_ingress_annotations != null ?
-        {
-          kubecost_ingress_annotations = merge(
-            each.value.eks_addons.kubecost_ingress_annotations,
-            each.value.eks_addons.kubecost_ingress_security_group_key != null ? {
-              "alb.ingress.kubernetes.io/security-groups" = module.customer_vpc[each.value.vpc_name].security_group[each.value.eks_addons.kubecost_ingress_security_group_key].id
-            } : {},
-            (each.value.eks_addons.kubecost_ingress_certificate_key != null || each.value.eks_addons.kubecost_ingress_certificate_arn != null) ? {
-              "alb.ingress.kubernetes.io/certificate-arn" = each.value.eks_addons.kubecost_ingress_certificate_key != null ? module.certificates[each.value.eks_addons.kubecost_ingress_certificate_key].arn : each.value.eks_addons.kubecost_ingress_certificate_arn
-            } : {},
-            each.value.eks_addons.kubecost_ingress_hostname != null ? {
-              "external-dns.alpha.kubernetes.io/hostname" = each.value.eks_addons.kubecost_ingress_hostname
-            } : {}
-          )
-        } : {},
-        ((each.value.eks_addons.kubecost_ingress_hostname != null && length(each.value.eks_addons.kubecost_ingress_hosts) == 0) ? {
-          kubecost_ingress_hosts = [each.value.eks_addons.kubecost_ingress_hostname]
-        } : {})
-        ,
-        (each.value.eks_addons.enable_ingress && each.value.eks_addons.ingress != null) ? {
-          ingress = merge(
-            each.value.eks_addons.ingress,
-            {
-              nginx = each.value.eks_addons.ingress.nginx != null ? [
-                for nginx in each.value.eks_addons.ingress.nginx : merge(
-                  nginx,
-                  {
-                    name = startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}"
-                    release_name = nginx.release_name != null ? (
-                      startswith(nginx.release_name, "ingress-nginx-") ? nginx.release_name : "ingress-nginx-${nginx.release_name}"
-                    ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
-                    namespace = nginx.namespace != null ? (
-                      startswith(nginx.namespace, "ingress-nginx-") ? nginx.namespace : "ingress-nginx-${nginx.namespace}"
-                    ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
-                    ingress_class_name = nginx.ingress_class_name != null ? (
-                      startswith(nginx.ingress_class_name, "ingress-nginx-") ? nginx.ingress_class_name : "ingress-nginx-${nginx.ingress_class_name}"
-                    ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
-                    nlb_name = nginx.nlb_name != null ? (
-                      endswith(nginx.nlb_name, "-${var.common.region_prefix}-nlb") ? nginx.nlb_name : (
-                        length(nginx.nlb_name) > 0 ? "${trimsuffix(nginx.nlb_name, "-nlb")}-${var.common.region_prefix}-nlb" : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
-                      )
-                    ) : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
-                    subnet_ids = nginx.subnet_keys != null ? flatten([
-                      for subnet_key in nginx.subnet_keys :
-                      (each.value.use_private_subnets == true) ?
-                      module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                      module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-                    ]) : nginx.subnet_ids
-                    ssl_cert_arn = nginx.ssl_cert_arn != null ? nginx.ssl_cert_arn : (
-                      (
-                        contains([for port in try(nginx.ssl_ports, []) : lower(port)], "443") ||
-                        contains([for port in try(nginx.ssl_ports, []) : lower(port)], "https")
-                      ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
-                    )
-                  }
-                )
-              ] : null,
-              gateway_api = each.value.eks_addons.ingress.gateway_api != null ? merge(
-                each.value.eks_addons.ingress.gateway_api,
-                {
-                  subnet_ids = each.value.eks_addons.ingress.gateway_api.subnet_keys != null ? flatten([
-                    for subnet_key in each.value.eks_addons.ingress.gateway_api.subnet_keys :
-                    (each.value.use_private_subnets == true) ?
-                    module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-                    module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-                  ]) : each.value.eks_addons.ingress.gateway_api.subnet_ids
-                  ssl_cert_arn = each.value.eks_addons.ingress.gateway_api.ssl_cert_arn != null ? each.value.eks_addons.ingress.gateway_api.ssl_cert_arn : (
-                    (
-                      contains([for port in try(each.value.eks_addons.ingress.gateway_api.ssl_ports, []) : lower(port)], "443") ||
-                      contains([for port in try(each.value.eks_addons.ingress.gateway_api.ssl_ports, []) : lower(port)], "https")
-                    ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
+          nginx = each.value.ingress.nginx != null ? [
+            for nginx in each.value.ingress.nginx : merge(
+              nginx,
+              {
+                name = startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}"
+                release_name = nginx.release_name != null ? (
+                  startswith(nginx.release_name, "ingress-nginx-") ? nginx.release_name : "ingress-nginx-${nginx.release_name}"
+                ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                namespace = nginx.namespace != null ? (
+                  startswith(nginx.namespace, "ingress-nginx-") ? nginx.namespace : "ingress-nginx-${nginx.namespace}"
+                ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                ingress_class_name = nginx.ingress_class_name != null ? (
+                  startswith(nginx.ingress_class_name, "ingress-nginx-") ? nginx.ingress_class_name : "ingress-nginx-${nginx.ingress_class_name}"
+                ) : (startswith(nginx.name, "ingress-nginx-") ? nginx.name : "ingress-nginx-${nginx.name}")
+                nlb_name = nginx.nlb_name != null ? (
+                  endswith(nginx.nlb_name, "-${var.common.region_prefix}-nlb") ? nginx.nlb_name : (
+                    length(nginx.nlb_name) > 0 ? "${trimsuffix(nginx.nlb_name, "-nlb")}-${var.common.region_prefix}-nlb" : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
                   )
+                ) : "${replace(nginx.name, "ingress-nginx-", "")}-${var.common.region_prefix}-nlb"
+                subnet_ids = nginx.subnet_keys != null ? flatten([
+                  for subnet_key in nginx.subnet_keys :
+                  (each.value.use_private_subnets == true) ?
+                  module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                  module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+                ]) : nginx.subnet_ids
+                ssl_cert_arn = nginx.ssl_cert_arn != null ? nginx.ssl_cert_arn : (
+                  (
+                    contains([for port in try(nginx.ssl_ports, []) : lower(port)], "443") ||
+                    contains([for port in try(nginx.ssl_ports, []) : lower(port)], "https")
+                  ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
+                )
+              }
+            )
+          ] : null
+        },
+        {
+          gateway_api = each.value.ingress.gateway_api != null ? merge(
+            each.value.ingress.gateway_api,
+            {
+              subnet_ids = each.value.ingress.gateway_api.subnet_keys != null ? flatten([
+                for subnet_key in each.value.ingress.gateway_api.subnet_keys :
+                (each.value.use_private_subnets == true) ?
+                module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
+                module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
+              ]) : each.value.ingress.gateway_api.subnet_ids
+              ssl_cert_arn = each.value.ingress.gateway_api.ssl_cert_arn != null ? each.value.ingress.gateway_api.ssl_cert_arn : (
+                (
+                  contains([for port in try(each.value.ingress.gateway_api.ssl_ports, []) : lower(port)], "443") ||
+                  contains([for port in try(each.value.ingress.gateway_api.ssl_ports, []) : lower(port)], "https")
+                ) ? try(module.certificates[each.value.vpc_name].arn, null) : null
+              )
+            }
+          ) : null
+        },
+        {
+          argocd = merge(
+            each.value.ingress.argocd,
+            {
+              ingress_security_group_keys = length(each.value.ingress.argocd.ingress_security_group_keys) > 0 ? tolist([]) : each.value.ingress.argocd.ingress_security_group_keys
+              ingress_annotations = length(each.value.ingress.argocd.ingress_security_group_keys) > 0 ? merge(
+                each.value.ingress.argocd.ingress_annotations,
+                {
+                  "alb.ingress.kubernetes.io/security-groups" = join(",", [
+                    for sg_key in each.value.ingress.argocd.ingress_security_group_keys :
+                    module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
+                  ])
                 }
-              ) : null
+              ) : each.value.ingress.argocd.ingress_annotations
             }
           )
-        } : {}
-      ) : null
+        }
+      )
     },
     {
-      eks_node_groups = each.value.eks_node_groups != null ? [
-        for ng in each.value.eks_node_groups : merge(
-          ng,
-          {
-            node_role_arn = ng.node_role_key != null ? module.iam_roles[ng.node_role_key].iam_role_arn : ng.node_role_arn
-          },
-          {
-            subnet_ids = ng.subnet_keys != null ? flatten([
-              for subnet_key in ng.subnet_keys :
-              (each.value.use_private_subnets == true) ?
-              module.customer_vpc[each.value.vpc_name].private_subnet[subnet_key].subnet_ids :
-              module.customer_vpc[each.value.vpc_name].public_subnet[subnet_key].subnet_ids
-            ]) : ng.subnet_ids
-          },
-          {
-            source_security_group_ids = ng.source_security_group_keys != null ? [
-              for sg_key in ng.source_security_group_keys :
-              module.customer_vpc[each.value.vpc_name].security_group[sg_key].id
-            ] : ng.source_security_group_ids
-          }
-        )
-      ] : null
+      addons = merge(
+        each.value.addons,
+        {
+          fluent_bit = merge(
+            each.value.addons.fluent_bit,
+            {
+              firehose_delivery_stream = (each.value.addons.fluent_bit.enabled && each.value.addons.fluent_bit.firehose_delivery_stream_key != null && can(module.firehose_streams[each.value.addons.fluent_bit.firehose_delivery_stream_key])) ? module.firehose_streams[each.value.addons.fluent_bit.firehose_delivery_stream_key].firehose_delivery_stream_name : each.value.addons.fluent_bit.firehose_delivery_stream
+            }
+          )
+        },
+        {
+          cert_manager = merge(
+            each.value.addons.cert_manager,
+            {
+              route53_role_key = each.value.create_service_accounts ? each.value.addons.cert_manager.route53_role_key : null
+              route53_role_arn = each.value.addons.cert_manager.route53_role_arn
+            }
+          )
+        },
+        {
+          kube_prometheus_stack = merge(
+            each.value.addons.kube_prometheus_stack,
+            (each.value.addons.kube_prometheus_stack.grafana_ingress_security_group_key != null || each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_key != null || each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_arn != null || each.value.addons.kube_prometheus_stack.grafana_ingress_hostname != null) && each.value.addons.kube_prometheus_stack.grafana_ingress_annotations != null ?
+            {
+              grafana_ingress_annotations = merge(
+                each.value.addons.kube_prometheus_stack.grafana_ingress_annotations,
+                each.value.addons.kube_prometheus_stack.grafana_ingress_security_group_key != null ? {
+                  "alb.ingress.kubernetes.io/security-groups" = module.customer_vpc[each.value.vpc_name].security_group[each.value.addons.kube_prometheus_stack.grafana_ingress_security_group_key].id
+                } : {},
+                (each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_key != null || each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_arn != null) ? {
+                  "alb.ingress.kubernetes.io/certificate-arn" = each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_key != null ? module.certificates[each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_key].arn : each.value.addons.kube_prometheus_stack.grafana_ingress_certificate_arn
+                } : {},
+                each.value.addons.kube_prometheus_stack.grafana_ingress_hostname != null ? {
+                  "external-dns.alpha.kubernetes.io/hostname" = each.value.addons.kube_prometheus_stack.grafana_ingress_hostname
+                } : {}
+              )
+            } : {}
+          )
+        },
+        {
+          kubecost = merge(
+            each.value.addons.kubecost,
+            (each.value.addons.kubecost.ingress_security_group_key != null || each.value.addons.kubecost.ingress_certificate_key != null || each.value.addons.kubecost.ingress_certificate_arn != null || each.value.addons.kubecost.ingress_hostname != null) && each.value.addons.kubecost.ingress_annotations != null ?
+            {
+              ingress_annotations = merge(
+                each.value.addons.kubecost.ingress_annotations,
+                each.value.addons.kubecost.ingress_security_group_key != null ? {
+                  "alb.ingress.kubernetes.io/security-groups" = module.customer_vpc[each.value.vpc_name].security_group[each.value.addons.kubecost.ingress_security_group_key].id
+                } : {},
+                (each.value.addons.kubecost.ingress_certificate_key != null || each.value.addons.kubecost.ingress_certificate_arn != null) ? {
+                  "alb.ingress.kubernetes.io/certificate-arn" = each.value.addons.kubecost.ingress_certificate_key != null ? module.certificates[each.value.addons.kubecost.ingress_certificate_key].arn : each.value.addons.kubecost.ingress_certificate_arn
+                } : {},
+                each.value.addons.kubecost.ingress_hostname != null ? {
+                  "external-dns.alpha.kubernetes.io/hostname" = each.value.addons.kubecost.ingress_hostname
+                } : {}
+              )
+            } : {},
+            (each.value.addons.kubecost.ingress_hostname != null && length(each.value.addons.kubecost.ingress_hosts) == 0) ? {
+              ingress_hosts = [each.value.addons.kubecost.ingress_hostname]
+            } : {}
+          )
+        },
+        {
+          awx_operator = merge(
+            {
+              release_name         = "awx-operator"
+              namespace            = "awx"
+              service_account_name = "awx-operator-controller-manager"
+              create_instance      = true
+              instance_name        = "awx"
+              service_type         = "ClusterIP"
+              ingress_enabled      = true
+              ingress_class_name   = "alb"
+            },
+            each.value.addons.awx_operator,
+            (each.value.addons.awx_operator.ingress_security_group_key != null || each.value.addons.awx_operator.ingress_certificate_key != null || each.value.addons.awx_operator.ingress_certificate_arn != null) ?
+            {
+              ingress_annotations = merge(
+                each.value.addons.awx_operator.ingress_annotations,
+                each.value.addons.awx_operator.ingress_security_group_key != null ? {
+                  "alb.ingress.kubernetes.io/security-groups" = module.customer_vpc[each.value.vpc_name].security_group[each.value.addons.awx_operator.ingress_security_group_key].id
+                } : {},
+                (each.value.addons.awx_operator.ingress_certificate_key != null || each.value.addons.awx_operator.ingress_certificate_arn != null) ? {
+                  "alb.ingress.kubernetes.io/certificate-arn" = each.value.addons.awx_operator.ingress_certificate_key != null ? module.certificates[each.value.addons.awx_operator.ingress_certificate_key].arn : each.value.addons.awx_operator.ingress_certificate_arn
+                } : {}
+              )
+            } : {}
+          )
+        }
+      )
     }
   )
 }
