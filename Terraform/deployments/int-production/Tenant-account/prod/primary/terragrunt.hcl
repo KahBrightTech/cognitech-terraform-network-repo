@@ -1175,7 +1175,7 @@ inputs = {
           nodepool_manifest_file  = "${get_terragrunt_dir()}/../../../../iam_policies/karpenter/prod_nodepool.yaml"
         }
         cluster_autoscaler = {
-          enabled  = true
+          enabled  = false
           role_key = "${include.env.locals.eks_cluster_keys.primary_cluster}-cluster-autoscaler"
         }
       }
