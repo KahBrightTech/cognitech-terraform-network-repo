@@ -1838,6 +1838,10 @@ inputs = {
           ingress_hostname           = "awx.${local.vpc_name_abr}.${include.env.locals.public_domain}"
           ingress_security_group_key = "alb"
           ingress_certificate_key    = "${local.vpc_name_abr}"
+          # The cluster has no default StorageClass, so postgres must be told which to use.
+          spec = {
+            postgres_storage_class = "gp3"
+          }
         }
         kube_prometheus_stack = {
           enabled                              = local.enable_kube_prometheus_stack
