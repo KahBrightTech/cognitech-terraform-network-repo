@@ -832,17 +832,6 @@ module "eks" {
         },
         {
           awx_operator = merge(
-            {
-              release_name                  = "awx-operator"
-              namespace                     = "awx"
-              service_account_name          = "awx-operator-controller-manager"
-              instance_service_account_name = "awx"
-              create_instance               = true
-              instance_name                 = "awx"
-              service_type                  = "ClusterIP"
-              ingress_enabled               = true
-              ingress_class_name            = "alb"
-            },
             each.value.addons.awx_operator,
             (each.value.addons.awx_operator.ingress_security_group_key != null || each.value.addons.awx_operator.ingress_certificate_key != null || each.value.addons.awx_operator.ingress_certificate_arn != null) ?
             {

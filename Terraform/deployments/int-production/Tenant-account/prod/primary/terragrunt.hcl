@@ -1831,6 +1831,7 @@ inputs = {
         awx_operator = {
           enabled                    = local.enable_awx_operator
           role_key                   = "${include.env.locals.eks_cluster_keys.primary_cluster}-awx-operator"
+          create_instance            = true
           ingress_enabled            = true
           ingress_class_name         = "alb"
           ingress_annotations        = yamldecode(file("${include.cloud.locals.repo.root}/iam_policies/awx_ingress_annotation.yaml"))
