@@ -59,7 +59,7 @@ locals {
   create_postgres_rds = false
   create_mysql_rds    = false
   vpn_ip              = "69.143.134.56/32"
-  create_cognito      = false
+  create_cognito      = true
   # Composite variables 
   tags = merge(
     include.env.locals.tags,
@@ -1153,7 +1153,7 @@ inputs = {
             ]
             desired_size        = 2
             max_size            = 4
-            min_size            = 1
+            min_size            = 2
             launch_template_key = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
             labels = {
               "workload-type" = "system"
@@ -1504,7 +1504,7 @@ inputs = {
         {
           key                       = "awx-ec2-inventory"
           service_account_namespace = "awx"
-          service_account_name      = "awx" # Verify this matches the ServiceAccount the AWX operator actually creates for the app pods (defaults to the AWX CR/instance name) after first deploy.
+          service_account_name      = "awx"
           role_key                  = "${include.env.locals.eks_cluster_keys.primary_cluster}-awx-ec2-inventory"
         },
       ]

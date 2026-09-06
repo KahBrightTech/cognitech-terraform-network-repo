@@ -585,7 +585,7 @@ module "waf" {
 # Creates EKS and supporting resources
 #--------------------------------------------------------------------
 module "eks" {
-  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.7.10"
+  source   = "git::https://github.com/njibrigthain100/Cognitech-terraform-iac-modules.git//terraform/modules/Deploy-eks?ref=v1.7.12"
   for_each = (var.eks != null) ? { for item in var.eks : item.create_eks_cluster ? item.key : null => item if item.create_eks_cluster } : {}
   common   = var.common
   eks = merge(
@@ -833,14 +833,15 @@ module "eks" {
         {
           awx_operator = merge(
             {
-              release_name         = "awx-operator"
-              namespace            = "awx"
-              service_account_name = "awx-operator-controller-manager"
-              create_instance      = true
-              instance_name        = "awx"
-              service_type         = "ClusterIP"
-              ingress_enabled      = true
-              ingress_class_name   = "alb"
+              release_name                  = "awx-operator"
+              namespace                     = "awx"
+              service_account_name          = "awx-operator-controller-manager"
+              instance_service_account_name = "awx"
+              create_instance               = true
+              instance_name                 = "awx"
+              service_type                  = "ClusterIP"
+              ingress_enabled               = true
+              ingress_class_name            = "alb"
             },
             each.value.addons.awx_operator,
             (each.value.addons.awx_operator.ingress_security_group_key != null || each.value.addons.awx_operator.ingress_certificate_key != null || each.value.addons.awx_operator.ingress_certificate_arn != null) ?
