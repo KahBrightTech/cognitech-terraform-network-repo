@@ -1567,7 +1567,7 @@ inputs = {
           ]
           desired_size        = 2
           max_size            = 4
-          min_size            = 1
+          min_size            = 2
           launch_template_key = "${local.vpc_name_abr}-${include.env.locals.eks_cluster_keys.primary_cluster}"
           labels = {
             "workload-type" = "system"
