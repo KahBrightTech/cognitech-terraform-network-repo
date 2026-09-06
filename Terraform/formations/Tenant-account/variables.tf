@@ -1464,7 +1464,13 @@ variable "eks" {
         ingress_certificate_arn       = optional(string)
         postgres_storage_class        = optional(string)
         postgres_configuration_secret = optional(string)
-        spec                          = optional(any, {})
+        # Key of an rds_instances entry; its Secrets Manager credentials are rendered
+        # into the Kubernetes Secret AWX uses for an external database.
+        postgres_rds_key                = optional(string)
+        postgres_credentials_secret_arn = optional(string)
+        postgres_database               = optional(string)
+        postgres_sslmode                = optional(string)
+        spec                            = optional(any, {})
       }), {})
     }), {})
     security_groups = optional(list(object({

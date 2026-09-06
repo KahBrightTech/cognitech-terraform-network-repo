@@ -833,6 +833,9 @@ module "eks" {
         {
           awx_operator = merge(
             each.value.addons.awx_operator,
+            each.value.addons.awx_operator.postgres_rds_key != null ? {
+              postgres_credentials_secret_arn = module.rds[each.value.addons.awx_operator.postgres_rds_key].secret_arn
+            } : {},
             (each.value.addons.awx_operator.ingress_security_group_key != null || each.value.addons.awx_operator.ingress_certificate_key != null || each.value.addons.awx_operator.ingress_certificate_arn != null) ?
             {
               ingress_annotations = merge(
