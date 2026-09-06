@@ -1870,7 +1870,6 @@ inputs = {
       }
     }
   ]
-
   firehose_streams = [
     {
       create_firehose = local.create_firehose
