@@ -1,1 +1,2 @@
 service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+service.beta.kubernetes.io/aws-load-balancer-backend-protocol: ssl

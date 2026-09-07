@@ -36,7 +36,7 @@ locals {
   vpc_name     = "production"
   vpc_name_abr = "prod"
   ## eks related variables
-  create_eks_cluster      = true
+  create_eks_cluster      = false
   create_node_group       = false
   create_service_accounts = false
   enable_eks_pia          = false
