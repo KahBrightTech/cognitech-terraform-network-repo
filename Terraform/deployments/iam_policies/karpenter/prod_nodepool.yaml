@@ -51,7 +51,6 @@ spec:
         values: [ "amd64" ]
       - key: topology.kubernetes.io/zone
         operator: Exists
-        minValues: 3
   limits:
     cpu: "1000"
   disruption:
