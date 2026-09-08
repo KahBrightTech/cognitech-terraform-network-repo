@@ -1778,8 +1778,7 @@ inputs = {
           ingress_security_group_keys = ["alb"]
           ingress_annotations_file    = "${include.cloud.locals.repo.root}/iam_policies/argocd_ingress_annotation.yaml"
           sso = {
-            enabled = local.enable_argocd
-
+            enabled               = local.enable_argocd
             sso_url               = "https://portal.sso.${local.region}.amazonaws.com/saml/assertion/NDg1MTQ3NjY3NDAwX2lucy03MjIzN2YxZWM0ODk1NGY2"
             sso_issuer            = "https://portal.sso.${local.region}.amazonaws.com/saml/assertion/NDg1MTQ3NjY3NDAwX2lucy03MjIzN2YxZWM0ODk1NGY2"
             ca_pem                = file("${include.cloud.locals.repo.root}/iam_policies/identity-center-signing-cert.pem")
