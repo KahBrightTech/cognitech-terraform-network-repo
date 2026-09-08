@@ -157,6 +157,7 @@ Branch tracking rules:
 - Report the branch name to the user after branch creation.
 - If a pull request is created, include the branch name and PR link or identifier in subsequent updates.
 - Record the branch workflow run identifier after the push-triggered `plan` starts and use that exact run for later status checks.
+- After merge, record the `main` workflow run identifier triggered by the merge commit and use that exact run for post-merge status checks.
 - Do not edit the target `terragrunt.hcl` until the branch has been created successfully.
 
 ## Deployment execution
@@ -168,20 +169,24 @@ After the Terragrunt file changes are validated, continue through the deployment
 3. Push the branch and confirm the branch `plan` workflow run starts.
 4. Open or update the pull request for review and merge tracking.
 5. If this repo applies only from `main`, merge only after the tracked branch `plan` run reaches `status = completed` and `conclusion = success`.
-6. After merge, monitor the `main` plan run triggered by the merge commit.
-7. Trigger `apply` only from `main`, preferably with GitHub CLI when available.
+6. After merge, locate and monitor the `main` plan run triggered by the merge commit.
+7. When that tracked `main` run reaches `status = completed` and `conclusion = success`, dispatch `apply` automatically from `main` without waiting for another user instruction.
 8. Keep monitoring workflow progress until the apply stage succeeds or fails.
 
 Apply rules:
 - Do not stop after `plan` if the user asked for full cluster creation.
 - In this repo, branch pushes trigger `plan`, but `apply` is limited to `workflow_dispatch` on `main`.
 - Do not assume the PR itself triggers plan; verify the push-triggered workflow run for the branch.
+- Once workflow tracking begins, continue polling the tracked branch run and then the tracked `main` run until each reaches a terminal state; do not stop on an interim status snapshot or wait for a new user prompt just to continue monitoring.
 - Treat a branch run in `queued`, `in_progress`, or `requested` state as not ready to merge.
 - Treat a branch run with `status = completed` and any non-success conclusion as a blocker that must be investigated before merge.
 - Unless the user explicitly asks to stop after file preparation or after plan, continue automatically from branch tracking to merge readiness evaluation, then to `main` plan monitoring, then to `main` apply dispatch.
+- Treat a `main` run in `queued`, `in_progress`, or `requested` state as not ready for apply dispatch yet.
+- Treat a `main` run with `status = completed` and any non-success conclusion as a blocker that must be investigated before apply dispatch.
 - Do not require an explicit reviewer count unless branch protection or repo policy actually blocks the merge.
 - After the branch plan succeeds, merge to `main`, allow a short review window when the user wants one, then monitor the new `main` plan run.
-- If GitHub CLI is available, trigger apply with the repo's normal workflow path, for example `gh workflow run deploy-primary-int-production-prod.yaml --ref main -f terragrunt_action=apply`.
+- If GitHub CLI is available, trigger apply with the repo's normal workflow path, for example `gh workflow run deploy-primary-int-production-prod.yaml --ref main -f terragrunt_action=apply`, immediately after the tracked `main` plan succeeds.
+- If GitHub CLI or another dispatch path is unavailable, treat that as a concrete blocker and report it immediately rather than silently stopping after the `main` plan.
 - Keep checking branch, PR, and workflow state until a terminal success or failure state is reached, and report the current branch, PR identifier, workflow run identifier, and whether the run is waiting on approval, running, succeeded, or failed.
 
 For `delete` mode, use the same branch, PR, plan, approval, and apply flow, but treat success as confirmed destruction of the EKS-managed resources represented by these locals.
