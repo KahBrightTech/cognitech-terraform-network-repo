@@ -1776,6 +1776,18 @@ inputs = {
           ingress_target_type         = "ip"
           ingress_security_group_keys = ["alb"]
           ingress_annotations_file    = "${include.cloud.locals.repo.root}/iam_policies/argocd_ingress_annotation.yaml"
+          sso = {
+            enabled = local.enable_argocd
+
+            sso_url               = "https://portal.sso.${local.region}.amazonaws.com/saml/assertion/NDg1MTQ3NjY3NDAwX2lucy03MjIzN2YxZWM0ODk1NGY2"
+            sso_issuer            = "https://portal.sso.${local.region}.amazonaws.com/saml/assertion/NDg1MTQ3NjY3NDAwX2lucy03MjIzN2YxZWM0ODk1NGY2"
+            ca_pem                = file("${include.cloud.locals.repo.root}/iam_policies/identity-center-signing-cert.pem")
+            username_attr         = "email"
+            email_attr            = "email"
+            name_id_policy_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+            rbac_default_policy   = ""
+            rbac_policies_file    = "${include.cloud.locals.repo.root}/iam_policies/argocd_rbac_policy.csv"
+          }
         }
       }
       addons = {

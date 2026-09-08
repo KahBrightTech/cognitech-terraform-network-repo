@@ -752,6 +752,9 @@ module "eks" {
           argocd = merge(
             each.value.ingress.argocd,
             {
+              certificate_arn = each.value.ingress.argocd.certificate_arn != null ? each.value.ingress.argocd.certificate_arn : (
+                each.value.ingress.argocd.ingress_enabled ? try(module.certificates[each.value.vpc_name].arn, null) : null
+              )
               ingress_security_group_keys = length(each.value.ingress.argocd.ingress_security_group_keys) > 0 ? tolist([]) : each.value.ingress.argocd.ingress_security_group_keys
               ingress_annotations = length(each.value.ingress.argocd.ingress_security_group_keys) > 0 ? merge(
                 each.value.ingress.argocd.ingress_annotations,
